@@ -1,0 +1,593 @@
+/**
+ * RMBL Publications Scraper & Normalizer
+ *
+ * 1. Pulls all publications from the RMBL REST API
+ * 2. Parses author strings into structured {given, family} objects
+ * 3. Enriches DOIs and abstracts via CrossRef API
+ * 4. Discovers open-access PDFs via Unpaywall API
+ * 5. Normalizes to Payload Publications schema
+ *
+ * Usage:
+ *   npx tsx scripts/scrape-publications.ts [--skip-crossref] [--skip-unpaywall]
+ *
+ * Outputs:
+ *   scripts/output/publications-raw.json      — raw API data
+ *   scripts/output/publications-normalized.json — Payload-ready records
+ */
+
+import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'fs'
+
+const API_BASE = 'https://www.rmbl.org/wp-json/rmbl-pubs/v1/library'
+const CROSSREF_API = 'https://api.crossref.org/works'
+const CROSSREF_MAILTO = 'knowledgehub@rmbl.org' // polite pool
+const BATCH_SIZE = 200
+const CROSSREF_CONCURRENCY = 3
+const CROSSREF_DELAY_MS = 350 // ~3 req/s to stay in polite pool
+const OUTPUT_DIR = new URL('./output', import.meta.url).pathname
+
+const skipCrossref = process.argv.includes('--skip-crossref')
+const skipUnpaywall = process.argv.includes('--skip-unpaywall')
+
+const UNPAYWALL_API = 'https://api.unpaywall.org/v2'
+const UNPAYWALL_EMAIL = 'knowledgehub@rmbl.org'
+const UNPAYWALL_CONCURRENCY = 3
+const UNPAYWALL_DELAY_MS = 200
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+interface RawPublication {
+  id: string
+  reftypeId: string
+  reftypename: string
+  year: string
+  title: string
+  volume: string | null
+  edition: string | null
+  publisherId: string | null
+  publishername: string | null
+  publishercity_state: string | null
+  pages: string | null
+  restofreference: string | null
+  journalname: string | null
+  journalissue: string | null
+  catalognumber: string | null
+  donatedby: string | null
+  chaptertitle: string | null
+  bookeditors: string | null
+  degree: string | null
+  institution: string | null
+  keywords: string | null
+  comments: string | null
+  bn_url: string | null
+  abstract_url: string | null
+  fulltext_url: string | null
+  pdf_url: string | null
+  copyinlibrary: string | null
+  RMBL: string | null
+  pending: string | null
+  email: string | null
+  student: string | null
+  authors: string | null
+  authorIds: string | null
+  tagIds: string | null
+}
+
+interface ParsedAuthor {
+  given: string
+  family: string
+}
+
+interface NormalizedPublication {
+  _sourceId: string
+  title: string
+  authors: ParsedAuthor[]
+  year: number
+  publicationType: string
+  journal: string | null
+  volume: string | null
+  issue: string | null
+  pages: string | null
+  doi: string | null
+  publisher: string | null
+  abstract: string | null
+  keywords: { keyword: string }[]
+  pdfLink: string | null
+  externalUrl: string | null
+  editors: ParsedAuthor[]
+  _chaptertitle: string | null
+  _degree: string | null
+  _institution: string | null
+  _crossrefEnriched: boolean
+  _unpaywallEnriched: boolean
+  _oaStatus: string | null
+}
+
+// ---------------------------------------------------------------------------
+// Author parsing
+// ---------------------------------------------------------------------------
+
+// Prefixes that are part of the surname (lowercase in the source)
+const SURNAME_PREFIXES = new Set(['de', 'van', 'von', 'del', 'di', 'la', 'le', 'dos', 'das', 'el'])
+
+function parseAuthors(authorStr: string): ParsedAuthor[] {
+  if (!authorStr) return []
+
+  // Remove "et al" suffix
+  let cleaned = authorStr.replace(/,?\s*et al\.?\s*$/i, '').trim()
+
+  // Split on commas
+  const parts = cleaned.split(',').map((p) => p.trim()).filter(Boolean)
+
+  return parts.map(parseOneAuthor)
+}
+
+function parseOneAuthor(raw: string): ParsedAuthor {
+  // Remove student marker asterisks
+  const cleaned = raw.replace(/\*/g, '').trim()
+
+  // Split into tokens
+  const tokens = cleaned.split(/\s+/)
+
+  if (tokens.length === 1) {
+    return { given: '', family: tokens[0] }
+  }
+
+  // The last token is typically initials (all uppercase, 1-4 chars)
+  // Everything before that is the family name
+  const lastToken = tokens[tokens.length - 1]
+  const isInitials = /^[A-Z]{1,5}$/.test(lastToken)
+
+  if (isInitials) {
+    const family = tokens.slice(0, -1).join(' ')
+    // Expand initials: "RWH" → "R. W. H."
+    const given = lastToken.split('').join('. ') + '.'
+    return { given, family }
+  }
+
+  // Fallback: if last token doesn't look like initials,
+  // treat first token as given name, rest as family
+  return {
+    given: tokens[0],
+    family: tokens.slice(1).join(' '),
+  }
+}
+
+function parseEditors(editorStr: string | null): ParsedAuthor[] {
+  if (!editorStr) return []
+  // Editors are stored similarly: "J. E. Moran" or "Smith J, Doe A"
+  // Try comma-separated first
+  const parts = editorStr.split(/,\s*(?:and\s+)?|;\s*|\s+and\s+/).filter(Boolean)
+  return parts.map((p) => {
+    const tokens = p.trim().split(/\s+/)
+    if (tokens.length === 1) return { given: '', family: tokens[0] }
+    // If first token looks like initials (e.g., "J." or "J"), treat as given
+    if (/^[A-Z]\.?$/.test(tokens[0]) || /^[A-Z]\.\s*[A-Z]\.?$/.test(tokens.slice(0, 2).join(' '))) {
+      // "J. E. Moran" → given: "J. E.", family: "Moran"
+      const initialsEnd = tokens.findIndex((t, i) => i > 0 && !/^[A-Z]\.?$/.test(t))
+      if (initialsEnd > 0) {
+        return {
+          given: tokens.slice(0, initialsEnd).join(' '),
+          family: tokens.slice(initialsEnd).join(' '),
+        }
+      }
+    }
+    // "Moran JE" pattern
+    return parseOneAuthor(p.trim())
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Type mapping
+// ---------------------------------------------------------------------------
+
+const TYPE_MAP: Record<string, string> = {
+  ARTICLE: 'article',
+  THESIS: 'thesis',
+  BOOK: 'book',
+  CHAPTER: 'chapter',
+  STUDENTPAPER: 'student_paper',
+  OTHER: 'other',
+}
+
+// ---------------------------------------------------------------------------
+// DOI extraction
+// ---------------------------------------------------------------------------
+
+function extractDoi(restofreference: string | null): string | null {
+  if (!restofreference) return null
+  // Match doi.org URLs
+  const doiUrlMatch = restofreference.match(/doi\.org\/(10\.\S+)/i)
+  if (doiUrlMatch) return doiUrlMatch[1].replace(/[.,;)\s]+$/, '')
+  // Match bare DOI patterns
+  const bareDoiMatch = restofreference.match(/(10\.\d{4,}\/\S+)/i)
+  if (bareDoiMatch) return bareDoiMatch[1].replace(/[.,;)\s]+$/, '')
+  return null
+}
+
+// ---------------------------------------------------------------------------
+// CrossRef enrichment
+// ---------------------------------------------------------------------------
+
+async function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms))
+}
+
+interface CrossRefResult {
+  doi: string | null
+  abstract: string | null
+}
+
+async function queryCrossRef(
+  title: string,
+  firstAuthorFamily: string,
+  year: string,
+): Promise<CrossRefResult> {
+  try {
+    const query = encodeURIComponent(title)
+    const url = `${CROSSREF_API}?query.title=${query}&query.author=${encodeURIComponent(firstAuthorFamily)}&filter=from-pub-date:${year},until-pub-date:${year}&rows=3&select=DOI,title,abstract,author&mailto=${CROSSREF_MAILTO}`
+
+    const res = await fetch(url)
+    if (!res.ok) return { doi: null, abstract: null }
+
+    const data = await res.json()
+    const items = data?.message?.items
+    if (!items || items.length === 0) return { doi: null, abstract: null }
+
+    // Find the best match by comparing title similarity
+    for (const item of items) {
+      const crTitle = Array.isArray(item.title) ? item.title[0] : item.title
+      if (!crTitle) continue
+
+      const similarity = titleSimilarity(title, crTitle)
+      if (similarity > 0.85) {
+        let abstract = item.abstract || null
+        // Clean up JATS XML tags from abstract
+        if (abstract) {
+          abstract = abstract.replace(/<[^>]+>/g, '').trim()
+        }
+        return { doi: item.DOI, abstract }
+      }
+    }
+
+    return { doi: null, abstract: null }
+  } catch {
+    return { doi: null, abstract: null }
+  }
+}
+
+function titleSimilarity(a: string, b: string): number {
+  const normalize = (s: string) =>
+    s.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim()
+  const na = normalize(a)
+  const nb = normalize(b)
+  if (na === nb) return 1
+
+  // Jaccard similarity on words
+  const wordsA = new Set(na.split(' '))
+  const wordsB = new Set(nb.split(' '))
+  const intersection = new Set([...wordsA].filter((w) => wordsB.has(w)))
+  const union = new Set([...wordsA, ...wordsB])
+  return intersection.size / union.size
+}
+
+// ---------------------------------------------------------------------------
+// Unpaywall enrichment
+// ---------------------------------------------------------------------------
+
+interface UnpaywallResult {
+  pdfUrl: string | null
+  oaStatus: string | null
+}
+
+async function queryUnpaywall(doi: string): Promise<UnpaywallResult> {
+  try {
+    const url = `${UNPAYWALL_API}/${encodeURIComponent(doi)}?email=${UNPAYWALL_EMAIL}`
+    const res = await fetch(url)
+    if (!res.ok) return { pdfUrl: null, oaStatus: null }
+
+    const data = await res.json()
+    const oaStatus = data.oa_status || null
+
+    // Look for a PDF URL in best_oa_location first, then oa_locations
+    const bestPdf = data.best_oa_location?.url_for_pdf || null
+    if (bestPdf) return { pdfUrl: bestPdf, oaStatus }
+
+    // Fall back to any OA location with a PDF
+    if (Array.isArray(data.oa_locations)) {
+      for (const loc of data.oa_locations) {
+        if (loc.url_for_pdf) return { pdfUrl: loc.url_for_pdf, oaStatus }
+      }
+    }
+
+    return { pdfUrl: null, oaStatus }
+  } catch {
+    return { pdfUrl: null, oaStatus: null }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Concurrency helper
+// ---------------------------------------------------------------------------
+
+async function runConcurrent<T>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T, index: number) => Promise<void>,
+  label: string,
+): Promise<void> {
+  let completed = 0
+  const total = items.length
+
+  async function worker(queue: { item: T; index: number }[]) {
+    while (queue.length > 0) {
+      const { item, index } = queue.shift()!
+      await fn(item, index)
+      completed++
+      if (completed % 25 === 0 || completed === total) {
+        process.stdout.write(`\r  ${label}: ${completed}/${total}`)
+      }
+    }
+  }
+
+  const queue = items.map((item, index) => ({ item, index }))
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, items.length) }, () => worker(queue)),
+  )
+  console.log()
+}
+
+// ---------------------------------------------------------------------------
+// Normalization
+// ---------------------------------------------------------------------------
+
+function normalizePublication(raw: RawPublication): NormalizedPublication {
+  const doi = extractDoi(raw.restofreference)
+  const authors = parseAuthors(raw.authors || '')
+  const editors = parseEditors(raw.bookeditors)
+  const year = parseInt(raw.year) || 0
+
+  // Parse keywords: stored as semicolon or comma separated
+  const keywords: { keyword: string }[] = []
+  if (raw.keywords) {
+    const kws = raw.keywords.split(/[;,]/).map((k) => k.trim()).filter(Boolean)
+    for (const kw of kws) {
+      keywords.push({ keyword: kw })
+    }
+  }
+
+  // Determine external URL
+  let externalUrl: string | null = null
+  if (raw.restofreference && !raw.restofreference.includes('doi.org')) {
+    externalUrl = raw.restofreference
+  } else if (raw.bn_url) {
+    externalUrl = raw.bn_url
+  } else if (raw.fulltext_url) {
+    externalUrl = raw.fulltext_url
+  } else if (doi) {
+    externalUrl = `https://doi.org/${doi}`
+  }
+
+  return {
+    _sourceId: raw.id,
+    title: raw.title?.trim() || '',
+    authors,
+    year,
+    publicationType: TYPE_MAP[raw.reftypename] || 'other',
+    journal: raw.journalname || null,
+    volume: raw.volume || null,
+    issue: raw.journalissue || null,
+    pages: raw.pages || null,
+    doi,
+    publisher: raw.publishername || null,
+    abstract: null, // will be enriched via CrossRef
+    keywords,
+    pdfLink: raw.pdf_url || null,
+    externalUrl,
+    editors,
+    _chaptertitle: raw.chaptertitle || null,
+    _degree: raw.degree || null,
+    _institution: raw.institution || null,
+    _crossrefEnriched: false,
+    _unpaywallEnriched: false,
+    _oaStatus: null,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+
+async function main() {
+  mkdirSync(OUTPUT_DIR, { recursive: true })
+  const rawPath = `${OUTPUT_DIR}/publications-raw.json`
+  const outputPath = `${OUTPUT_DIR}/publications-normalized.json`
+
+  // Step 1: Fetch all records
+  console.log('Step 1: Fetching publications from RMBL API...')
+  let allRaw: RawPublication[] = []
+
+  if (existsSync(rawPath)) {
+    console.log(`  Found cached ${rawPath}, loading...`)
+    allRaw = JSON.parse(readFileSync(rawPath, 'utf-8'))
+  } else {
+    let total = Infinity
+    for (let skip = 0; skip < total; skip += BATCH_SIZE) {
+      const res = await fetch(`${API_BASE}?take=${BATCH_SIZE}&skip=${skip}`)
+      const data = await res.json()
+      total = parseInt(data.total)
+      allRaw.push(...data.data)
+      process.stdout.write(`\r  Fetched ${allRaw.length}/${total}`)
+    }
+    console.log()
+    writeFileSync(rawPath, JSON.stringify(allRaw, null, 2))
+    console.log(`  Saved ${allRaw.length} raw records to ${rawPath}`)
+  }
+
+  // Step 2: Normalize all records (parse authors, extract DOIs, map types)
+  console.log('\nStep 2: Normalizing records...')
+  const normalized = allRaw.map(normalizePublication)
+
+  const preCrossrefDois = normalized.filter((p) => p.doi).length
+  console.log(`  ${normalized.length} records normalized`)
+  console.log(`  ${preCrossrefDois} already have DOIs from source data`)
+
+  // Step 3: CrossRef enrichment
+  if (!skipCrossref) {
+    // Only enrich articles and chapters (books/theses/student papers unlikely to match)
+    const enrichable = normalized.filter(
+      (p) =>
+        !p.doi &&
+        (p.publicationType === 'article' || p.publicationType === 'chapter') &&
+        p.title &&
+        p.authors.length > 0,
+    )
+    console.log(`\nStep 3: CrossRef enrichment for ${enrichable.length} publications without DOIs...`)
+    console.log(`  (skipping theses, student papers, and records with no authors)`)
+
+    let found = 0
+    let abstracts = 0
+
+    await runConcurrent(
+      enrichable,
+      CROSSREF_CONCURRENCY,
+      async (pub) => {
+        const result = await queryCrossRef(
+          pub.title,
+          pub.authors[0]?.family || '',
+          String(pub.year),
+        )
+        if (result.doi) {
+          pub.doi = result.doi
+          pub._crossrefEnriched = true
+          pub.externalUrl = pub.externalUrl || `https://doi.org/${result.doi}`
+          found++
+        }
+        if (result.abstract) {
+          pub.abstract = result.abstract
+          abstracts++
+        }
+        await sleep(CROSSREF_DELAY_MS)
+      },
+      'CrossRef lookup',
+    )
+
+    console.log(`  Found ${found} new DOIs via CrossRef`)
+    console.log(`  Found ${abstracts} abstracts`)
+  } else {
+    console.log('\nStep 3: Skipped (--skip-crossref)')
+  }
+
+  // Step 4: Unpaywall PDF discovery
+  if (!skipUnpaywall) {
+    const needsPdf = normalized.filter(
+      (p) => p.doi && !p.pdfLink,
+    )
+    console.log(`\nStep 4: Unpaywall PDF discovery for ${needsPdf.length} publications with DOI but no PDF...`)
+
+    let found = 0
+
+    await runConcurrent(
+      needsPdf,
+      UNPAYWALL_CONCURRENCY,
+      async (pub) => {
+        const result = await queryUnpaywall(pub.doi!)
+        pub._oaStatus = result.oaStatus
+        if (result.pdfUrl) {
+          pub.pdfLink = result.pdfUrl
+          pub._unpaywallEnriched = true
+          found++
+        }
+        await sleep(UNPAYWALL_DELAY_MS)
+      },
+      'Unpaywall lookup',
+    )
+
+    console.log(`  Found ${found} open-access PDFs via Unpaywall`)
+  } else {
+    console.log('\nStep 4: Skipped (--skip-unpaywall)')
+  }
+
+  // Write output
+  writeFileSync(outputPath, JSON.stringify(normalized, null, 2))
+  console.log(`\nWrote ${normalized.length} normalized records to ${outputPath}`)
+
+  // Summary
+  printSummary(normalized)
+}
+
+function printSummary(pubs: NormalizedPublication[]) {
+  const totalDois = pubs.filter((p) => p.doi).length
+  const enrichedDois = pubs.filter((p) => p._crossrefEnriched).length
+  const unpaywallPdfs = pubs.filter((p) => p._unpaywallEnriched).length
+  const withAbstract = pubs.filter((p) => p.abstract).length
+  const withPdf = pubs.filter((p) => p.pdfLink).length
+  const withKeywords = pubs.filter((p) => p.keywords.length > 0).length
+
+  console.log('\n========== Summary ==========')
+  console.log(`Total publications: ${pubs.length}`)
+  console.log(`\nBy type:`)
+  const typeCounts = new Map<string, number>()
+  for (const p of pubs) typeCounts.set(p.publicationType, (typeCounts.get(p.publicationType) || 0) + 1)
+  for (const [type, count] of [...typeCounts.entries()].sort((a, b) => b[1] - a[1])) {
+    console.log(`  ${type}: ${count}`)
+  }
+
+  console.log(`\nField coverage:`)
+  console.log(`  With DOI:       ${totalDois} (${enrichedDois} from CrossRef)`)
+  console.log(`  With abstract:  ${withAbstract}`)
+  console.log(`  With PDF:       ${withPdf} (${unpaywallPdfs} from Unpaywall)`)
+  console.log(`  With keywords:  ${withKeywords}`)
+
+  // OA status breakdown
+  const oaCounts = new Map<string, number>()
+  for (const p of pubs) {
+    if (p._oaStatus) oaCounts.set(p._oaStatus, (oaCounts.get(p._oaStatus) || 0) + 1)
+  }
+  if (oaCounts.size > 0) {
+    console.log(`\nOpen access status (from Unpaywall):`)
+    for (const [status, count] of [...oaCounts.entries()].sort((a, b) => b[1] - a[1])) {
+      console.log(`  ${status}: ${count}`)
+    }
+  }
+
+  // Year distribution
+  const years = pubs.map((p) => p.year).filter((y) => y > 1900)
+  const minYear = Math.min(...years)
+  const maxYear = Math.max(...years)
+  console.log(`  Year range:     ${minYear}–${maxYear}`)
+
+  // Author parsing quality check
+  const emptyGiven = pubs.flatMap((p) => p.authors).filter((a) => !a.given).length
+  const totalAuthors = pubs.flatMap((p) => p.authors).length
+  console.log(`\nAuthor parsing:`)
+  console.log(`  Total authors:  ${totalAuthors}`)
+  console.log(`  Missing given:  ${emptyGiven}`)
+
+  // Sample records
+  console.log('\n========== Sample Records ==========')
+  const samples = [
+    pubs.find((p) => p.publicationType === 'article' && p.doi),
+    pubs.find((p) => p.publicationType === 'thesis'),
+    pubs.find((p) => p.publicationType === 'chapter'),
+    pubs.find((p) => p._crossrefEnriched),
+  ].filter(Boolean)
+
+  for (const pub of samples) {
+    if (!pub) continue
+    console.log(`\n  [${pub.publicationType}] ${pub.title.slice(0, 70)}...`)
+    console.log(`  Authors: ${pub.authors.map((a) => `${a.family}, ${a.given}`).join('; ')}`)
+    console.log(`  Year: ${pub.year}`)
+    console.log(`  DOI: ${pub.doi || '(none)'}${pub._crossrefEnriched ? ' (CrossRef)' : ''}`)
+    console.log(`  Journal: ${pub.journal || '(none)'}`)
+    console.log(`  Abstract: ${pub.abstract ? pub.abstract.slice(0, 80) + '...' : '(none)'}`)
+    console.log(`  PDF: ${pub.pdfLink ? 'yes' : 'no'}`)
+    console.log(`  Keywords: ${pub.keywords.slice(0, 3).map((k) => k.keyword).join(', ')}${pub.keywords.length > 3 ? '...' : ''}`)
+  }
+}
+
+main().catch((err) => {
+  console.error('Error:', err)
+  process.exit(1)
+})

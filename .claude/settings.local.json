@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:sustainablelibrary.org)",
+      "WebFetch(domain:www.rmbl.org)",
+      "WebSearch"
+    ]
+  }
+}
