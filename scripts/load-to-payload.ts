@@ -395,6 +395,8 @@ async function loadDatasets() {
         license: ds.license || undefined,
         resourceType: ds.resourceType || 'dataset',
         dataPublisher: ds.dataPublisher || 'RMBL',
+        methods: ds._methods || undefined,
+        fullText: ds._metadataFullText || undefined,
       })
     },
     'Datasets',

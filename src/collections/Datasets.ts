@@ -227,5 +227,21 @@ export const Datasets: CollectionConfig = {
         description: 'DataCite: publisher (Mandatory)',
       },
     },
+    {
+      name: 'methods',
+      type: 'textarea',
+      admin: {
+        description: 'Methods description extracted from metadata',
+        condition: (_, siblingData) => Boolean(siblingData?.methods),
+      },
+    },
+    {
+      name: 'fullText',
+      type: 'textarea',
+      admin: {
+        description: 'Full metadata text extracted from external sources; used for search indexing',
+        condition: (_, siblingData) => Boolean(siblingData?.fullText),
+      },
+    },
   ],
 }
