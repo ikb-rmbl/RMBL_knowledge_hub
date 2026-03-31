@@ -275,6 +275,7 @@ async function loadDocuments() {
         categories: categoryIds.length > 0 ? categoryIds : undefined,
         dateOriginal: doc.dateOriginal || undefined,
         geographicScope: doc.geographicScope?.length > 0 ? doc.geographicScope : undefined,
+        pdfLink: doc.sourceFile || undefined,
         sourceUrl: doc.sourceUrl || undefined,
         ingestionDate: doc.ingestionDate || undefined,
       })

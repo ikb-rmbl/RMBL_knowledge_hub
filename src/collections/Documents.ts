@@ -103,6 +103,13 @@ export const Documents: CollectionConfig = {
       },
     },
     {
+      name: 'pdfLink',
+      type: 'text',
+      admin: {
+        description: 'Direct URL to the PDF file',
+      },
+    },
+    {
       name: 'sourceUrl',
       type: 'text',
       admin: {
