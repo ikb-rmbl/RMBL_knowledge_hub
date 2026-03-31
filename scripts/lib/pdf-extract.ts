@@ -124,6 +124,62 @@ function extractDigital(pdfPath: string): string {
   })
 }
 
+/** Extract text per-page to detect cover-page-only PDFs */
+function extractDigitalPerPage(pdfPath: string, pageCount: number): string[] {
+  if (!PDFTOTEXT_PATH) return []
+
+  const pages: string[] = []
+  for (let i = 1; i <= pageCount; i++) {
+    try {
+      const text = execFileSync(PDFTOTEXT_PATH, ['-f', String(i), '-l', String(i), '-layout', pdfPath, '-'], {
+        encoding: 'utf-8',
+        timeout: 10000,
+        maxBuffer: 10 * 1024 * 1024,
+      })
+      pages.push(text)
+    } catch {
+      pages.push('')
+    }
+  }
+  return pages
+}
+
+/** OCR specific page ranges (1-indexed, inclusive) */
+function ocrPageRange(pdfPath: string, firstPage: number, lastPage: number): string {
+  if (!TESSERACT_PATH || !PDFTOPPM_PATH) return ''
+
+  const tempDir = join(tmpdir(), `rmbl-ocr-${Date.now()}-${Math.random().toString(36).slice(2)}`)
+  mkdirSync(tempDir, { recursive: true })
+
+  try {
+    execFileSync(PDFTOPPM_PATH, [
+      '-png', '-r', '300',
+      '-f', String(firstPage), '-l', String(lastPage),
+      pdfPath, join(tempDir, 'page'),
+    ], { timeout: 300000 })
+
+    const pageFiles = readdirSync(tempDir).filter((f) => f.endsWith('.png')).sort()
+    const texts: string[] = []
+    for (const pageFile of pageFiles) {
+      try {
+        const text = execFileSync(TESSERACT_PATH, [join(tempDir, pageFile), 'stdout', '-l', 'eng', '--psm', '3'], {
+          encoding: 'utf-8',
+          timeout: 120000,
+        })
+        texts.push(text)
+      } catch {
+        texts.push('')
+      }
+    }
+    return texts.join('\n\n')
+  } finally {
+    try {
+      for (const f of readdirSync(tempDir)) unlinkSync(join(tempDir, f))
+      rmdirSync(tempDir)
+    } catch {}
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Pass 2: OCR via pdftoppm + tesseract
 // ---------------------------------------------------------------------------
@@ -204,6 +260,37 @@ export async function extractText(pdfPath: string): Promise<ExtractionResult> {
   // Assess quality of digital extraction
   const quality = assessDigitalQuality(digitalText, pageCount)
 
+  if (quality.ok && pageCount > 2) {
+    // Check for cover-page-only pattern: multi-page PDF where text is
+    // concentrated in the first 1-2 pages (common with JSTOR scans)
+    const perPage = extractDigitalPerPage(pdfPath, Math.min(pageCount, 5))
+    const pageLengths = perPage.map((p) => p.trim().length)
+    const firstPageLen = pageLengths[0] || 0
+    const laterPagesAvg = pageLengths.slice(1).reduce((a, b) => a + b, 0) / Math.max(pageLengths.length - 1, 1)
+
+    if (firstPageLen > 200 && laterPagesAvg < 100 && pageCount > 3) {
+      // Cover-page-only: first page has text, rest are scanned
+      // Use digital text for cover page, OCR for the rest
+      if (TESSERACT_PATH && PDFTOPPM_PATH) {
+        try {
+          const ocrText = ocrPageRange(pdfPath, 2, pageCount)
+          const combined = digitalText + '\n\n' + ocrText
+          const score = scoreText(combined, pageCount)
+          return {
+            text: combined,
+            method: 'mixed',
+            pageCount,
+            qualityScore: score,
+            needsReview: score < 0.5,
+            reviewReason: score < 0.5 ? 'Mixed extraction (cover digital + body OCR), low quality' : null,
+          }
+        } catch {
+          // OCR failed — fall through to digital-only
+        }
+      }
+    }
+  }
+
   if (quality.ok) {
     const score = scoreText(digitalText, pageCount)
     return {
@@ -216,7 +303,7 @@ export async function extractText(pdfPath: string): Promise<ExtractionResult> {
     }
   }
 
-  // Digital quality poor — try OCR
+  // Digital quality poor overall — try full OCR
   if (TESSERACT_PATH && PDFTOPPM_PATH) {
     try {
       const ocrText = ocrExtract(pdfPath)
