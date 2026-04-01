@@ -10,6 +10,11 @@ export const dynamic = 'force-dynamic'
 
 const PAGE_SIZE = 20
 
+/** Strip all HTML tags from a string */
+function stripTags(s: string): string {
+  return s.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim()
+}
+
 // PostgreSQL pool for tsvector full-text search
 let dbPool: pg.Pool | null = null
 function getDb(): pg.Pool {
@@ -258,21 +263,21 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       const docs = await payload.find({ collection: 'documents', where: docWhere, limit: PAGE_SIZE, page, sort: payloadSort(sortParam, 'documents') })
       for (const doc of docs.docs) {
         const yearStr = (doc.dateOriginal as string)?.slice(0, 4)
-        results.push({ collection: 'document', subtype: null, id: String(doc.id), title: doc.title, snippet: typeof doc.summary === 'string' ? doc.summary : '', year: yearStr ? parseInt(yearStr) : null, meta: [yearStr, ...(doc.geographicScope as string[] || [])].filter(Boolean) })
+        results.push({ collection: 'document', subtype: null, id: String(doc.id), title: doc.title, snippet: typeof doc.summary === 'string' ? stripTags(doc.summary) : '', year: yearStr ? parseInt(yearStr) : null, meta: [yearStr, ...(doc.geographicScope as string[] || [])].filter(Boolean) })
       }
     }
     if (searchPubs) {
       const pubs = await payload.find({ collection: 'publications', where: pubWhere, limit: PAGE_SIZE, page, sort: payloadSort(sortParam, 'publications') })
       for (const pub of pubs.docs) {
         const authors = Array.isArray(pub.authors) ? pub.authors.slice(0, 3).map((a: any) => `${a.family}${a.given ? ' ' + a.given : ''}`).join(', ') : ''
-        results.push({ collection: 'publication', subtype: pub.publicationType || null, id: String(pub.id), title: pub.title, snippet: pub.abstract || '', year: pub.year || null, meta: [authors, pub.year ? String(pub.year) : '', pub.journal || '', pub.doi ? `DOI: ${pub.doi}` : ''].filter(Boolean) })
+        results.push({ collection: 'publication', subtype: pub.publicationType || null, id: String(pub.id), title: pub.title, snippet: pub.abstract ? stripTags(pub.abstract) : '', year: pub.year || null, meta: [authors, pub.year ? String(pub.year) : '', pub.journal || '', pub.doi ? `DOI: ${pub.doi}` : ''].filter(Boolean) })
       }
     }
     if (searchData) {
       const datasets = await payload.find({ collection: 'datasets', where: dataWhere, limit: PAGE_SIZE, page, sort: payloadSort(sortParam, 'datasets') })
       for (const ds of datasets.docs) {
         const creators = Array.isArray(ds.creators) ? ds.creators.slice(0, 3).map((c: any) => c.name).join(', ') : ''
-        results.push({ collection: 'dataset', subtype: ds.resourceType || null, id: String(ds.id), title: ds.title, snippet: ds.description && typeof ds.description === 'string' ? ds.description : '', year: ds.publicationYear || null, meta: [creators, ds.publicationYear ? String(ds.publicationYear) : '', ds.doi ? `DOI: ${ds.doi}` : ''].filter(Boolean) })
+        results.push({ collection: 'dataset', subtype: ds.resourceType || null, id: String(ds.id), title: ds.title, snippet: ds.description && typeof ds.description === 'string' ? stripTags(ds.description) : '', year: ds.publicationYear || null, meta: [creators, ds.publicationYear ? String(ds.publicationYear) : '', ds.doi ? `DOI: ${ds.doi}` : ''].filter(Boolean) })
       }
     }
   } else {
@@ -296,15 +301,15 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
     for (const doc of docs.docs) {
       const yearStr = (doc.dateOriginal as string)?.slice(0, 4)
-      results.push({ collection: 'document', subtype: null, id: String(doc.id), title: doc.title, snippet: typeof doc.summary === 'string' ? doc.summary : '', year: yearStr ? parseInt(yearStr) : null, meta: [yearStr, ...(doc.geographicScope as string[] || [])].filter(Boolean) })
+      results.push({ collection: 'document', subtype: null, id: String(doc.id), title: doc.title, snippet: typeof doc.summary === 'string' ? stripTags(doc.summary) : '', year: yearStr ? parseInt(yearStr) : null, meta: [yearStr, ...(doc.geographicScope as string[] || [])].filter(Boolean) })
     }
     for (const pub of pubs.docs) {
       const authors = Array.isArray(pub.authors) ? pub.authors.slice(0, 3).map((a: any) => `${a.family}${a.given ? ' ' + a.given : ''}`).join(', ') : ''
-      results.push({ collection: 'publication', subtype: pub.publicationType || null, id: String(pub.id), title: pub.title, snippet: pub.abstract || '', year: pub.year || null, meta: [authors, pub.year ? String(pub.year) : '', pub.journal || '', pub.doi ? `DOI: ${pub.doi}` : ''].filter(Boolean) })
+      results.push({ collection: 'publication', subtype: pub.publicationType || null, id: String(pub.id), title: pub.title, snippet: pub.abstract ? stripTags(pub.abstract) : '', year: pub.year || null, meta: [authors, pub.year ? String(pub.year) : '', pub.journal || '', pub.doi ? `DOI: ${pub.doi}` : ''].filter(Boolean) })
     }
     for (const ds of datasets.docs) {
       const creators = Array.isArray(ds.creators) ? ds.creators.slice(0, 3).map((c: any) => c.name).join(', ') : ''
-      results.push({ collection: 'dataset', subtype: ds.resourceType || null, id: String(ds.id), title: ds.title, snippet: ds.description && typeof ds.description === 'string' ? ds.description : '', year: ds.publicationYear || null, meta: [creators, ds.publicationYear ? String(ds.publicationYear) : '', ds.doi ? `DOI: ${ds.doi}` : ''].filter(Boolean) })
+      results.push({ collection: 'dataset', subtype: ds.resourceType || null, id: String(ds.id), title: ds.title, snippet: ds.description && typeof ds.description === 'string' ? stripTags(ds.description) : '', year: ds.publicationYear || null, meta: [creators, ds.publicationYear ? String(ds.publicationYear) : '', ds.doi ? `DOI: ${ds.doi}` : ''].filter(Boolean) })
     }
 
     // Sort merged results
@@ -512,7 +517,14 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                   </span>
                   <h3 className="result-card-title">{item.title}</h3>
                 </div>
-                {item.snippet && <p className="result-card-snippet" dangerouslySetInnerHTML={{ __html: item.snippet.replace(/<(?!\/?(mark)\b)[^>]+>/gi, '').slice(0, 300) }} />}
+                {item.snippet && (() => {
+                  // FTS snippets have <mark> highlights; non-FTS snippets are plain text
+                  // Strip all tags except <mark>, then truncate safely
+                  const clean = item.snippet.replace(/<(?!\/?(mark)\b)[^>]+>/gi, '').replace(/&[a-z]+;/gi, ' ').slice(0, 300)
+                  return clean.includes('<mark>')
+                    ? <p className="result-card-snippet" dangerouslySetInnerHTML={{ __html: clean }} />
+                    : <p className="result-card-snippet">{clean}</p>
+                })()}
                 <div className="result-card-meta">
                   {item.meta.map((m, i) => (
                     <span key={i}>{m}</span>
