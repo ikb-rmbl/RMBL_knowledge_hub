@@ -24,6 +24,7 @@ import {
   findByField,
   getCount,
   checkServer,
+  getAllPaginated,
 } from './lib/payload-client.js'
 import { OUTPUT_DIR, PAYLOAD_API, CONCURRENCY } from './lib/config.js'
 
@@ -60,9 +61,8 @@ async function seedTopics() {
   if (existing > 0) {
     console.log(`  ${existing} topics already exist, loading IDs...`)
     // Load all existing topics into cache
-    const res = await fetch(`${PAYLOAD_API}/topics?limit=100`, { headers: authHeaders() })
-    const data = await res.json()
-    for (const doc of data.docs) {
+    const allTopics = await getAllPaginated('topics')
+    for (const doc of allTopics) {
       topicIdCache.set(doc.name, doc.id)
     }
     console.log(`  Cached ${topicIdCache.size} topic IDs`)
