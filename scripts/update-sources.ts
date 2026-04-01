@@ -28,9 +28,10 @@ import {
   type PubRawRecord,
   type CatalogRawEntry,
 } from './lib/sources.js'
+import { runConcurrent } from './lib/concurrency.js'
+import { OUTPUT_DIR, CONCURRENCY } from './lib/config.js'
 
-const OUTPUT_DIR = new URL('./output', import.meta.url).pathname
-const REPORT_DIR = new URL('./output/reports', import.meta.url).pathname
+const REPORT_DIR = `${OUTPUT_DIR}/reports`
 
 const args = process.argv.slice(2)
 const sourceArg = args.find((a) => a.startsWith('--source='))?.split('=')[1] || 'all'
@@ -50,33 +51,6 @@ interface ChangeReport {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-const DETAIL_CONCURRENCY = 5
-
-async function runConcurrent<T>(
-  items: T[],
-  concurrency: number,
-  fn: (item: T) => Promise<void>,
-  label: string,
-): Promise<void> {
-  let completed = 0
-  const total = items.length
-  async function worker(queue: T[]) {
-    while (queue.length > 0) {
-      const item = queue.shift()!
-      await fn(item)
-      completed++
-      if (completed % 10 === 0 || completed === total) {
-        process.stdout.write(`\r  ${label}: ${completed}/${total}`)
-      }
-    }
-  }
-  const queue = [...items]
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, () => worker(queue)),
-  )
-  if (total > 0) console.log()
-}
 
 function loadJson<T>(path: string): T | null {
   if (!existsSync(path)) return null
@@ -144,7 +118,7 @@ async function updateSustainableLibrary(): Promise<ChangeReport> {
   // Enrich new entries with detail page data
   if (added.length > 0 && !dryRun) {
     console.log(`  Scraping detail pages for ${added.length} new entries...`)
-    await runConcurrent(added, DETAIL_CONCURRENCY, sustLibFetchDetailPage, 'Detail pages')
+    await runConcurrent(added, CONCURRENCY.DETAIL_PAGES, sustLibFetchDetailPage, 'Detail pages')
   }
 
   if (!dryRun) {

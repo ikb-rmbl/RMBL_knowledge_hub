@@ -3,7 +3,9 @@
     "allow": [
       "WebFetch(domain:sustainablelibrary.org)",
       "WebFetch(domain:www.rmbl.org)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(wc -l scripts/*.ts scripts/lib/*.ts src/**/*.ts src/**/*.tsx)",
+      "Bash(grep -n \"runConcurrent\\\\|async.*worker\\\\|Promise.all\" /Users/ian/code/RMBL_knowledge_hub/scripts/*.ts)"
     ]
   }
 }

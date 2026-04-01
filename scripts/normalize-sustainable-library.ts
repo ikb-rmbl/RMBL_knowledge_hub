@@ -10,10 +10,12 @@
  */
 
 import { writeFileSync, readFileSync } from 'fs'
+import { OUTPUT_DIR } from './lib/config.js'
+import type { ScrapedDocument, NormalizedDocument } from './lib/types.js'
 
-const INPUT_PATH = new URL('./output/sustainable-library.json', import.meta.url).pathname
-const OUTPUT_PATH = new URL('./output/sustainable-library-normalized.json', import.meta.url).pathname
-const TOPICS_PATH = new URL('./output/topics-seed.json', import.meta.url).pathname
+const INPUT_PATH = `${OUTPUT_DIR}/sustainable-library.json`
+const OUTPUT_PATH = `${OUTPUT_DIR}/sustainable-library-normalized.json`
+const TOPICS_PATH = `${OUTPUT_DIR}/topics-seed.json`
 
 // ---------------------------------------------------------------------------
 // Category → Topics taxonomy mapping
@@ -53,34 +55,6 @@ const GEO_KEYWORDS: { pattern: RegExp; value: string }[] = [
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-interface ScrapedDocument {
-  postId: string
-  title: string
-  detailUrl: string
-  summary: string
-  categories: { name: string; slug: string }[]
-  tags: string[]
-  pdfUrl: string | null
-  pdfSizeBytes: number | null
-  datePosted: string | null
-  fileType: string | null
-  sourceUrl: string
-}
-
-interface NormalizedDocument {
-  _sourcePostId: string
-  title: string
-  summary: string
-  categories: string[]     // Topic names to look up by name in Payload
-  dateOriginal: string | null
-  geographicScope: string[]
-  sourceFile: string | null // PDF URL (to be downloaded and uploaded to Payload later)
-  sourceUrl: string
-  ingestionDate: string
-  _tags: string[]           // Preserved for potential future use
-  _pdfSizeBytes: number | null
-}
 
 interface TopicEntry {
   name: string

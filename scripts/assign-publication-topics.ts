@@ -9,12 +9,8 @@
  */
 
 import { readFileSync } from 'fs'
-
-const BASE_URL = 'http://localhost:3000'
-const API = `${BASE_URL}/api`
-const ADMIN_EMAIL = 'admin@rmbl.org'
-const ADMIN_PASSWORD = 'dev-password-change-me'
-const CONCURRENCY = 5
+import { OUTPUT_DIR } from './lib/config.js'
+import { ensureAuth, getAllPaginated, patchRecord } from './lib/payload-client.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
@@ -131,29 +127,6 @@ function assignTopics(
 }
 
 // ---------------------------------------------------------------------------
-// API helpers
-// ---------------------------------------------------------------------------
-
-let authToken: string | null = null
-
-async function login() {
-  const res = await fetch(`${API}/users/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
-  })
-  const data = await res.json()
-  authToken = data.token
-}
-
-function headers(): Record<string, string> {
-  return {
-    'Content-Type': 'application/json',
-    ...(authToken ? { Authorization: `JWT ${authToken}` } : {}),
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -162,43 +135,27 @@ async function main() {
   console.log('=========================')
   if (dryRun) console.log('(DRY RUN)')
 
-  await login()
+  await ensureAuth()
 
   // Load normalized publications
-  const OUTPUT_DIR = new URL('./output', import.meta.url).pathname
   const pubs: any[] = JSON.parse(readFileSync(`${OUTPUT_DIR}/publications-normalized.json`, 'utf-8'))
 
   // Load topic name -> ID mapping from Payload
+  const topicDocs = await getAllPaginated('topics')
   const topicIds = new Map<string, string>()
-  let page = 1
-  while (true) {
-    const res = await fetch(`${API}/topics?limit=100&page=${page}`, { headers: headers() })
-    const data = await res.json()
-    for (const t of data.docs) {
-      topicIds.set(t.name, String(t.id))
-    }
-    if (data.docs.length < 100) break
-    page++
+  for (const t of topicDocs) {
+    topicIds.set(t.name, String(t.id))
   }
   console.log(`Loaded ${topicIds.size} topic IDs`)
 
   // Load Payload publication IDs — map by title
   console.log('Loading publication records from Payload...')
+  const pubDocs = await getAllPaginated('publications')
   const payloadPubsByTitle = new Map<string, string>()
-  page = 1
-  while (true) {
-    const res = await fetch(`${API}/publications?limit=500&page=${page}&depth=0`, { headers: headers() })
-    const data = await res.json()
-    const prevSize = payloadPubsByTitle.size
-    for (const p of data.docs) {
-      payloadPubsByTitle.set(p.title, String(p.id))
-    }
-    process.stdout.write(`\r  Loaded ${payloadPubsByTitle.size}...`)
-    // Stop if no new records were added or we got fewer than a full page
-    if (data.docs.length < 500 || payloadPubsByTitle.size === prevSize) break
-    page++
+  for (const p of pubDocs) {
+    payloadPubsByTitle.set(p.title, String(p.id))
   }
-  console.log(`\r  ${payloadPubsByTitle.size} publications loaded from Payload`)
+  console.log(`  ${payloadPubsByTitle.size} publications loaded from Payload`)
 
   // Assign topics
   let assigned = 0
@@ -237,12 +194,8 @@ async function main() {
 
     // Update in Payload
     if (!dryRun) {
-      const res = await fetch(`${API}/publications/${payloadId}`, {
-        method: 'PATCH',
-        headers: headers(),
-        body: JSON.stringify({ researchTopics: topicIdList }),
-      })
-      if (res.ok) updated++
+      const ok = await patchRecord('publications', payloadId, { researchTopics: topicIdList })
+      if (ok) updated++
     } else {
       updated++
     }

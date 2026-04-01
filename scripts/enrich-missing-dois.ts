@@ -10,54 +10,17 @@
  */
 
 import { readFileSync, writeFileSync } from 'fs'
+import { sleep, runConcurrent } from './lib/concurrency.js'
+import { OUTPUT_DIR, CROSSREF_API, CROSSREF_MAILTO, UNPAYWALL_API, UNPAYWALL_EMAIL, CONCURRENCY, DELAYS } from './lib/config.js'
+import { titleSimilarity } from './lib/doi-utils.js'
+import type { NormalizedPublication } from './lib/types.js'
 
-const CROSSREF_API = 'https://api.crossref.org/works'
-const CROSSREF_MAILTO = 'knowledgehub@rmbl.org'
-const UNPAYWALL_API = 'https://api.unpaywall.org/v2'
-const UNPAYWALL_EMAIL = 'knowledgehub@rmbl.org'
-const CONCURRENCY = 3
-const DELAY_MS = 350
-const OUTPUT_DIR = new URL('./output', import.meta.url).pathname
+const DELAY_MS = DELAYS.CROSSREF_MS
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
 const limitArg = args.find((a) => a.startsWith('--limit='))?.split('=')[1]
 const limit = limitArg ? parseInt(limitArg) : Infinity
-
-interface NormalizedPublication {
-  _sourceId: string
-  title: string
-  authors: { given: string; family: string }[]
-  year: number
-  publicationType: string
-  journal: string | null
-  doi: string | null
-  abstract: string | null
-  pdfLink: string | null
-  externalUrl: string | null
-  _crossrefEnriched: boolean
-  _unpaywallEnriched: boolean
-  _oaStatus: string | null
-  [key: string]: unknown
-}
-
-async function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms))
-}
-
-function titleSimilarity(a: string, b: string): number {
-  const normalize = (s: string) =>
-    s.toLowerCase().replace(/<[^>]+>/g, '').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim()
-  const na = normalize(a)
-  const nb = normalize(b)
-  if (na === nb) return 1
-
-  const wordsA = new Set(na.split(' '))
-  const wordsB = new Set(nb.split(' '))
-  const intersection = new Set([...wordsA].filter((w) => wordsB.has(w)))
-  const union = new Set([...wordsA, ...wordsB])
-  return intersection.size / union.size
-}
 
 async function queryCrossRefRelaxed(
   title: string,
@@ -114,29 +77,6 @@ async function queryUnpaywall(doi: string): Promise<{ pdfUrl: string | null; oaS
   }
 }
 
-async function runConcurrent<T>(
-  items: T[],
-  concurrency: number,
-  fn: (item: T) => Promise<void>,
-  label: string,
-): Promise<void> {
-  let completed = 0
-  const total = items.length
-  async function worker(queue: T[]) {
-    while (queue.length > 0) {
-      const item = queue.shift()!
-      await fn(item)
-      completed++
-      if (completed % 25 === 0 || completed === total) {
-        process.stdout.write(`\r  ${label}: ${completed}/${total}`)
-      }
-    }
-  }
-  const queue = [...items]
-  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => worker(queue)))
-  console.log()
-}
-
 async function main() {
   const outputPath = `${OUTPUT_DIR}/publications-normalized.json`
   const pubs: NormalizedPublication[] = JSON.parse(readFileSync(outputPath, 'utf-8'))
@@ -165,7 +105,7 @@ async function main() {
 
   await runConcurrent(
     candidates,
-    CONCURRENCY,
+    CONCURRENCY.API_CALLS,
     async (pub) => {
       const result = await queryCrossRefRelaxed(
         pub.title,
@@ -197,7 +137,7 @@ async function main() {
 
     await runConcurrent(
       newDoiPubs,
-      CONCURRENCY,
+      CONCURRENCY.API_CALLS,
       async (pub) => {
         const result = await queryUnpaywall(pub.doi!)
         pub._oaStatus = result.oaStatus

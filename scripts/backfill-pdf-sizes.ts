@@ -4,19 +4,17 @@
  */
 
 import { writeFileSync, readFileSync } from 'fs'
+import { sleep } from './lib/concurrency.js'
+import { OUTPUT_DIR, DELAYS } from './lib/config.js'
 
-const OUTPUT_PATH = new URL('./output/sustainable-library.json', import.meta.url).pathname
+const OUTPUT_PATH = `${OUTPUT_DIR}/sustainable-library.json`
 const CONCURRENCY = 5
-const DELAY_MS = 100
+const DELAY_MS = DELAYS.DOWNLOAD_MS
 
 interface Doc {
   pdfUrl: string | null
   pdfSizeBytes: number | null
   [key: string]: unknown
-}
-
-async function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms))
 }
 
 async function main() {

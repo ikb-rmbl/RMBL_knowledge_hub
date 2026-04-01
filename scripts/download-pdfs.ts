@@ -22,6 +22,7 @@ import {
   type Manifest,
   type ManifestEntry,
 } from './lib/pdf-manifest.js'
+import { sleep } from './lib/concurrency.js'
 
 const args = process.argv.slice(2)
 const collectionFilter = args.find((a) => a.startsWith('--collection='))?.split('=')[1] || ''
@@ -133,10 +134,6 @@ async function downloadPdf(entry: ManifestEntry): Promise<void> {
 // ---------------------------------------------------------------------------
 // Concurrency
 // ---------------------------------------------------------------------------
-
-async function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms))
-}
 
 async function runConcurrent(
   items: ManifestEntry[],

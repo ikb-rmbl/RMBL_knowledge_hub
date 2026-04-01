@@ -18,11 +18,12 @@
 
 import { writeFileSync, readFileSync, mkdirSync } from 'fs'
 import { JSDOM } from 'jsdom'
+import { sleep, runConcurrent } from './lib/concurrency.js'
+import { OUTPUT_DIR, CONCURRENCY as CONCURRENCY_CFG, DELAYS } from './lib/config.js'
 
-const OUTPUT_DIR = new URL('./output', import.meta.url).pathname
 const META_DIR = `${OUTPUT_DIR}/dataset-metadata`
-const CONCURRENCY = 3
-const DELAY_MS = 300
+const DATASET_CONCURRENCY = CONCURRENCY_CFG.API_CALLS
+const DELAY_MS = DELAYS.METADATA_MS
 
 interface RawCatalogEntry {
   id: string
@@ -288,38 +289,6 @@ async function fetchMetadata(entry: RawCatalogEntry): Promise<MetadataResult> {
 }
 
 // ---------------------------------------------------------------------------
-// Concurrency
-// ---------------------------------------------------------------------------
-
-async function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms))
-}
-
-async function runConcurrent<T>(
-  items: T[],
-  concurrency: number,
-  fn: (item: T) => Promise<void>,
-  label: string,
-): Promise<void> {
-  let completed = 0
-  const total = items.length
-  async function worker(queue: T[]) {
-    while (queue.length > 0) {
-      const item = queue.shift()!
-      await fn(item)
-      completed++
-      if (completed % 10 === 0 || completed === total) {
-        process.stdout.write(`\r  ${label}: ${completed}/${total}`)
-      }
-      await sleep(DELAY_MS)
-    }
-  }
-  const queue = [...items]
-  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => worker(queue)))
-  console.log()
-}
-
-// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -340,10 +309,11 @@ async function main() {
 
   await runConcurrent(
     candidates,
-    CONCURRENCY,
+    DATASET_CONCURRENCY,
     async (entry) => {
       const result = await fetchMetadata(entry)
       results.push(result)
+      await sleep(DELAY_MS)
     },
     'Metadata',
   )

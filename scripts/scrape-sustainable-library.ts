@@ -12,12 +12,14 @@
 
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'fs'
 import { JSDOM } from 'jsdom'
+import { runConcurrent } from './lib/concurrency.js'
+import { OUTPUT_DIR, SUST_LIB_AJAX, CONCURRENCY } from './lib/config.js'
+import type { ScrapedDocument } from './lib/types.js'
 
-const AJAX_URL = 'https://sustainablelibrary.org/wp-admin/admin-ajax.php'
+const AJAX_URL = SUST_LIB_AJAX
 const BATCH_SIZE = 50
-const DETAIL_CONCURRENCY = 5
+const DETAIL_CONCURRENCY = CONCURRENCY.DETAIL_PAGES
 const HEAD_CONCURRENCY = 20
-const OUTPUT_DIR = new URL('./output', import.meta.url).pathname
 
 const skipDetails = process.argv.includes('--skip-details')
 const skipSizes = process.argv.includes('--skip-sizes')
@@ -32,20 +34,6 @@ interface RawRecord {
   excerpt: string
   doc_categories: string
   link: string
-}
-
-interface ScrapedDocument {
-  postId: string
-  title: string
-  detailUrl: string
-  summary: string
-  categories: { name: string; slug: string }[]
-  tags: string[]
-  pdfUrl: string | null
-  pdfSizeBytes: number | null
-  datePosted: string | null
-  fileType: string | null
-  sourceUrl: string
 }
 
 // ---------------------------------------------------------------------------
@@ -221,38 +209,6 @@ async function fetchPdfSize(doc: ScrapedDocument): Promise<void> {
   } catch {
     // non-critical — leave as null
   }
-}
-
-// ---------------------------------------------------------------------------
-// Concurrency helper
-// ---------------------------------------------------------------------------
-
-async function runConcurrent<T>(
-  items: T[],
-  concurrency: number,
-  fn: (item: T) => Promise<void>,
-  label: string,
-): Promise<void> {
-  let completed = 0
-  const total = items.length
-
-  async function worker(queue: T[]) {
-    while (queue.length > 0) {
-      const item = queue.shift()!
-      await fn(item)
-      completed++
-      if (completed % 50 === 0 || completed === total) {
-        process.stdout.write(`\r  ${label}: ${completed}/${total}`)
-      }
-    }
-  }
-
-  const queue = [...items]
-  const workers = Array.from({ length: Math.min(concurrency, items.length) }, () =>
-    worker(queue),
-  )
-  await Promise.all(workers)
-  console.log() // newline after progress
 }
 
 // ---------------------------------------------------------------------------

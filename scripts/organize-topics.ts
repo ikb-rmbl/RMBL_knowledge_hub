@@ -9,10 +9,7 @@
  *   npx tsx scripts/organize-topics.ts [--dry-run]
  */
 
-const BASE_URL = 'http://localhost:3000'
-const API = `${BASE_URL}/api`
-const ADMIN_EMAIL = 'admin@rmbl.org'
-const ADMIN_PASSWORD = 'dev-password-change-me'
+import { ensureAuth, getAllPaginated, createRecord, patchRecord } from './lib/payload-client.js'
 
 const dryRun = process.argv.includes('--dry-run')
 
@@ -82,61 +79,18 @@ const EXISTING_PARENTS_TO_MERGE: Record<string, string> = {
 }
 
 // ---------------------------------------------------------------------------
-// API helpers
+// API helpers (thin wrappers around shared payload-client)
 // ---------------------------------------------------------------------------
 
-let authToken: string | null = null
-
-async function login() {
-  const res = await fetch(`${API}/users/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
-  })
-  const data = await res.json()
-  authToken = data.token
-}
-
-function headers(): Record<string, string> {
-  return {
-    'Content-Type': 'application/json',
-    ...(authToken ? { Authorization: `JWT ${authToken}` } : {}),
-  }
-}
-
-async function getAllTopics(): Promise<any[]> {
-  const all: any[] = []
-  let page = 1
-  while (true) {
-    const res = await fetch(`${API}/topics?limit=100&page=${page}`, { headers: headers() })
-    const data = await res.json()
-    all.push(...data.docs)
-    if (all.length >= data.totalDocs) break
-    page++
-  }
-  return all
-}
-
 async function createTopic(name: string, parentId?: string): Promise<string | null> {
-  const body: any = { name }
+  const body: Record<string, unknown> = { name }
   if (parentId) body.parent = parentId
-  const res = await fetch(`${API}/topics`, {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) return null
-  const data = await res.json()
-  return data.doc?.id || null
+  const result = await createRecord('topics', body)
+  return result?.id || null
 }
 
 async function updateTopicParent(topicId: string, parentId: string): Promise<boolean> {
-  const res = await fetch(`${API}/topics/${topicId}`, {
-    method: 'PATCH',
-    headers: headers(),
-    body: JSON.stringify({ parent: parentId }),
-  })
-  return res.ok
+  return patchRecord('topics', topicId, { parent: parentId })
 }
 
 // ---------------------------------------------------------------------------
@@ -148,9 +102,9 @@ async function main() {
   console.log('========================')
   if (dryRun) console.log('(DRY RUN — no changes)')
 
-  await login()
+  await ensureAuth()
   console.log('\nFetching all topics...')
-  const topics = await getAllTopics()
+  const topics = await getAllPaginated('topics')
   console.log(`  ${topics.length} topics loaded`)
 
   // Identify existing parent topics

@@ -29,6 +29,7 @@ export default async function HomePage() {
   // Build parent -> children map
   const childrenByParent = new Map<string, string[]>()
   for (const child of childTopics) {
+    if (!child.parent) continue
     const parentId = String(typeof child.parent === 'object' ? child.parent.id : child.parent)
     if (!childrenByParent.has(parentId)) childrenByParent.set(parentId, [])
     childrenByParent.get(parentId)!.push(String(child.id))

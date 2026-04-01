@@ -16,167 +16,26 @@
  */
 
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'fs'
+import { sleep, runConcurrent } from './lib/concurrency.js'
+import { parseAuthors, parseEditors } from './lib/author-parsing.js'
+import { extractDoi, titleSimilarity } from './lib/doi-utils.js'
+import type { NormalizedPublication, RawPublication } from './lib/types.js'
+import {
+  OUTPUT_DIR,
+  CROSSREF_API,
+  CROSSREF_MAILTO,
+  UNPAYWALL_API,
+  UNPAYWALL_EMAIL,
+  RMBL_PUBS_API,
+  CONCURRENCY,
+  DELAYS,
+} from './lib/config.js'
 
-const API_BASE = 'https://www.rmbl.org/wp-json/rmbl-pubs/v1/library'
-const CROSSREF_API = 'https://api.crossref.org/works'
-const CROSSREF_MAILTO = 'knowledgehub@rmbl.org' // polite pool
+const API_BASE = RMBL_PUBS_API
 const BATCH_SIZE = 200
-const CROSSREF_CONCURRENCY = 3
-const CROSSREF_DELAY_MS = 350 // ~3 req/s to stay in polite pool
-const OUTPUT_DIR = new URL('./output', import.meta.url).pathname
 
 const skipCrossref = process.argv.includes('--skip-crossref')
 const skipUnpaywall = process.argv.includes('--skip-unpaywall')
-
-const UNPAYWALL_API = 'https://api.unpaywall.org/v2'
-const UNPAYWALL_EMAIL = 'knowledgehub@rmbl.org'
-const UNPAYWALL_CONCURRENCY = 3
-const UNPAYWALL_DELAY_MS = 200
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-interface RawPublication {
-  id: string
-  reftypeId: string
-  reftypename: string
-  year: string
-  title: string
-  volume: string | null
-  edition: string | null
-  publisherId: string | null
-  publishername: string | null
-  publishercity_state: string | null
-  pages: string | null
-  restofreference: string | null
-  journalname: string | null
-  journalissue: string | null
-  catalognumber: string | null
-  donatedby: string | null
-  chaptertitle: string | null
-  bookeditors: string | null
-  degree: string | null
-  institution: string | null
-  keywords: string | null
-  comments: string | null
-  bn_url: string | null
-  abstract_url: string | null
-  fulltext_url: string | null
-  pdf_url: string | null
-  copyinlibrary: string | null
-  RMBL: string | null
-  pending: string | null
-  email: string | null
-  student: string | null
-  authors: string | null
-  authorIds: string | null
-  tagIds: string | null
-}
-
-interface ParsedAuthor {
-  given: string
-  family: string
-}
-
-interface NormalizedPublication {
-  _sourceId: string
-  title: string
-  authors: ParsedAuthor[]
-  year: number
-  publicationType: string
-  journal: string | null
-  volume: string | null
-  issue: string | null
-  pages: string | null
-  doi: string | null
-  publisher: string | null
-  abstract: string | null
-  keywords: { keyword: string }[]
-  pdfLink: string | null
-  externalUrl: string | null
-  editors: ParsedAuthor[]
-  _chaptertitle: string | null
-  _degree: string | null
-  _institution: string | null
-  _crossrefEnriched: boolean
-  _unpaywallEnriched: boolean
-  _oaStatus: string | null
-}
-
-// ---------------------------------------------------------------------------
-// Author parsing
-// ---------------------------------------------------------------------------
-
-// Prefixes that are part of the surname (lowercase in the source)
-const SURNAME_PREFIXES = new Set(['de', 'van', 'von', 'del', 'di', 'la', 'le', 'dos', 'das', 'el'])
-
-function parseAuthors(authorStr: string): ParsedAuthor[] {
-  if (!authorStr) return []
-
-  // Remove "et al" suffix
-  let cleaned = authorStr.replace(/,?\s*et al\.?\s*$/i, '').trim()
-
-  // Split on commas
-  const parts = cleaned.split(',').map((p) => p.trim()).filter(Boolean)
-
-  return parts.map(parseOneAuthor)
-}
-
-function parseOneAuthor(raw: string): ParsedAuthor {
-  // Remove student marker asterisks
-  const cleaned = raw.replace(/\*/g, '').trim()
-
-  // Split into tokens
-  const tokens = cleaned.split(/\s+/)
-
-  if (tokens.length === 1) {
-    return { given: '', family: tokens[0] }
-  }
-
-  // The last token is typically initials (all uppercase, 1-4 chars)
-  // Everything before that is the family name
-  const lastToken = tokens[tokens.length - 1]
-  const isInitials = /^[A-Z]{1,5}$/.test(lastToken)
-
-  if (isInitials) {
-    const family = tokens.slice(0, -1).join(' ')
-    // Expand initials: "RWH" → "R. W. H."
-    const given = lastToken.split('').join('. ') + '.'
-    return { given, family }
-  }
-
-  // Fallback: if last token doesn't look like initials,
-  // treat first token as given name, rest as family
-  return {
-    given: tokens[0],
-    family: tokens.slice(1).join(' '),
-  }
-}
-
-function parseEditors(editorStr: string | null): ParsedAuthor[] {
-  if (!editorStr) return []
-  // Editors are stored similarly: "J. E. Moran" or "Smith J, Doe A"
-  // Try comma-separated first
-  const parts = editorStr.split(/,\s*(?:and\s+)?|;\s*|\s+and\s+/).filter(Boolean)
-  return parts.map((p) => {
-    const tokens = p.trim().split(/\s+/)
-    if (tokens.length === 1) return { given: '', family: tokens[0] }
-    // If first token looks like initials (e.g., "J." or "J"), treat as given
-    if (/^[A-Z]\.?$/.test(tokens[0]) || /^[A-Z]\.\s*[A-Z]\.?$/.test(tokens.slice(0, 2).join(' '))) {
-      // "J. E. Moran" → given: "J. E.", family: "Moran"
-      const initialsEnd = tokens.findIndex((t, i) => i > 0 && !/^[A-Z]\.?$/.test(t))
-      if (initialsEnd > 0) {
-        return {
-          given: tokens.slice(0, initialsEnd).join(' '),
-          family: tokens.slice(initialsEnd).join(' '),
-        }
-      }
-    }
-    // "Moran JE" pattern
-    return parseOneAuthor(p.trim())
-  })
-}
 
 // ---------------------------------------------------------------------------
 // Type mapping
@@ -192,27 +51,8 @@ const TYPE_MAP: Record<string, string> = {
 }
 
 // ---------------------------------------------------------------------------
-// DOI extraction
-// ---------------------------------------------------------------------------
-
-function extractDoi(restofreference: string | null): string | null {
-  if (!restofreference) return null
-  // Match doi.org URLs
-  const doiUrlMatch = restofreference.match(/doi\.org\/(10\.\S+)/i)
-  if (doiUrlMatch) return doiUrlMatch[1].replace(/[.,;)\s]+$/, '')
-  // Match bare DOI patterns
-  const bareDoiMatch = restofreference.match(/(10\.\d{4,}\/\S+)/i)
-  if (bareDoiMatch) return bareDoiMatch[1].replace(/[.,;)\s]+$/, '')
-  return null
-}
-
-// ---------------------------------------------------------------------------
 // CrossRef enrichment
 // ---------------------------------------------------------------------------
-
-async function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms))
-}
 
 interface CrossRefResult {
   doi: string | null
@@ -257,21 +97,6 @@ async function queryCrossRef(
   }
 }
 
-function titleSimilarity(a: string, b: string): number {
-  const normalize = (s: string) =>
-    s.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim()
-  const na = normalize(a)
-  const nb = normalize(b)
-  if (na === nb) return 1
-
-  // Jaccard similarity on words
-  const wordsA = new Set(na.split(' '))
-  const wordsB = new Set(nb.split(' '))
-  const intersection = new Set([...wordsA].filter((w) => wordsB.has(w)))
-  const union = new Set([...wordsA, ...wordsB])
-  return intersection.size / union.size
-}
-
 // ---------------------------------------------------------------------------
 // Unpaywall enrichment
 // ---------------------------------------------------------------------------
@@ -305,37 +130,6 @@ async function queryUnpaywall(doi: string): Promise<UnpaywallResult> {
   } catch {
     return { pdfUrl: null, oaStatus: null }
   }
-}
-
-// ---------------------------------------------------------------------------
-// Concurrency helper
-// ---------------------------------------------------------------------------
-
-async function runConcurrent<T>(
-  items: T[],
-  concurrency: number,
-  fn: (item: T, index: number) => Promise<void>,
-  label: string,
-): Promise<void> {
-  let completed = 0
-  const total = items.length
-
-  async function worker(queue: { item: T; index: number }[]) {
-    while (queue.length > 0) {
-      const { item, index } = queue.shift()!
-      await fn(item, index)
-      completed++
-      if (completed % 25 === 0 || completed === total) {
-        process.stdout.write(`\r  ${label}: ${completed}/${total}`)
-      }
-    }
-  }
-
-  const queue = items.map((item, index) => ({ item, index }))
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, () => worker(queue)),
-  )
-  console.log()
 }
 
 // ---------------------------------------------------------------------------
@@ -451,7 +245,7 @@ async function main() {
 
     await runConcurrent(
       enrichable,
-      CROSSREF_CONCURRENCY,
+      CONCURRENCY.API_CALLS,
       async (pub) => {
         const result = await queryCrossRef(
           pub.title,
@@ -468,7 +262,7 @@ async function main() {
           pub.abstract = result.abstract
           abstracts++
         }
-        await sleep(CROSSREF_DELAY_MS)
+        await sleep(DELAYS.CROSSREF_MS)
       },
       'CrossRef lookup',
     )
@@ -490,7 +284,7 @@ async function main() {
 
     await runConcurrent(
       needsPdf,
-      UNPAYWALL_CONCURRENCY,
+      CONCURRENCY.API_CALLS,
       async (pub) => {
         const result = await queryUnpaywall(pub.doi!)
         pub._oaStatus = result.oaStatus
@@ -499,7 +293,7 @@ async function main() {
           pub._unpaywallEnriched = true
           found++
         }
-        await sleep(UNPAYWALL_DELAY_MS)
+        await sleep(DELAYS.UNPAYWALL_MS)
       },
       'Unpaywall lookup',
     )

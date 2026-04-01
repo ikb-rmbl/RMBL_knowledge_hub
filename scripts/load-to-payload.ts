@@ -16,176 +16,21 @@
  */
 
 import { readFileSync } from 'fs'
+import { runBatch } from './lib/concurrency.js'
+import {
+  ensureAuth,
+  authHeaders,
+  createRecord,
+  findByField,
+  getCount,
+  checkServer,
+} from './lib/payload-client.js'
+import { OUTPUT_DIR, PAYLOAD_API, CONCURRENCY } from './lib/config.js'
 
-const BASE_URL = 'http://localhost:3000'
-const API = `${BASE_URL}/api`
-const ADMIN_EMAIL = 'admin@rmbl.org'
-const ADMIN_PASSWORD = 'dev-password-change-me'
-const CONCURRENCY = 5
-
-const OUTPUT_DIR = new URL('./output', import.meta.url).pathname
+const WRITE_CONCURRENCY = CONCURRENCY.PAYLOAD_WRITES
 
 const collectionArg =
   process.argv.find((a) => a.startsWith('--collection='))?.split('=')[1] || 'all'
-
-// ---------------------------------------------------------------------------
-// Auth
-// ---------------------------------------------------------------------------
-
-let authToken: string | null = null
-
-async function ensureAdmin(): Promise<void> {
-  // Try to log in first
-  const loginRes = await fetch(`${API}/users/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
-  })
-
-  if (loginRes.ok) {
-    const data = await loginRes.json()
-    authToken = data.token
-    console.log('  Logged in as existing admin')
-    return
-  }
-
-  // Create admin user (first-run)
-  const createRes = await fetch(`${API}/users/first-register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
-  })
-
-  if (createRes.ok) {
-    const data = await createRes.json()
-    authToken = data.token
-    console.log('  Created admin user and logged in')
-    return
-  }
-
-  // Try the regular create endpoint (Payload v3 varies)
-  const regRes = await fetch(`${API}/users`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
-  })
-
-  if (regRes.ok) {
-    // Now log in
-    const loginRes2 = await fetch(`${API}/users/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
-    })
-    if (loginRes2.ok) {
-      const data = await loginRes2.json()
-      authToken = data.token
-      console.log('  Created admin user and logged in')
-      return
-    }
-  }
-
-  throw new Error('Could not create or log in as admin user. Is the dev server running?')
-}
-
-function authHeaders(): Record<string, string> {
-  return {
-    'Content-Type': 'application/json',
-    ...(authToken ? { Authorization: `JWT ${authToken}` } : {}),
-  }
-}
-
-// ---------------------------------------------------------------------------
-// API helpers
-// ---------------------------------------------------------------------------
-
-async function createRecord(
-  collection: string,
-  data: Record<string, unknown>,
-): Promise<{ id: string } | null> {
-  const res = await fetch(`${API}/${collection}`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
-  })
-
-  if (!res.ok) {
-    const body = await res.text()
-    // Unique constraint = already exists, skip
-    if (res.status === 400 && body.includes('unique')) return null
-    throw new Error(`POST /${collection} failed (${res.status}): ${body.slice(0, 200)}`)
-  }
-
-  const result = await res.json()
-  return { id: result.doc?.id || result.id }
-}
-
-async function findByField(
-  collection: string,
-  field: string,
-  value: string,
-): Promise<string | null> {
-  const res = await fetch(
-    `${API}/${collection}?where[${field}][equals]=${encodeURIComponent(value)}&limit=1`,
-    { headers: authHeaders() },
-  )
-  if (!res.ok) return null
-  const data = await res.json()
-  if (data.docs?.length > 0) return data.docs[0].id
-  return null
-}
-
-async function getCount(collection: string): Promise<number> {
-  const res = await fetch(`${API}/${collection}?limit=0`, { headers: authHeaders() })
-  if (!res.ok) return 0
-  const data = await res.json()
-  return data.totalDocs || 0
-}
-
-// ---------------------------------------------------------------------------
-// Concurrency helper
-// ---------------------------------------------------------------------------
-
-async function runBatch<T>(
-  items: T[],
-  concurrency: number,
-  fn: (item: T) => Promise<void>,
-  label: string,
-): Promise<{ success: number; skipped: number; errors: number }> {
-  let completed = 0
-  let success = 0
-  let skipped = 0
-  let errors = 0
-  const total = items.length
-
-  async function worker(queue: T[]) {
-    while (queue.length > 0) {
-      const item = queue.shift()!
-      try {
-        await fn(item)
-        success++
-      } catch (err: any) {
-        if (err?.message?.includes('unique') || err?.message?.includes('already')) {
-          skipped++
-        } else {
-          errors++
-          if (errors <= 5) console.error(`\n  ERROR: ${err?.message?.slice(0, 120)}`)
-        }
-      }
-      completed++
-      if (completed % 50 === 0 || completed === total) {
-        process.stdout.write(`\r  ${label}: ${completed}/${total} (${success} ok, ${skipped} skip, ${errors} err)`)
-      }
-    }
-  }
-
-  const queue = [...items]
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, () => worker(queue)),
-  )
-  console.log()
-  return { success, skipped, errors }
-}
 
 // ---------------------------------------------------------------------------
 // Topics
@@ -215,7 +60,7 @@ async function seedTopics() {
   if (existing > 0) {
     console.log(`  ${existing} topics already exist, loading IDs...`)
     // Load all existing topics into cache
-    const res = await fetch(`${API}/topics?limit=100`, { headers: authHeaders() })
+    const res = await fetch(`${PAYLOAD_API}/topics?limit=100`, { headers: authHeaders() })
     const data = await res.json()
     for (const doc of data.docs) {
       topicIdCache.set(doc.name, doc.id)
@@ -265,11 +110,11 @@ async function loadDocuments() {
 
   await runBatch(
     docs,
-    CONCURRENCY,
+    WRITE_CONCURRENCY,
     async (doc) => {
       const categoryIds = await resolveTopicIds(doc.categories)
 
-      await createRecord('documents', {
+      const result = await createRecord('documents', {
         title: doc.title,
         summary: doc.summary || undefined,
         categories: categoryIds.length > 0 ? categoryIds : undefined,
@@ -279,6 +124,7 @@ async function loadDocuments() {
         sourceUrl: doc.sourceUrl || undefined,
         ingestionDate: doc.ingestionDate || undefined,
       })
+      return result ? 'success' : 'skipped'
     },
     'Documents',
   )
@@ -302,9 +148,9 @@ async function loadPublications() {
 
   await runBatch(
     pubs,
-    CONCURRENCY,
+    WRITE_CONCURRENCY,
     async (pub) => {
-      await createRecord('publications', {
+      const result = await createRecord('publications', {
         title: pub.title,
         authors:
           pub.authors?.length > 0
@@ -330,6 +176,7 @@ async function loadPublications() {
             ? pub.editors.map((e: any) => ({ given: e.given || '', family: e.family || '' }))
             : undefined,
       })
+      return result ? 'success' : 'skipped'
     },
     'Publications',
   )
@@ -368,11 +215,11 @@ async function loadDatasets() {
 
   await runBatch(
     datasets,
-    CONCURRENCY,
+    WRITE_CONCURRENCY,
     async (ds) => {
       const tagIds = await resolveTopicIds(ds.tags || [])
 
-      await createRecord('datasets', {
+      const result = await createRecord('datasets', {
         title: ds.title,
         description: ds.description || undefined,
         creators:
@@ -398,6 +245,7 @@ async function loadDatasets() {
         methods: ds._methods || undefined,
         fullText: ds._metadataFullText || undefined,
       })
+      return result ? 'success' : 'skipped'
     },
     'Datasets',
   )
@@ -412,16 +260,14 @@ async function main() {
   console.log('=======================')
 
   // Check server is running
-  try {
-    const res = await fetch(`${BASE_URL}/admin`, { redirect: 'manual' })
-    if (!res.ok && res.status !== 302 && res.status !== 301) throw new Error()
-  } catch {
+  const serverUp = await checkServer()
+  if (!serverUp) {
     console.error('ERROR: Payload dev server not running. Start it with: npm run dev')
     process.exit(1)
   }
 
   console.log('\nStep 0: Authenticating...')
-  await ensureAdmin()
+  await ensureAuth()
 
   const collections =
     collectionArg === 'all'
