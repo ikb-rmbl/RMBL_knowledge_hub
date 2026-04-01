@@ -26,12 +26,25 @@ function getDb(): pg.Pool {
 async function tsvectorSearch(
   query: string,
   typeFilter: string,
+  sortBy: string,
   limit: number,
   offset: number,
 ): Promise<{ results: ResultItem[]; total: number }> {
   const db = getDb()
   const results: ResultItem[] = []
   let total = 0
+
+  // Map sort param to SQL ORDER BY per collection
+  function orderBy(dateCol: string): string {
+    switch (sortBy) {
+      case 'oldest': return `${dateCol} ASC NULLS LAST`
+      case 'title': return 'title ASC'
+      case 'title-desc': return 'title DESC'
+      case 'newest': return `${dateCol} DESC NULLS LAST`
+      case 'relevance':
+      default: return 'rank DESC'
+    }
+  }
 
   const searchDocs = !typeFilter || typeFilter === 'documents'
   const searchPubs = !typeFilter || typeFilter === 'publications'
@@ -45,7 +58,7 @@ async function tsvectorSearch(
               ts_rank(search_vector, plainto_tsquery('english', $1)) as rank,
               date_original
        FROM documents WHERE search_vector @@ plainto_tsquery('english', $1)
-       ORDER BY rank DESC LIMIT $2 OFFSET $3`,
+       ORDER BY ${orderBy('date_original')} LIMIT $2 OFFSET $3`,
       [query, limit, offset],
     )
     for (const row of rows) {
@@ -63,7 +76,7 @@ async function tsvectorSearch(
                 'MaxFragments=1,MaxWords=30,MinWords=15,StartSel=<mark>,StopSel=</mark>') as snippet,
               ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
        FROM publications WHERE search_vector @@ plainto_tsquery('english', $1)
-       ORDER BY rank DESC LIMIT $2 OFFSET $3`,
+       ORDER BY ${orderBy('year')} LIMIT $2 OFFSET $3`,
       [query, limit, offset],
     )
     for (const row of rows) {
@@ -80,7 +93,7 @@ async function tsvectorSearch(
                 'MaxFragments=1,MaxWords=30,MinWords=15,StartSel=<mark>,StopSel=</mark>') as snippet,
               ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
        FROM datasets WHERE search_vector @@ plainto_tsquery('english', $1)
-       ORDER BY rank DESC LIMIT $2 OFFSET $3`,
+       ORDER BY ${orderBy('publication_year')} LIMIT $2 OFFSET $3`,
       [query, limit, offset],
     )
     for (const row of rows) {
@@ -105,6 +118,7 @@ const PUB_TYPE_OPTIONS = [
 ]
 
 const SORT_OPTIONS = [
+  { value: 'relevance', label: 'Relevance' },
   { value: 'newest', label: 'Date (Newest)' },
   { value: 'oldest', label: 'Date (Oldest)' },
   { value: 'title', label: 'Title (A-Z)' },
@@ -172,7 +186,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const pubTypeFilter = params.pubType || ''
   const yearFrom = params.yearFrom ? parseInt(params.yearFrom) : null
   const yearTo = params.yearTo ? parseInt(params.yearTo) : null
-  const sortParam = params.sort || 'newest'
+  const sortParam = params.sort || (query ? 'relevance' : 'newest')
   const page = Math.max(1, parseInt(params.page || '1'))
 
   const payload = await getPayload({ config })
@@ -185,7 +199,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   if (useFts) {
     const ftsOffset = (page - 1) * PAGE_SIZE
-    const fts = await tsvectorSearch(query, typeFilter, PAGE_SIZE, ftsOffset)
+    const fts = await tsvectorSearch(query, typeFilter, sortParam, PAGE_SIZE, ftsOffset)
     results = fts.results
     totalResults = fts.total
   }
@@ -375,7 +389,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}>
                 <Link
-                  href={buildUrl(params, { sort: opt.value === 'newest' ? undefined : opt.value, page: undefined })}
+                  href={buildUrl(params, { sort: opt.value === 'relevance' ? undefined : opt.value, page: undefined })}
                   style={{
                     fontWeight: sortParam === opt.value ? 700 : 400,
                     color: sortParam === opt.value ? 'var(--color-accent)' : 'inherit',
