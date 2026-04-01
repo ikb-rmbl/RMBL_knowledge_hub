@@ -204,7 +204,7 @@ function normalizeDataOneResult(
 ): NormalizedDataset {
   const doi = extractDoiFromSeriesId(result.seriesId) || eml?.doi || null
   const dateStr = result.datePublished || null
-  const year = dateStr ? new Date(dateStr).getFullYear() : 0
+  const year = dateStr ? new Date(dateStr).getUTCFullYear() : 0
 
   const creators = eml?.creators?.length
     ? eml.creators.map((c) => ({ name: c.name, orcid: null, affiliation: c.affiliation }))
