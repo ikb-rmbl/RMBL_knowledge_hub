@@ -62,7 +62,7 @@ async function tsvectorSearch(
       [query, limit, offset],
     )
     for (const row of rows) {
-      const yearStr = row.date_original ? String(row.date_original).slice(0, 4) : null
+      const yearStr = row.date_original ? new Date(row.date_original).getFullYear().toString() : null
       results.push({ collection: 'document', subtype: null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: yearStr ? parseInt(yearStr) : null, meta: [yearStr].filter(Boolean) as string[] })
     }
     const countRes = await db.query("SELECT count(*)::int FROM documents WHERE search_vector @@ plainto_tsquery('english', $1)", [query])
@@ -104,7 +104,12 @@ async function tsvectorSearch(
   }
 
   // Sort merged by rank (already sorted per-collection, merge-sort)
-  results.sort((a, b) => 0) // Already sorted within collection; for cross-collection ranking we'd need a union query
+  // Re-sort merged results across collections
+  if (sortBy === 'newest') results.sort((a, b) => (b.year || 0) - (a.year || 0))
+  else if (sortBy === 'oldest') results.sort((a, b) => (a.year || 0) - (b.year || 0))
+  else if (sortBy === 'title') results.sort((a, b) => a.title.localeCompare(b.title))
+  else if (sortBy === 'title-desc') results.sort((a, b) => b.title.localeCompare(a.title))
+  // 'relevance' — keep per-collection rank ordering (already interleaved)
   return { results: results.slice(0, limit), total }
 }
 
