@@ -90,15 +90,25 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   const payload = await getPayload({ config })
 
-  // Resolve topic ID
-  let topicId: string | null = null
+  // Resolve topic ID — if it's a parent topic, also include all children
+  let topicIds: string[] = []
   if (topicFilter) {
     const topicResult = await payload.find({
       collection: 'topics',
       where: { name: { equals: topicFilter } },
       limit: 1,
     })
-    if (topicResult.docs.length > 0) topicId = String(topicResult.docs[0].id)
+    if (topicResult.docs.length > 0) {
+      const parentId = String(topicResult.docs[0].id)
+      topicIds = [parentId]
+      // Check for children
+      const children = await payload.find({
+        collection: 'topics',
+        where: { parent: { equals: parentId } },
+        limit: 500,
+      })
+      topicIds.push(...children.docs.map((c) => String(c.id)))
+    }
   }
 
   const results: ResultItem[] = []
@@ -108,23 +118,31 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const searchPubs = !typeFilter || typeFilter === 'publications'
   const searchData = !typeFilter || typeFilter === 'datasets'
 
+  // Topic filter: match any of the IDs (parent + children)
+  const topicWhere = (field: string): Where =>
+    topicIds.length === 1
+      ? { [field]: { equals: topicIds[0] } }
+      : topicIds.length > 1
+        ? { or: topicIds.map((id) => ({ [field]: { equals: id } })) }
+        : {}
+
   // --- Build where clauses ---
   const docWhere: Where = {}
   if (query) docWhere.title = { contains: query }
-  if (topicId) docWhere.categories = { equals: topicId }
+  if (topicIds.length > 0) Object.assign(docWhere, topicWhere('categories'))
   if (yearFrom) docWhere['dateOriginal'] = { ...(docWhere['dateOriginal'] as any), greater_than_equal: `${yearFrom}-01-01` }
   if (yearTo) docWhere['dateOriginal'] = { ...(docWhere['dateOriginal'] as any), less_than_equal: `${yearTo}-12-31` }
 
   const pubWhere: Where = {}
   if (query) pubWhere.title = { contains: query }
-  if (topicId) pubWhere.researchTopics = { equals: topicId }
+  if (topicIds.length > 0) Object.assign(pubWhere, topicWhere('researchTopics'))
   if (pubTypeFilter) pubWhere.publicationType = { equals: pubTypeFilter }
   if (yearFrom) pubWhere.year = { ...(pubWhere.year as any), greater_than_equal: yearFrom }
   if (yearTo) pubWhere.year = { ...(pubWhere.year as any), less_than_equal: yearTo }
 
   const dataWhere: Where = {}
   if (query) dataWhere.title = { contains: query }
-  if (topicId) dataWhere.tags = { equals: topicId }
+  if (topicIds.length > 0) Object.assign(dataWhere, topicWhere('tags'))
   if (yearFrom) dataWhere.publicationYear = { ...(dataWhere.publicationYear as any), greater_than_equal: yearFrom }
   if (yearTo) dataWhere.publicationYear = { ...(dataWhere.publicationYear as any), less_than_equal: yearTo }
 

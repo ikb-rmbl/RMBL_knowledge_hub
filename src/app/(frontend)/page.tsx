@@ -15,25 +15,42 @@ export default async function HomePage() {
     payload.count({ collection: 'datasets' }),
   ])
 
-  // Fetch parent topics with counts
-  const topics = await payload.find({
+  // Fetch all topics and identify parents (those without a parent field)
+  const allTopics = await payload.find({
     collection: 'topics',
-    where: { parent: { exists: false } },
-    limit: 20,
+    limit: 1000,
     sort: 'name',
   })
 
-  // Count resources per topic (documents + publications with that topic)
+  const parentTopics = allTopics.docs.filter((t) => !t.parent)
+  const childTopics = allTopics.docs.filter((t) => t.parent)
+
+  // Build parent -> children map
+  const childrenByParent = new Map<string, string[]>()
+  for (const child of childTopics) {
+    const parentId = String(typeof child.parent === 'object' ? child.parent.id : child.parent)
+    if (!childrenByParent.has(parentId)) childrenByParent.set(parentId, [])
+    childrenByParent.get(parentId)!.push(String(child.id))
+  }
+
+  // Count resources for each parent (self + first 20 children by lowest ID)
   const topicCounts: { name: string; id: string; count: number }[] = []
-  for (const topic of topics.docs) {
-    const [docs, pubs, dsets] = await Promise.all([
-      payload.count({ collection: 'documents', where: { categories: { equals: topic.id } } }),
-      payload.count({ collection: 'publications', where: { researchTopics: { equals: topic.id } } }),
-      payload.count({ collection: 'datasets', where: { tags: { equals: topic.id } } }),
-    ])
-    const total = docs.totalDocs + pubs.totalDocs + dsets.totalDocs
+  for (const parent of parentTopics) {
+    const childIds = (childrenByParent.get(String(parent.id)) || []).sort((a, b) => Number(a) - Number(b))
+    const idsToCheck = [String(parent.id), ...childIds.slice(0, 20)]
+
+    let total = 0
+    for (const id of idsToCheck) {
+      const [d, p, ds] = await Promise.all([
+        payload.count({ collection: 'documents', where: { categories: { equals: id } } }),
+        payload.count({ collection: 'publications', where: { researchTopics: { equals: id } } }),
+        payload.count({ collection: 'datasets', where: { tags: { equals: id } } }),
+      ])
+      total += d.totalDocs + p.totalDocs + ds.totalDocs
+    }
+
     if (total > 0) {
-      topicCounts.push({ name: topic.name, id: String(topic.id), count: total })
+      topicCounts.push({ name: parent.name, id: String(parent.id), count: total })
     }
   }
   topicCounts.sort((a, b) => b.count - a.count)
