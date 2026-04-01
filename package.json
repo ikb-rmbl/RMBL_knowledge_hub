@@ -11,7 +11,9 @@
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
-    "lint": "cross-env NODE_OPTIONS=--no-deprecation eslint ."
+    "lint": "cross-env NODE_OPTIONS=--no-deprecation eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "^3.80.0",
@@ -37,7 +39,8 @@
     "jsdom": "^29.0.1",
     "playwright": "^1.58.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.2"
   },
   "engines": {
     "node": ">=20.9.0"
