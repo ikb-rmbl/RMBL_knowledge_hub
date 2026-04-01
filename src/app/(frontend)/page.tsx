@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getBadgeLabel, getBadgeClass } from './lib/badges'
+import ExpandableTopics from './components/ExpandableTopics'
 
 export const dynamic = 'force-dynamic'
 
@@ -154,20 +155,7 @@ export default async function HomePage() {
       {topicCounts.length > 0 && (
         <section className="section">
           <h2 className="section-title">Browse by Topic</h2>
-          <div className="topic-grid">
-            {topicCounts.slice(0, 8).map((topic) => (
-              <Link
-                key={topic.id}
-                className="topic-card"
-                href={`/search?topic=${encodeURIComponent(topic.name)}`}
-              >
-                <div className="topic-card-name">{topic.name}</div>
-                <div className="topic-card-count">
-                  {topic.count} resource{topic.count !== 1 ? 's' : ''}
-                </div>
-              </Link>
-            ))}
-          </div>
+          <ExpandableTopics topics={topicCounts} />
         </section>
       )}
 
