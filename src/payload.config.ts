@@ -32,6 +32,7 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URL || '',
     },
+    push: false, // Don't auto-push schema changes (preserves custom tsvector columns)
   }),
   sharp,
   plugins: [],

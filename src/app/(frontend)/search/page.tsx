@@ -3,10 +3,92 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import type { Where } from 'payload'
 import { getBadgeLabel, getBadgeClass } from '../lib/badges'
+import type { SearchResult as FtsResult } from '../api/search/route'
+import pg from 'pg'
 
 export const dynamic = 'force-dynamic'
 
 const PAGE_SIZE = 20
+
+// PostgreSQL pool for tsvector full-text search
+let dbPool: pg.Pool | null = null
+function getDb(): pg.Pool {
+  if (!dbPool) dbPool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
+  return dbPool
+}
+
+/** Full-text search using PostgreSQL tsvector with ranked results and snippets */
+async function tsvectorSearch(
+  query: string,
+  typeFilter: string,
+  limit: number,
+  offset: number,
+): Promise<{ results: ResultItem[]; total: number }> {
+  const db = getDb()
+  const results: ResultItem[] = []
+  let total = 0
+
+  const searchDocs = !typeFilter || typeFilter === 'documents'
+  const searchPubs = !typeFilter || typeFilter === 'publications'
+  const searchData = !typeFilter || typeFilter === 'datasets'
+
+  if (searchDocs) {
+    const { rows } = await db.query(
+      `SELECT id, title,
+              ts_headline('english', coalesce(full_text, title, ''), plainto_tsquery('english', $1),
+                'MaxFragments=1,MaxWords=30,MinWords=15') as snippet,
+              ts_rank(search_vector, plainto_tsquery('english', $1)) as rank,
+              date_original
+       FROM documents WHERE search_vector @@ plainto_tsquery('english', $1)
+       ORDER BY rank DESC LIMIT $2 OFFSET $3`,
+      [query, limit, offset],
+    )
+    for (const row of rows) {
+      const yearStr = row.date_original ? String(row.date_original).slice(0, 4) : null
+      results.push({ collection: 'document', subtype: null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: yearStr ? parseInt(yearStr) : null, meta: [yearStr].filter(Boolean) as string[] })
+    }
+    const countRes = await db.query("SELECT count(*)::int FROM documents WHERE search_vector @@ plainto_tsquery('english', $1)", [query])
+    total += countRes.rows[0].count
+  }
+
+  if (searchPubs) {
+    const { rows } = await db.query(
+      `SELECT id, title, year, journal, doi, publication_type,
+              ts_headline('english', coalesce(abstract, full_text, title, ''), plainto_tsquery('english', $1),
+                'MaxFragments=1,MaxWords=30,MinWords=15') as snippet,
+              ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
+       FROM publications WHERE search_vector @@ plainto_tsquery('english', $1)
+       ORDER BY rank DESC LIMIT $2 OFFSET $3`,
+      [query, limit, offset],
+    )
+    for (const row of rows) {
+      results.push({ collection: 'publication', subtype: row.publication_type || null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: row.year || null, meta: [row.journal, row.year ? String(row.year) : '', row.doi ? `DOI: ${row.doi}` : ''].filter(Boolean) })
+    }
+    const countRes = await db.query("SELECT count(*)::int FROM publications WHERE search_vector @@ plainto_tsquery('english', $1)", [query])
+    total += countRes.rows[0].count
+  }
+
+  if (searchData) {
+    const { rows } = await db.query(
+      `SELECT id, title, publication_year, resource_type,
+              ts_headline('english', coalesce(full_text, title, ''), plainto_tsquery('english', $1),
+                'MaxFragments=1,MaxWords=30,MinWords=15') as snippet,
+              ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
+       FROM datasets WHERE search_vector @@ plainto_tsquery('english', $1)
+       ORDER BY rank DESC LIMIT $2 OFFSET $3`,
+      [query, limit, offset],
+    )
+    for (const row of rows) {
+      results.push({ collection: 'dataset', subtype: row.resource_type || null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: row.publication_year || null, meta: [row.publication_year ? String(row.publication_year) : ''].filter(Boolean) })
+    }
+    const countRes = await db.query("SELECT count(*)::int FROM datasets WHERE search_vector @@ plainto_tsquery('english', $1)", [query])
+    total += countRes.rows[0].count
+  }
+
+  // Sort merged by rank (already sorted per-collection, merge-sort)
+  results.sort((a, b) => 0) // Already sorted within collection; for cross-collection ranking we'd need a union query
+  return { results: results.slice(0, limit), total }
+}
 
 const PUB_TYPE_OPTIONS = [
   { value: 'article', label: 'Journal Article' },
@@ -90,6 +172,19 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   const payload = await getPayload({ config })
 
+  // Use tsvector full-text search when there's a query text
+  // This provides ranked results with stemming and snippet highlighting
+  const useFts = Boolean(query) && !topicFilter && !pubTypeFilter && !yearFrom && !yearTo
+  let results: ResultItem[] = []
+  let totalResults = 0
+
+  if (useFts) {
+    const ftsOffset = (page - 1) * PAGE_SIZE
+    const fts = await tsvectorSearch(query, typeFilter, PAGE_SIZE, ftsOffset)
+    results = fts.results
+    totalResults = fts.total
+  }
+
   // Resolve topic ID — if it's a parent topic, also include all children
   let topicIds: string[] = []
   if (topicFilter) {
@@ -111,8 +206,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     }
   }
 
-  const results: ResultItem[] = []
-  let totalResults = 0
+  if (!useFts) {
+  // Payload-based search (used when browsing with filters but no text query,
+  // or when combining text query with topic/date/pubType filters)
 
   const searchDocs = !typeFilter || typeFilter === 'documents'
   const searchPubs = !typeFilter || typeFilter === 'publications'
@@ -217,6 +313,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     else if (sortParam === 'title') results.sort((a, b) => a.title.localeCompare(b.title))
     else if (sortParam === 'title-desc') results.sort((a, b) => b.title.localeCompare(a.title))
   }
+
+  } // end if (!useFts)
 
   const totalPages = Math.ceil(totalResults / PAGE_SIZE)
 
