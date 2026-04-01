@@ -41,7 +41,7 @@ async function tsvectorSearch(
     const { rows } = await db.query(
       `SELECT id, title,
               ts_headline('english', coalesce(full_text, title, ''), plainto_tsquery('english', $1),
-                'MaxFragments=1,MaxWords=30,MinWords=15') as snippet,
+                'MaxFragments=1,MaxWords=30,MinWords=15,StartSel=<mark>,StopSel=</mark>') as snippet,
               ts_rank(search_vector, plainto_tsquery('english', $1)) as rank,
               date_original
        FROM documents WHERE search_vector @@ plainto_tsquery('english', $1)
@@ -60,7 +60,7 @@ async function tsvectorSearch(
     const { rows } = await db.query(
       `SELECT id, title, year, journal, doi, publication_type,
               ts_headline('english', coalesce(abstract, full_text, title, ''), plainto_tsquery('english', $1),
-                'MaxFragments=1,MaxWords=30,MinWords=15') as snippet,
+                'MaxFragments=1,MaxWords=30,MinWords=15,StartSel=<mark>,StopSel=</mark>') as snippet,
               ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
        FROM publications WHERE search_vector @@ plainto_tsquery('english', $1)
        ORDER BY rank DESC LIMIT $2 OFFSET $3`,
@@ -77,7 +77,7 @@ async function tsvectorSearch(
     const { rows } = await db.query(
       `SELECT id, title, publication_year, resource_type,
               ts_headline('english', coalesce(full_text, title, ''), plainto_tsquery('english', $1),
-                'MaxFragments=1,MaxWords=30,MinWords=15') as snippet,
+                'MaxFragments=1,MaxWords=30,MinWords=15,StartSel=<mark>,StopSel=</mark>') as snippet,
               ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
        FROM datasets WHERE search_vector @@ plainto_tsquery('english', $1)
        ORDER BY rank DESC LIMIT $2 OFFSET $3`,
