@@ -289,6 +289,12 @@ a:hover {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.result-card-snippet mark {
+  background: #fef3c7;
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 2px;
+}
 .result-card-meta {
   display: flex;
   gap: 12px;

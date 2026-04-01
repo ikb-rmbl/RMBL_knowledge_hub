@@ -512,7 +512,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                   </span>
                   <h3 className="result-card-title">{item.title}</h3>
                 </div>
-                {item.snippet && <p className="result-card-snippet">{item.snippet.slice(0, 200)}</p>}
+                {item.snippet && <p className="result-card-snippet" dangerouslySetInnerHTML={{ __html: item.snippet.replace(/<(?!\/?(mark)\b)[^>]+>/gi, '').slice(0, 300) }} />}
                 <div className="result-card-meta">
                   {item.meta.map((m, i) => (
                     <span key={i}>{m}</span>
