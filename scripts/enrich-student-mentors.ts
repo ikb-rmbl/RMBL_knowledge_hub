@@ -20,17 +20,44 @@ const textDir = join(STAGING_DIR, 'publications')
 // Mentor extraction patterns
 // ---------------------------------------------------------------------------
 
-const TEXT_PATTERNS = [
-  /[Mm]entor(?:ed by|:\s*|\s+by\s+)\s*(?:Dr\.\s*)?([A-Z][a-zA-Z.\'\- ]+?)(?:\n|,|\.\s|$)/m,
-  /[Ff]aculty\s+(?:[Mm]entor|[Aa]dvisor|[Ss]ponsor)[:\s]+(?:Dr\.\s*)?([A-Z][a-zA-Z.\'\- ]+?)(?:\n|,|\.\s|$)/m,
-  /[Aa]dvisor[:\s]+(?:Dr\.\s*)?([A-Z][a-zA-Z.\'\- ]+?)(?:\n|,|\.\s|$)/m,
-  /[Ss]upervisor[:\s]+(?:Dr\.\s*)?([A-Z][a-zA-Z.\'\- ]+?)(?:\n|,|\.\s|$)/m,
-  /(?:under the (?:direction|guidance|supervision) of|supervised by)\s+(?:Dr\.\s*)?([A-Z][a-zA-Z.\'\- ]+?)(?:\n|,|\.\s|$)/mi,
-  /(?:REU|Research Experience).*?[Mm]entor[:\s]+(?:Dr\.\s*)?([A-Z][a-zA-Z.\'\- ]+?)(?:\n|,|\.\s|$)/m,
-  /[Pp]rincipal\s+[Ii]nvestigator[:\s]+(?:Dr\.\s*)?([A-Z][a-zA-Z.\'\- ]+?)(?:\n|,|\.\s|$)/m,
+// Patterns that capture the FULL line after the label (may contain multiple names)
+const MULTI_NAME_PATTERNS = [
+  /[Mm]entors?[:\s]+(.+)/m,
+  /[Aa]dvisors?[:\s]+(.+)/m,
+  /[Ff]aculty\s+(?:[Mm]entor|[Aa]dvisor|[Ss]ponsor)s?[:\s]+(.+)/m,
+  /[Ss]upervisors?[:\s]+(.+)/m,
+  /[Cc]ollaborators?[:\s]+(.+)/m,
+  /[Pp]rincipal\s+[Ii]nvestigators?[:\s]+(.+)/m,
+  /(?:under the (?:direction|guidance|supervision) of|supervised by)\s+(.+)/mi,
 ]
 
-const REF_PATTERN = /[Mm]entor[:\s]*(?:Dr\.\s*)?([A-Z][a-zA-Z.\'\- ]+)/
+const REF_PATTERN = /[Mm]entor[:\s]*(.+)/
+
+/** Split a line like "Dr. Mary Price & Dr. Nickolas Waser" into individual names */
+function splitNames(line: string): string[] {
+  // Clean the line
+  let cleaned = line
+    .replace(/\bPh\.?D\.?\b/gi, '')
+    .replace(/\bDr\.\s*/gi, '')
+    .replace(/\bM\.?S\.?\b/g, '')
+    .trim()
+
+  // Stop at common terminators
+  cleaned = cleaned.split(/\n/)[0]
+  cleaned = cleaned.replace(/\s*(?:Rocky Mountain|University of|Summer |Full.?[Tt]ime|Independent|REU|RMBL|Department of|College of).*/i, '')
+  cleaned = cleaned.replace(/[,;]\s*$/, '').trim()
+
+  if (!cleaned) return []
+
+  // Split on common separators: ", ", " and ", " & ", ";"
+  const parts = cleaned.split(/\s*(?:,\s*(?:and\s+)?|;\s*|\s+&\s+|\s+and\s+)\s*/i)
+
+  return parts
+    .map((p) => p.trim())
+    .filter((p) => p.length > 3 && p.length < 40)
+    .filter((p) => !p.match(/^(The|This|Our|My|We|In|On|At|By|To|Dr|None|NA|TBD|Summer|Winter|Spring|Fall)/i))
+    .filter((p) => p.split(/\s+/).length >= 2) // must have first + last name
+}
 
 function isValidName(name: string): boolean {
   if (name.length < 3 || name.length > 40) return false
@@ -73,14 +100,16 @@ async function main() {
     authorByFamily.get(key)!.push(a)
   }
 
-  let foundFromRef = 0
-  let foundFromText = 0
+  let papersWithMentors = 0
+  let totalNamesFound = 0
+  let fromRef = 0
+  let fromText = 0
   let matchedToRegistry = 0
   const mentorCounts = new Map<string, number>()
-  const enriched: { sourceId: string; title: string; mentor: string; source: string; matched: boolean }[] = []
+  const enriched: { sourceId: string; title: string; names: string[]; source: string }[] = []
 
   for (const s of students) {
-    let mentorName: string | null = null
+    const allNames: string[] = []
     let source = ''
 
     // Check restofreference first
@@ -88,27 +117,27 @@ async function main() {
     const ref = r?.restofreference || ''
     const refMatch = ref.match(REF_PATTERN)
     if (refMatch) {
-      const name = cleanMentorName(refMatch[1])
-      if (isValidName(name)) {
-        mentorName = name
+      const names = splitNames(refMatch[1])
+      if (names.length > 0) {
+        allNames.push(...names)
         source = 'reference'
-        foundFromRef++
+        fromRef += names.length
       }
     }
 
-    // Check full text if no ref match
-    if (!mentorName) {
+    // Check full text
+    if (allNames.length === 0) {
       const txtPath = join(textDir, `pub_${s._sourceId}.txt`)
       if (existsSync(txtPath)) {
-        const text = readFileSync(txtPath, 'utf-8')
-        for (const pattern of TEXT_PATTERNS) {
+        const text = readFileSync(txtPath, 'utf-8').slice(0, 2000) // first ~2 pages
+        for (const pattern of MULTI_NAME_PATTERNS) {
           const match = text.match(pattern)
           if (match) {
-            const name = cleanMentorName(match[1])
-            if (isValidName(name)) {
-              mentorName = name
+            const names = splitNames(match[1])
+            if (names.length > 0) {
+              allNames.push(...names)
               source = 'fulltext'
-              foundFromText++
+              fromText += names.length
               break
             }
           }
@@ -116,39 +145,37 @@ async function main() {
       }
     }
 
-    if (!mentorName) continue
+    if (allNames.length === 0) continue
 
-    mentorCounts.set(mentorName, (mentorCounts.get(mentorName) || 0) + 1)
+    papersWithMentors++
+    totalNamesFound += allNames.length
 
-    // Try to match to author registry
-    const parts = mentorName.split(/\s+/)
-    const familyName = parts[parts.length - 1].toLowerCase()
-    const candidates = authorByFamily.get(familyName) || []
-    const matched = candidates.length > 0
-
-    if (matched) matchedToRegistry++
-
-    // Store mentor info on the publication
-    if (!s._mentor) {
-      s._mentor = mentorName
-      s._mentorSource = source
+    for (const name of allNames) {
+      mentorCounts.set(name, (mentorCounts.get(name) || 0) + 1)
+      const parts = name.split(/\s+/)
+      const familyName = parts[parts.length - 1].toLowerCase()
+      if ((authorByFamily.get(familyName) || []).length > 0) matchedToRegistry++
     }
+
+    // Store on the publication record
+    s._mentors = allNames
+    s._mentorSource = source
 
     enriched.push({
       sourceId: s._sourceId,
       title: s.title.slice(0, 50),
-      mentor: mentorName,
+      names: allNames,
       source,
-      matched,
     })
   }
 
-  console.log(`\nMentors found: ${foundFromRef + foundFromText}`)
-  console.log(`  From restofreference: ${foundFromRef}`)
-  console.log(`  From full text: ${foundFromText}`)
+  console.log(`\nPapers with mentors/co-authors: ${papersWithMentors}`)
+  console.log(`Total names found: ${totalNamesFound}`)
+  console.log(`  From restofreference: ${fromRef}`)
+  console.log(`  From full text: ${fromText}`)
   console.log(`  Matched to author registry: ${matchedToRegistry}`)
 
-  console.log('\nTop mentors:')
+  console.log('\nTop mentors/co-authors:')
   for (const [name, count] of [...mentorCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20)) {
     const parts = name.split(/\s+/)
     const familyName = parts[parts.length - 1].toLowerCase()
@@ -157,8 +184,12 @@ async function main() {
   }
 
   console.log('\nSample enrichments:')
-  for (const e of enriched.slice(0, 10)) {
-    console.log(`  [${e.source}] ${e.mentor}${e.matched ? ' ✓' : ''} → ${e.title}`)
+  for (const e of enriched.filter(e => e.names.length >= 2).slice(0, 10)) {
+    console.log(`  [${e.source}] ${e.names.join(', ')} → ${e.title}`)
+  }
+  console.log('\nSingle mentor samples:')
+  for (const e of enriched.filter(e => e.names.length === 1).slice(0, 5)) {
+    console.log(`  [${e.source}] ${e.names[0]} → ${e.title}`)
   }
 
   if (!dryRun) {
@@ -166,11 +197,16 @@ async function main() {
     console.log(`\nUpdated publications-normalized.json with _mentor field`)
   }
 
+  // Papers with multiple mentors
+  const multiMentor = enriched.filter((e) => e.names.length >= 2)
+  console.log(`\nPapers with 2+ mentors/co-authors: ${multiMentor.length}`)
+
   // Summary
   console.log(`\n========== Summary ==========`)
   console.log(`Student papers scanned:    ${students.length}`)
-  console.log(`Mentors found:             ${foundFromRef + foundFromText} (${((foundFromRef + foundFromText) / students.length * 100).toFixed(0)}%)`)
-  console.log(`Unique mentor names:       ${mentorCounts.size}`)
+  console.log(`Papers with mentors:       ${papersWithMentors} (${(papersWithMentors / students.length * 100).toFixed(0)}%)`)
+  console.log(`Total names found:         ${totalNamesFound}`)
+  console.log(`Unique names:              ${mentorCounts.size}`)
   console.log(`Matched to registry:       ${matchedToRegistry}`)
 }
 
