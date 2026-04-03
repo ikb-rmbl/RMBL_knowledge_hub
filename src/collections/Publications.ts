@@ -202,5 +202,16 @@ export const Publications: CollectionConfig = {
         description: 'Shared taxonomy with other collections',
       },
     },
+    {
+      name: 'mentors',
+      type: 'array',
+      admin: {
+        description: 'Mentors/advisors (for student papers)',
+        condition: (_, siblingData) => siblingData?.publicationType === 'student_paper',
+      },
+      fields: [
+        { name: 'name', type: 'text', required: true },
+      ],
+    },
   ],
 }
