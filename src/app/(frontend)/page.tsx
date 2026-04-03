@@ -16,30 +16,32 @@ export default async function HomePage() {
     payload.count({ collection: 'datasets' }),
   ])
 
-  // Fetch all topics and identify parents (those without a parent field)
-  const allTopics = await payload.find({
-    collection: 'topics',
-    limit: 1000,
-    sort: 'name',
-  })
+  // Fetch parent topics individually by name (scales with 9,000+ topics)
+  const PARENT_TOPIC_NAMES = [
+    'Water & Hydrology', 'Ecology & Biology', 'Climate & Atmosphere',
+    'Soil & Geology', 'Chemistry & Biogeochemistry', 'Remote Sensing & GIS',
+    'Mining & Energy', 'Land Use & Community', 'Methods & Data Management',
+    'Places & Projects', 'Other',
+  ]
 
-  const parentTopics = allTopics.docs.filter((t) => !t.parent)
-  const childTopics = allTopics.docs.filter((t) => t.parent)
-
-  // Build parent -> children map
-  const childrenByParent = new Map<string, string[]>()
-  for (const child of childTopics) {
-    if (!child.parent) continue
-    const parentId = String(typeof child.parent === 'object' ? child.parent.id : child.parent)
-    if (!childrenByParent.has(parentId)) childrenByParent.set(parentId, [])
-    childrenByParent.get(parentId)!.push(String(child.id))
-  }
-
-  // Count resources for each parent (self + first 20 children by lowest ID)
   const topicCounts: { name: string; id: string; count: number }[] = []
-  for (const parent of parentTopics) {
-    const childIds = (childrenByParent.get(String(parent.id)) || []).sort((a, b) => Number(a) - Number(b))
-    const idsToCheck = [String(parent.id), ...childIds.slice(0, 20)]
+  for (const name of PARENT_TOPIC_NAMES) {
+    const result = await payload.find({
+      collection: 'topics',
+      where: { name: { equals: name } },
+      limit: 1,
+    })
+    const parent = result.docs[0]
+    if (!parent) continue
+
+    // Get first 20 children sorted by ID (original spec topics have low IDs)
+    const children = await payload.find({
+      collection: 'topics',
+      where: { parent: { equals: parent.id } },
+      limit: 20,
+      sort: 'id',
+    })
+    const idsToCheck = [String(parent.id), ...children.docs.map((c) => String(c.id))]
 
     let total = 0
     for (const id of idsToCheck) {
