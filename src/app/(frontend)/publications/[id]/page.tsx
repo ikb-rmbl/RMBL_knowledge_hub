@@ -191,6 +191,123 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
           </a>
         )}
       </div>
+
+      {await renderCitationSections(parseInt(id), payload)}
     </div>
+  )
+}
+
+async function renderCitationSections(pubId: number, payload: any) {
+  const db = getDb()
+
+  // Cited by: publications that cite THIS work
+  const { rows: citedByRows } = await db.query(
+    `SELECT DISTINCT r.source_publication_id, p.title, p.year, p.publication_type, p.doi
+     FROM references_cited r
+     JOIN publications p ON p.id = r.source_publication_id
+     WHERE r.target_publication_id = $1
+     ORDER BY p.year DESC
+     LIMIT 50`,
+    [pubId],
+  )
+
+  // References: works that THIS publication cites (internal only for linking)
+  const { rows: internalRefs } = await db.query(
+    `SELECT r.cited_title, r.cited_authors, r.cited_year, r.cited_doi, r.cited_journal,
+            r.target_publication_id, r.target_dataset_id, r.match_confidence,
+            tp.title as target_pub_title, td.title as target_ds_title
+     FROM references_cited r
+     LEFT JOIN publications tp ON tp.id = r.target_publication_id
+     LEFT JOIN datasets td ON td.id = r.target_dataset_id
+     WHERE r.source_publication_id = $1 AND r.link_type = 'internal'
+     ORDER BY r.cited_year DESC NULLS LAST
+     LIMIT 100`,
+    [pubId],
+  )
+
+  // External references count
+  const { rows: extCount } = await db.query(
+    'SELECT count(*) FROM references_cited WHERE source_publication_id = $1 AND link_type = $2',
+    [pubId, 'external'],
+  )
+  const externalCount = parseInt(extCount[0]?.count || '0')
+
+  // Total reference count
+  const totalRefCount = internalRefs.length + externalCount
+
+  return (
+    <>
+      {citedByRows.length > 0 && (
+        <div className="detail-section">
+          <h2>Cited By ({citedByRows.length})</h2>
+          <div className="result-list">
+            {citedByRows.map((row: any) => (
+              <Link
+                key={row.source_publication_id}
+                className="result-card"
+                href={`/publications/${row.source_publication_id}`}
+              >
+                <div className="result-card-header">
+                  <span className="badge badge-publication">
+                    {row.publication_type === 'article' ? 'Article' :
+                     row.publication_type === 'student_paper' ? 'Student Paper' :
+                     row.publication_type === 'thesis' ? 'Thesis' : 'Publication'}
+                  </span>
+                  <h3 className="result-card-title">{row.title}</h3>
+                </div>
+                <div className="result-card-meta">
+                  {row.year && <span>{row.year}</span>}
+                  {row.doi && <span>DOI: {row.doi}</span>}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {totalRefCount > 0 && (
+        <div className="detail-section">
+          <h2>References ({totalRefCount})</h2>
+          {internalRefs.length > 0 && (
+            <>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '12px' }}>
+                {internalRefs.length} in Knowledge Hub{externalCount > 0 ? `, ${externalCount} external` : ''}
+              </p>
+              <div className="result-list">
+                {internalRefs.map((row: any, i: number) => {
+                  const targetTitle = row.target_pub_title || row.target_ds_title || row.cited_title || 'Untitled'
+                  const href = row.target_publication_id
+                    ? `/publications/${row.target_publication_id}`
+                    : row.target_dataset_id
+                      ? `/datasets/${row.target_dataset_id}`
+                      : null
+
+                  return href ? (
+                    <Link key={i} className="result-card" href={href}>
+                      <div className="result-card-header">
+                        <span className={`badge ${row.target_dataset_id ? 'badge-dataset' : 'badge-publication'}`}>
+                          {row.target_dataset_id ? 'Dataset' : 'Publication'}
+                        </span>
+                        <h3 className="result-card-title">{targetTitle}</h3>
+                      </div>
+                      <div className="result-card-meta">
+                        {row.cited_year && <span>{row.cited_year}</span>}
+                        {row.cited_journal && <span>{row.cited_journal}</span>}
+                        {row.cited_doi && <span>DOI: {row.cited_doi}</span>}
+                      </div>
+                    </Link>
+                  ) : null
+                })}
+              </div>
+            </>
+          )}
+          {internalRefs.length === 0 && externalCount > 0 && (
+            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+              {externalCount} references to works outside the Knowledge Hub
+            </p>
+          )}
+        </div>
+      )}
+    </>
   )
 }
