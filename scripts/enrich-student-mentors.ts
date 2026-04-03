@@ -33,6 +33,9 @@ const MULTI_NAME_PATTERNS = [
 
 const REF_PATTERN = /[Mm]entor[:\s]*(.+)/
 
+// Words that indicate an institution, not a person
+const INSTITUTION_WORDS = /\b(university|college|department|institute|laboratory|school|program|center|rmbl\b|research\b|summer\b|full.?time|independent|reu\b|course|science|biology|ecology|studies|faculty)\b/i
+
 /** Split a line like "Dr. Mary Price & Dr. Nickolas Waser" into individual names */
 function splitNames(line: string): string[] {
   // Clean the line
@@ -40,11 +43,17 @@ function splitNames(line: string): string[] {
     .replace(/\bPh\.?D\.?\b/gi, '')
     .replace(/\bDr\.\s*/gi, '')
     .replace(/\bM\.?S\.?\b/g, '')
+    .replace(/\d+\.?\d*/g, '') // remove footnote numbers like "2" or "2.3"
+    .replace(/[–—]/g, '') // remove dashes
+    .replace(/\([^)]*\)/g, '') // remove parenthetical content (affiliations)
+    .replace(/\bStudent:.*$/i, '') // remove "Student:" and everything after
     .trim()
 
-  // Stop at common terminators
+  // Stop at first newline
   cleaned = cleaned.split(/\n/)[0]
-  cleaned = cleaned.replace(/\s*(?:Rocky Mountain|University of|Summer |Full.?[Tt]ime|Independent|REU|RMBL|Department of|College of).*/i, '')
+
+  // Stop at common terminators (institutions, program names)
+  cleaned = cleaned.replace(/\s*(?:Rocky Mountain|University |Summer |Full.?[Tt]ime|Independent|REU\b|RMBL\b|Department |College |Center |Institute |School |Program ).*/i, '')
   cleaned = cleaned.replace(/[,;]\s*$/, '').trim()
 
   if (!cleaned) return []
@@ -53,10 +62,14 @@ function splitNames(line: string): string[] {
   const parts = cleaned.split(/\s*(?:,\s*(?:and\s+)?|;\s*|\s+&\s+|\s+and\s+)\s*/i)
 
   return parts
-    .map((p) => p.trim())
-    .filter((p) => p.length > 3 && p.length < 40)
-    .filter((p) => !p.match(/^(The|This|Our|My|We|In|On|At|By|To|Dr|None|NA|TBD|Summer|Winter|Spring|Fall)/i))
+    .map((p) => p.replace(/^[^a-zA-Z]+|[^a-zA-Z.]+$/g, '').trim()) // strip leading/trailing non-alpha (keep trailing period for initials)
+    .map((p) => p.replace(/\s+/g, ' ').trim()) // normalize whitespace
+    .filter((p) => p.length > 4 && p.length < 35)
+    .filter((p) => !p.match(/^(The|This|Our|My|We|In|On|At|By|To|None|NA|TBD)/i))
+    .filter((p) => !INSTITUTION_WORDS.test(p)) // filter out institution names
     .filter((p) => p.split(/\s+/).length >= 2) // must have first + last name
+    .filter((p) => /^[A-Z]/.test(p)) // must start with uppercase
+    .filter((p) => !/\d/.test(p)) // no remaining digits
 }
 
 function isValidName(name: string): boolean {
@@ -87,6 +100,12 @@ async function main() {
   const rawById = new Map(raw.map((r) => [r.id, r]))
 
   const students = pubs.filter((p) => p.publicationType === 'student_paper')
+  // Clear old mentor data before re-extracting
+  for (const s of students) {
+    delete s._mentors
+    delete s._mentor
+    delete s._mentorSource
+  }
   console.log(`\nStudent papers: ${students.length}`)
 
   // Load author registry for matching
