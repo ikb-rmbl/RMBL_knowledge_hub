@@ -152,6 +152,9 @@ export default async function HomePage() {
           <Link className="type-chip" href="/search?type=datasets">
             Datasets ({dataCount.totalDocs.toLocaleString()})
           </Link>
+          <Link className="type-chip" href="/authors">
+            Authors
+          </Link>
         </div>
       </div>
 
