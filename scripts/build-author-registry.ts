@@ -16,6 +16,7 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { OUTPUT_DIR } from './lib/config.js'
+import { deduplicateAuthors } from './lib/author-dedup.js'
 import { ensureAuth, createRecord, getAllPaginated, checkServer } from './lib/payload-client.js'
 import type { NormalizedPublication, NormalizedDocument } from './lib/types.js'
 
@@ -270,8 +271,12 @@ async function main() {
     console.log(`\nEnriched ${enriched} affiliations from ORCID registry`)
   }
 
-  // Convert to array and sort
-  const authors = [...authorMap.values()].sort((a, b) => a.familyName.localeCompare(b.familyName))
+  // Deduplicate and sort
+  console.log('\nStep 4: Deduplicating...')
+  const rawAuthors = [...authorMap.values()]
+  const { result: authors, orcidMerges, nameMerges } = deduplicateAuthors(rawAuthors)
+  authors.sort((a, b) => a.familyName.localeCompare(b.familyName))
+  console.log(`  ${orcidMerges} ORCID merges, ${nameMerges} name merges (${rawAuthors.length} → ${authors.length})`)
 
   // Save registry
   const outputPath = `${OUTPUT_DIR}/author-registry.json`
