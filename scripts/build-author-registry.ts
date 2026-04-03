@@ -340,12 +340,11 @@ async function main() {
     const dsById = new Map(datasets.map((d: any) => [d._sourceId, d]))
     const docById = new Map(docs.map((d) => [d._sourcePostId, d]))
 
-    console.log(`Loading ${Math.min(authors.length, 2000)} authors into Payload...`)
+    console.log(`Loading ${authors.length} authors into Payload...`)
     let loaded = 0
     let errors = 0
 
-    // Load top authors (by work count) up to 2000
-    const toLoad = sorted.slice(0, 2000)
+    const toLoad = sorted
     for (let i = 0; i < toLoad.length; i++) {
       const author = toLoad[i]
 
