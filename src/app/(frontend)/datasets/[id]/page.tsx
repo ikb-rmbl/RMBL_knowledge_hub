@@ -16,9 +16,33 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
     notFound()
   }
 
-  const creators = Array.isArray(dataset.creators)
-    ? dataset.creators.map((c: any) => c.name).filter(Boolean)
-    : []
+  const creatorList = Array.isArray(dataset.creators) ? dataset.creators : []
+
+  // Look up linked author records for each creator
+  const creatorLinks: { name: string; id: string | null; orcid?: string }[] = []
+  for (const c of creatorList as any[]) {
+    if (!c.name || c.name === 'Unknown' || c.name === 'RMBL' || c.name === 'NOAA') {
+      creatorLinks.push({ name: c.name, id: null })
+      continue
+    }
+    // Parse name to get family name for lookup
+    const parts = c.name.includes(',') ? c.name.split(',') : c.name.trim().split(/\s+/)
+    const familyName = c.name.includes(',') ? parts[0].trim() : parts[parts.length - 1]
+    if (familyName.length < 2) { creatorLinks.push({ name: c.name, id: null }); continue }
+
+    const match = await payload.find({
+      collection: 'authors',
+      where: { familyName: { equals: familyName } },
+      limit: 3,
+      depth: 0,
+    })
+    const linked = match.docs.length === 1 ? match.docs[0] : null
+    creatorLinks.push({
+      name: c.name,
+      id: linked ? String(linked.id) : null,
+      orcid: c.orcid || (linked as any)?.orcid,
+    })
+  }
 
   const tags = Array.isArray(dataset.tags)
     ? dataset.tags.map((t: any) => (typeof t === 'object' ? t.name : t)).filter(Boolean)
@@ -53,9 +77,21 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
       <h1>{dataset.title}</h1>
 
       <div className="detail-meta">
-        {creators.length > 0 && (
+        {creatorLinks.length > 0 && (
           <div>
-            <strong>Creators:</strong> {creators.join(', ')}
+            <strong>Creators:</strong>{' '}
+            {creatorLinks.map((c, i) => (
+              <span key={i}>
+                {i > 0 && ', '}
+                {c.id ? <Link href={`/authors/${c.id}`}>{c.name}</Link> : c.name}
+                {c.orcid && (
+                  <a href={`https://orcid.org/${c.orcid}`} target="_blank" rel="noopener noreferrer"
+                     style={{ fontSize: '11px', marginLeft: '3px', color: 'var(--color-text-muted)' }}>
+                    ORCID
+                  </a>
+                )}
+              </span>
+            ))}
           </div>
         )}
         <div>

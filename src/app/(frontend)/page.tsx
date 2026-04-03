@@ -10,10 +10,11 @@ export default async function HomePage() {
   const payload = await getPayload({ config })
 
   // Fetch counts for each collection
-  const [docCount, pubCount, dataCount] = await Promise.all([
+  const [docCount, pubCount, dataCount, authorCount] = await Promise.all([
     payload.count({ collection: 'documents' }),
     payload.count({ collection: 'publications' }),
     payload.count({ collection: 'datasets' }),
+    payload.count({ collection: 'authors' }),
   ])
 
   // Fetch parent topics individually by name (scales with 9,000+ topics)
@@ -123,8 +124,8 @@ export default async function HomePage() {
       <div className="hero">
         <h1>Explore Western Colorado's Environmental Knowledge</h1>
         <p>
-          Search across {totalCount.toLocaleString()} documents, publications, and datasets from the
-          Gunnison Basin.
+          Search across {totalCount.toLocaleString()} documents, publications, and datasets
+          from {authorCount.totalDocs.toLocaleString()} researchers in the Gunnison Basin.
         </p>
 
         <form className="search-form" action="/search" method="GET">
@@ -153,7 +154,7 @@ export default async function HomePage() {
             Datasets ({dataCount.totalDocs.toLocaleString()})
           </Link>
           <Link className="type-chip" href="/authors">
-            Authors
+            Authors ({authorCount.totalDocs.toLocaleString()})
           </Link>
         </div>
       </div>
