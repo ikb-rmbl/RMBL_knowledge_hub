@@ -146,8 +146,10 @@ async function main() {
 
         // Skip if both have full (different) given names > 4 chars
         if (!aIsInitials && !bIsInitials) {
-          // Both have full names — only merge if very similar
-          if (a.givenName.toLowerCase() !== b.givenName.toLowerCase()) continue
+          const aGiven = a.givenName.toLowerCase()
+          const bGiven = b.givenName.toLowerCase()
+          // Merge if identical, or one starts with the other (e.g., "Kenneth" and "Kenneth Hurst")
+          if (aGiven !== bGiven && !aGiven.startsWith(bGiven) && !bGiven.startsWith(aGiven)) continue
         }
 
         // Merge
