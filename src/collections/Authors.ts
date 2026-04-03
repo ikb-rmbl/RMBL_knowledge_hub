@@ -45,6 +45,16 @@ export const Authors: CollectionConfig = {
       },
     },
     {
+      name: 'workCount',
+      type: 'number',
+      defaultValue: 0,
+      index: true,
+      admin: {
+        description: 'Total number of linked works (publications + datasets + documents)',
+        readOnly: true,
+      },
+    },
+    {
       name: 'publications',
       type: 'relationship',
       relationTo: 'publications',
