@@ -58,7 +58,7 @@ async function main() {
   if (dryRun) console.log('(DRY RUN)')
 
   // Load CrossRef references
-  const refsPath = `${OUTPUT_DIR}/references-crossref.json`
+  const refsPath = `${OUTPUT_DIR}/references-all-pubs.json`
   if (!existsSync(refsPath)) {
     console.error('No references file found. Run extract-references-crossref.ts first.')
     process.exit(1)
