@@ -38,37 +38,57 @@ The data pipeline scrapes three external sources, enriches with CrossRef DOIs an
 
 ### Prerequisites
 
-- [fnm](https://github.com/Schniz/fnm) (Node version manager)
-- PostgreSQL 17 (`brew install postgresql@17`)
-- poppler + tesseract for PDF processing (`brew install poppler tesseract`)
+- [fnm](https://github.com/Schniz/fnm) (Node version manager): `brew install fnm`
+- PostgreSQL 17: `brew install postgresql@17`
+- pgvector: `brew install pgvector`
+- poppler + tesseract for PDF processing: `brew install poppler tesseract`
 
-### Setup
+### Automated Setup
 
 ```bash
 git clone https://github.com/ikb-rmbl/RMBL_knowledge_hub.git
 cd RMBL_knowledge_hub
-fnm use 22
-npm install
+chmod +x scripts/setup-local.sh
+./scripts/setup-local.sh
+```
 
-# Create and configure the database
-brew services start postgresql@17
-createdb rmbl_knowledge_hub
-cp .env.example .env  # Edit with your settings
+The setup script checks prerequisites, installs dependencies, creates the database, enables pgvector, and runs SQL migrations.
 
-# Start the dev server
-npm run dev  # -> http://localhost:3000
+### Getting the Data
+
+**Option A — Get a database dump from another developer (fastest):**
+```bash
+# The exporting developer runs:
+./scripts/export-database.sh
+
+# You restore the dump:
+psql rmbl_knowledge_hub < scripts/output/schema.sql
+pg_restore -d rmbl_knowledge_hub --data-only --no-owner scripts/output/rmbl_knowledge_hub_YYYYMMDD.dump
+```
+
+**Option B — Build from scratch using the pipeline:**
+```bash
+# Temporarily set push: true in src/payload.config.ts to create Payload tables
+npm run dev    # start server, let Payload create tables, then stop
+# Set push: false back in src/payload.config.ts
+
+# Run the full data pipeline
+npm run pipeline
+```
+
+### Start Developing
+
+```bash
+cp .env.example .env   # edit with your settings
+npm run dev            # http://localhost:3000
+npm run test           # 186 tests
 ```
 
 ### Data Pipeline
 
-Run the full automated pipeline:
-
 ```bash
-# Automated pipeline: check sources → scrape → enrich → load → topics → authors
-npm run pipeline
-
-# Or preview what would change first
-npm run pipeline:check
+npm run pipeline         # full pipeline (9 phases)
+npm run pipeline:check   # preview what would change
 ```
 
 Or run individual steps:
