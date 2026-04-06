@@ -15,7 +15,7 @@
  * It is idempotent: records are matched by _sourceId/title and skipped if they already exist.
  */
 
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync, readdirSync } from 'fs'
 import { runBatch } from './lib/concurrency.js'
 import {
   ensureAuth,
@@ -136,15 +136,38 @@ async function loadDocuments() {
 
 async function loadPublications() {
   console.log('\n--- Loading Publications ---')
-  const existing = await getCount('publications')
-  if (existing > 0) {
-    console.log(`  ${existing} publications already exist, skipping. Delete collection to reimport.`)
-    return
-  }
+  const existingCount = await getCount('publications')
 
-  const pubs: any[] = JSON.parse(
-    readFileSync(`${OUTPUT_DIR}/publications-normalized.json`, 'utf-8'),
-  )
+  let pubs: any[]
+
+  if (existingCount === 0) {
+    // Fresh load: main file + discovered
+    pubs = JSON.parse(readFileSync(`${OUTPUT_DIR}/publications-normalized.json`, 'utf-8'))
+    const discoveredFiles = readdirSync(OUTPUT_DIR).filter(
+      (f) => f.startsWith('publications-discovered-') && f.endsWith('.json'),
+    )
+    for (const file of discoveredFiles) {
+      const discovered = JSON.parse(readFileSync(`${OUTPUT_DIR}/${file}`, 'utf-8'))
+      pubs.push(...discovered)
+      console.log(`  Merged ${discovered.length} from ${file}`)
+    }
+  } else {
+    // Incremental: only load discovered files
+    console.log(`  ${existingCount} publications already exist, loading discovered only...`)
+    pubs = []
+    const discoveredFiles = readdirSync(OUTPUT_DIR).filter(
+      (f) => f.startsWith('publications-discovered-') && f.endsWith('.json'),
+    )
+    if (discoveredFiles.length === 0) {
+      console.log(`  No discovered publication files found. Nothing to add.`)
+      return
+    }
+    for (const file of discoveredFiles) {
+      const discovered = JSON.parse(readFileSync(`${OUTPUT_DIR}/${file}`, 'utf-8'))
+      pubs.push(...discovered)
+      console.log(`  Merged ${discovered.length} from ${file}`)
+    }
+  }
 
   await runBatch(
     pubs,
@@ -175,6 +198,8 @@ async function loadPublications() {
           pub.editors?.length > 0
             ? pub.editors.map((e: any) => ({ given: e.given || '', family: e.family || '' }))
             : undefined,
+        dataSource: pub._source || 'rmbl_database',
+        discoveryMethod: pub._discoveryMethod || 'rmbl_api',
       })
       return result ? 'success' : 'skipped'
     },
@@ -188,15 +213,30 @@ async function loadPublications() {
 
 async function loadDatasets() {
   console.log('\n--- Loading Datasets ---')
-  const existing = await getCount('datasets')
-  if (existing > 0) {
-    console.log(`  ${existing} datasets already exist, skipping. Delete collection to reimport.`)
-    return
-  }
+  const existingCount = await getCount('datasets')
 
-  const datasets: any[] = JSON.parse(
-    readFileSync(`${OUTPUT_DIR}/data-catalog-normalized.json`, 'utf-8'),
-  )
+  let datasets: any[]
+
+  if (existingCount === 0) {
+    // Fresh load
+    datasets = JSON.parse(readFileSync(`${OUTPUT_DIR}/data-catalog-normalized.json`, 'utf-8'))
+  } else {
+    // Incremental: only load discovered datasets
+    console.log(`  ${existingCount} datasets already exist, loading discovered only...`)
+    datasets = []
+    const discoveredFiles = readdirSync(OUTPUT_DIR).filter(
+      (f) => f.startsWith('datasets-discovered') && f.endsWith('.json'),
+    )
+    if (discoveredFiles.length === 0) {
+      console.log(`  No discovered dataset files found. Nothing to add.`)
+      return
+    }
+    for (const file of discoveredFiles) {
+      const discovered = JSON.parse(readFileSync(`${OUTPUT_DIR}/${file}`, 'utf-8'))
+      datasets.push(...discovered)
+      console.log(`  Merged ${discovered.length} from ${file}`)
+    }
+  }
 
   // Dataset tags are freeform — create any new topics as needed
   const allTags = new Set<string>()

@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import { notFound } from 'next/navigation'
 import config from '@/payload.config'
 import pg from 'pg'
+import { renderRelatedWorks } from '../../lib/related-works'
 
 export const dynamic = 'force-dynamic'
 
@@ -192,6 +193,7 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
         )}
       </div>
 
+      {await renderRelatedWorks('publications', parseInt(id))}
       {await renderCitationSections(parseInt(id), payload)}
     </div>
   )
@@ -199,6 +201,13 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
 
 async function renderCitationSections(pubId: number, payload: any) {
   const db = getDb()
+
+  // External citation count (from OpenAlex)
+  const { rows: citationCountRows } = await db.query(
+    'SELECT external_citation_count FROM publications WHERE id = $1',
+    [pubId],
+  )
+  const externalCitationCount = parseInt(citationCountRows[0]?.external_citation_count || '0')
 
   // Cited by: publications that cite THIS work
   const { rows: citedByRows } = await db.query(
@@ -237,9 +246,15 @@ async function renderCitationSections(pubId: number, payload: any) {
 
   return (
     <>
-      {citedByRows.length > 0 && (
+      {(externalCitationCount > 0 || citedByRows.length > 0) && (
         <div className="detail-section">
-          <h2>Cited By ({citedByRows.length})</h2>
+          <h2>
+            {externalCitationCount > 0 && citedByRows.length > 0
+              ? `Cited By (${externalCitationCount} times, ${citedByRows.length} in Knowledge Hub)`
+              : externalCitationCount > 0
+                ? `Cited ${externalCitationCount} times`
+                : `Cited By (${citedByRows.length})`}
+          </h2>
           <div className="result-list">
             {citedByRows.map((row: any) => (
               <Link

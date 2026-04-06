@@ -35,12 +35,16 @@ async function tsvectorSearch(
   let total = 0
 
   // Map sort param to SQL ORDER BY per collection
-  function orderBy(dateCol: string): string {
+  function orderBy(dateCol: string, collection: string): string {
     switch (sortBy) {
       case 'oldest': return `${dateCol} ASC NULLS LAST`
       case 'title': return 'title ASC'
       case 'title-desc': return 'title DESC'
       case 'newest': return `${dateCol} DESC NULLS LAST`
+      case 'most-cited':
+        return collection === 'documents' ? 'rank DESC' : 'external_citation_count DESC NULLS LAST'
+      case 'most-cited-internal':
+        return collection === 'documents' ? 'rank DESC' : 'internal_citation_count DESC NULLS LAST'
       case 'relevance':
       default: return 'rank DESC'
     }
@@ -58,7 +62,7 @@ async function tsvectorSearch(
               ts_rank(search_vector, plainto_tsquery('english', $1)) as rank,
               date_original
        FROM documents WHERE search_vector @@ plainto_tsquery('english', $1)
-       ORDER BY ${orderBy('date_original')} LIMIT $2 OFFSET $3`,
+       ORDER BY ${orderBy('date_original', 'documents')} LIMIT $2 OFFSET $3`,
       [query, limit, offset],
     )
     for (const row of rows) {
@@ -71,16 +75,18 @@ async function tsvectorSearch(
 
   if (searchPubs) {
     const { rows } = await db.query(
-      `SELECT id, title, year, journal, doi, publication_type,
-              ts_headline('english', coalesce(abstract, full_text, title, ''), plainto_tsquery('english', $1),
+      `SELECT p.id, p.title, p.year, p.journal, p.doi, p.publication_type,
+              ts_headline('english', coalesce(p.abstract, p.full_text, p.title, ''), plainto_tsquery('english', $1),
                 'MaxFragments=1,MaxWords=30,MinWords=15,StartSel=<mark>,StopSel=</mark>') as snippet,
-              ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
-       FROM publications WHERE search_vector @@ plainto_tsquery('english', $1)
-       ORDER BY ${orderBy('year')} LIMIT $2 OFFSET $3`,
+              ts_rank(p.search_vector, plainto_tsquery('english', $1)) as rank,
+              coalesce(p.external_citation_count, 0) as external_citation_count,
+              (SELECT count(*)::int FROM references_cited r WHERE r.target_publication_id = p.id) as internal_citation_count
+       FROM publications p WHERE p.search_vector @@ plainto_tsquery('english', $1)
+       ORDER BY ${orderBy('p.year', 'publications')} LIMIT $2 OFFSET $3`,
       [query, limit, offset],
     )
     for (const row of rows) {
-      results.push({ collection: 'publication', subtype: row.publication_type || null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: row.year || null, meta: [row.journal, row.year ? String(row.year) : '', row.doi ? `DOI: ${row.doi}` : ''].filter(Boolean) })
+      results.push({ collection: 'publication', subtype: row.publication_type || null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: row.year || null, meta: [row.journal, row.year ? String(row.year) : '', row.doi ? `DOI: ${row.doi}` : ''].filter(Boolean), externalCitationCount: row.external_citation_count, internalCitationCount: row.internal_citation_count })
     }
     const countRes = await db.query("SELECT count(*)::int FROM publications WHERE search_vector @@ plainto_tsquery('english', $1)", [query])
     total += countRes.rows[0].count
@@ -88,28 +94,30 @@ async function tsvectorSearch(
 
   if (searchData) {
     const { rows } = await db.query(
-      `SELECT id, title, publication_year, resource_type,
-              ts_headline('english', coalesce(full_text, title, ''), plainto_tsquery('english', $1),
+      `SELECT d.id, d.title, d.publication_year, d.resource_type,
+              ts_headline('english', coalesce(d.full_text, d.title, ''), plainto_tsquery('english', $1),
                 'MaxFragments=1,MaxWords=30,MinWords=15,StartSel=<mark>,StopSel=</mark>') as snippet,
-              ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
-       FROM datasets WHERE search_vector @@ plainto_tsquery('english', $1)
-       ORDER BY ${orderBy('publication_year')} LIMIT $2 OFFSET $3`,
+              ts_rank(d.search_vector, plainto_tsquery('english', $1)) as rank,
+              coalesce(d.external_citation_count, 0) as external_citation_count,
+              (SELECT count(*)::int FROM references_cited r WHERE r.target_dataset_id = d.id) as internal_citation_count
+       FROM datasets d WHERE d.search_vector @@ plainto_tsquery('english', $1)
+       ORDER BY ${orderBy('d.publication_year', 'datasets')} LIMIT $2 OFFSET $3`,
       [query, limit, offset],
     )
     for (const row of rows) {
-      results.push({ collection: 'dataset', subtype: row.resource_type || null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: row.publication_year || null, meta: [row.publication_year ? String(row.publication_year) : ''].filter(Boolean) })
+      results.push({ collection: 'dataset', subtype: row.resource_type || null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: row.publication_year || null, meta: [row.publication_year ? String(row.publication_year) : ''].filter(Boolean), externalCitationCount: row.external_citation_count, internalCitationCount: row.internal_citation_count })
     }
     const countRes = await db.query("SELECT count(*)::int FROM datasets WHERE search_vector @@ plainto_tsquery('english', $1)", [query])
     total += countRes.rows[0].count
   }
 
-  // Sort merged by rank (already sorted per-collection, merge-sort)
   // Re-sort merged results across collections
   if (sortBy === 'newest') results.sort((a, b) => (b.year || 0) - (a.year || 0))
   else if (sortBy === 'oldest') results.sort((a, b) => (a.year || 0) - (b.year || 0))
   else if (sortBy === 'title') results.sort((a, b) => a.title.localeCompare(b.title))
   else if (sortBy === 'title-desc') results.sort((a, b) => b.title.localeCompare(a.title))
-  // 'relevance' — keep per-collection rank ordering (already interleaved)
+  else if (sortBy === 'most-cited') results.sort((a, b) => (b.externalCitationCount || 0) - (a.externalCitationCount || 0))
+  else if (sortBy === 'most-cited-internal') results.sort((a, b) => (b.internalCitationCount || 0) - (a.internalCitationCount || 0))
   return { results: results.slice(0, limit), total }
 }
 
@@ -128,6 +136,8 @@ const SORT_OPTIONS = [
   { value: 'oldest', label: 'Date (Oldest)' },
   { value: 'title', label: 'Title (A-Z)' },
   { value: 'title-desc', label: 'Title (Z-A)' },
+  { value: 'most-cited', label: 'Most Cited' },
+  { value: 'most-cited-internal', label: 'Most Cited (in Hub)' },
 ]
 
 interface SearchParams {
@@ -149,6 +159,8 @@ type ResultItem = {
   snippet: string
   year: number | null
   meta: string[]
+  externalCitationCount?: number
+  internalCitationCount?: number
 }
 
 /** Build a URL preserving all current filters, overriding specific params */
@@ -191,7 +203,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const pubTypeFilter = params.pubType || ''
   const yearFrom = params.yearFrom ? parseInt(params.yearFrom) : null
   const yearTo = params.yearTo ? parseInt(params.yearTo) : null
-  const sortParam = params.sort || (query ? 'relevance' : 'newest')
+  const defaultSort = query ? 'relevance' : (typeFilter === 'publications' ? 'most-cited' : 'newest')
+  const sortParam = params.sort || defaultSort
   const page = Math.max(1, parseInt(params.page || '1'))
 
   const payload = await getPayload({ config })
@@ -276,6 +289,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   // --- For single-collection view, paginate directly ---
   // --- For "All" view, compute per-collection offsets to interleave results ---
+  const isCitationSort = sortParam === 'most-cited' || sortParam === 'most-cited-internal'
+
   if (typeFilter) {
     // Single collection: straightforward pagination
     if (searchDocs) {
@@ -286,17 +301,69 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       }
     }
     if (searchPubs) {
-      const pubs = await payload.find({ collection: 'publications', where: pubWhere, limit: PAGE_SIZE, page, sort: payloadSort(sortParam, 'publications') })
-      for (const pub of pubs.docs) {
-        const authors = Array.isArray(pub.authors) ? pub.authors.slice(0, 3).map((a: any) => `${a.family}${a.given ? ' ' + a.given : ''}`).join(', ') : ''
-        results.push({ collection: 'publication', subtype: pub.publicationType || null, id: String(pub.id), title: pub.title, snippet: pub.abstract ? stripTags(pub.abstract) : '', year: pub.year || null, meta: [authors, pub.year ? String(pub.year) : '', pub.journal || '', pub.doi ? `DOI: ${pub.doi}` : ''].filter(Boolean) })
+      if (isCitationSort) {
+        // Use direct SQL for citation sorts (Payload can't sort by custom columns)
+        const db = getDb()
+        const citationOrderCol = sortParam === 'most-cited' ? 'external_citation_count' : `(SELECT count(*) FROM references_cited r WHERE r.target_publication_id = p.id)`
+        const offset = (page - 1) * PAGE_SIZE
+        const whereClauses: string[] = []
+        const params: any[] = []
+        let paramIdx = 1
+        if (query) { whereClauses.push(`title ILIKE $${paramIdx}`); params.push(`%${query}%`); paramIdx++ }
+        if (pubTypeFilter) { whereClauses.push(`publication_type = $${paramIdx}`); params.push(pubTypeFilter); paramIdx++ }
+        if (yearFrom) { whereClauses.push(`year >= $${paramIdx}`); params.push(yearFrom); paramIdx++ }
+        if (yearTo) { whereClauses.push(`year <= $${paramIdx}`); params.push(yearTo); paramIdx++ }
+        const whereStr = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : ''
+        const { rows } = await db.query(
+          `SELECT p.id, p.title, p.year, p.journal, p.doi, p.publication_type, p.abstract,
+                  coalesce(p.external_citation_count, 0) as external_citation_count,
+                  (SELECT count(*)::int FROM references_cited r WHERE r.target_publication_id = p.id) as internal_citation_count
+           FROM publications p ${whereStr}
+           ORDER BY ${citationOrderCol} DESC NULLS LAST
+           LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+          [...params, PAGE_SIZE, offset],
+        )
+        for (const row of rows) {
+          results.push({ collection: 'publication', subtype: row.publication_type || null, id: String(row.id), title: row.title, snippet: row.abstract ? stripTags(row.abstract) : '', year: row.year || null, meta: [row.year ? String(row.year) : '', row.journal || '', row.doi ? `DOI: ${row.doi}` : ''].filter(Boolean), externalCitationCount: row.external_citation_count, internalCitationCount: row.internal_citation_count })
+        }
+      } else {
+        const pubs = await payload.find({ collection: 'publications', where: pubWhere, limit: PAGE_SIZE, page, sort: payloadSort(sortParam, 'publications') })
+        for (const pub of pubs.docs) {
+          const authors = Array.isArray(pub.authors) ? pub.authors.slice(0, 3).map((a: any) => `${a.family}${a.given ? ' ' + a.given : ''}`).join(', ') : ''
+          results.push({ collection: 'publication', subtype: pub.publicationType || null, id: String(pub.id), title: pub.title, snippet: pub.abstract ? stripTags(pub.abstract) : '', year: pub.year || null, meta: [authors, pub.year ? String(pub.year) : '', pub.journal || '', pub.doi ? `DOI: ${pub.doi}` : ''].filter(Boolean) })
+        }
       }
     }
     if (searchData) {
-      const datasets = await payload.find({ collection: 'datasets', where: dataWhere, limit: PAGE_SIZE, page, sort: payloadSort(sortParam, 'datasets') })
-      for (const ds of datasets.docs) {
-        const creators = Array.isArray(ds.creators) ? ds.creators.slice(0, 3).map((c: any) => c.name).join(', ') : ''
-        results.push({ collection: 'dataset', subtype: ds.resourceType || null, id: String(ds.id), title: ds.title, snippet: ds.description && typeof ds.description === 'string' ? stripTags(ds.description) : '', year: ds.publicationYear || null, meta: [creators, ds.publicationYear ? String(ds.publicationYear) : '', ds.doi ? `DOI: ${ds.doi}` : ''].filter(Boolean) })
+      if (isCitationSort) {
+        const db = getDb()
+        const citationOrderCol = sortParam === 'most-cited' ? 'external_citation_count' : `(SELECT count(*) FROM references_cited r WHERE r.target_dataset_id = d.id)`
+        const offset = (page - 1) * PAGE_SIZE
+        const whereClauses: string[] = []
+        const params: any[] = []
+        let paramIdx = 1
+        if (query) { whereClauses.push(`title ILIKE $${paramIdx}`); params.push(`%${query}%`); paramIdx++ }
+        if (yearFrom) { whereClauses.push(`publication_year >= $${paramIdx}`); params.push(yearFrom); paramIdx++ }
+        if (yearTo) { whereClauses.push(`publication_year <= $${paramIdx}`); params.push(yearTo); paramIdx++ }
+        const whereStr = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : ''
+        const { rows } = await db.query(
+          `SELECT d.id, d.title, d.publication_year, d.resource_type, d.description, d.doi,
+                  coalesce(d.external_citation_count, 0) as external_citation_count,
+                  (SELECT count(*)::int FROM references_cited r WHERE r.target_dataset_id = d.id) as internal_citation_count
+           FROM datasets d ${whereStr}
+           ORDER BY ${citationOrderCol} DESC NULLS LAST
+           LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+          [...params, PAGE_SIZE, offset],
+        )
+        for (const row of rows) {
+          results.push({ collection: 'dataset', subtype: row.resource_type || null, id: String(row.id), title: row.title, snippet: row.description && typeof row.description === 'string' ? stripTags(row.description) : '', year: row.publication_year || null, meta: [row.publication_year ? String(row.publication_year) : '', row.doi ? `DOI: ${row.doi}` : ''].filter(Boolean), externalCitationCount: row.external_citation_count, internalCitationCount: row.internal_citation_count })
+        }
+      } else {
+        const datasets = await payload.find({ collection: 'datasets', where: dataWhere, limit: PAGE_SIZE, page, sort: payloadSort(sortParam, 'datasets') })
+        for (const ds of datasets.docs) {
+          const creators = Array.isArray(ds.creators) ? ds.creators.slice(0, 3).map((c: any) => c.name).join(', ') : ''
+          results.push({ collection: 'dataset', subtype: ds.resourceType || null, id: String(ds.id), title: ds.title, snippet: ds.description && typeof ds.description === 'string' ? stripTags(ds.description) : '', year: ds.publicationYear || null, meta: [creators, ds.publicationYear ? String(ds.publicationYear) : '', ds.doi ? `DOI: ${ds.doi}` : ''].filter(Boolean) })
+        }
       }
     }
   } else {
@@ -336,19 +403,59 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     else if (sortParam === 'oldest') results.sort((a, b) => (a.year || 0) - (b.year || 0))
     else if (sortParam === 'title') results.sort((a, b) => a.title.localeCompare(b.title))
     else if (sortParam === 'title-desc') results.sort((a, b) => b.title.localeCompare(a.title))
+    else if (sortParam === 'most-cited') results.sort((a, b) => (b.externalCitationCount || 0) - (a.externalCitationCount || 0))
+    else if (sortParam === 'most-cited-internal') results.sort((a, b) => (b.internalCitationCount || 0) - (a.internalCitationCount || 0))
+  }
+
+  // Enrich results with citation counts from SQL (for display in result cards)
+  // Runs for both FTS and Payload paths — skips items that already have counts
+  {
+    const db = getDb()
+    const pubIds = results.filter((r) => r.collection === 'publication' && r.externalCitationCount == null).map((r) => parseInt(r.id))
+    const dsIds = results.filter((r) => r.collection === 'dataset' && r.externalCitationCount == null).map((r) => parseInt(r.id))
+
+    if (pubIds.length > 0) {
+      const { rows: pubCounts } = await db.query(
+        `SELECT id, coalesce(external_citation_count, 0) as ext
+         FROM publications WHERE id = ANY($1)`,
+        [pubIds],
+      )
+      const countMap = new Map(pubCounts.map((r: any) => [String(r.id), r.ext]))
+      for (const r of results) {
+        if (r.collection === 'publication' && r.externalCitationCount == null) {
+          r.externalCitationCount = countMap.get(r.id) || 0
+        }
+      }
+    }
+    if (dsIds.length > 0) {
+      const { rows: dsCounts } = await db.query(
+        `SELECT id, coalesce(external_citation_count, 0) as ext
+         FROM datasets WHERE id = ANY($1)`,
+        [dsIds],
+      )
+      const countMap = new Map(dsCounts.map((r: any) => [String(r.id), r.ext]))
+      for (const r of results) {
+        if (r.collection === 'dataset' && r.externalCitationCount == null) {
+          r.externalCitationCount = countMap.get(r.id) || 0
+        }
+      }
+    }
   }
 
   } // end if (!useFts)
 
   const totalPages = Math.ceil(totalResults / PAGE_SIZE)
 
-  // Topics for sidebar
-  const topics = await payload.find({
-    collection: 'topics',
-    where: { parent: { exists: false } },
-    limit: 20,
-    sort: 'name',
-  })
+  // Topics for sidebar — organized by group
+  const SIDEBAR_TOPIC_GROUPS = [
+    { group: 'Life Sciences', topics: ['Flowering & Pollination', 'Wildlife Behavior', 'Alpine & Subalpine Ecology', 'Forest Ecology', 'Freshwater Ecology', 'Plant Biology', 'Insect Ecology', 'Vertebrate Biology', 'Microbial Ecology', 'Genetics & Evolution', 'Biodiversity & Conservation', 'Invasive Species & Disturbance'] },
+    { group: 'Earth & Water', topics: ['Hydrology & Watersheds', 'Snow & Ice', 'Groundwater', 'Water Quality', 'Geology & Tectonics', 'Soil Science', 'Geochemistry & Isotopes', 'Paleontology & Paleoecology'] },
+    { group: 'Climate', topics: ['Climate Change Impacts', 'Weather & Atmospheric Science', 'Biogeochemical Cycling', 'Environmental Contamination'] },
+    { group: 'Human Dimensions', topics: ['Mining & Mineral Resources', 'Land & Water Management', 'Archaeology & Cultural History', 'Community Planning', 'Energy Development', 'Recreation & Tourism'] },
+    { group: 'Technology', topics: ['Remote Sensing & Imagery', 'Geospatial Analysis', 'Field Methods & Monitoring', 'Data Science & Modeling'] },
+    { group: 'Places', topics: ['RMBL & Gothic', 'Gunnison Basin', 'Western Colorado Landscapes', 'Research Programs'] },
+    { group: 'Education', topics: ['Science Education & Pedagogy', 'Mentoring & Research Training'] },
+  ]
 
   // Active filter description
   const activeFilters: string[] = []
@@ -367,7 +474,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           {pubTypeFilter && <input type="hidden" name="pubType" value={pubTypeFilter} />}
           {yearFrom && <input type="hidden" name="yearFrom" value={String(yearFrom)} />}
           {yearTo && <input type="hidden" name="yearTo" value={String(yearTo)} />}
-          {sortParam !== 'newest' && <input type="hidden" name="sort" value={sortParam} />}
+          {sortParam !== defaultSort && <input type="hidden" name="sort" value={sortParam} />}
           <button className="search-button" type="submit">Search</button>
         </form>
 
@@ -394,7 +501,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}>
                 <Link
-                  href={buildUrl(params, { sort: opt.value === 'relevance' ? undefined : opt.value, page: undefined })}
+                  href={buildUrl(params, { sort: opt.value === defaultSort ? undefined : opt.value, page: undefined })}
                   style={{
                     fontWeight: sortParam === opt.value ? 700 : 400,
                     color: sortParam === opt.value ? 'var(--color-accent)' : 'inherit',
@@ -444,7 +551,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               {typeFilter && <input type="hidden" name="type" value={typeFilter} />}
               {topicFilter && <input type="hidden" name="topic" value={topicFilter} />}
               {pubTypeFilter && <input type="hidden" name="pubType" value={pubTypeFilter} />}
-              {sortParam !== 'newest' && <input type="hidden" name="sort" value={sortParam} />}
+              {sortParam !== defaultSort && <input type="hidden" name="sort" value={sortParam} />}
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <input
                   type="number"
@@ -489,30 +596,34 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           </div>
 
           {/* Topics */}
-          <div className="filter-group">
-            <h4>Topics</h4>
-            {topics.docs.map((topic) => (
-              <label key={topic.id}>
-                <Link
-                  href={buildUrl(params, {
-                    topic: topicFilter === topic.name ? undefined : topic.name,
-                    page: undefined,
-                  })}
-                  style={{
-                    fontWeight: topicFilter === topic.name ? 700 : 400,
-                    color: topicFilter === topic.name ? 'var(--color-accent)' : 'inherit',
-                  }}
-                >
-                  {topic.name}
-                </Link>
-              </label>
-            ))}
-            {topicFilter && (
-              <Link href={buildUrl(params, { topic: undefined, page: undefined })} style={{ fontSize: '13px', marginTop: '8px', display: 'block' }}>
+          {SIDEBAR_TOPIC_GROUPS.map((g) => (
+            <div className="filter-group" key={g.group}>
+              <h4>{g.group}</h4>
+              {g.topics.map((name) => (
+                <label key={name}>
+                  <Link
+                    href={buildUrl(params, {
+                      topic: topicFilter === name ? undefined : name,
+                      page: undefined,
+                    })}
+                    style={{
+                      fontWeight: topicFilter === name ? 700 : 400,
+                      color: topicFilter === name ? 'var(--color-accent)' : 'inherit',
+                    }}
+                  >
+                    {name}
+                  </Link>
+                </label>
+              ))}
+            </div>
+          ))}
+          {topicFilter && (
+            <div className="filter-group">
+              <Link href={buildUrl(params, { topic: undefined, page: undefined })} style={{ fontSize: '13px' }}>
                 Clear topic filter
               </Link>
-            )}
-          </div>
+            </div>
+          )}
         </aside>
 
         <div>
@@ -548,6 +659,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                   {item.meta.map((m, i) => (
                     <span key={i}>{m}</span>
                   ))}
+                  {item.externalCitationCount != null && item.externalCitationCount > 0 && (
+                    <span>Cited {item.externalCitationCount} times</span>
+                  )}
                 </div>
               </Link>
               )

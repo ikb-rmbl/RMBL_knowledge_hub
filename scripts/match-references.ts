@@ -9,7 +9,7 @@
  *   npx tsx scripts/match-references.ts [--dry-run] [--limit=N]
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs'
 import { OUTPUT_DIR } from './lib/config.js'
 import { titleSimilarity } from './lib/doi-utils.js'
 import pg from 'pg'
@@ -101,8 +101,14 @@ async function main() {
   const sourceByTitle = new Map<string, number>()
   for (const row of sourcePubs) sourceByTitle.set(row.title, row.id)
 
-  // Load normalized pubs for title lookup by sourceId
+  // Load normalized pubs for title lookup by sourceId (main + discovered)
   const normalizedPubs: any[] = JSON.parse(readFileSync(`${OUTPUT_DIR}/publications-normalized.json`, 'utf-8'))
+  const discoveredPubFiles = readdirSync(OUTPUT_DIR).filter(
+    (f) => f.startsWith('publications-discovered-') && f.endsWith('.json'),
+  )
+  for (const file of discoveredPubFiles) {
+    normalizedPubs.push(...JSON.parse(readFileSync(`${OUTPUT_DIR}/${file}`, 'utf-8')))
+  }
   const titleBySourceId = new Map(normalizedPubs.map((p) => [p._sourceId, p.title]))
 
   console.log(`  ${pubByDoi.size} publication DOIs, ${pubTitles.length} titles, ${dsByDoi.size} dataset DOIs`)

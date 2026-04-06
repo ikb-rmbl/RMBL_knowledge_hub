@@ -13,7 +13,11 @@
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "lint": "cross-env NODE_OPTIONS=--no-deprecation eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "pipeline": "tsx scripts/pipeline.ts --phase=all",
+    "pipeline:check": "tsx scripts/pipeline.ts --phase=check --dry-run",
+    "pipeline:ingest": "tsx scripts/pipeline.ts --phase=ingest",
+    "pipeline:enrich": "tsx scripts/pipeline.ts --phase=enrich"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "^3.80.0",
@@ -27,7 +31,8 @@
     "payload": "^3.80.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "sharp": "^0.34.2"
+    "sharp": "^0.34.2",
+    "voyageai": "^0.2.1"
   },
   "devDependencies": {
     "@types/jsdom": "^28.0.1",

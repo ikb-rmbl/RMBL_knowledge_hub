@@ -33,6 +33,8 @@ export interface NormalizedPublication {
   _crossrefEnriched: boolean
   _unpaywallEnriched: boolean
   _oaStatus: string | null
+  _source: 'rmbl_database' | 'discovered' | 'manual'
+  _discoveryMethod: string
 }
 
 // ---------------------------------------------------------------------------

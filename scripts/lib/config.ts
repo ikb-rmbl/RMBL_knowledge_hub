@@ -40,6 +40,15 @@ export const RMBL_PUBS_API = 'https://www.rmbl.org/wp-json/rmbl-pubs/v1/library'
 export const RMBL_CATALOG_API = 'https://www.rmbl.org/wp-json/rmbl-data-catalog/v1/catalog?take=500&skip=0&filter%5Bfilters%5D%5B0%5D%5Bfield%5D=id&filter%5Bfilters%5D%5B0%5D%5Boperator%5D=gte&filter%5Bfilters%5D%5B0%5D%5Bvalue%5D=1'
 export const SUST_LIB_AJAX = 'https://sustainablelibrary.org/wp-admin/admin-ajax.php'
 
+export const OPENALEX_API = 'https://api.openalex.org'
+export const OPENALEX_MAILTO = process.env.OPENALEX_MAILTO || 'knowledgehub@rmbl.org'
+
+export const DATACITE_API = 'https://api.datacite.org/dois'
+
+export const VOYAGE_API_KEY = process.env.VOYAGE_API_KEY || ''
+export const VOYAGE_MODEL = 'voyage-4'
+export const EMBEDDING_DIMENSIONS = 1024
+
 // ---------------------------------------------------------------------------
 // Concurrency & Rate Limiting Defaults
 // ---------------------------------------------------------------------------
@@ -58,4 +67,5 @@ export const DELAYS = {
   DOWNLOAD_MS: 100,
   DETAIL_PAGE_MS: 0,
   METADATA_MS: 300,
+  OPENALEX_MS: 110,
 }

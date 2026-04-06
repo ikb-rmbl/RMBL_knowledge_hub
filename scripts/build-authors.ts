@@ -1,9 +1,9 @@
 /**
- * Build Unified Author Registry
+ * Build Unified Author Registry + Deduplication
  *
  * Extracts authors from all three collections, normalizes name formats,
  * deduplicates by ORCID and name similarity, and creates a unified
- * author registry. Loads into Payload's Authors collection.
+ * author registry. Optionally loads into Payload's Authors collection.
  *
  * Sources:
  *   - Publications: structured {given, family, orcid}
@@ -11,76 +11,30 @@
  *   - Documents: extracted from summary text ("Author: X", "By X")
  *
  * Usage:
- *   npx tsx scripts/build-author-registry.ts [--dry-run] [--load-payload]
+ *   npx tsx scripts/build-authors.ts [--dry-run] [--load-payload] [--dedup-only]
+ *
+ * Flags:
+ *   --dedup-only    Re-run deduplication on existing author-registry.json
+ *   --dry-run       Preview changes without writing files or loading
+ *   --load-payload  Load authors into Payload CMS after building
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs'
 import { OUTPUT_DIR } from './lib/config.js'
-import { deduplicateAuthors } from './lib/author-dedup.js'
-import { ensureAuth, createRecord, getAllPaginated, checkServer } from './lib/payload-client.js'
+import { deduplicateAuthors, type AuthorRecord } from './lib/author-dedup.js'
+import { parseCreatorName, expandInitials, buildDisplayName } from './lib/author-parsing.js'
+import { ensureAuth, createRecord, getAllPaginated, checkServer, getCount } from './lib/payload-client.js'
+import pg from 'pg'
 import type { NormalizedPublication, NormalizedDocument } from './lib/types.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
 const loadPayload = args.includes('--load-payload')
+const dedupOnly = args.includes('--dedup-only')
 
 // ---------------------------------------------------------------------------
-// Unified Author type
+// Name utilities
 // ---------------------------------------------------------------------------
-
-interface AuthorRecord {
-  id: string // internal dedup key
-  displayName: string
-  familyName: string
-  givenName: string
-  orcid: string | null
-  affiliation: string | null
-  publicationIds: string[] // source IDs
-  datasetIds: string[] // source IDs
-  documentIds: string[] // source post IDs
-}
-
-// ---------------------------------------------------------------------------
-// Name parsing utilities
-// ---------------------------------------------------------------------------
-
-function parseCreatorName(name: string): { given: string; family: string } {
-  const cleaned = name.trim()
-  if (!cleaned) return { given: '', family: '' }
-
-  // "LastName, FirstName" or "LastName, I.N."
-  if (cleaned.includes(',')) {
-    const [family, ...rest] = cleaned.split(',')
-    return { family: family.trim(), given: rest.join(',').trim() }
-  }
-
-  // "FirstName LastName" or "F. LastName" or "FirstName MiddleName LastName"
-  const parts = cleaned.split(/\s+/)
-  if (parts.length === 1) return { given: '', family: parts[0] }
-
-  return { given: parts.slice(0, -1).join(' '), family: parts[parts.length - 1] }
-}
-
-function expandInitials(given: string): string {
-  // "J. A." stays as is, "JA" → "J. A.", "J" → "J."
-  if (!given) return ''
-  // Already expanded
-  if (given.includes('.')) return given
-  // Single initial
-  if (given.length === 1) return given + '.'
-  // Multiple initials without dots: "RWH" → "R. W. H."
-  if (/^[A-Z]{2,5}$/.test(given)) {
-    return given.split('').join('. ') + '.'
-  }
-  return given
-}
-
-function buildDisplayName(given: string, family: string): string {
-  if (!given) return family
-  // Expand initials for display
-  const expanded = expandInitials(given)
-  return `${expanded} ${family}`.trim()
-}
 
 function normalizeKey(family: string, given: string): string {
   // Lowercase, first initial only — used for dedup grouping
@@ -117,19 +71,53 @@ function extractDocumentAuthor(doc: NormalizedDocument): { name: string } | null
 }
 
 // ---------------------------------------------------------------------------
-// Main
+// Dedup-only mode
 // ---------------------------------------------------------------------------
 
-async function main() {
+async function runDedupOnly() {
+  console.log('Author Deduplication')
+  console.log('====================')
+  if (dryRun) console.log('(DRY RUN)')
+
+  const registryPath = `${OUTPUT_DIR}/author-registry.json`
+  const authors: AuthorRecord[] = JSON.parse(readFileSync(registryPath, 'utf-8'))
+  console.log(`\nLoaded ${authors.length} authors`)
+
+  const { result, orcidMerges, nameMerges } = deduplicateAuthors(authors)
+
+  console.log(`\nORCID merges: ${orcidMerges}`)
+  console.log(`Name merges: ${nameMerges}`)
+  console.log(`Before: ${authors.length} → After: ${result.length}`)
+
+  if (!dryRun) {
+    result.sort((a, b) => a.familyName.localeCompare(b.familyName))
+    writeFileSync(registryPath, JSON.stringify(result, null, 2))
+    console.log(`Saved to ${registryPath}`)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Full build mode
+// ---------------------------------------------------------------------------
+
+async function runFullBuild() {
   console.log('Build Unified Author Registry')
   console.log('=============================')
   if (dryRun) console.log('(DRY RUN)')
 
   mkdirSync(OUTPUT_DIR, { recursive: true })
 
-  // Step 1: Extract from Publications
+  // Step 1: Extract from Publications (main + discovered)
   console.log('\nStep 1: Extracting from Publications...')
   const pubs: NormalizedPublication[] = JSON.parse(readFileSync(`${OUTPUT_DIR}/publications-normalized.json`, 'utf-8'))
+  const discoveredPubFiles = readdirSync(OUTPUT_DIR).filter(
+    (f) => f.startsWith('publications-discovered-') && f.endsWith('.json'),
+  )
+  for (const file of discoveredPubFiles) {
+    const discovered = JSON.parse(readFileSync(`${OUTPUT_DIR}/${file}`, 'utf-8'))
+    pubs.push(...discovered)
+    console.log(`  Merged ${discovered.length} from ${file}`)
+  }
 
   const authorMap = new Map<string, AuthorRecord>()
 
@@ -324,6 +312,17 @@ async function main() {
 
     await ensureAuth()
 
+    // Clear existing authors (full rebuild — avoids duplicates from repeated runs)
+    const existingCount = await getCount('authors')
+    if (existingCount > 0) {
+      console.log(`\nClearing ${existingCount} existing authors for clean rebuild...`)
+      const db = new pg.Pool({ connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/rmbl_knowledge_hub' })
+      await db.query('DELETE FROM authors_rels')
+      await db.query('DELETE FROM authors')
+      await db.end()
+      console.log('  Cleared.')
+    }
+
     // Get Payload IDs for publications, datasets, documents
     console.log('\nLoading Payload IDs for linking...')
     const payloadPubs = await getAllPaginated('publications')
@@ -388,6 +387,32 @@ async function main() {
       }
     }
     console.log(`\r  ${toLoad.length} processed: ${loaded} loaded, ${errors} errors`)
+
+    // Update work_count column from actual relationship links
+    console.log('\nUpdating work counts...')
+    const db = new pg.Pool({ connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/rmbl_knowledge_hub' })
+    await db.query(`
+      UPDATE authors a SET work_count = (
+        SELECT count(*) FROM authors_rels ar
+        WHERE ar.parent_id = a.id
+        AND (ar.publications_id IS NOT NULL OR ar.datasets_id IS NOT NULL OR ar.documents_id IS NOT NULL)
+      )
+    `)
+    const { rows } = await db.query('SELECT count(*) as n FROM authors WHERE work_count > 0')
+    console.log(`  ${rows[0].n} authors with linked works`)
+    await db.end()
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+
+async function main() {
+  if (dedupOnly) {
+    await runDedupOnly()
+  } else {
+    await runFullBuild()
   }
 }
 

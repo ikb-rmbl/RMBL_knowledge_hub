@@ -18,14 +18,11 @@
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'fs'
 import { sleep, runConcurrent } from './lib/concurrency.js'
 import { parseAuthors, parseEditors } from './lib/author-parsing.js'
-import { extractDoi, titleSimilarity } from './lib/doi-utils.js'
+import { extractDoi } from './lib/doi-utils.js'
+import { queryCrossRef, queryUnpaywall } from './lib/crossref-client.js'
 import type { NormalizedPublication, RawPublication } from './lib/types.js'
 import {
   OUTPUT_DIR,
-  CROSSREF_API,
-  CROSSREF_MAILTO,
-  UNPAYWALL_API,
-  UNPAYWALL_EMAIL,
   RMBL_PUBS_API,
   CONCURRENCY,
   DELAYS,
@@ -48,88 +45,6 @@ const TYPE_MAP: Record<string, string> = {
   CHAPTER: 'chapter',
   STUDENTPAPER: 'student_paper',
   OTHER: 'other',
-}
-
-// ---------------------------------------------------------------------------
-// CrossRef enrichment
-// ---------------------------------------------------------------------------
-
-interface CrossRefResult {
-  doi: string | null
-  abstract: string | null
-}
-
-async function queryCrossRef(
-  title: string,
-  firstAuthorFamily: string,
-  year: string,
-): Promise<CrossRefResult> {
-  try {
-    const query = encodeURIComponent(title)
-    const url = `${CROSSREF_API}?query.title=${query}&query.author=${encodeURIComponent(firstAuthorFamily)}&filter=from-pub-date:${year},until-pub-date:${year}&rows=3&select=DOI,title,abstract,author&mailto=${CROSSREF_MAILTO}`
-
-    const res = await fetch(url)
-    if (!res.ok) return { doi: null, abstract: null }
-
-    const data = await res.json()
-    const items = data?.message?.items
-    if (!items || items.length === 0) return { doi: null, abstract: null }
-
-    // Find the best match by comparing title similarity
-    for (const item of items) {
-      const crTitle = Array.isArray(item.title) ? item.title[0] : item.title
-      if (!crTitle) continue
-
-      const similarity = titleSimilarity(title, crTitle)
-      if (similarity > 0.85) {
-        let abstract = item.abstract || null
-        // Clean up JATS XML tags from abstract
-        if (abstract) {
-          abstract = abstract.replace(/<[^>]+>/g, '').trim()
-        }
-        return { doi: item.DOI, abstract }
-      }
-    }
-
-    return { doi: null, abstract: null }
-  } catch {
-    return { doi: null, abstract: null }
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Unpaywall enrichment
-// ---------------------------------------------------------------------------
-
-interface UnpaywallResult {
-  pdfUrl: string | null
-  oaStatus: string | null
-}
-
-async function queryUnpaywall(doi: string): Promise<UnpaywallResult> {
-  try {
-    const url = `${UNPAYWALL_API}/${encodeURIComponent(doi)}?email=${UNPAYWALL_EMAIL}`
-    const res = await fetch(url)
-    if (!res.ok) return { pdfUrl: null, oaStatus: null }
-
-    const data = await res.json()
-    const oaStatus = data.oa_status || null
-
-    // Look for a PDF URL in best_oa_location first, then oa_locations
-    const bestPdf = data.best_oa_location?.url_for_pdf || null
-    if (bestPdf) return { pdfUrl: bestPdf, oaStatus }
-
-    // Fall back to any OA location with a PDF
-    if (Array.isArray(data.oa_locations)) {
-      for (const loc of data.oa_locations) {
-        if (loc.url_for_pdf) return { pdfUrl: loc.url_for_pdf, oaStatus }
-      }
-    }
-
-    return { pdfUrl: null, oaStatus }
-  } catch {
-    return { pdfUrl: null, oaStatus: null }
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -186,6 +101,8 @@ function normalizePublication(raw: RawPublication): NormalizedPublication {
     _crossrefEnriched: false,
     _unpaywallEnriched: false,
     _oaStatus: null,
+    _source: 'rmbl_database',
+    _discoveryMethod: 'rmbl_api',
   }
 }
 

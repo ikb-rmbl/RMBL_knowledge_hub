@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getBadgeLabel, getBadgeClass } from './lib/badges'
-import ExpandableTopics from './components/ExpandableTopics'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,48 +16,16 @@ export default async function HomePage() {
     payload.count({ collection: 'authors' }),
   ])
 
-  // Fetch parent topics individually by name (scales with 9,000+ topics)
-  const PARENT_TOPIC_NAMES = [
-    'Water & Hydrology', 'Ecology & Biology', 'Climate & Atmosphere',
-    'Soil & Geology', 'Chemistry & Biogeochemistry', 'Remote Sensing & GIS',
-    'Mining & Energy', 'Land Use & Community', 'Methods & Data Management',
-    'Places & Projects', 'Other',
+  // Topic groups for Browse by Topic section
+  const TOPIC_GROUPS = [
+    { group: 'Life Sciences', topics: ['Flowering & Pollination', 'Wildlife Behavior', 'Alpine & Subalpine Ecology', 'Forest Ecology', 'Freshwater Ecology', 'Plant Biology', 'Insect Ecology', 'Vertebrate Biology', 'Microbial Ecology', 'Genetics & Evolution', 'Biodiversity & Conservation', 'Invasive Species & Disturbance'] },
+    { group: 'Earth & Water Sciences', topics: ['Hydrology & Watersheds', 'Snow & Ice', 'Groundwater', 'Water Quality', 'Geology & Tectonics', 'Soil Science', 'Geochemistry & Isotopes', 'Paleontology & Paleoecology'] },
+    { group: 'Climate & Environment', topics: ['Climate Change Impacts', 'Weather & Atmospheric Science', 'Biogeochemical Cycling', 'Environmental Contamination'] },
+    { group: 'Human Dimensions', topics: ['Mining & Mineral Resources', 'Land & Water Management', 'Archaeology & Cultural History', 'Community Planning', 'Energy Development', 'Recreation & Tourism'] },
+    { group: 'Technology & Data', topics: ['Remote Sensing & Imagery', 'Geospatial Analysis', 'Field Methods & Monitoring', 'Data Science & Modeling'] },
+    { group: 'Places & Programs', topics: ['RMBL & Gothic', 'Gunnison Basin', 'Western Colorado Landscapes', 'Research Programs'] },
+    { group: 'Education & Training', topics: ['Science Education & Pedagogy', 'Mentoring & Research Training'] },
   ]
-
-  const topicCounts: { name: string; id: string; count: number }[] = []
-  for (const name of PARENT_TOPIC_NAMES) {
-    const result = await payload.find({
-      collection: 'topics',
-      where: { name: { equals: name } },
-      limit: 1,
-    })
-    const parent = result.docs[0]
-    if (!parent) continue
-
-    // Get first 20 children sorted by ID (original spec topics have low IDs)
-    const children = await payload.find({
-      collection: 'topics',
-      where: { parent: { equals: parent.id } },
-      limit: 20,
-      sort: 'id',
-    })
-    const idsToCheck = [String(parent.id), ...children.docs.map((c) => String(c.id))]
-
-    let total = 0
-    for (const id of idsToCheck) {
-      const [d, p, ds] = await Promise.all([
-        payload.count({ collection: 'documents', where: { categories: { equals: id } } }),
-        payload.count({ collection: 'publications', where: { researchTopics: { equals: id } } }),
-        payload.count({ collection: 'datasets', where: { tags: { equals: id } } }),
-      ])
-      total += d.totalDocs + p.totalDocs + ds.totalDocs
-    }
-
-    if (total > 0) {
-      topicCounts.push({ name: parent.name, id: String(parent.id), count: total })
-    }
-  }
-  topicCounts.sort((a, b) => b.count - a.count)
 
   // Fetch recently published from each collection (by content date, not ingestion date)
   const [recentDocs, recentPubs, recentData] = await Promise.all([
@@ -159,12 +126,27 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {topicCounts.length > 0 && (
-        <section className="section">
-          <h2 className="section-title">Browse by Topic</h2>
-          <ExpandableTopics topics={topicCounts} />
-        </section>
-      )}
+      <section className="section">
+        <h2 className="section-title">Browse by Topic</h2>
+        <div className="topic-groups">
+          {TOPIC_GROUPS.map((g) => (
+            <div key={g.group} className="topic-group">
+              <h3 className="topic-group-title">{g.group}</h3>
+              <div className="topic-group-list">
+                {g.topics.map((name) => (
+                  <Link
+                    key={name}
+                    className="topic-link"
+                    href={`/search?topic=${encodeURIComponent(name)}`}
+                  >
+                    {name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="section">
         <h2 className="section-title">Recent Works</h2>

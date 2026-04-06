@@ -194,6 +194,38 @@ export const Publications: CollectionConfig = {
       options: GEOGRAPHIC_SCOPE_OPTIONS,
     },
     {
+      name: 'dataSource',
+      type: 'select',
+      required: true,
+      defaultValue: 'rmbl_database',
+      options: [
+        { label: 'RMBL Database', value: 'rmbl_database' },
+        { label: 'Discovered', value: 'discovered' },
+        { label: 'Manual', value: 'manual' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description: 'Where this publication was first ingested from',
+      },
+    },
+    {
+      name: 'discoveryMethod',
+      type: 'select',
+      required: true,
+      defaultValue: 'rmbl_api',
+      options: [
+        { label: 'RMBL API', value: 'rmbl_api' },
+        { label: 'OpenAlex Geographic', value: 'openalex_geo' },
+        { label: 'CrossRef Citation', value: 'crossref_citation' },
+        { label: 'CrossRef Affiliation', value: 'crossref_affiliation' },
+        { label: 'Manual Entry', value: 'manual_entry' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description: 'How this publication was discovered',
+      },
+    },
+    {
       name: 'researchTopics',
       type: 'relationship',
       relationTo: 'topics',

@@ -210,6 +210,51 @@ a:hover {
   color: var(--color-text-muted);
 }
 
+/* ===== Grouped Topic Display ===== */
+
+.topic-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+.topic-group {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+}
+.topic-group-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+.topic-group-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.topic-link {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 13px;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.topic-link:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
 /* ===== Expand Toggle ===== */
 
 .expand-toggle {

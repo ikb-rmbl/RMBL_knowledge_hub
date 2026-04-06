@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getPayload } from 'payload'
 import { notFound } from 'next/navigation'
 import config from '@/payload.config'
+import { renderRelatedWorks } from '../../lib/related-works'
 
 export const dynamic = 'force-dynamic'
 
@@ -91,6 +92,8 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
           </a>
         )}
       </div>
+
+      {await renderRelatedWorks('documents', parseInt(id))}
     </div>
   )
 }

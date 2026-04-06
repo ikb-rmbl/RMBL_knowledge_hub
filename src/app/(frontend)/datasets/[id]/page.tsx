@@ -2,8 +2,16 @@ import Link from 'next/link'
 import { getPayload } from 'payload'
 import { notFound } from 'next/navigation'
 import config from '@/payload.config'
+import pg from 'pg'
+import { renderRelatedWorks } from '../../lib/related-works'
 
 export const dynamic = 'force-dynamic'
+
+let dbPool: pg.Pool | null = null
+function getDb(): pg.Pool {
+  if (!dbPool) dbPool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
+  return dbPool
+}
 
 export default async function DatasetDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -201,6 +209,69 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
           </a>
         )}
       </div>
+
+      {await renderRelatedWorks('datasets', parseInt(id))}
+      {await renderDatasetCitations(parseInt(id))}
+    </div>
+  )
+}
+
+async function renderDatasetCitations(datasetId: number) {
+  const db = getDb()
+
+  // External citation count
+  const { rows: countRows } = await db.query(
+    'SELECT external_citation_count FROM datasets WHERE id = $1',
+    [datasetId],
+  )
+  const externalCount = parseInt(countRows[0]?.external_citation_count || '0')
+
+  // Internal: publications that cite this dataset
+  const { rows: citedByRows } = await db.query(
+    `SELECT DISTINCT r.source_publication_id, p.title, p.year, p.publication_type, p.doi
+     FROM references_cited r
+     JOIN publications p ON p.id = r.source_publication_id
+     WHERE r.target_dataset_id = $1
+     ORDER BY p.year DESC
+     LIMIT 50`,
+    [datasetId],
+  )
+
+  if (externalCount === 0 && citedByRows.length === 0) return null
+
+  return (
+    <div className="detail-section">
+      <h2>
+        {externalCount > 0 && citedByRows.length > 0
+          ? `Cited By (${externalCount} times, ${citedByRows.length} in Knowledge Hub)`
+          : externalCount > 0
+            ? `Cited ${externalCount} times`
+            : `Cited By (${citedByRows.length})`}
+      </h2>
+      {citedByRows.length > 0 && (
+        <div className="result-list">
+          {citedByRows.map((row: any) => (
+            <Link
+              key={row.source_publication_id}
+              className="result-card"
+              href={`/publications/${row.source_publication_id}`}
+            >
+              <div className="result-card-header">
+                <span className="badge badge-publication">
+                  {row.publication_type === 'article' ? 'Article' :
+                   row.publication_type === 'student_paper' ? 'Student Paper' :
+                   row.publication_type === 'thesis' ? 'Thesis' : 'Publication'}
+                </span>
+                <h3 className="result-card-title">{row.title}</h3>
+              </div>
+              <div className="result-card-meta">
+                {row.year && <span>{row.year}</span>}
+                {row.doi && <span>DOI: {row.doi}</span>}
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
