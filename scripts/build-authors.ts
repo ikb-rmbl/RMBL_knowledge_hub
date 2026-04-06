@@ -122,7 +122,7 @@ async function runFullBuild() {
   const authorMap = new Map<string, AuthorRecord>()
 
   for (const pub of pubs) {
-    for (const author of pub.authors) {
+    for (const author of pub.authors as any[]) {
       if (!author.family) continue
 
       const key = author.orcid || normalizeKey(author.family, author.given)
