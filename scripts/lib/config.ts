@@ -23,7 +23,7 @@ export const STAGING_DIR = join(OUTPUT_DIR, 'pdf-staging')
 
 export const PAYLOAD_BASE_URL = process.env.PAYLOAD_BASE_URL || 'http://localhost:3000'
 export const PAYLOAD_API = `${PAYLOAD_BASE_URL}/api`
-export const PAYLOAD_ADMIN_EMAIL = process.env.PAYLOAD_ADMIN_EMAIL || 'admin@rmbl.org'
+export const PAYLOAD_ADMIN_EMAIL = process.env.PAYLOAD_ADMIN_EMAIL || 'ikb@rmbl.org'
 export const PAYLOAD_ADMIN_PASSWORD = process.env.PAYLOAD_ADMIN_PASSWORD || 'dev-password-change-me'
 
 // ---------------------------------------------------------------------------

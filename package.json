@@ -17,7 +17,11 @@
     "pipeline": "tsx scripts/pipeline.ts --phase=all",
     "pipeline:check": "tsx scripts/pipeline.ts --phase=check --dry-run",
     "pipeline:ingest": "tsx scripts/pipeline.ts --phase=ingest",
-    "pipeline:enrich": "tsx scripts/pipeline.ts --phase=enrich"
+    "pipeline:enrich": "tsx scripts/pipeline.ts --phase=enrich",
+    "sync:verify": "tsx scripts/sync-to-neon.ts --mode=verify",
+    "sync:full": "tsx scripts/sync-to-neon.ts --mode=full",
+    "sync:safe": "tsx scripts/sync-to-neon.ts --mode=safe",
+    "sync:schema": "tsx scripts/sync-to-neon.ts --mode=schema"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "^3.80.0",
