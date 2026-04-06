@@ -154,13 +154,32 @@ npm run generate:types  # Regenerate Payload TypeScript types
 
 ## Deployment
 
-Target stack: **Vercel** (hosting) + **Neon** (PostgreSQL) + **AWS S3** (file storage)
+**Production stack:** Vercel (hosting) + Neon (PostgreSQL + pgvector) + Cloudflare R2 (file storage)
 
-Required environment variables:
-- `DATABASE_URL` — Neon connection string
+### Environment variables (set in Vercel dashboard)
+
+- `DATABASE_URL` — Neon pooled connection string
 - `PAYLOAD_SECRET` — 32+ character encryption key
-- `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION`
+- `PAYLOAD_ADMIN_EMAIL` — Admin login email
+- `PAYLOAD_ADMIN_PASSWORD` — Admin login password
+- `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION`, `S3_ENDPOINT` — File storage
+- `VOYAGE_API_KEY` — Voyage AI for vector embeddings
+
+### Updating production data
+
+```bash
+# Run pipeline locally, then sync to Neon
+npm run pipeline                     # update local data
+npm run sync:verify                  # compare local vs production
+npm run sync:full                    # push to production
+
+# Or run safe enrichments directly against production
+npm run sync:safe                    # citation counts + embeddings
+```
+
+See `scripts/README.md` for detailed deployment workflow documentation.
 
 ## License
 
 This project is developed for the Rocky Mountain Biological Laboratory under grant funding.
+Support for the Knowledge Hub provided by the Clark Family Foundation.

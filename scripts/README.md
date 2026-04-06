@@ -5,12 +5,57 @@ Scripts for scraping, enriching, and loading data into the RMBL Knowledge Hub.
 ## Quick Start
 
 ```bash
-# Full pipeline: check sources → scrape → enrich → load → topics → authors
-npx tsx scripts/pipeline.ts --phase=all
+# Full pipeline: check sources → scrape → discover → enrich → load → topics → authors → citations → embeddings
+npm run pipeline
 
 # Preview changes without writing
-npx tsx scripts/pipeline.ts --phase=check --dry-run
+npm run pipeline:check
+
+# Sync local database to production (Neon)
+npm run sync:verify      # compare row counts
+npm run sync:full        # full data sync
 ```
+
+## Deployment Workflow
+
+The Knowledge Hub runs on Vercel (hosting) + Neon (PostgreSQL). Code changes auto-deploy on push. Data changes require syncing to Neon.
+
+### Interface changes (code only)
+```bash
+# Develop and test locally
+npm run dev
+npm run test
+git push                 # Vercel auto-deploys
+```
+
+### Data refresh (monthly or as needed)
+```bash
+# 1. Run pipeline locally
+npm run pipeline
+
+# 2. Run additional enrichments
+npx tsx scripts/enrich-abstracts.ts --step=all
+npx tsx scripts/discover-datasets.ts --source=all
+
+# 3. Verify and sync to production
+npm run sync:verify      # compare local vs Neon
+npm run sync:full        # push all data to Neon
+```
+
+### Quick enrichment updates (run directly against Neon)
+```bash
+npm run sync:safe        # citation counts + embeddings for new items
+```
+
+### Schema changes (new columns/tables)
+```bash
+psql rmbl_knowledge_hub < scripts/sql/new-migration.sql   # local
+npm run sync:schema                                        # Neon
+git push                                                   # redeploy app
+```
+
+### Environment setup
+All `sync:*` commands require `NEON_DIRECT_URL` in `.env` (the non-pooler Neon connection string). The `VOYAGE_API_KEY` is needed for embedding generation.
 
 ## Pipeline Phases
 
@@ -91,6 +136,21 @@ Manual steps (long-running):
 | `match-references.ts` | Match references + load to PostgreSQL | DB |
 | `crosslink-datasets.ts` | Link publications ↔ datasets | **Yes** |
 
+### Projects
+
+| Script | Purpose | Server? |
+|---|---|---|
+| `seed-projects.ts` | Seed projects from research plan data | **Yes** |
+| `assign-projects.ts` | Auto-discover and assign items to projects | **Yes** |
+
+### Deployment & Sync
+
+| Script | Purpose | Server? |
+|---|---|---|
+| `sync-to-neon.ts` | Sync local database to Neon production | No |
+
+Modes: `--mode=verify` (compare counts), `--mode=full` (truncate + restore), `--mode=safe` (run enrichments against Neon), `--mode=schema` (apply SQL migrations)
+
 ### Maintenance
 
 | Script | Purpose | Server? |
@@ -103,7 +163,15 @@ Manual steps (long-running):
 
 ### Pipeline orchestrator
 ```
-npx tsx scripts/pipeline.ts [--phase=check|ingest|enrich|load|topics|authors|all] [--dry-run]
+npx tsx scripts/pipeline.ts [--phase=check|ingest|discover|enrich|load|topics|authors|citations|embeddings|all] [--dry-run]
+```
+
+### Neon sync
+```
+npx tsx scripts/sync-to-neon.ts --mode=verify          # compare local vs Neon row counts
+npx tsx scripts/sync-to-neon.ts --mode=full [--dry-run] # full data sync (truncate + restore)
+npx tsx scripts/sync-to-neon.ts --mode=safe             # run safe enrichments against Neon
+npx tsx scripts/sync-to-neon.ts --mode=schema           # apply SQL migrations to Neon
 ```
 
 ### Common flags (most scripts)
@@ -123,6 +191,11 @@ extract-references.ts   --method=crossref|grobid|fulltext|all --source=documents
 discover-datasets.ts    --source=dataone|zenodo|datacite|dois|ncei|sciencebase|paleo|all
                         --since=YYYY-MM-DD
 update-sources.ts       --source=library|publications|catalog|all
+discover-publications.ts --source=openalex|crossref|all
+enrich-abstracts.ts     --step=api|fulltext|semantic-scholar|pdf|all
+fetch-citation-counts.ts --step=publications|datasets|all --stale-days=30
+generate-embeddings.ts  --collection=publications|datasets|documents|all --level=summary --force
+assign-projects.ts      --project=NAME
 ```
 
 ## Shared Libraries (`lib/`)
@@ -132,6 +205,7 @@ update-sources.ts       --source=library|publications|catalog|all
 | `crossref-client.ts` | CrossRef + Unpaywall API queries (strict/relaxed) |
 | `topic-rules.ts` | Topic categorization patterns + matching |
 | `dataset-discovery.ts` | Dataset dedup + normalization helpers |
+| `publication-discovery.ts` | Publication dedup, OpenAlex/CrossRef normalization |
 | `author-parsing.ts` | Author string parsing + creator name handling |
 | `author-dedup.ts` | ORCID + name-based deduplication |
 | `doi-utils.ts` | DOI extraction, title similarity |
