@@ -23,6 +23,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Link href="/search?type=publications">Publications</Link>
               <Link href="/search?type=datasets">Datasets</Link>
               <Link href="/authors">Authors</Link>
+              <Link href="/projects">Projects</Link>
             </nav>
           </div>
         </header>

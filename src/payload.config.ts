@@ -12,6 +12,7 @@ import { Publications } from './collections/Publications'
 import { Datasets } from './collections/Datasets'
 import { Topics } from './collections/Topics'
 import { Authors } from './collections/Authors'
+import { Projects } from './collections/Projects'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -23,7 +24,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Documents, Publications, Datasets, Topics, Authors],
+  collections: [Users, Media, Documents, Publications, Datasets, Topics, Authors, Projects],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
