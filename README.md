@@ -5,26 +5,31 @@ A unified search platform for environmental knowledge from the Rocky Mountain Bi
 ## What's Inside
 
 - **1,381 documents** from the [Gunnison Sustainable Living Library](https://sustainablelibrary.org/) — community planning, mining history, water policy, and environmental impact documents
-- **3,934 publications** from the [RMBL Publications Database](https://www.rmbl.org/scientists/resources/publications/) — journal articles, theses, student papers, and books spanning decades of research
-- **1,069 datasets** discovered from 8 repositories — DataONE, DataCite, Zenodo, NCEI, ScienceBase, and more
-- **4,724 authors** — deduplicated cross-collection registry with ORCID enrichment
-- **126,752 references** — citation network with 11,626 internal links enabling "cited by" navigation
+- **5,213 publications** from the RMBL Publications Database + OpenAlex/CrossRef discovery — journal articles, theses, student papers spanning decades of Gunnison Basin research
+- **1,216 datasets** discovered from 8 repositories — DataONE, DataCite, Zenodo, NCEI, ScienceBase, and more
+- **6,582 authors** — deduplicated cross-collection registry with ORCID enrichment
+- **118 research projects** — active research plans and long-term programs with auto-discovered item assignments
+- **106,209 references** — citation network with 10,045 internal links enabling "cited by" navigation
+- **7,758 vector embeddings** — concept graph powering "Related Works" panels and similarity search
+- **40 thematic topics** across 7 groups — from Flowering & Pollination to Archaeology & Cultural History
 
 ## Architecture
 
 ```
 Next.js 16 + Payload CMS 3.x (single app)
     |
-    ├── Public frontend (search, browse, detail pages)
+    ├── Public frontend (search, browse, detail, project pages)
     ├── Payload admin panel (/admin)
     └── REST + GraphQL APIs (auto-generated)
          |
-    PostgreSQL 17 (local / Neon)
-    ├── Payload collections (7)
+    PostgreSQL 17 + pgvector (local / Neon)
+    ├── Payload collections (8)
     ├── tsvector full-text search indexes
-    ├── Custom tables (references_cited, publications_mentors)
+    ├── pgvector HNSW indexes (concept graph / similarity)
+    ├── Custom tables (references_cited, content_chunks, publications_mentors)
          |
     AWS S3 (PDF + media storage)
+    Voyage AI (vector embeddings)
 ```
 
 The data pipeline scrapes three external sources, enriches with CrossRef DOIs and Unpaywall open-access links, extracts text from PDFs (digital + OCR), builds citation networks, and loads everything into Payload CMS.
@@ -103,22 +108,34 @@ See `scripts/README.md` for detailed documentation of each script, CLI flags, an
 ```
 src/
   payload.config.ts           # CMS configuration
-  collections/                # Data model (7 collections)
-  app/(frontend)/             # Public search interface
+  collections/                # Data model (8 collections including Projects)
+  app/(frontend)/             # Public pages (search, browse, detail, projects)
+  app/(frontend)/lib/         # Shared utilities (badges, related-works)
+  app/(frontend)/components/  # Client components
   app/(payload)/              # Admin panel
 
 scripts/
-  pipeline.ts                 # Orchestrator (6 phases)
+  pipeline.ts                 # Orchestrator (9 phases)
   scrape-*.ts                 # Source data scrapers (3)
+  discover-publications.ts    # OpenAlex + CrossRef geographic discovery
+  discover-datasets.ts        # 7-source dataset discovery
   enrich.ts                   # DOI/ORCID/mentor enrichment
+  enrich-abstracts.ts         # Abstract enrichment (4 tiers)
   load-to-payload.ts          # Database loader
-  manage-topics.ts            # Topic taxonomy + assignment
+  manage-topics.ts            # 40-topic thematic taxonomy
   build-authors.ts            # Author registry + dedup
+  fetch-citation-counts.ts    # External citation counts
+  generate-embeddings.ts      # Voyage AI vector embeddings
+  seed-projects.ts            # Research project seeding
+  assign-projects.ts          # Auto-discover project items
   extract-references.ts       # CrossRef + GROBID + fulltext
   match-references.ts         # Reference matching
-  discover-datasets.ts        # 7-source dataset discovery
   crosslink-datasets.ts       # Publication↔dataset linking
   lib/                        # 14 shared utility modules
+  sql/                        # Manual SQL migrations
+
+public/
+  rmbl-logo.jpg               # RMBL logo
 
 specification/                # Technical specs
 ```
@@ -127,7 +144,7 @@ specification/                # Technical specs
 
 ```bash
 npm run dev           # Start dev server
-npm run test          # Run tests (128 tests, Vitest)
+npm run test          # Run tests (158 tests, Vitest)
 npm run lint          # Lint check
 npm run build         # Production build
 npm run pipeline      # Full data pipeline

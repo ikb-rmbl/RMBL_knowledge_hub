@@ -5,17 +5,22 @@
   --color-text-secondary: #555;
   --color-text-muted: #888;
   --color-border: #e0ddd8;
-  --color-accent: #4a6741;
-  --color-accent-hover: #3d5636;
-  --color-accent-light: #eef3ec;
+  --color-accent: #d4532b;
+  --color-accent-hover: #b8441f;
+  --color-accent-light: #fdf0ec;
+
+  --color-header-bg: #3b3330;
+  --color-header-text: #ffffff;
 
   --color-badge-doc: #6b7b3a;
   --color-badge-pub: #3a6b7b;
   --color-badge-data: #7b5a3a;
+  --color-publication: #3a6b7b;
 
   --max-width: 1120px;
   --radius: 6px;
   --radius-lg: 10px;
+  --radius-sm: 4px;
 }
 
 * {
@@ -46,8 +51,7 @@ a:hover {
 /* ===== Header ===== */
 
 .site-header {
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--color-header-bg);
   padding: 0 24px;
 }
 .site-header-inner {
@@ -56,28 +60,45 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 56px;
+  height: 64px;
 }
 .site-logo {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 12px;
   text-decoration: none;
 }
 .site-logo:hover {
   text-decoration: none;
 }
+.site-logo img {
+  height: 44px;
+  width: auto;
+  border-radius: 4px;
+}
+.site-logo span {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-header-text);
+  letter-spacing: 0.01em;
+}
 .site-nav {
   display: flex;
-  gap: 20px;
+  gap: 24px;
   font-size: 14px;
+  font-weight: 500;
 }
 .site-nav a {
-  color: var(--color-text-secondary);
+  color: var(--color-header-text);
+  opacity: 0.85;
+  padding-bottom: 4px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
 }
 .site-nav a:hover {
-  color: var(--color-text);
+  opacity: 1;
   text-decoration: none;
+  border-bottom-color: var(--color-accent);
 }
 
 /* ===== Hero / Home ===== */
@@ -511,7 +532,19 @@ a:hover {
   border-top: 1px solid var(--color-border);
   padding: 24px;
   text-align: center;
-  font-size: 13px;
-  color: var(--color-text-muted);
   margin-top: 48px;
+}
+.footer-address {
+  font-size: 13px;
+  color: var(--color-text);
+  margin: 0 0 8px;
+}
+.footer-legal {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 0;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
 }

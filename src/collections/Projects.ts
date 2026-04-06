@@ -110,6 +110,14 @@ export const Projects: CollectionConfig = {
     },
     // Discovery configuration
     {
+      name: 'parentProject',
+      type: 'relationship',
+      relationTo: 'projects',
+      admin: {
+        description: 'Parent program/campaign this research plan belongs to',
+      },
+    },
+    {
       name: 'discoveryKeywords',
       type: 'textarea',
       admin: {

@@ -31,6 +31,20 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
 
   const totalItems = pubs.length + datasets.length + docs.length
 
+  // Find child research plans (for programs/campaigns)
+  const childPlans = await payload.find({
+    collection: 'projects',
+    where: { parentProject: { equals: parseInt(id) } },
+    limit: 50,
+    sort: 'name',
+    depth: 0,
+  })
+
+  // Find parent project (for research plans)
+  const parentProject = project.parentProject
+    ? (typeof project.parentProject === 'object' ? project.parentProject : null)
+    : null
+
   return (
     <div className="detail">
       <Link href="/projects" className="detail-back">
@@ -43,6 +57,14 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
       <h1>{project.name}</h1>
 
       <div className="detail-meta">
+        {parentProject && (
+          <div>
+            <strong>Part of:</strong>{' '}
+            <Link href={`/projects/${(parentProject as any).id}`}>
+              {(parentProject as any).name}
+            </Link>
+          </div>
+        )}
         {project.pi && (
           <div>
             <strong>Principal Investigator:</strong> {project.pi as string}
@@ -77,6 +99,26 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
         <div className="detail-section">
           <h2>Description</h2>
           <p>{project.description as string}</p>
+        </div>
+      )}
+
+      {childPlans.docs.length > 0 && (
+        <div className="detail-section">
+          <h2>Research Plans ({childPlans.docs.length})</h2>
+          <div className="result-list">
+            {childPlans.docs.map((child: any) => (
+              <Link key={child.id} className="result-card" href={`/projects/${child.id}`}>
+                <div className="result-card-header">
+                  <span className="badge badge-publication">Research Plan</span>
+                  <h3 className="result-card-title">{child.name}</h3>
+                </div>
+                <div className="result-card-meta">
+                  {child.pi && <span>PI: {child.pi}</span>}
+                  {child.fieldOfScience && <span>{child.fieldOfScience}</span>}
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 
