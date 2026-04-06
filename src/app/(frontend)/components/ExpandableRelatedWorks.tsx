@@ -43,8 +43,8 @@ export default function ExpandableRelatedWorks({
             href={`${hrefMap[row.type]}/${row.id}`}
           >
             <div className="result-card-header">
-              <span className={getBadgeClass(row.type)}>
-                {getBadgeLabel(row.type, row.subtype)}
+              <span className={getBadgeClass(row.type as any)}>
+                {getBadgeLabel(row.type as any, row.subtype)}
               </span>
               <h3 className="result-card-title">{row.title}</h3>
             </div>

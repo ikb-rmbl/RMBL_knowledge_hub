@@ -1,15 +1,9 @@
 import Link from 'next/link'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import pg from 'pg'
+import { getDb } from '../lib/db'
 
 export const dynamic = 'force-dynamic'
-
-let dbPool: pg.Pool | null = null
-function getDb(): pg.Pool {
-  if (!dbPool) dbPool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
-  return dbPool
-}
 
 interface AuthorSearchParams {
   q?: string

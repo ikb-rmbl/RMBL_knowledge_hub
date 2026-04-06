@@ -15,18 +15,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
-import pg from 'pg'
+import { getDb } from '../../lib/db'
 
 export const dynamic = 'force-dynamic'
-
-// Reuse a pool across requests
-let pool: pg.Pool | null = null
-function getPool(): pg.Pool {
-  if (!pool) {
-    pool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
-  }
-  return pool
-}
 
 export interface SearchResult {
   id: number
@@ -50,7 +41,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results: [], total: 0 })
   }
 
-  const db = getPool()
+  const db = getDb()
   const results: SearchResult[] = []
 
   const searchDocs = !typeFilter || typeFilter === 'documents'

@@ -1,4 +1,5 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { s3Storage } from '@payloadcms/storage-s3'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
@@ -17,6 +18,42 @@ import { Projects } from './collections/Projects'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+// ---------------------------------------------------------------------------
+// Environment validation
+// ---------------------------------------------------------------------------
+
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required')
+}
+if (!process.env.PAYLOAD_SECRET || process.env.PAYLOAD_SECRET.length < 16) {
+  throw new Error('PAYLOAD_SECRET must be at least 16 characters (32+ recommended for production)')
+}
+
+// ---------------------------------------------------------------------------
+// S3 storage plugin (conditional — only enabled when S3_BUCKET is set)
+// ---------------------------------------------------------------------------
+
+const plugins = process.env.S3_BUCKET
+  ? [
+      s3Storage({
+        collections: { media: true },
+        bucket: process.env.S3_BUCKET,
+        config: {
+          credentials: {
+            accessKeyId: process.env.S3_ACCESS_KEY || '',
+            secretAccessKey: process.env.S3_SECRET_KEY || '',
+          },
+          region: process.env.S3_REGION || 'auto',
+          ...(process.env.S3_ENDPOINT ? { endpoint: process.env.S3_ENDPOINT } : {}),
+        },
+      }),
+    ]
+  : []
+
+// ---------------------------------------------------------------------------
+// Payload CMS configuration
+// ---------------------------------------------------------------------------
+
 export default buildConfig({
   admin: {
     user: Users.slug,
@@ -26,16 +63,16 @@ export default buildConfig({
   },
   collections: [Users, Media, Documents, Publications, Datasets, Topics, Authors, Projects],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: process.env.PAYLOAD_SECRET,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URL || '',
+      connectionString: process.env.DATABASE_URL,
     },
-    push: false, // Don't auto-push schema changes (preserves custom tsvector columns)
+    push: false, // Don't auto-push schema changes (preserves custom tsvector, embeddings, etc.)
   }),
   sharp,
-  plugins: [],
+  plugins,
 })

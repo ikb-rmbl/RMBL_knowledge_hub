@@ -1,11 +1,5 @@
-import pg from 'pg'
 import ExpandableRelatedWorks, { type RelatedItem } from '../components/ExpandableRelatedWorks'
-
-let dbPool: pg.Pool | null = null
-function getDb(): pg.Pool {
-  if (!dbPool) dbPool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
-  return dbPool
-}
+import { getDb } from './db'
 
 const SIMILARITY_THRESHOLD = 0.3
 

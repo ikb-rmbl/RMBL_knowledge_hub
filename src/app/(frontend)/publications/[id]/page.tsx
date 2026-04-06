@@ -2,16 +2,10 @@ import Link from 'next/link'
 import { getPayload } from 'payload'
 import { notFound } from 'next/navigation'
 import config from '@/payload.config'
-import pg from 'pg'
 import { renderRelatedWorks } from '../../lib/related-works'
+import { getDb } from '../../lib/db'
 
 export const dynamic = 'force-dynamic'
-
-let dbPool: pg.Pool | null = null
-function getDb(): pg.Pool {
-  if (!dbPool) dbPool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
-  return dbPool
-}
 
 export default async function PublicationDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

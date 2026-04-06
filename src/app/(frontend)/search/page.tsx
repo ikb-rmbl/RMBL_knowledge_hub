@@ -4,7 +4,7 @@ import config from '@/payload.config'
 import type { Where } from 'payload'
 import { getBadgeLabel, getBadgeClass } from '../lib/badges'
 import type { SearchResult as FtsResult } from '../api/search/route'
-import pg from 'pg'
+import { getDb } from '../lib/db'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,13 +13,6 @@ const PAGE_SIZE = 20
 /** Strip all HTML tags from a string */
 function stripTags(s: string): string {
   return s.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim()
-}
-
-// PostgreSQL pool for tsvector full-text search
-let dbPool: pg.Pool | null = null
-function getDb(): pg.Pool {
-  if (!dbPool) dbPool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
-  return dbPool
 }
 
 /** Full-text search using PostgreSQL tsvector with ranked results and snippets */
