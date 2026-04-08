@@ -14,6 +14,7 @@
  */
 
 import pg from 'pg'
+import './lib/config.js' // loads .env
 import { titleSimilarity } from './lib/doi-utils.js'
 
 const args = process.argv.slice(2)

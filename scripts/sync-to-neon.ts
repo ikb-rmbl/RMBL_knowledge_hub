@@ -19,6 +19,7 @@
 import { execSync } from 'child_process'
 import { existsSync, readdirSync } from 'fs'
 import pg from 'pg'
+import './lib/config.js' // loads .env
 
 const args = process.argv.slice(2)
 const mode = args.find((a) => a.startsWith('--mode='))?.split('=')[1] || 'verify'

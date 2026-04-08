@@ -152,16 +152,9 @@ async function loadPublications() {
       console.log(`  Merged ${discovered.length} from ${file}`)
     }
   } else {
-    // Incremental: only load discovered files, dedup against existing
-    console.log(`  ${existingCount} publications already exist, loading discovered only...`)
+    // Incremental: load new from main file + discovered files, dedup against existing
+    console.log(`  ${existingCount} publications already exist, loading new only...`)
     pubs = []
-    const discoveredFiles = readdirSync(OUTPUT_DIR).filter(
-      (f) => f.startsWith('publications-discovered-') && f.endsWith('.json'),
-    )
-    if (discoveredFiles.length === 0) {
-      console.log(`  No discovered publication files found. Nothing to add.`)
-      return
-    }
 
     // Build dedup index from existing publications
     console.log('  Building dedup index from existing publications...')
@@ -178,6 +171,38 @@ async function loadPublications() {
     }
     console.log(`  Dedup index: ${existingDois.size} DOIs, ${existingByTitleYear.size} unique titles`)
 
+    // Check main normalized file for new RMBL publications
+    const mainFile = `${OUTPUT_DIR}/publications-normalized.json`
+    if (existsSync(mainFile)) {
+      const mainPubs = JSON.parse(readFileSync(mainFile, 'utf-8'))
+      let added = 0
+      let dupes = 0
+      for (const pub of mainPubs) {
+        if (pub.doi && existingDois.has(pub.doi.toLowerCase())) { dupes++; continue }
+        if (pub.title) {
+          const titleKey = pub.title.toLowerCase()
+          const existingYears = existingByTitleYear.get(titleKey)
+          if (existingYears) {
+            const yearMatch = existingYears.some((y: number) => !pub.year || !y || Math.abs(pub.year - y) <= 1)
+            if (yearMatch) { dupes++; continue }
+          }
+        }
+        pubs.push(pub)
+        if (pub.doi) existingDois.add(pub.doi.toLowerCase())
+        if (pub.title) {
+          const key = pub.title.toLowerCase()
+          if (!existingByTitleYear.has(key)) existingByTitleYear.set(key, [])
+          existingByTitleYear.get(key)!.push(pub.year || 0)
+        }
+        added++
+      }
+      console.log(`  publications-normalized.json: ${added} new, ${dupes} duplicates (of ${mainPubs.length})`)
+    }
+
+    // Check discovered files
+    const discoveredFiles = readdirSync(OUTPUT_DIR).filter(
+      (f) => f.startsWith('publications-discovered-') && f.endsWith('.json'),
+    )
     for (const file of discoveredFiles) {
       const discovered = JSON.parse(readFileSync(`${OUTPUT_DIR}/${file}`, 'utf-8'))
       let added = 0
