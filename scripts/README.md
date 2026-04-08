@@ -5,15 +5,17 @@ Scripts for scraping, enriching, and loading data into the RMBL Knowledge Hub.
 ## Quick Start
 
 ```bash
-# Full pipeline: check sources → scrape → discover → enrich → load → topics → authors → citations → embeddings
+# Full pipeline: check sources -> scrape -> discover -> enrich -> load -> topics -> authors -> citations -> embeddings
 npm run pipeline
 
 # Preview changes without writing
 npm run pipeline:check
 
-# Sync local database to production (Neon)
+# Bidirectional sync with production (Neon)
+npm run sync:pull        # download admin edits from Neon
+npm run sync:push        # send local pipeline data to Neon
+npm run sync:both        # pull then push
 npm run sync:verify      # compare row counts
-npm run sync:full        # full data sync
 ```
 
 ## Deployment Workflow
@@ -28,23 +30,37 @@ npm run test
 git push                 # Vercel auto-deploys
 ```
 
-### Data refresh (monthly or as needed)
+### Monthly data refresh
 ```bash
-# 1. Run pipeline locally
+# 1. Pull any admin edits from Neon first
+npm run sync:pull
+
+# 2. Run pipeline locally (builds on curated data)
 npm run pipeline
 
-# 2. Run additional enrichments
+# 3. Run additional enrichments
 npx tsx scripts/enrich-abstracts.ts --step=all
 npx tsx scripts/discover-datasets.ts --source=all
 
-# 3. Verify and sync to production
-npm run sync:verify      # compare local vs Neon
-npm run sync:full        # push all data to Neon
+# 4. Push new data to Neon
+npm run sync:push
+```
+
+### After admin curation session
+```bash
+npm run sync:pull        # download curated edits to local
+# Local DB now has admin fixes — future pipeline runs build on curated data
 ```
 
 ### Quick enrichment updates (run directly against Neon)
 ```bash
 npm run sync:safe        # citation counts + embeddings for new items
+```
+
+### Full restore (destructive — replaces all Neon data)
+```bash
+npm run sync:verify      # compare local vs Neon row counts
+npm run sync:full        # truncate + restore from local dump
 ```
 
 ### Schema changes (new columns/tables)
@@ -73,9 +89,9 @@ Phase 8: CITATIONS   fetch-citation-counts.ts   External citation counts from Op
 Phase 9: EMBEDDINGS  generate-embeddings.ts     Vector embeddings for concept graph (requires VOYAGE_API_KEY)
 
 Manual steps (long-running):
-  download-pdfs.ts → extract-text.ts → load-fulltext.ts
+  download-pdfs.ts -> extract-text.ts -> load-fulltext.ts
   enrich-abstracts.ts (API + fulltext + Semantic Scholar + PDF extraction)
-  extract-references.ts → match-references.ts
+  extract-references.ts -> match-references.ts
   crosslink-datasets.ts
   discover-datasets.ts
 ```
@@ -116,7 +132,7 @@ Manual steps (long-running):
 
 | Script | Purpose | Server? |
 |---|---|---|
-| `load-to-payload.ts` | Load all collections into Payload | **Yes** |
+| `load-to-payload.ts` | Load all collections into Payload (incremental dedup) | **Yes** |
 | `manage-topics.ts` | Organize taxonomy + assign pub topics | **Yes** |
 | `build-authors.ts` | Build + dedup author registry | **Yes** (optional) |
 
@@ -134,7 +150,7 @@ Manual steps (long-running):
 |---|---|---|
 | `extract-references.ts` | CrossRef + GROBID + fulltext extraction | No |
 | `match-references.ts` | Match references + load to PostgreSQL | DB |
-| `crosslink-datasets.ts` | Link publications ↔ datasets | **Yes** |
+| `crosslink-datasets.ts` | Link publications <-> datasets | **Yes** |
 
 ### Projects
 
@@ -147,9 +163,12 @@ Manual steps (long-running):
 
 | Script | Purpose | Server? |
 |---|---|---|
-| `sync-to-neon.ts` | Sync local database to Neon production | No |
+| `sync-to-neon.ts` | Full sync to Neon (truncate + restore), verify, safe enrichment, schema migration | No |
+| `sync-databases.ts` | Bidirectional incremental sync (local <-> Neon) with "remote wins" conflict resolution | No |
 
-Modes: `--mode=verify` (compare counts), `--mode=full` (truncate + restore), `--mode=safe` (run enrichments against Neon), `--mode=schema` (apply SQL migrations)
+**sync-to-neon.ts** modes: `--mode=verify` (compare counts), `--mode=full` (truncate + restore), `--mode=safe` (run enrichments against Neon), `--mode=schema` (apply SQL migrations)
+
+**sync-databases.ts** directions: `--direction=pull` (Neon -> local), `--direction=push` (local -> Neon), `--direction=both` (pull then push). Supports `--dry-run`, `--collection=NAME`, `--since=TIMESTAMP`.
 
 ### Maintenance
 
@@ -159,6 +178,12 @@ Modes: `--mode=verify` (compare counts), `--mode=full` (truncate + restore), `--
 | `backfill-pdf-sizes.ts` | Retry HEAD requests for PDF sizes | No |
 | `download-institutional.ts` | Playwright-based institutional downloads | No |
 
+### Experimental
+
+| Script | Purpose | Server? |
+|---|---|---|
+| `experiment-extraction.ts` | Compare regex vs Voyage multimodal vs Claude VLM for extraction | No (requires API keys) |
+
 ## CLI Flags
 
 ### Pipeline orchestrator
@@ -166,12 +191,22 @@ Modes: `--mode=verify` (compare counts), `--mode=full` (truncate + restore), `--
 npx tsx scripts/pipeline.ts [--phase=check|ingest|discover|enrich|load|topics|authors|citations|embeddings|all] [--dry-run]
 ```
 
-### Neon sync
+### Neon sync (full restore)
 ```
 npx tsx scripts/sync-to-neon.ts --mode=verify          # compare local vs Neon row counts
 npx tsx scripts/sync-to-neon.ts --mode=full [--dry-run] # full data sync (truncate + restore)
 npx tsx scripts/sync-to-neon.ts --mode=safe             # run safe enrichments against Neon
 npx tsx scripts/sync-to-neon.ts --mode=schema           # apply SQL migrations to Neon
+```
+
+### Bidirectional sync (incremental)
+```
+npx tsx scripts/sync-databases.ts --direction=pull      # download admin edits from Neon
+npx tsx scripts/sync-databases.ts --direction=push      # send local changes to Neon
+npx tsx scripts/sync-databases.ts --direction=both      # pull then push
+npx tsx scripts/sync-databases.ts --direction=both --dry-run
+npx tsx scripts/sync-databases.ts --direction=pull --collection=publications
+npx tsx scripts/sync-databases.ts --direction=push --since=2026-04-06
 ```
 
 ### Common flags (most scripts)
@@ -196,12 +231,18 @@ enrich-abstracts.ts     --step=api|fulltext|semantic-scholar|pdf|all
 fetch-citation-counts.ts --step=publications|datasets|all --stale-days=30
 generate-embeddings.ts  --collection=publications|datasets|documents|all --level=summary --force
 assign-projects.ts      --project=NAME
+load-to-payload.ts      --collection=topics|documents|publications|datasets|all
 ```
 
 ## Shared Libraries (`lib/`)
 
 | Module | Purpose |
 |---|---|
+| `config.ts` | All API endpoints, paths, credentials, rate limits; auto-loads `.env` |
+| `types.ts` | Shared TypeScript interfaces |
+| `payload-client.ts` | Payload REST API auth + CRUD |
+| `concurrency.ts` | `runConcurrent()`, `runBatch()`, `sleep()` |
+| `record-matching.ts` | Tiered record matching (DOI, title, ORCID, name) + field merge logic |
 | `crossref-client.ts` | CrossRef + Unpaywall API queries (strict/relaxed) |
 | `topic-rules.ts` | Topic categorization patterns + matching |
 | `dataset-discovery.ts` | Dataset dedup + normalization helpers |
@@ -209,10 +250,6 @@ assign-projects.ts      --project=NAME
 | `author-parsing.ts` | Author string parsing + creator name handling |
 | `author-dedup.ts` | ORCID + name-based deduplication |
 | `doi-utils.ts` | DOI extraction, title similarity |
-| `config.ts` | All API endpoints, paths, credentials, rate limits |
-| `types.ts` | Shared TypeScript interfaces |
-| `payload-client.ts` | Payload REST API auth + CRUD |
-| `concurrency.ts` | `runConcurrent()`, `runBatch()`, `sleep()` |
 | `sources.ts` | External data source fetchers |
 | `pdf-extract.ts` | Digital + OCR text extraction |
 | `pdf-manifest.ts` | PDF pipeline state tracker |
@@ -228,18 +265,19 @@ output/
   sustainable-library-normalized.json   # Payload-ready docs
   publications-raw.json                 # Raw pub API data
   publications-normalized.json          # Enriched + normalized pubs
+  publications-discovered-*.json        # Discovered publications (by source)
   data-catalog-raw.json                 # Raw catalog API data
   data-catalog-normalized.json          # Enriched + normalized datasets
   dataset-metadata-extracted.json       # Metadata from external repos
+  datasets-discovered-*.json            # Discovered datasets (by source)
   topics-seed.json                      # Initial topic taxonomy
   author-registry.json                  # Unified author records
   orcids-harvested.json                 # ORCID registry from DataCite
-  references-crossref.json             # CrossRef reference lists
-  references-grobid.json               # GROBID-extracted references
-  references-fulltext.json             # Regex-parsed references
-  datasets-discovered*.json            # Discovered datasets (by source)
-  crosslinks-report.json               # Publication-dataset links
-  pdf-manifest.json                    # PDF pipeline state
-  pdf-staging/                         # Downloaded PDFs + extracted text
-  reports/                             # Incremental update reports
+  references-crossref.json              # CrossRef reference lists
+  references-grobid.json                # GROBID-extracted references
+  references-fulltext.json              # Regex-parsed references
+  crosslinks-report.json                # Publication-dataset links
+  pdf-manifest.json                     # PDF pipeline state
+  pdf-staging/                          # Downloaded PDFs + extracted text
+  reports/                              # Incremental update reports
 ```

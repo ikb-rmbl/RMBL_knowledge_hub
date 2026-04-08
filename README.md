@@ -5,9 +5,9 @@ A unified search platform for environmental knowledge from the Rocky Mountain Bi
 ## What's Inside
 
 - **1,381 documents** from the [Gunnison Sustainable Living Library](https://sustainablelibrary.org/) — community planning, mining history, water policy, and environmental impact documents
-- **5,213 publications** from the RMBL Publications Database + OpenAlex/CrossRef discovery — journal articles, theses, student papers spanning decades of Gunnison Basin research
+- **5,267 publications** from the RMBL Publications Database + OpenAlex/CrossRef discovery — journal articles, theses, student papers spanning decades of Gunnison Basin research
 - **1,216 datasets** discovered from 8 repositories — DataONE, DataCite, Zenodo, NCEI, ScienceBase, and more
-- **6,582 authors** — deduplicated cross-collection registry with ORCID enrichment
+- **6,586 authors** — deduplicated cross-collection registry with ORCID enrichment
 - **118 research projects** — active research plans and long-term programs with auto-discovered item assignments
 - **106,209 references** — citation network with 10,045 internal links enabling "cited by" navigation
 - **7,758 vector embeddings** — concept graph powering "Related Works" panels and similarity search
@@ -18,15 +18,15 @@ A unified search platform for environmental knowledge from the Rocky Mountain Bi
 ```
 Next.js 16 + Payload CMS 3.x (single app)
     |
-    ├── Public frontend (search, browse, detail, project pages)
-    ├── Payload admin panel (/admin)
-    └── REST + GraphQL APIs (auto-generated)
+    +-- Public frontend (search, browse, detail, project pages)
+    +-- Payload admin panel (/admin)
+    +-- REST + GraphQL APIs (auto-generated)
          |
     PostgreSQL 17 + pgvector (local / Neon)
-    ├── Payload collections (8)
-    ├── tsvector full-text search indexes
-    ├── pgvector HNSW indexes (concept graph / similarity)
-    ├── Custom tables (references_cited, content_chunks, publications_mentors)
+    +-- Payload collections (8)
+    +-- tsvector full-text search indexes
+    +-- pgvector HNSW indexes (concept graph / similarity)
+    +-- Custom tables (references_cited, content_chunks, publications_mentors, sync_log)
          |
     AWS S3 (PDF + media storage)
     Voyage AI (vector embeddings)
@@ -81,7 +81,7 @@ npm run pipeline
 ```bash
 cp .env.example .env   # edit with your settings
 npm run dev            # http://localhost:3000
-npm run test           # 186 tests
+npm run test           # 214 tests
 ```
 
 ### Data Pipeline
@@ -99,25 +99,29 @@ npx tsx scripts/scrape-library.ts
 npx tsx scripts/scrape-publications.ts
 npx tsx scripts/scrape-catalog.ts
 
-# 2. Enrich (DOIs, ORCIDs, mentors)
-npx tsx scripts/enrich.ts --step=all
+# 2. Discover additional publications and datasets
+npx tsx scripts/discover-publications.ts --source=all
+npx tsx scripts/discover-datasets.ts --source=all
 
-# 3. Load into Payload (requires npm run dev in another terminal)
+# 3. Enrich (DOIs, ORCIDs, mentors, abstracts)
+npx tsx scripts/enrich.ts --step=all
+npx tsx scripts/enrich-abstracts.ts --step=all
+
+# 4. Load into Payload (requires npm run dev in another terminal)
 npx tsx scripts/load-to-payload.ts
 npx tsx scripts/manage-topics.ts
 npx tsx scripts/build-authors.ts --load-payload
 
-# 4. PDF processing (optional, long-running)
+# 5. PDF processing (optional, long-running)
 npx tsx scripts/download-pdfs.ts
 npx tsx scripts/extract-text.ts
 npx tsx scripts/load-fulltext.ts
 
-# 5. References (optional)
+# 6. References (optional)
 npx tsx scripts/extract-references.ts --method=all
 npx tsx scripts/match-references.ts
 
-# 6. Dataset discovery (optional)
-npx tsx scripts/discover-datasets.ts --source=all
+# 7. Dataset cross-linking (optional)
 npx tsx scripts/crosslink-datasets.ts
 ```
 
@@ -127,10 +131,12 @@ See `scripts/README.md` for detailed documentation of each script, CLI flags, an
 
 ```
 src/
-  payload.config.ts           # CMS configuration
-  collections/                # Data model (8 collections including Projects)
+  payload.config.ts           # CMS configuration (push: false, env validation)
+  collections/                # Data model (8 collections)
+  collections/shared/         # Shared access control + constants
   app/(frontend)/             # Public pages (search, browse, detail, projects)
-  app/(frontend)/lib/         # Shared utilities (badges, related-works)
+  app/(frontend)/api/         # Search API endpoint
+  app/(frontend)/lib/         # Shared utilities (badges, db, related-works, url-validation)
   app/(frontend)/components/  # Client components
   app/(payload)/              # Admin panel
 
@@ -141,7 +147,7 @@ scripts/
   discover-datasets.ts        # 7-source dataset discovery
   enrich.ts                   # DOI/ORCID/mentor enrichment
   enrich-abstracts.ts         # Abstract enrichment (4 tiers)
-  load-to-payload.ts          # Database loader
+  load-to-payload.ts          # Database loader (incremental dedup)
   manage-topics.ts            # 40-topic thematic taxonomy
   build-authors.ts            # Author registry + dedup
   fetch-citation-counts.ts    # External citation counts
@@ -150,9 +156,15 @@ scripts/
   assign-projects.ts          # Auto-discover project items
   extract-references.ts       # CrossRef + GROBID + fulltext
   match-references.ts         # Reference matching
-  crosslink-datasets.ts       # Publication↔dataset linking
-  lib/                        # 14 shared utility modules
-  sql/                        # Manual SQL migrations
+  crosslink-datasets.ts       # Publication<->dataset linking
+  sync-to-neon.ts             # Production sync (full restore, verify, safe, schema)
+  sync-databases.ts           # Bidirectional incremental sync (local <-> Neon)
+  experiment-extraction.ts    # VLM extraction experiment
+  setup-local.sh              # Automated local setup
+  export-database.sh          # Database export for sharing
+  lib/                        # 16 shared utility modules
+  sql/                        # 5 SQL migration files
+  __tests__/                  # 12 test files (214 tests)
 
 public/
   rmbl-logo.jpg               # RMBL logo
@@ -163,11 +175,11 @@ specification/                # Technical specs
 ## Development
 
 ```bash
-npm run dev           # Start dev server
-npm run test          # Run tests (158 tests, Vitest)
-npm run lint          # Lint check
-npm run build         # Production build
-npm run pipeline      # Full data pipeline
+npm run dev             # Start dev server
+npm run test            # Run tests (214 tests, Vitest)
+npm run lint            # Lint check
+npm run build           # Production build
+npm run pipeline        # Full data pipeline
 npm run pipeline:check  # Preview source changes
 npm run generate:types  # Regenerate Payload TypeScript types
 ```
@@ -185,16 +197,30 @@ npm run generate:types  # Regenerate Payload TypeScript types
 - `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION`, `S3_ENDPOINT` — File storage
 - `VOYAGE_API_KEY` — Voyage AI for vector embeddings
 
-### Updating production data
+### Syncing Data to Production
 
+**Monthly pipeline refresh:**
 ```bash
-# Run pipeline locally, then sync to Neon
-npm run pipeline                     # update local data
-npm run sync:verify                  # compare local vs production
-npm run sync:full                    # push to production
+npm run pipeline                     # run pipeline locally
+npm run sync:pull                    # pull any admin edits from Neon first
+npm run sync:push                    # push new pipeline data to Neon
+```
 
-# Or run safe enrichments directly against production
-npm run sync:safe                    # citation counts + embeddings
+**After admin curation on Neon:**
+```bash
+npm run sync:pull                    # download curated edits to local
+# Local DB now has admin fixes — future pipeline runs build on curated data
+```
+
+**Quick enrichment (no conflict risk):**
+```bash
+npm run sync:safe                    # citation counts + embeddings directly on Neon
+```
+
+**Full restore (destructive — replaces all Neon data):**
+```bash
+npm run sync:verify                  # compare local vs production
+npm run sync:full                    # truncate + restore from local dump
 ```
 
 See `scripts/README.md` for detailed deployment workflow documentation.
