@@ -38,7 +38,7 @@ if (!NEON_URL) {
 
 interface CollectionConfig {
   table: string
-  matchFields: (record: any, candidates: any[]) => { match: any | null; confidence: string }
+  matchFields: (record: any, candidates: any[], index?: MatchIndex) => { match: any | null; confidence: string }
   pipelineFields: string[]   // local pipeline can overwrite these
   curatedFields: string[]    // remote admin edits win for these
   skipFields: string[]       // never sync these (auto-managed)
@@ -93,18 +93,50 @@ const COLLECTIONS: Record<string, CollectionConfig> = {
 // Record matching functions
 // ---------------------------------------------------------------------------
 
-function matchPublication(record: any, candidates: any[]): { match: any | null; confidence: string } {
-  // Tier 1: DOI exact match
+// Pre-built index for O(1) lookups instead of O(N) linear scans
+interface MatchIndex {
+  byDoi: Map<string, any>
+  bySourceUrl: Map<string, any>
+  byOrcid: Map<string, any>
+  byName: Map<string, any>
+  byFamilyGiven: Map<string, any>
+  all: any[]
+}
+
+function buildMatchIndex(candidates: any[]): MatchIndex {
+  const byDoi = new Map<string, any>()
+  const bySourceUrl = new Map<string, any>()
+  const byOrcid = new Map<string, any>()
+  const byName = new Map<string, any>()
+  const byFamilyGiven = new Map<string, any>()
+
+  for (const c of candidates) {
+    if (c.doi) byDoi.set(c.doi.toLowerCase(), c)
+    if (c.source_url) bySourceUrl.set(c.source_url, c)
+    if (c.orcid) byOrcid.set(c.orcid, c)
+    if (c.name) byName.set(c.name.toLowerCase(), c)
+    if (c.family_name) {
+      const key = `${c.family_name.toLowerCase()}|${(c.given_name || '').toLowerCase()}`
+      byFamilyGiven.set(key, c)
+    }
+  }
+
+  return { byDoi, bySourceUrl, byOrcid, byName, byFamilyGiven, all: candidates }
+}
+
+function matchPublication(record: any, _candidates: any[], index?: MatchIndex): { match: any | null; confidence: string } {
+  const idx = index!
+  // Tier 1: DOI exact match (O(1))
   if (record.doi) {
-    const doiMatch = candidates.find((c) => c.doi && c.doi.toLowerCase() === record.doi.toLowerCase())
+    const doiMatch = idx.byDoi.get(record.doi.toLowerCase())
     if (doiMatch) return { match: doiMatch, confidence: 'exact' }
   }
 
-  // Tier 2: Title + year
+  // Tier 2: Title + year (must scan, but only for non-DOI matches)
   if (record.title) {
     let bestMatch: any = null
     let bestScore = 0
-    for (const c of candidates) {
+    for (const c of idx.all) {
       if (!c.title) continue
       const yearClose = !record.year || !c.year || Math.abs(record.year - c.year) <= 1
       if (!yearClose) continue
@@ -116,8 +148,8 @@ function matchPublication(record: any, candidates: any[]): { match: any | null; 
     }
     if (bestMatch) return { match: bestMatch, confidence: bestScore > 0.95 ? 'high' : 'fuzzy' }
 
-    // Tier 3: Title only (no year), very high threshold
-    for (const c of candidates) {
+    // Tier 3: Title only, very high threshold
+    for (const c of idx.all) {
       if (!c.title) continue
       const sim = titleSimilarity(record.title, c.title)
       if (sim > 0.95) return { match: c, confidence: 'fuzzy' }
@@ -127,13 +159,14 @@ function matchPublication(record: any, candidates: any[]): { match: any | null; 
   return { match: null, confidence: 'none' }
 }
 
-function matchDataset(record: any, candidates: any[]): { match: any | null; confidence: string } {
+function matchDataset(record: any, _candidates: any[], index?: MatchIndex): { match: any | null; confidence: string } {
+  const idx = index!
   if (record.doi) {
-    const doiMatch = candidates.find((c) => c.doi && c.doi.toLowerCase() === record.doi.toLowerCase())
+    const doiMatch = idx.byDoi.get(record.doi.toLowerCase())
     if (doiMatch) return { match: doiMatch, confidence: 'exact' }
   }
   if (record.title) {
-    for (const c of candidates) {
+    for (const c of idx.all) {
       if (c.title && titleSimilarity(record.title, c.title) > 0.9) {
         return { match: c, confidence: 'high' }
       }
@@ -142,13 +175,14 @@ function matchDataset(record: any, candidates: any[]): { match: any | null; conf
   return { match: null, confidence: 'none' }
 }
 
-function matchDocument(record: any, candidates: any[]): { match: any | null; confidence: string } {
+function matchDocument(record: any, _candidates: any[], index?: MatchIndex): { match: any | null; confidence: string } {
+  const idx = index!
   if (record.source_url) {
-    const urlMatch = candidates.find((c) => c.source_url === record.source_url)
+    const urlMatch = idx.bySourceUrl.get(record.source_url)
     if (urlMatch) return { match: urlMatch, confidence: 'exact' }
   }
   if (record.title) {
-    for (const c of candidates) {
+    for (const c of idx.all) {
       if (c.title && titleSimilarity(record.title, c.title) > 0.9) {
         return { match: c, confidence: 'high' }
       }
@@ -157,28 +191,27 @@ function matchDocument(record: any, candidates: any[]): { match: any | null; con
   return { match: null, confidence: 'none' }
 }
 
-function matchAuthor(record: any, candidates: any[]): { match: any | null; confidence: string } {
+function matchAuthor(record: any, _candidates: any[], index?: MatchIndex): { match: any | null; confidence: string } {
+  const idx = index!
   if (record.orcid) {
-    const orcidMatch = candidates.find((c) => c.orcid === record.orcid)
+    const orcidMatch = idx.byOrcid.get(record.orcid)
     if (orcidMatch) return { match: orcidMatch, confidence: 'exact' }
   }
   if (record.family_name) {
-    const nameMatch = candidates.find(
-      (c) => c.family_name?.toLowerCase() === record.family_name?.toLowerCase()
-        && (c.given_name || '').toLowerCase() === (record.given_name || '').toLowerCase(),
-    )
+    const key = `${record.family_name.toLowerCase()}|${(record.given_name || '').toLowerCase()}`
+    const nameMatch = idx.byFamilyGiven.get(key)
     if (nameMatch) return { match: nameMatch, confidence: 'high' }
   }
   return { match: null, confidence: 'none' }
 }
 
-function matchTopic(record: any, candidates: any[]): { match: any | null; confidence: string } {
-  const nameMatch = candidates.find((c) => c.name?.toLowerCase() === record.name?.toLowerCase())
+function matchTopic(record: any, _candidates: any[], index?: MatchIndex): { match: any | null; confidence: string } {
+  const nameMatch = index!.byName.get(record.name?.toLowerCase())
   return nameMatch ? { match: nameMatch, confidence: 'exact' } : { match: null, confidence: 'none' }
 }
 
-function matchProject(record: any, candidates: any[]): { match: any | null; confidence: string } {
-  const nameMatch = candidates.find((c) => c.name?.toLowerCase() === record.name?.toLowerCase())
+function matchProject(record: any, _candidates: any[], index?: MatchIndex): { match: any | null; confidence: string } {
+  const nameMatch = index!.byName.get(record.name?.toLowerCase())
   return nameMatch ? { match: nameMatch, confidence: 'exact' } : { match: null, confidence: 'none' }
 }
 
@@ -276,25 +309,27 @@ async function pullCollection(
   config: CollectionConfig,
   since: string | null,
 ) {
-  const sinceClause = since ? `WHERE updated_at > '${since}'` : ''
-  const { rows: remoteChanged } = await neonDb.query(
-    `SELECT * FROM ${config.table} ${sinceClause} ORDER BY id`,
-  )
+  // Use parameterized query for since timestamp (avoid SQL injection)
+  const matchCols = 'id, doi, title, year, updated_at'
+  const remoteChanged = since
+    ? (await neonDb.query(`SELECT * FROM ${config.table} WHERE updated_at > $1 ORDER BY id`, [since])).rows
+    : (await neonDb.query(`SELECT * FROM ${config.table} ORDER BY id`)).rows
 
   if (remoteChanged.length === 0) {
     console.log(`    No changes on Neon since last sync`)
     return { pulled: 0, pushed: 0, skipped: 0, conflicts: 0 }
   }
 
-  // Load all local records for matching
+  // Load local records for matching
   const { rows: localRecords } = await localDb.query(`SELECT * FROM ${config.table}`)
+  const localIndex = buildMatchIndex(localRecords)
 
   let pulled = 0
   let skipped = 0
   let conflicts = 0
 
   for (const remoteRec of remoteChanged) {
-    const { match, confidence } = config.matchFields(remoteRec, localRecords)
+    const { match, confidence } = config.matchFields(remoteRec, localRecords, localIndex)
 
     if (match) {
       // Record exists locally — check if remote is newer
@@ -354,25 +389,26 @@ async function pushCollection(
   config: CollectionConfig,
   since: string | null,
 ) {
-  const sinceClause = since ? `WHERE updated_at > '${since}'` : ''
-  const { rows: localChanged } = await localDb.query(
-    `SELECT * FROM ${config.table} ${sinceClause} ORDER BY id`,
-  )
+  // Use parameterized query for since timestamp
+  const localChanged = since
+    ? (await localDb.query(`SELECT * FROM ${config.table} WHERE updated_at > $1 ORDER BY id`, [since])).rows
+    : (await localDb.query(`SELECT * FROM ${config.table} ORDER BY id`)).rows
 
   if (localChanged.length === 0) {
     console.log(`    No local changes since last sync`)
     return { pulled: 0, pushed: 0, skipped: 0, conflicts: 0 }
   }
 
-  // Load all Neon records for matching
+  // Load Neon records for matching
   const { rows: neonRecords } = await neonDb.query(`SELECT * FROM ${config.table}`)
+  const neonIndex = buildMatchIndex(neonRecords)
 
   let pushed = 0
   let skipped = 0
   let conflicts = 0
 
   for (const localRec of localChanged) {
-    const { match, confidence } = config.matchFields(localRec, neonRecords)
+    const { match, confidence } = config.matchFields(localRec, neonRecords, neonIndex)
 
     if (match) {
       // Record exists on Neon — only push if Neon hasn't been curated more recently
