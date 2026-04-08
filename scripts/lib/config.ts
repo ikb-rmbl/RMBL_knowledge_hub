@@ -7,8 +7,23 @@
 
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import { readFileSync, existsSync } from 'fs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+
+// Load .env file if present (Next.js loads this automatically, but pipeline scripts don't)
+const envPath = join(__dirname, '..', '..', '.env')
+if (existsSync(envPath)) {
+  for (const line of readFileSync(envPath, 'utf-8').split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const eqIdx = trimmed.indexOf('=')
+    if (eqIdx < 0) continue
+    const key = trimmed.slice(0, eqIdx).trim()
+    const value = trimmed.slice(eqIdx + 1).trim()
+    if (!process.env[key]) process.env[key] = value
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Paths

@@ -15,7 +15,7 @@
  */
 
 import pg from 'pg'
-import { existsSync, mkdirSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { sleep, runConcurrent } from './lib/concurrency.js'
 import { OPENALEX_API, OPENALEX_MAILTO, CROSSREF_API, CROSSREF_MAILTO, DATACITE_API, STAGING_DIR, CONCURRENCY, DELAYS } from './lib/config.js'
@@ -375,38 +375,44 @@ async function enrichPublicationsViaSemanticScholar(db: pg.Pool): Promise<void> 
 // Tier 4: PDF download + text extraction for publications with PDF links
 // ---------------------------------------------------------------------------
 
-async function enrichPublicationsViaPdf(db: pg.Pool): Promise<void> {
-  console.log('\n--- Publications: PDF Download + Text Extraction ---')
+async function enrichCollectionViaPdf(
+  db: pg.Pool,
+  collection: 'publications' | 'documents',
+  idPrefix: string,
+  textField: string,
+  summaryField: string | null,
+  summaryExtractor: ((text: string) => string | null) | null,
+): Promise<void> {
+  console.log(`\n--- ${collection}: PDF Download + Text Extraction ---`)
 
-  const { rows } = await db.query(
-    `SELECT id, pdf_link FROM publications
-     WHERE pdf_link IS NOT NULL
-     AND (full_text IS NULL OR length(full_text) < 100)
-     ORDER BY id`,
-  )
+  const query = collection === 'publications'
+    ? `SELECT id, pdf_link FROM publications WHERE pdf_link IS NOT NULL AND (full_text IS NULL OR length(full_text) < 100) ORDER BY id`
+    : `SELECT id, pdf_link FROM documents WHERE pdf_link IS NOT NULL AND (full_text IS NULL OR length(full_text) < 100) ORDER BY id`
+
+  const { rows } = await db.query(query)
   const candidates = rows.slice(0, limit)
-  console.log(`  ${rows.length} publications with PDF links but no text (${candidates.length} to process)`)
+  console.log(`  ${rows.length} ${collection} with PDF links but no text (${candidates.length} to process)`)
 
   if (candidates.length === 0) return
 
-  // Check extraction tools
   const tools = checkTools()
   if (!tools.pdftotext) {
     console.log('  pdftotext not available — install poppler (brew install poppler)')
     return
   }
 
-  const pdfDir = join(STAGING_DIR, 'publications')
+  const pdfDir = join(STAGING_DIR, collection)
   mkdirSync(pdfDir, { recursive: true })
 
   let downloaded = 0
   let extracted = 0
-  let abstractsFound = 0
+  let summariesFound = 0
   let errors = 0
 
   for (let i = 0; i < candidates.length; i++) {
     const row = candidates[i]
-    const pdfPath = join(pdfDir, `pub_${row.id}.pdf`)
+    const pdfPath = join(pdfDir, `${idPrefix}${row.id}.pdf`)
+    const txtPath = join(pdfDir, `${idPrefix}${row.id}.txt`)
 
     try {
       // Step 1: Download PDF if not already present
@@ -421,22 +427,36 @@ async function enrichPublicationsViaPdf(db: pg.Pool): Promise<void> {
         downloaded++
       }
 
-      // Step 2: Extract text
-      const result = await extractText(pdfPath)
-      if (result.text && result.text.length > 100) {
-        // Update full_text in DB
+      // Step 2: Extract text (and save to staging as .txt)
+      let text: string | null = null
+      if (existsSync(txtPath)) {
+        text = readFileSync(txtPath, 'utf-8')
+      } else {
+        const result = await extractText(pdfPath)
+        if (result.text && result.text.length > 100) {
+          text = result.text
+          if (!dryRun) {
+            writeFileSync(txtPath, text)
+          }
+        }
+      }
+
+      if (text && text.length > 100) {
+        // Step 3: Update full_text in DB
         if (!dryRun) {
-          await db.query('UPDATE publications SET full_text = $1 WHERE id = $2', [result.text, row.id])
+          await db.query(`UPDATE ${collection} SET ${textField} = $1 WHERE id = $2`, [text, row.id])
         }
         extracted++
 
-        // Step 3: Try to extract abstract from the text
-        const abstract = extractAbstractFromText(result.text)
-        if (abstract) {
-          if (!dryRun) {
-            await db.query('UPDATE publications SET abstract = $1 WHERE id = $2', [abstract, row.id])
+        // Step 4: Try to extract summary/abstract
+        if (summaryField && summaryExtractor) {
+          const summary = summaryExtractor(text)
+          if (summary) {
+            if (!dryRun) {
+              await db.query(`UPDATE ${collection} SET ${summaryField} = $1 WHERE id = $2`, [summary, row.id])
+            }
+            summariesFound++
           }
-          abstractsFound++
         }
       }
     } catch {
@@ -444,11 +464,22 @@ async function enrichPublicationsViaPdf(db: pg.Pool): Promise<void> {
     }
 
     if ((i + 1) % 25 === 0 || i + 1 === candidates.length) {
-      process.stdout.write(`\r  ${i + 1}/${candidates.length} (${downloaded} downloaded, ${extracted} extracted, ${abstractsFound} abstracts, ${errors} errors)`)
+      process.stdout.write(`\r  ${i + 1}/${candidates.length} (${downloaded} downloaded, ${extracted} extracted, ${summariesFound} summaries, ${errors} errors)`)
     }
     await sleep(DELAYS.DOWNLOAD_MS)
   }
-  console.log(`\r  ${candidates.length} processed: ${downloaded} downloaded, ${extracted} text extracted, ${abstractsFound} abstracts found, ${errors} errors`)
+  console.log(`\r  ${candidates.length} processed: ${downloaded} downloaded, ${extracted} text extracted, ${summariesFound} summaries found, ${errors} errors`)
+}
+
+async function enrichPublicationsViaPdf(db: pg.Pool): Promise<void> {
+  await enrichCollectionViaPdf(db, 'publications', 'pub_', 'full_text', 'abstract', extractAbstractFromText)
+}
+
+async function enrichDocumentsViaPdf(db: pg.Pool): Promise<void> {
+  // Documents: full_text is varchar (direct SQL), summary extraction uses extractSummaryFromText
+  // Note: summary is jsonb in Payload but we write full_text directly via SQL
+  await enrichCollectionViaPdf(db, 'documents', 'doc_', 'full_text', null, null)
+  // Summary extraction handled separately via --step=fulltext since it needs Payload API for jsonb
 }
 
 // ---------------------------------------------------------------------------
@@ -490,6 +521,7 @@ async function main() {
   // Tier 4: PDF download + extraction
   if (runPdf) {
     await enrichPublicationsViaPdf(db)
+    await enrichDocumentsViaPdf(db)
   }
 
   // Summary
