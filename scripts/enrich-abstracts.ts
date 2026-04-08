@@ -442,20 +442,15 @@ async function enrichCollectionViaPdf(
       }
 
       if (text && text.length > 100) {
-        // Step 3: Update full_text in DB
-        if (!dryRun) {
-          await db.query(`UPDATE ${collection} SET ${textField} = $1 WHERE id = $2`, [text, row.id])
-        }
         extracted++
+        const summary = summaryField && summaryExtractor ? summaryExtractor(text) : null
+        if (summary) summariesFound++
 
-        // Step 4: Try to extract summary/abstract
-        if (summaryField && summaryExtractor) {
-          const summary = summaryExtractor(text)
+        if (!dryRun) {
           if (summary) {
-            if (!dryRun) {
-              await db.query(`UPDATE ${collection} SET ${summaryField} = $1 WHERE id = $2`, [summary, row.id])
-            }
-            summariesFound++
+            await db.query(`UPDATE ${collection} SET ${textField} = $1, ${summaryField} = $2 WHERE id = $3`, [text, summary, row.id])
+          } else {
+            await db.query(`UPDATE ${collection} SET ${textField} = $1 WHERE id = $2`, [text, row.id])
           }
         }
       }

@@ -15,7 +15,17 @@
 
 import pg from 'pg'
 import './lib/config.js' // loads .env
-import { titleSimilarity } from './lib/doi-utils.js'
+import {
+  type MatchIndex,
+  buildMatchIndex,
+  matchPublication,
+  matchDataset,
+  matchDocument,
+  matchAuthor,
+  matchTopic,
+  matchProject,
+  mergeField,
+} from './lib/record-matching.js'
 
 const args = process.argv.slice(2)
 const direction = args.find((a) => a.startsWith('--direction='))?.split('=')[1] || 'both'
@@ -89,131 +99,7 @@ const COLLECTIONS: Record<string, CollectionConfig> = {
   },
 }
 
-// ---------------------------------------------------------------------------
-// Record matching functions
-// ---------------------------------------------------------------------------
-
-// Pre-built index for O(1) lookups instead of O(N) linear scans
-interface MatchIndex {
-  byDoi: Map<string, any>
-  bySourceUrl: Map<string, any>
-  byOrcid: Map<string, any>
-  byName: Map<string, any>
-  byFamilyGiven: Map<string, any>
-  all: any[]
-}
-
-function buildMatchIndex(candidates: any[]): MatchIndex {
-  const byDoi = new Map<string, any>()
-  const bySourceUrl = new Map<string, any>()
-  const byOrcid = new Map<string, any>()
-  const byName = new Map<string, any>()
-  const byFamilyGiven = new Map<string, any>()
-
-  for (const c of candidates) {
-    if (c.doi) byDoi.set(c.doi.toLowerCase(), c)
-    if (c.source_url) bySourceUrl.set(c.source_url, c)
-    if (c.orcid) byOrcid.set(c.orcid, c)
-    if (c.name) byName.set(c.name.toLowerCase(), c)
-    if (c.family_name) {
-      const key = `${c.family_name.toLowerCase()}|${(c.given_name || '').toLowerCase()}`
-      byFamilyGiven.set(key, c)
-    }
-  }
-
-  return { byDoi, bySourceUrl, byOrcid, byName, byFamilyGiven, all: candidates }
-}
-
-function matchPublication(record: any, _candidates: any[], index?: MatchIndex): { match: any | null; confidence: string } {
-  const idx = index!
-  // Tier 1: DOI exact match (O(1))
-  if (record.doi) {
-    const doiMatch = idx.byDoi.get(record.doi.toLowerCase())
-    if (doiMatch) return { match: doiMatch, confidence: 'exact' }
-  }
-
-  // Tier 2: Title + year (must scan, but only for non-DOI matches)
-  if (record.title) {
-    let bestMatch: any = null
-    let bestScore = 0
-    for (const c of idx.all) {
-      if (!c.title) continue
-      const yearClose = !record.year || !c.year || Math.abs(record.year - c.year) <= 1
-      if (!yearClose) continue
-      const sim = titleSimilarity(record.title, c.title)
-      if (sim > 0.9 && sim > bestScore) {
-        bestMatch = c
-        bestScore = sim
-      }
-    }
-    if (bestMatch) return { match: bestMatch, confidence: bestScore > 0.95 ? 'high' : 'fuzzy' }
-
-    // Tier 3: Title only, very high threshold
-    for (const c of idx.all) {
-      if (!c.title) continue
-      const sim = titleSimilarity(record.title, c.title)
-      if (sim > 0.95) return { match: c, confidence: 'fuzzy' }
-    }
-  }
-
-  return { match: null, confidence: 'none' }
-}
-
-function matchDataset(record: any, _candidates: any[], index?: MatchIndex): { match: any | null; confidence: string } {
-  const idx = index!
-  if (record.doi) {
-    const doiMatch = idx.byDoi.get(record.doi.toLowerCase())
-    if (doiMatch) return { match: doiMatch, confidence: 'exact' }
-  }
-  if (record.title) {
-    for (const c of idx.all) {
-      if (c.title && titleSimilarity(record.title, c.title) > 0.9) {
-        return { match: c, confidence: 'high' }
-      }
-    }
-  }
-  return { match: null, confidence: 'none' }
-}
-
-function matchDocument(record: any, _candidates: any[], index?: MatchIndex): { match: any | null; confidence: string } {
-  const idx = index!
-  if (record.source_url) {
-    const urlMatch = idx.bySourceUrl.get(record.source_url)
-    if (urlMatch) return { match: urlMatch, confidence: 'exact' }
-  }
-  if (record.title) {
-    for (const c of idx.all) {
-      if (c.title && titleSimilarity(record.title, c.title) > 0.9) {
-        return { match: c, confidence: 'high' }
-      }
-    }
-  }
-  return { match: null, confidence: 'none' }
-}
-
-function matchAuthor(record: any, _candidates: any[], index?: MatchIndex): { match: any | null; confidence: string } {
-  const idx = index!
-  if (record.orcid) {
-    const orcidMatch = idx.byOrcid.get(record.orcid)
-    if (orcidMatch) return { match: orcidMatch, confidence: 'exact' }
-  }
-  if (record.family_name) {
-    const key = `${record.family_name.toLowerCase()}|${(record.given_name || '').toLowerCase()}`
-    const nameMatch = idx.byFamilyGiven.get(key)
-    if (nameMatch) return { match: nameMatch, confidence: 'high' }
-  }
-  return { match: null, confidence: 'none' }
-}
-
-function matchTopic(record: any, _candidates: any[], index?: MatchIndex): { match: any | null; confidence: string } {
-  const nameMatch = index!.byName.get(record.name?.toLowerCase())
-  return nameMatch ? { match: nameMatch, confidence: 'exact' } : { match: null, confidence: 'none' }
-}
-
-function matchProject(record: any, _candidates: any[], index?: MatchIndex): { match: any | null; confidence: string } {
-  const nameMatch = index!.byName.get(record.name?.toLowerCase())
-  return nameMatch ? { match: nameMatch, confidence: 'exact' } : { match: null, confidence: 'none' }
-}
+// Record matching functions imported from ./lib/record-matching.js
 
 // ---------------------------------------------------------------------------
 // Get last sync timestamp
@@ -255,37 +141,19 @@ function mergeRecord(
   direction: 'pull' | 'push',
 ): { merged: Record<string, any>; changed: boolean } {
   const merged: Record<string, any> = {}
-  let changed = false
 
-  const source = direction === 'pull' ? remoteRecord : localRecord
   const target = direction === 'pull' ? localRecord : remoteRecord
 
   for (const field of config.curatedFields) {
-    if (direction === 'pull') {
-      // Remote wins for curated fields
-      merged[field] = remoteRecord[field] ?? localRecord[field]
-    } else {
-      // Push: only overwrite if remote is null/empty and local has data
-      if ((remoteRecord[field] === null || remoteRecord[field] === undefined) && localRecord[field] != null) {
-        merged[field] = localRecord[field]
-        changed = true
-      } else {
-        merged[field] = remoteRecord[field]
-      }
-    }
+    merged[field] = mergeField(localRecord[field], remoteRecord[field], 'curated', direction)
   }
 
   for (const field of config.pipelineFields) {
-    if (direction === 'push') {
-      // Local pipeline data can overwrite remote
-      merged[field] = localRecord[field] ?? remoteRecord[field]
-    } else {
-      // Pull: keep local pipeline data unless remote has it too
-      merged[field] = localRecord[field] ?? remoteRecord[field]
-    }
+    merged[field] = mergeField(localRecord[field], remoteRecord[field], 'pipeline', direction)
   }
 
   // Check if anything actually changed
+  let changed = false
   for (const field of [...config.curatedFields, ...config.pipelineFields]) {
     const targetVal = JSON.stringify(target[field] ?? null)
     const mergedVal = JSON.stringify(merged[field] ?? null)

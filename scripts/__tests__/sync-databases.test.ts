@@ -1,89 +1,17 @@
 import { describe, it, expect } from 'vitest'
-
-// We need to test the matching and merge logic from sync-databases.ts
-// Since the functions are defined inline, let's extract the core logic into testable units
-// For now, we'll import titleSimilarity and test the matching patterns directly
-
-import { titleSimilarity } from '../lib/doi-utils.js'
-
-// ---------------------------------------------------------------------------
-// Replicate matching logic for testing
-// ---------------------------------------------------------------------------
-
-function matchPublication(record: any, candidates: any[]): { match: any | null; confidence: string } {
-  if (record.doi) {
-    const doiMatch = candidates.find((c: any) => c.doi && c.doi.toLowerCase() === record.doi.toLowerCase())
-    if (doiMatch) return { match: doiMatch, confidence: 'exact' }
-  }
-  if (record.title) {
-    let bestMatch: any = null
-    let bestScore = 0
-    for (const c of candidates) {
-      if (!c.title) continue
-      const yearClose = !record.year || !c.year || Math.abs(record.year - c.year) <= 1
-      if (!yearClose) continue
-      const sim = titleSimilarity(record.title, c.title)
-      if (sim > 0.9 && sim > bestScore) {
-        bestMatch = c
-        bestScore = sim
-      }
-    }
-    if (bestMatch) return { match: bestMatch, confidence: bestScore > 0.95 ? 'high' : 'fuzzy' }
-    for (const c of candidates) {
-      if (!c.title) continue
-      const sim = titleSimilarity(record.title, c.title)
-      if (sim > 0.95) return { match: c, confidence: 'fuzzy' }
-    }
-  }
-  return { match: null, confidence: 'none' }
-}
-
-function matchDocument(record: any, candidates: any[]): { match: any | null; confidence: string } {
-  if (record.source_url) {
-    const urlMatch = candidates.find((c: any) => c.source_url === record.source_url)
-    if (urlMatch) return { match: urlMatch, confidence: 'exact' }
-  }
-  if (record.title) {
-    for (const c of candidates) {
-      if (c.title && titleSimilarity(record.title, c.title) > 0.9) {
-        return { match: c, confidence: 'high' }
-      }
-    }
-  }
-  return { match: null, confidence: 'none' }
-}
-
-function matchAuthor(record: any, candidates: any[]): { match: any | null; confidence: string } {
-  if (record.orcid) {
-    const orcidMatch = candidates.find((c: any) => c.orcid === record.orcid)
-    if (orcidMatch) return { match: orcidMatch, confidence: 'exact' }
-  }
-  if (record.family_name) {
-    const nameMatch = candidates.find(
-      (c: any) => c.family_name?.toLowerCase() === record.family_name?.toLowerCase()
-        && (c.given_name || '').toLowerCase() === (record.given_name || '').toLowerCase(),
-    )
-    if (nameMatch) return { match: nameMatch, confidence: 'high' }
-  }
-  return { match: null, confidence: 'none' }
-}
-
-function mergeField(localVal: any, remoteVal: any, fieldType: 'pipeline' | 'curated', direction: 'pull' | 'push'): any {
-  if (direction === 'pull') {
-    if (fieldType === 'curated') return remoteVal ?? localVal
-    if (fieldType === 'pipeline') return localVal ?? remoteVal
-  } else {
-    if (fieldType === 'curated') {
-      // Push: only overwrite if remote is null and local has data
-      return (remoteVal === null || remoteVal === undefined) && localVal != null ? localVal : remoteVal
-    }
-    if (fieldType === 'pipeline') return localVal ?? remoteVal
-  }
-  return localVal
-}
+import {
+  buildMatchIndex,
+  matchPublication,
+  matchDataset,
+  matchDocument,
+  matchAuthor,
+  matchTopic,
+  matchProject,
+  mergeField,
+} from '../lib/record-matching.js'
 
 // ---------------------------------------------------------------------------
-// Tests
+// Tests — now verifying the real exported functions
 // ---------------------------------------------------------------------------
 
 describe('Publication matching', () => {
@@ -91,59 +19,82 @@ describe('Publication matching', () => {
     { id: 1, doi: '10.1234/abc', title: 'Ecology of marmots in Gothic Colorado', year: 2020 },
     { id: 2, doi: '10.5678/def', title: 'Snowpack dynamics in the East River watershed', year: 2019 },
     { id: 3, doi: null, title: 'Pollination networks in subalpine meadows', year: 2021 },
-    { id: 4, doi: null, title: 'Pollination networks in subalpine meadows', year: 2022 }, // same title, different year
+    { id: 4, doi: null, title: 'Pollination networks in subalpine meadows', year: 2022 },
   ]
+  const index = buildMatchIndex(candidates)
 
   it('matches by DOI (exact)', () => {
-    const result = matchPublication({ doi: '10.1234/abc', title: 'Wrong title' }, candidates)
+    const result = matchPublication({ doi: '10.1234/abc', title: 'Wrong title' }, candidates, index)
     expect(result.match?.id).toBe(1)
     expect(result.confidence).toBe('exact')
   })
 
   it('matches by DOI case-insensitively', () => {
-    const result = matchPublication({ doi: '10.1234/ABC', title: 'Wrong' }, candidates)
+    const result = matchPublication({ doi: '10.1234/ABC', title: 'Wrong' }, candidates, index)
     expect(result.match?.id).toBe(1)
     expect(result.confidence).toBe('exact')
   })
 
   it('matches by title+year when no DOI', () => {
-    const result = matchPublication({ doi: null, title: 'Ecology of marmots in Gothic Colorado', year: 2020 }, candidates)
+    const result = matchPublication({ doi: null, title: 'Ecology of marmots in Gothic Colorado', year: 2020 }, candidates, index)
     expect(result.match?.id).toBe(1)
     expect(result.confidence).toBe('high')
   })
 
   it('matches similar title+year', () => {
-    const result = matchPublication({ doi: null, title: 'Ecology of marmots in Gothic, Colorado', year: 2020 }, candidates)
+    const result = matchPublication({ doi: null, title: 'Ecology of marmots in Gothic, Colorado', year: 2020 }, candidates, index)
     expect(result.match?.id).toBe(1)
   })
 
   it('falls back to title-only match when year is too far (Tier 3)', () => {
-    const result = matchPublication({ doi: null, title: 'Ecology of marmots in Gothic Colorado', year: 2025 }, candidates)
-    // Year 2025 vs 2020 = 5 years apart, exceeds ±1 tolerance for Tier 2
-    // But identical title matches at Tier 3 (>0.95 threshold)
+    const result = matchPublication({ doi: null, title: 'Ecology of marmots in Gothic Colorado', year: 2025 }, candidates, index)
     expect(result.match?.id).toBe(1)
     expect(result.confidence).toBe('fuzzy')
   })
 
   it('does NOT match when title is different AND year is far', () => {
-    const result = matchPublication({ doi: null, title: 'Completely unrelated quantum paper', year: 2025 }, candidates)
+    const result = matchPublication({ doi: null, title: 'Completely unrelated quantum paper', year: 2025 }, candidates, index)
     expect(result.match).toBeNull()
   })
 
   it('returns none for completely unrelated record', () => {
-    const result = matchPublication({ doi: '10.9999/xyz', title: 'Quantum computing algorithms', year: 2023 }, candidates)
+    const result = matchPublication({ doi: '10.9999/xyz', title: 'Quantum computing algorithms', year: 2023 }, candidates, index)
     expect(result.match).toBeNull()
     expect(result.confidence).toBe('none')
   })
 
   it('prefers DOI over title match', () => {
-    // DOI points to record 1, but title is closer to record 3
-    const result = matchPublication({ doi: '10.1234/abc', title: 'Pollination networks in subalpine meadows' }, candidates)
-    expect(result.match?.id).toBe(1) // DOI wins
+    const result = matchPublication({ doi: '10.1234/abc', title: 'Pollination networks in subalpine meadows' }, candidates, index)
+    expect(result.match?.id).toBe(1)
   })
 
   it('handles record with no DOI and no title', () => {
-    const result = matchPublication({ doi: null, title: null }, candidates)
+    const result = matchPublication({ doi: null, title: null }, candidates, index)
+    expect(result.match).toBeNull()
+  })
+})
+
+describe('Dataset matching', () => {
+  const candidates = [
+    { id: 1, doi: '10.5065/data1', title: 'East River soil moisture 2020-2023' },
+    { id: 2, doi: null, title: 'RMBL weather station data' },
+  ]
+  const index = buildMatchIndex(candidates)
+
+  it('matches by DOI', () => {
+    const result = matchDataset({ doi: '10.5065/data1', title: 'Wrong' }, candidates, index)
+    expect(result.match?.id).toBe(1)
+    expect(result.confidence).toBe('exact')
+  })
+
+  it('matches by title similarity', () => {
+    const result = matchDataset({ doi: null, title: 'RMBL weather station data' }, candidates, index)
+    expect(result.match?.id).toBe(2)
+    expect(result.confidence).toBe('high')
+  })
+
+  it('returns none for no match', () => {
+    const result = matchDataset({ doi: '10.9999/xyz', title: 'Unrelated' }, candidates, index)
     expect(result.match).toBeNull()
   })
 })
@@ -153,21 +104,22 @@ describe('Document matching', () => {
     { id: 1, source_url: 'https://example.com/doc1', title: 'Gunnison Water Plan' },
     { id: 2, source_url: 'https://example.com/doc2', title: 'Mt Emmons Mining Impact Assessment' },
   ]
+  const index = buildMatchIndex(candidates)
 
   it('matches by sourceUrl (exact)', () => {
-    const result = matchDocument({ source_url: 'https://example.com/doc1', title: 'Different title' }, candidates)
+    const result = matchDocument({ source_url: 'https://example.com/doc1', title: 'Different title' }, candidates, index)
     expect(result.match?.id).toBe(1)
     expect(result.confidence).toBe('exact')
   })
 
   it('matches by title when sourceUrl missing', () => {
-    const result = matchDocument({ source_url: null, title: 'Gunnison Water Plan' }, candidates)
+    const result = matchDocument({ source_url: null, title: 'Gunnison Water Plan' }, candidates, index)
     expect(result.match?.id).toBe(1)
     expect(result.confidence).toBe('high')
   })
 
   it('returns none when nothing matches', () => {
-    const result = matchDocument({ source_url: 'https://other.com', title: 'Unrelated' }, candidates)
+    const result = matchDocument({ source_url: 'https://other.com', title: 'Unrelated' }, candidates, index)
     expect(result.match).toBeNull()
   })
 })
@@ -178,32 +130,69 @@ describe('Author matching', () => {
     { id: 2, orcid: null, family_name: 'Armitage', given_name: 'Kenneth' },
     { id: 3, orcid: null, family_name: 'Smith', given_name: 'John' },
   ]
+  const index = buildMatchIndex(candidates)
 
   it('matches by ORCID', () => {
-    const result = matchAuthor({ orcid: '0000-0001-2345-6789', family_name: 'Wrong' }, candidates)
+    const result = matchAuthor({ orcid: '0000-0001-2345-6789', family_name: 'Wrong' }, candidates, index)
     expect(result.match?.id).toBe(1)
     expect(result.confidence).toBe('exact')
   })
 
   it('matches by family+given name', () => {
-    const result = matchAuthor({ orcid: null, family_name: 'Armitage', given_name: 'Kenneth' }, candidates)
+    const result = matchAuthor({ orcid: null, family_name: 'Armitage', given_name: 'Kenneth' }, candidates, index)
     expect(result.match?.id).toBe(2)
     expect(result.confidence).toBe('high')
   })
 
   it('matches name case-insensitively', () => {
-    const result = matchAuthor({ orcid: null, family_name: 'armitage', given_name: 'kenneth' }, candidates)
+    const result = matchAuthor({ orcid: null, family_name: 'armitage', given_name: 'kenneth' }, candidates, index)
     expect(result.match?.id).toBe(2)
   })
 
   it('does NOT match different given name with same family', () => {
-    const result = matchAuthor({ orcid: null, family_name: 'Smith', given_name: 'Jane' }, candidates)
+    const result = matchAuthor({ orcid: null, family_name: 'Smith', given_name: 'Jane' }, candidates, index)
     expect(result.match).toBeNull()
   })
 
   it('handles missing given name', () => {
-    const result = matchAuthor({ orcid: null, family_name: 'Smith', given_name: '' }, candidates)
-    // Won't match id:3 because given_name 'John' != ''
+    const result = matchAuthor({ orcid: null, family_name: 'Smith', given_name: '' }, candidates, index)
+    expect(result.match).toBeNull()
+  })
+})
+
+describe('Topic matching', () => {
+  const candidates = [
+    { id: 1, name: 'Alpine Ecology' },
+    { id: 2, name: 'Climate Change' },
+  ]
+  const index = buildMatchIndex(candidates)
+
+  it('matches by name case-insensitively', () => {
+    const result = matchTopic({ name: 'alpine ecology' }, candidates, index)
+    expect(result.match?.id).toBe(1)
+    expect(result.confidence).toBe('exact')
+  })
+
+  it('returns none for unknown topic', () => {
+    const result = matchTopic({ name: 'Quantum Physics' }, candidates, index)
+    expect(result.match).toBeNull()
+  })
+})
+
+describe('Project matching', () => {
+  const candidates = [
+    { id: 1, name: 'East River SFA' },
+    { id: 2, name: 'SPLASH Campaign' },
+  ]
+  const index = buildMatchIndex(candidates)
+
+  it('matches by name', () => {
+    const result = matchProject({ name: 'east river sfa' }, candidates, index)
+    expect(result.match?.id).toBe(1)
+  })
+
+  it('returns none for unknown project', () => {
+    const result = matchProject({ name: 'Mars Rover' }, candidates, index)
     expect(result.match).toBeNull()
   })
 })
@@ -246,17 +235,36 @@ describe('Field merge logic', () => {
   })
 })
 
+describe('buildMatchIndex', () => {
+  it('indexes DOI in lowercase', () => {
+    const index = buildMatchIndex([{ doi: '10.1234/ABC', title: 'Test' }])
+    expect(index.byDoi.get('10.1234/abc')).toBeTruthy()
+    expect(index.byDoi.has('10.1234/ABC')).toBe(false)
+  })
+
+  it('indexes family+given as compound key', () => {
+    const index = buildMatchIndex([{ family_name: 'Smith', given_name: 'John' }])
+    expect(index.byFamilyGiven.get('smith|john')).toBeTruthy()
+  })
+
+  it('handles empty candidates', () => {
+    const index = buildMatchIndex([])
+    expect(index.all).toHaveLength(0)
+    expect(index.byDoi.size).toBe(0)
+  })
+})
+
 describe('Edge cases', () => {
   it('handles empty candidate list', () => {
-    const result = matchPublication({ doi: '10.1234/abc', title: 'Test' }, [])
+    const index = buildMatchIndex([])
+    const result = matchPublication({ doi: '10.1234/abc', title: 'Test' }, [], index)
     expect(result.match).toBeNull()
   })
 
   it('handles candidates with null fields', () => {
-    const candidates = [
-      { id: 1, doi: null, title: null, year: null },
-    ]
-    const result = matchPublication({ doi: null, title: 'Test paper', year: 2020 }, candidates)
+    const candidates = [{ id: 1, doi: null, title: null, year: null }]
+    const index = buildMatchIndex(candidates)
+    const result = matchPublication({ doi: null, title: 'Test paper', year: 2020 }, candidates, index)
     expect(result.match).toBeNull()
   })
 
