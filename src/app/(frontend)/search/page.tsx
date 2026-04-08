@@ -641,12 +641,20 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                   <h3 className="result-card-title">{item.title}</h3>
                 </div>
                 {item.snippet && (() => {
-                  // FTS snippets have <mark> highlights; non-FTS snippets are plain text
-                  // Strip all tags except <mark>, then truncate safely
-                  const clean = item.snippet.replace(/<(?!\/?(mark)\b)[^>]+>/gi, '').replace(/&[a-z]+;/gi, ' ').slice(0, 300)
-                  return clean.includes('<mark>')
-                    ? <p className="result-card-snippet" dangerouslySetInnerHTML={{ __html: clean }} />
-                    : <p className="result-card-snippet">{clean}</p>
+                  // FTS snippets have <mark> highlights from ts_headline; non-FTS are plain text.
+                  // Split on <mark>/<\/mark> tags and render safely without dangerouslySetInnerHTML.
+                  const text = item.snippet.replace(/<(?!\/?mark\b)[^>]*>/gi, '').replace(/&[a-z]+;/gi, ' ').slice(0, 300)
+                  const parts = text.split(/(<mark>|<\/mark>)/gi)
+                  let inMark = false
+                  const elements: React.ReactNode[] = []
+                  for (let i = 0; i < parts.length; i++) {
+                    if (parts[i].toLowerCase() === '<mark>') { inMark = true; continue }
+                    if (parts[i].toLowerCase() === '</mark>') { inMark = false; continue }
+                    if (parts[i]) {
+                      elements.push(inMark ? <mark key={i}>{parts[i]}</mark> : parts[i])
+                    }
+                  }
+                  return <p className="result-card-snippet">{elements}</p>
                 })()}
                 <div className="result-card-meta">
                   {item.meta.map((m, i) => (

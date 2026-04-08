@@ -34,11 +34,16 @@ export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const query = searchParams.get('q')?.trim()
   const typeFilter = searchParams.get('type') || ''
-  const limitParam = Math.min(parseInt(searchParams.get('limit') || '20'), 100)
-  const offset = parseInt(searchParams.get('offset') || '0')
+  const limitParam = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '20', 10) || 20), 100)
+  const offset = Math.max(0, parseInt(searchParams.get('offset') || '0', 10) || 0)
 
-  if (!query) {
+  if (!query || query.length > 1000) {
     return NextResponse.json({ results: [], total: 0 })
+  }
+
+  const validTypes = ['', 'documents', 'publications', 'datasets']
+  if (!validTypes.includes(typeFilter)) {
+    return NextResponse.json({ results: [], total: 0, error: 'Invalid type filter' }, { status: 400 })
   }
 
   const db = getDb()
@@ -155,7 +160,7 @@ export async function GET(request: NextRequest) {
   } catch (err: any) {
     console.error('Search error:', err)
     return NextResponse.json(
-      { results: [], total: 0, error: err.message },
+      { results: [], total: 0, error: 'Search failed' },
       { status: 500 },
     )
   }

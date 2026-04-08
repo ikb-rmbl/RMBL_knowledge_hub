@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import { notFound } from 'next/navigation'
 import config from '@/payload.config'
 import { renderRelatedWorks } from '../../lib/related-works'
+import { isHttpUrl } from '../../lib/url-validation'
 
 export const dynamic = 'force-dynamic'
 
@@ -71,7 +72,7 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
       )}
 
       <div className="detail-actions">
-        {doc.pdfLink && (
+        {isHttpUrl(doc.pdfLink as string) && (
           <a
             className="detail-action-primary"
             href={doc.pdfLink as string}
@@ -81,7 +82,7 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
             View PDF
           </a>
         )}
-        {doc.sourceUrl && (
+        {isHttpUrl(doc.sourceUrl as string) && (
           <a
             className="detail-action-secondary"
             href={doc.sourceUrl as string}

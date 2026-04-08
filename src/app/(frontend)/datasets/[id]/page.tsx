@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import config from '@/payload.config'
 import { renderRelatedWorks } from '../../lib/related-works'
 import { getDb } from '../../lib/db'
+import { isHttpUrl, isValidOrcid, isValidDoi } from '../../lib/url-validation'
 
 export const dynamic = 'force-dynamic'
 
@@ -86,7 +87,7 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
               <span key={i}>
                 {i > 0 && ', '}
                 {c.id ? <Link href={`/authors/${c.id}`}>{c.name}</Link> : c.name}
-                {c.orcid && (
+                {isValidOrcid(c.orcid) && (
                   <a href={`https://orcid.org/${c.orcid}`} target="_blank" rel="noopener noreferrer"
                      style={{ fontSize: '11px', marginLeft: '3px', color: 'var(--color-text-muted)' }}>
                     ORCID
@@ -99,7 +100,7 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
         <div>
           <strong>Year:</strong> {dataset.publicationYear}
         </div>
-        {dataset.doi && (
+        {isValidDoi(dataset.doi) && (
           <div>
             <strong>DOI:</strong>{' '}
             <a href={`https://doi.org/${dataset.doi}`} target="_blank" rel="noopener noreferrer">
@@ -172,7 +173,7 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
       )}
 
       <div className="detail-actions">
-        {dataset.downloadUrl && (
+        {isHttpUrl(dataset.downloadUrl) && (
           <a
             className="detail-action-primary"
             href={dataset.downloadUrl}
@@ -182,7 +183,7 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
             Download Data
           </a>
         )}
-        {dataset.externalCatalogUrl && (
+        {isHttpUrl(dataset.externalCatalogUrl) && (
           <a
             className="detail-action-secondary"
             href={dataset.externalCatalogUrl}
@@ -192,7 +193,7 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
             View in Catalog
           </a>
         )}
-        {dataset.doi && (
+        {isValidDoi(dataset.doi) && (
           <a
             className="detail-action-secondary"
             href={`https://doi.org/${dataset.doi}`}

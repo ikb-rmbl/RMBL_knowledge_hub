@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { GEOGRAPHIC_SCOPE_OPTIONS } from './shared/constants'
+import { publicReadAuthWrite } from './shared/access'
 
 const PUBLICATION_TYPE_OPTIONS = [
   { label: 'Journal Article', value: 'article' },
@@ -17,9 +18,7 @@ export const Publications: CollectionConfig = {
     defaultColumns: ['title', 'year', 'publicationType'],
     group: 'Content',
   },
-  access: {
-    read: () => true,
-  },
+  access: publicReadAuthWrite,
   fields: [
     {
       name: 'title',

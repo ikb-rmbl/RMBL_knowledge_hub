@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { GEOGRAPHIC_SCOPE_OPTIONS } from './shared/constants'
+import { publicReadAuthWrite } from './shared/access'
 
 export const Documents: CollectionConfig = {
   slug: 'documents',
@@ -8,9 +9,7 @@ export const Documents: CollectionConfig = {
     defaultColumns: ['title', 'dateOriginal', 'categories'],
     group: 'Content',
   },
-  access: {
-    read: () => true,
-  },
+  access: publicReadAuthWrite,
   fields: [
     {
       name: 'title',

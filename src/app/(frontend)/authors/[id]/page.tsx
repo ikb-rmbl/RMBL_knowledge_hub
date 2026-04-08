@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import { notFound } from 'next/navigation'
 import config from '@/payload.config'
 import { getBadgeLabel, getBadgeClass } from '../../lib/badges'
+import { isValidOrcid } from '../../lib/url-validation'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,7 +37,7 @@ export default async function AuthorDetail({ params }: { params: Promise<{ id: s
             <strong>Affiliation:</strong> {author.affiliation}
           </div>
         )}
-        {author.orcid && (
+        {isValidOrcid(author.orcid as string) && (
           <div>
             <strong>ORCID:</strong>{' '}
             <a href={`https://orcid.org/${author.orcid}`} target="_blank" rel="noopener noreferrer">

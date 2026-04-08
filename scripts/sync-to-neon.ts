@@ -168,8 +168,12 @@ async function fullSync() {
       AND c.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
     `)
     for (const seq of seqs) {
+      const escId = (s: string) => `"${s.replace(/"/g, '""')}"`
       try {
-        await db.query(`SELECT setval(pg_get_serial_sequence('${seq.table_name}', '${seq.column_name}'), COALESCE((SELECT MAX(${seq.column_name}) FROM ${seq.table_name}), 1))`)
+        await db.query(
+          `SELECT setval(pg_get_serial_sequence($1, $2), COALESCE((SELECT MAX(${escId(seq.column_name)}) FROM ${escId(seq.table_name)}), 1))`,
+          [seq.table_name, seq.column_name],
+        )
       } catch { /* skip if table is empty */ }
     }
     await db.end()
@@ -199,7 +203,6 @@ async function safeEnrich() {
   console.log('\n=== Safe Enrichment: Running directly against Neon ===')
   if (dryRun) console.log('(DRY RUN)')
 
-  const envPrefix = `DATABASE_URL="${NEON_URL}"`
   const scripts = [
     { name: 'Citation counts', cmd: 'npx tsx scripts/fetch-citation-counts.ts --step=all --stale-days=30' },
     { name: 'Embeddings (new items)', cmd: 'npx tsx scripts/generate-embeddings.ts --collection=all --level=summary' },
@@ -208,11 +211,15 @@ async function safeEnrich() {
   for (const script of scripts) {
     console.log(`\n--- ${script.name} ---`)
     if (dryRun) {
-      console.log(`  Would run: ${envPrefix} ${script.cmd}`)
+      console.log(`  Would run: ${script.cmd} (with DATABASE_URL=<neon>)`)
       continue
     }
     try {
-      execSync(`${envPrefix} ${script.cmd}`, { stdio: 'inherit', cwd: process.cwd() })
+      execSync(script.cmd, {
+        stdio: 'inherit',
+        cwd: process.cwd(),
+        env: { ...process.env, DATABASE_URL: NEON_URL },
+      })
     } catch (err) {
       console.error(`  ${script.name} failed — continuing`)
     }

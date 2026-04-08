@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { publicReadAuthWrite } from './shared/access'
 
 export const Projects: CollectionConfig = {
   slug: 'projects',
@@ -7,9 +8,7 @@ export const Projects: CollectionConfig = {
     defaultColumns: ['name', 'pi', 'projectType', 'status'],
     group: 'Content',
   },
-  access: {
-    read: () => true,
-  },
+  access: publicReadAuthWrite,
   fields: [
     {
       name: 'name',

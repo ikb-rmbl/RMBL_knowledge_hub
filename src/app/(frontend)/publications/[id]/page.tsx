@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import config from '@/payload.config'
 import { renderRelatedWorks } from '../../lib/related-works'
 import { getDb } from '../../lib/db'
+import { isHttpUrl, isValidOrcid, isValidDoi } from '../../lib/url-validation'
 
 export const dynamic = 'force-dynamic'
 
@@ -106,7 +107,7 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
               ) : (
                 a.name
               )}
-              {a.orcid && (
+              {isValidOrcid(a.orcid) && (
                 <a href={`https://orcid.org/${a.orcid}`} target="_blank" rel="noopener noreferrer"
                    style={{ fontSize: '11px', marginLeft: '3px', color: 'var(--color-text-muted)' }}>
                   ORCID
@@ -147,7 +148,7 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
             <strong>Editors:</strong> {editors}
           </div>
         )}
-        {pub.doi && (
+        {isValidDoi(pub.doi) && (
           <div>
             <strong>DOI:</strong>{' '}
             <a href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener noreferrer">
@@ -170,17 +171,17 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
       )}
 
       <div className="detail-actions">
-        {pub.pdfLink && (
+        {isHttpUrl(pub.pdfLink) && (
           <a className="detail-action-primary" href={pub.pdfLink} target="_blank" rel="noopener noreferrer">
             Download PDF
           </a>
         )}
-        {pub.doi && (
+        {isValidDoi(pub.doi) && (
           <a className="detail-action-secondary" href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener noreferrer">
             View at Publisher
           </a>
         )}
-        {pub.externalUrl && !pub.doi && (
+        {isHttpUrl(pub.externalUrl) && !pub.doi && (
           <a className="detail-action-secondary" href={pub.externalUrl} target="_blank" rel="noopener noreferrer">
             External Link
           </a>

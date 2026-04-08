@@ -25,23 +25,25 @@ const dirname = path.dirname(filename)
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required')
 }
-if (!process.env.PAYLOAD_SECRET || process.env.PAYLOAD_SECRET.length < 16) {
-  throw new Error('PAYLOAD_SECRET must be at least 16 characters (32+ recommended for production)')
+const minSecretLength = process.env.NODE_ENV === 'production' ? 32 : 16
+if (!process.env.PAYLOAD_SECRET || process.env.PAYLOAD_SECRET.length < minSecretLength) {
+  throw new Error(`PAYLOAD_SECRET must be at least ${minSecretLength} characters`)
 }
 
 // ---------------------------------------------------------------------------
 // S3 storage plugin (conditional — only enabled when S3_BUCKET is set)
 // ---------------------------------------------------------------------------
 
-const plugins = process.env.S3_BUCKET
+const s3Configured = process.env.S3_BUCKET && process.env.S3_ACCESS_KEY && process.env.S3_SECRET_KEY
+const plugins = s3Configured
   ? [
       s3Storage({
         collections: { media: true },
-        bucket: process.env.S3_BUCKET,
+        bucket: process.env.S3_BUCKET!,
         config: {
           credentials: {
-            accessKeyId: process.env.S3_ACCESS_KEY || '',
-            secretAccessKey: process.env.S3_SECRET_KEY || '',
+            accessKeyId: process.env.S3_ACCESS_KEY!,
+            secretAccessKey: process.env.S3_SECRET_KEY!,
           },
           region: process.env.S3_REGION || 'auto',
           ...(process.env.S3_ENDPOINT ? { endpoint: process.env.S3_ENDPOINT } : {}),

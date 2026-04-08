@@ -1,13 +1,12 @@
 import type { CollectionConfig } from 'payload'
+import { publicReadAuthWrite } from './shared/access'
 
 export const Topics: CollectionConfig = {
   slug: 'topics',
   admin: {
     useAsTitle: 'name',
   },
-  access: {
-    read: () => true,
-  },
+  access: publicReadAuthWrite,
   fields: [
     {
       name: 'name',

@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { publicReadAuthWrite } from './shared/access'
 
 const DATA_FORMAT_OPTIONS = [
   { label: 'CSV', value: 'csv' },
@@ -42,9 +43,7 @@ export const Datasets: CollectionConfig = {
     defaultColumns: ['title', 'publicationYear', 'resourceType'],
     group: 'Content',
   },
-  access: {
-    read: () => true,
-  },
+  access: publicReadAuthWrite,
   fields: [
     {
       name: 'title',

@@ -19,7 +19,11 @@ const step = args.find((a) => a.startsWith('--step='))?.split('=')[1] || 'all'
 const limitArg = args.find((a) => a.startsWith('--limit='))?.split('=')[1]
 const limit = limitArg ? parseInt(limitArg) : Infinity
 const staleDaysArg = args.find((a) => a.startsWith('--stale-days='))?.split('=')[1]
-const staleDays = staleDaysArg ? parseInt(staleDaysArg) : 30
+const staleDays = staleDaysArg ? parseInt(staleDaysArg, 10) : 30
+if (!Number.isFinite(staleDays) || staleDays < 0) {
+  console.error('Error: --stale-days must be a non-negative number')
+  process.exit(1)
+}
 
 const OPENALEX_BATCH_SIZE = 50 // max DOIs per OpenAlex filter query
 
@@ -34,8 +38,9 @@ async function fetchPublicationCounts(db: pg.Pool): Promise<void> {
   const { rows } = await db.query(
     `SELECT id, doi FROM publications
      WHERE doi IS NOT NULL
-     AND (citation_count_updated_at IS NULL OR citation_count_updated_at < NOW() - INTERVAL '${staleDays} days')
+     AND (citation_count_updated_at IS NULL OR citation_count_updated_at < NOW() - make_interval(days => $1))
      ORDER BY id`,
+    [staleDays],
   )
 
   let candidates = rows.slice(0, limit)
@@ -113,8 +118,9 @@ async function fetchDatasetCounts(db: pg.Pool): Promise<void> {
   const { rows } = await db.query(
     `SELECT id, doi FROM datasets
      WHERE doi IS NOT NULL
-     AND (citation_count_updated_at IS NULL OR citation_count_updated_at < NOW() - INTERVAL '${staleDays} days')
+     AND (citation_count_updated_at IS NULL OR citation_count_updated_at < NOW() - make_interval(days => $1))
      ORDER BY id`,
+    [staleDays],
   )
 
   let candidates = rows.slice(0, limit)

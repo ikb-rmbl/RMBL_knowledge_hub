@@ -1,10 +1,9 @@
 import type { CollectionConfig } from 'payload'
+import { publicReadAuthWrite } from './shared/access'
 
 export const Media: CollectionConfig = {
   slug: 'media',
-  access: {
-    read: () => true,
-  },
+  access: publicReadAuthWrite,
   fields: [
     {
       name: 'alt',
