@@ -152,7 +152,7 @@ async function loadPublications() {
       console.log(`  Merged ${discovered.length} from ${file}`)
     }
   } else {
-    // Incremental: only load discovered files
+    // Incremental: only load discovered files, dedup against existing
     console.log(`  ${existingCount} publications already exist, loading discovered only...`)
     pubs = []
     const discoveredFiles = readdirSync(OUTPUT_DIR).filter(
@@ -162,11 +162,55 @@ async function loadPublications() {
       console.log(`  No discovered publication files found. Nothing to add.`)
       return
     }
+
+    // Build dedup index from existing publications
+    console.log('  Building dedup index from existing publications...')
+    const existingPubs = await getAllPaginated('publications')
+    const existingDois = new Set<string>()
+    const existingByTitleYear = new Map<string, number[]>() // title_lower → [years]
+    for (const p of existingPubs) {
+      if (p.doi) existingDois.add((p.doi as string).toLowerCase())
+      if (p.title) {
+        const key = (p.title as string).toLowerCase()
+        if (!existingByTitleYear.has(key)) existingByTitleYear.set(key, [])
+        existingByTitleYear.get(key)!.push(p.year as number || 0)
+      }
+    }
+    console.log(`  Dedup index: ${existingDois.size} DOIs, ${existingByTitleYear.size} unique titles`)
+
     for (const file of discoveredFiles) {
       const discovered = JSON.parse(readFileSync(`${OUTPUT_DIR}/${file}`, 'utf-8'))
-      pubs.push(...discovered)
-      console.log(`  Merged ${discovered.length} from ${file}`)
+      let added = 0
+      let doiDup = 0
+      let titleDup = 0
+      for (const pub of discovered) {
+        // Tier 1: DOI match
+        if (pub.doi && existingDois.has(pub.doi.toLowerCase())) { doiDup++; continue }
+
+        // Tier 2: Exact title + close year (±1)
+        if (pub.title) {
+          const titleKey = pub.title.toLowerCase()
+          const existingYears = existingByTitleYear.get(titleKey)
+          if (existingYears) {
+            const yearMatch = existingYears.some((y: number) => !pub.year || !y || Math.abs(pub.year - y) <= 1)
+            if (yearMatch) { titleDup++; continue }
+          }
+        }
+
+        pubs.push(pub)
+        // Add to index so later items in the file don't duplicate earlier ones
+        if (pub.doi) existingDois.add(pub.doi.toLowerCase())
+        if (pub.title) {
+          const key = pub.title.toLowerCase()
+          if (!existingByTitleYear.has(key)) existingByTitleYear.set(key, [])
+          existingByTitleYear.get(key)!.push(pub.year || 0)
+        }
+        added++
+      }
+      console.log(`  ${file}: ${added} new, ${doiDup} DOI dupes, ${titleDup} title dupes (of ${discovered.length})`)
     }
+    console.log(`  ${pubs.length} new publications to load`)
+    if (pubs.length === 0) return
   }
 
   await runBatch(
@@ -221,7 +265,7 @@ async function loadDatasets() {
     // Fresh load
     datasets = JSON.parse(readFileSync(`${OUTPUT_DIR}/data-catalog-normalized.json`, 'utf-8'))
   } else {
-    // Incremental: only load discovered datasets
+    // Incremental: only load discovered datasets, dedup against existing
     console.log(`  ${existingCount} datasets already exist, loading discovered only...`)
     datasets = []
     const discoveredFiles = readdirSync(OUTPUT_DIR).filter(
@@ -231,11 +275,34 @@ async function loadDatasets() {
       console.log(`  No discovered dataset files found. Nothing to add.`)
       return
     }
+
+    // Build dedup index
+    console.log('  Building dedup index from existing datasets...')
+    const existingDs = await getAllPaginated('datasets')
+    const existingDois = new Set<string>()
+    const existingTitles = new Set<string>()
+    for (const d of existingDs) {
+      if (d.doi) existingDois.add((d.doi as string).toLowerCase())
+      if (d.title) existingTitles.add((d.title as string).toLowerCase())
+    }
+    console.log(`  Dedup index: ${existingDois.size} DOIs, ${existingTitles.size} titles`)
+
     for (const file of discoveredFiles) {
       const discovered = JSON.parse(readFileSync(`${OUTPUT_DIR}/${file}`, 'utf-8'))
-      datasets.push(...discovered)
-      console.log(`  Merged ${discovered.length} from ${file}`)
+      let added = 0
+      let dupes = 0
+      for (const ds of discovered) {
+        if (ds.doi && existingDois.has(ds.doi.toLowerCase())) { dupes++; continue }
+        if (ds.title && existingTitles.has(ds.title.toLowerCase())) { dupes++; continue }
+        datasets.push(ds)
+        if (ds.doi) existingDois.add(ds.doi.toLowerCase())
+        if (ds.title) existingTitles.add(ds.title.toLowerCase())
+        added++
+      }
+      console.log(`  ${file}: ${added} new, ${dupes} duplicates (of ${discovered.length})`)
     }
+    console.log(`  ${datasets.length} new datasets to load`)
+    if (datasets.length === 0) return
   }
 
   // Dataset tags are freeform — create any new topics as needed
