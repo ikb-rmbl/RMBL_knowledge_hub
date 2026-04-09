@@ -100,6 +100,30 @@ export const Documents: CollectionConfig = {
       },
     },
     {
+      name: 'pdfRestricted',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'If true, PDF is locally indexed but not publicly downloadable (restricted licensing).',
+      },
+    },
+    {
+      name: 'pdfSourceDescription',
+      type: 'text',
+      admin: {
+        description: 'Where a restricted PDF was obtained (e.g., "ILL via UC Davis library").',
+      },
+    },
+    {
+      name: 'pdfAcquiredAt',
+      type: 'date',
+      admin: {
+        description: 'When this restricted PDF was acquired.',
+        date: { pickerAppearance: 'dayOnly' },
+      },
+    },
+    {
       name: 'sourceUrl',
       type: 'text',
       admin: {

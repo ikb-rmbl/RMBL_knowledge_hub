@@ -171,7 +171,7 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
       )}
 
       <div className="detail-actions">
-        {isHttpUrl(pub.pdfLink) && (
+        {!pub.pdfRestricted && isHttpUrl(pub.pdfLink) && (
           <a className="detail-action-primary" href={pub.pdfLink} target="_blank" rel="noopener noreferrer">
             Download PDF
           </a>

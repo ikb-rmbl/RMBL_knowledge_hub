@@ -24,7 +24,9 @@
     "sync:verify": "tsx scripts/sync-to-neon.ts --mode=verify",
     "sync:full": "tsx scripts/sync-to-neon.ts --mode=full",
     "sync:safe": "tsx scripts/sync-to-neon.ts --mode=safe",
-    "sync:schema": "tsx scripts/sync-to-neon.ts --mode=schema"
+    "sync:schema": "tsx scripts/sync-to-neon.ts --mode=schema",
+    "worklist:export": "tsx scripts/export-pdf-worklist.ts",
+    "pdf:ingest-manual": "tsx scripts/ingest-manual-pdfs.ts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "^3.80.0",

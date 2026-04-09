@@ -72,7 +72,7 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
       )}
 
       <div className="detail-actions">
-        {isHttpUrl(doc.pdfLink as string) && (
+        {!doc.pdfRestricted && isHttpUrl(doc.pdfLink as string) && (
           <a
             className="detail-action-primary"
             href={doc.pdfLink as string}

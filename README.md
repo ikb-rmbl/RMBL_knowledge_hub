@@ -127,6 +127,37 @@ npx tsx scripts/crosslink-datasets.ts
 
 See `scripts/README.md` for detailed documentation of each script, CLI flags, and shared libraries.
 
+### Manual PDF Acquisition
+
+For papers that automated discovery can't reach (paywalled journals, anti-bot
+institutional repos), a technician can manually find and ingest PDFs. The PDFs
+are text-extracted and indexed for search but never publicly redistributed.
+
+```bash
+# 1. Generate a worklist CSV of papers needing PDFs
+npm run worklist:export -- --limit=200 --year-min=2015
+
+# 2. Technician opens scripts/output/pdf-worklist.csv in a spreadsheet,
+#    finds each PDF (DOI, library, ILL, etc.), and downloads to:
+#    scripts/output/pdf-staging/manual/pub_<id>.pdf
+#    Then fills in the source_description column for each downloaded PDF.
+
+# 3. Ingest all PDFs in the manual/ directory
+npm run pdf:ingest-manual -- --worklist=scripts/output/pdf-worklist.csv
+
+#    This validates each PDF, extracts text, sets pdf_restricted=true on the
+#    publication, moves the source PDF to manual/processed/<date>/, and logs
+#    to scripts/output/manual-ingest-log.json.
+
+# 4. Sync to production (the restriction flag and extracted text propagate;
+#    the PDF blob stays local-only)
+npm run sync:push
+```
+
+Restricted PDFs appear in search results with full-text snippets and on the
+detail page with abstracts and references — the only thing hidden is the
+"Download PDF" button.
+
 ## Project Structure
 
 ```
