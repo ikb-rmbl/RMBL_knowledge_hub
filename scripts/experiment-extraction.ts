@@ -24,9 +24,11 @@ import { VOYAGE_API_KEY, VOYAGE_MODEL, STAGING_DIR, OUTPUT_DIR } from './lib/con
 const args = process.argv.slice(2)
 const strategyArg = args.find((a) => a.startsWith('--strategy='))?.split('=')[1] || 'all'
 const paperArg = args.find((a) => a.startsWith('--paper='))?.split('=')[1]
+const idsFileArg = args.find((a) => a.startsWith('--ids-file='))?.split('=')[1]
+const outputDirArg = args.find((a) => a.startsWith('--output-dir='))?.split('=')[1]
 
 const TEST_PAPER_IDS = [9, 15, 21, 24, 26, 30, 36, 40, 41, 96]
-const RESULTS_DIR = `${OUTPUT_DIR}/extraction-experiment`
+const RESULTS_DIR = outputDirArg || `${OUTPUT_DIR}/extraction-experiment`
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || ''
 
@@ -715,7 +717,17 @@ async function main() {
 
   const db = new pg.Pool({ connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/rmbl_knowledge_hub' })
 
-  const ids = paperArg ? [parseInt(paperArg)] : TEST_PAPER_IDS
+  let ids: number[]
+  if (paperArg) {
+    ids = [parseInt(paperArg)]
+  } else if (idsFileArg) {
+    const content = readFileSync(idsFileArg, 'utf-8')
+    ids = content.split(/\r?\n/).map((line) => parseInt(line.trim())).filter((n) => !isNaN(n))
+    console.log(`Loaded ${ids.length} paper IDs from ${idsFileArg}`)
+  } else {
+    ids = TEST_PAPER_IDS
+  }
+  console.log(`Output directory: ${RESULTS_DIR}`)
   const results: any[] = []
 
   for (const id of ids) {
