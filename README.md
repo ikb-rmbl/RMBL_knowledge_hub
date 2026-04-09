@@ -158,6 +158,42 @@ Restricted PDFs appear in search results with full-text snippets and on the
 detail page with abstracts and references — the only thing hidden is the
 "Download PDF" button.
 
+### Backup & Restore
+
+Daily automated backups to AWS S3, with full restore + monthly drill workflow.
+See `docs/RESTORE_RUNBOOK.md` for the disaster recovery procedure.
+
+```bash
+# Run a database backup manually (also runs daily via GitHub Actions)
+npm run backup:db
+
+# Sync restricted PDFs to private S3 bucket (run weekly)
+npm run backup:pdfs
+
+# Verify the latest backup is recent and intact
+npm run backup:verify
+
+# Monthly restore drill — downloads latest, restores to throwaway DB, verifies
+npm run backup:test-restore
+
+# List available backups
+npm run restore:list
+
+# Restore the latest backup to local (DESTRUCTIVE — drops local DB)
+npm run restore:db
+
+# Restore a specific backup
+npm run restore:db -- --backup=rmbl-hub-2026-04-09T21-18-51Z.dump
+
+# Restore latest to Neon production (REQUIRES DOUBLE CONFIRMATION)
+npm run restore:db -- --target=neon
+```
+
+The backup system uses an `rmbl-backup` AWS profile that must be configured
+locally (`aws configure --profile rmbl-backup`). For CI, three secrets must
+be set in the GitHub repo: `AWS_BACKUP_ACCESS_KEY_ID`, `AWS_BACKUP_SECRET_ACCESS_KEY`,
+and `NEON_DIRECT_URL`.
+
 ## Project Structure
 
 ```

@@ -1,0 +1,40 @@
+name: Database Backup
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # 09:00 UTC daily (= 03:00 MDT)
+  workflow_dispatch:      # also allow manual trigger from the Actions tab
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_BACKUP_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_BACKUP_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Run database backup
+        env:
+          NEON_DIRECT_URL: ${{ secrets.NEON_DIRECT_URL }}
+          BACKUP_BUCKET: rmbl-hub-backups
+        run: bash scripts/backup-database.sh
+
+      - name: Verify backup is recent
+        env:
+          BACKUP_BUCKET: rmbl-hub-backups
+        run: bash scripts/verify-backup-recency.sh
