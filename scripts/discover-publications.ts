@@ -27,6 +27,7 @@ import {
   saveDiscoveredPublications,
   normalizeOpenAlexWork,
   normalizeCrossRefWork,
+  isRelevantPublication,
 } from './lib/publication-discovery.js'
 import type { NormalizedPublication } from './lib/types.js'
 
@@ -44,7 +45,8 @@ const SEARCH_TERMS = [
   // Core Gunnison Basin
   '"Gunnison Basin"',
   '"Crested Butte" Colorado',
-  '"Gothic" Colorado',
+  '"Gothic Colorado"',           // exact phrase to avoid Gothic literature noise
+  '"Gothic Townsite"',
   '"East River" Colorado watershed',
   '"Rocky Mountain Biological Laboratory"',
   'RMBL Colorado',
@@ -74,9 +76,10 @@ const SEARCH_TERMS = [
 
 // CrossRef search terms — more targeted phrases for bibliographic search
 const CROSSREF_SEARCH_TERMS = [
-  '"Gunnison" Colorado',
+  '"Gunnison Basin" Colorado',
   '"Crested Butte" Colorado',
-  '"Gothic" Colorado',
+  '"Gothic Colorado"',           // exact phrase to avoid Gothic literature
+  '"Gothic Townsite"',
   '"East River" Colorado',
   '"Rocky Mountain Biological Laboratory"',
   '"Upper Gunnison"',
@@ -92,28 +95,27 @@ const CROSSREF_SEARCH_TERMS = [
 ]
 
 // ---------------------------------------------------------------------------
-// Relevance filter — require geographic keyword in title/abstract/affiliations
+// Relevance filter — uses tiered logic from publication-discovery.ts
+// (Tier A strong terms, Tier B weak terms requiring Colorado context, Tier C exclusions)
 // ---------------------------------------------------------------------------
-
-const RELEVANCE_KEYWORDS = /\b(gunnison|crested butte|gothic|east river|rmbl|rocky mountain biological|upper gunnison|black canyon|west elk|grand mesa|roaring fork|arkansas valley|browns canyon|south park|paonia|hotchkiss|uncompahgre|powderhorn|lake fork|independence pass|cottonwood pass|saguache|cochetopa|curecanti|sapinero|kebler pass|elk mountains|taylor river|ohio creek|cement creek|pitkin county|gunnison county|colorado|western slope|san juan|continental divide)\b/i
 
 function isRelevantOpenAlex(work: any): boolean {
   const title = work.title || work.display_name || ''
-  const abstractWords = work.abstract_inverted_index
+  const abstract = work.abstract_inverted_index
     ? Object.keys(work.abstract_inverted_index).join(' ')
     : ''
   const affiliations = (work.authorships || [])
     .flatMap((a: any) => a.institutions?.map((i: any) => i.display_name) || [])
     .join(' ')
-  const text = `${title} ${abstractWords} ${affiliations}`
-  return RELEVANCE_KEYWORDS.test(text)
+  const journal = work.primary_location?.source?.display_name || work.host_venue?.display_name || ''
+  return isRelevantPublication({ title, abstract, affiliations, journal })
 }
 
 function isRelevantCrossRef(item: any): boolean {
   const title = Array.isArray(item.title) ? item.title[0] : (item.title || '')
   const abstract = item.abstract?.replace(/<[^>]+>/g, '') || ''
-  const text = `${title} ${abstract}`
-  return RELEVANCE_KEYWORDS.test(text)
+  const journal = Array.isArray(item['container-title']) ? item['container-title'][0] : (item['container-title'] || '')
+  return isRelevantPublication({ title, abstract, journal })
 }
 
 // ---------------------------------------------------------------------------

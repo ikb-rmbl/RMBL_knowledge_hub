@@ -209,19 +209,35 @@ async function main() {
   }
   console.log(`\r  ${totalProcessed} refs processed (${doiMatches} DOI, ${titleMatches} title, ${external} external)`)
 
-  // Load into database
+  // Load into database (idempotent: ON CONFLICT against references_cited_dedup_uidx)
   if (!dryRun) {
-    console.log('\nLoading into database...')
+    console.log('Loading into database...')
     let loaded = 0
+    let updated = 0
     for (let i = 0; i < matched.length; i++) {
       const ref = matched[i]
       if (!ref.sourcePublicationId) continue
 
-      await db.query(
+      const result = await db.query(
         `INSERT INTO references_cited
          (source_publication_id, cited_title, cited_authors, cited_year, cited_doi, cited_journal, raw_citation,
           target_publication_id, target_dataset_id, link_type, match_method, match_confidence, extraction_source)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         ON CONFLICT (source_publication_id,
+                      COALESCE(target_publication_id, 0),
+                      COALESCE(target_dataset_id, 0),
+                      COALESCE(LOWER(cited_doi), ''),
+                      COALESCE(LOWER(cited_title), ''))
+         DO UPDATE SET
+           cited_authors = COALESCE(EXCLUDED.cited_authors, references_cited.cited_authors),
+           cited_year = COALESCE(EXCLUDED.cited_year, references_cited.cited_year),
+           cited_journal = COALESCE(EXCLUDED.cited_journal, references_cited.cited_journal),
+           raw_citation = COALESCE(EXCLUDED.raw_citation, references_cited.raw_citation),
+           link_type = EXCLUDED.link_type,
+           match_method = EXCLUDED.match_method,
+           match_confidence = EXCLUDED.match_confidence,
+           extraction_source = EXCLUDED.extraction_source
+         RETURNING (xmax = 0) AS inserted`,
         [
           ref.sourcePublicationId,
           ref.citedTitle?.slice(0, 500) || null,
@@ -238,10 +254,11 @@ async function main() {
           ref.extractionSource,
         ],
       )
-      loaded++
-      if (loaded % 5000 === 0) process.stdout.write(`\r  ${loaded} loaded`)
+      if (result.rows[0]?.inserted) loaded++
+      else updated++
+      if ((loaded + updated) % 5000 === 0) process.stdout.write(`\r  ${loaded} inserted, ${updated} updated`)
     }
-    console.log(`\r  ${loaded} references loaded into database`)
+    console.log(`\r  ${loaded} new references inserted, ${updated} existing references updated`)
   }
 
   // Summary
