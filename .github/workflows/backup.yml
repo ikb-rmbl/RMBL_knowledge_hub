@@ -23,8 +23,12 @@ jobs:
           sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
           sudo apt-get update
           sudo apt-get install -y postgresql-client-17
-          # Confirm we got version 17
-          pg_dump --version
+          # The Debian pg_wrapper dispatches /usr/bin/pg_dump to the highest
+          # *installed* major version, but the GitHub runner already has
+          # postgresql-client-16 preinstalled. Force PG_CLIENT_BIN to point at
+          # the v17 binaries so the backup script uses the right version.
+          echo "PG_CLIENT_BIN=/usr/lib/postgresql/17/bin" >> $GITHUB_ENV
+          /usr/lib/postgresql/17/bin/pg_dump --version
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

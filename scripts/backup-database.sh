@@ -43,6 +43,12 @@ fi
 
 BACKUP_BUCKET="${BACKUP_BUCKET:-rmbl-hub-backups}"
 
+# Allow callers to override the pg_dump binary location. Useful in CI where
+# the system pg_dump may be an older version (the Debian pg_wrapper dispatches
+# to the highest installed version, which may not be what we want).
+PG_DUMP="${PG_CLIENT_BIN:+$PG_CLIENT_BIN/}pg_dump"
+PG_RESTORE="${PG_CLIENT_BIN:+$PG_CLIENT_BIN/}pg_restore"
+
 # ----------------------------------------------------------------------------
 # Setup
 # ----------------------------------------------------------------------------
@@ -66,7 +72,7 @@ echo
 # ----------------------------------------------------------------------------
 
 echo "Step 1: Dumping schema..."
-pg_dump --schema-only --no-owner --no-acl "$DB_URL" > "$SCHEMA_FILE"
+"$PG_DUMP" --schema-only --no-owner --no-acl "$DB_URL" > "$SCHEMA_FILE"
 SCHEMA_SIZE=$(wc -c < "$SCHEMA_FILE")
 echo "  Schema dump: $SCHEMA_SIZE bytes"
 
@@ -76,7 +82,7 @@ echo "  Schema dump: $SCHEMA_SIZE bytes"
 
 echo
 echo "Step 2: Dumping full database (custom format)..."
-pg_dump -Fc --no-owner --no-acl "$DB_URL" -f "$DUMP_FILE"
+"$PG_DUMP" -Fc --no-owner --no-acl "$DB_URL" -f "$DUMP_FILE"
 DUMP_SIZE=$(wc -c < "$DUMP_FILE")
 DUMP_MB=$(( DUMP_SIZE / 1024 / 1024 ))
 echo "  Dump size: $DUMP_SIZE bytes ($DUMP_MB MB)"
@@ -93,7 +99,7 @@ fi
 
 echo
 echo "Step 3: Verifying dump..."
-TABLE_COUNT=$(pg_restore --list "$DUMP_FILE" | grep -c '^[0-9]*; [0-9]* [0-9]* TABLE ' || true)
+TABLE_COUNT=$("$PG_RESTORE" --list "$DUMP_FILE" | grep -c '^[0-9]*; [0-9]* [0-9]* TABLE ' || true)
 echo "  Dump contains $TABLE_COUNT TABLE entries"
 
 if [ "$TABLE_COUNT" -lt 5 ]; then
