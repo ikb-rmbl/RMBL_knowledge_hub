@@ -206,6 +206,19 @@ interface VLMExtraction {
     conditions?: string
     equipment?: string[]
   }[]
+  protocolsNamed: {
+    proposedName: string                  // short descriptive name
+    category: string                      // sampling/measurement/analytical/experimental/observational/computational/laboratory
+    subcategory?: string
+    description: string                   // 2-3 sentence abstract
+    isStandardized: boolean
+    standardName?: string                 // recognized standard name if applicable
+    standardReference?: string            // citation for the canonical methods paper
+    outputMeasurements?: string[]
+    protocolStepIndices?: number[]        // links into protocolSteps
+    equipmentUsed?: string[]
+    role: string                          // introducing|using|modifying|comparing
+  }[]
   equipment: string[]
   studySite: { description: string; coordinates?: string; elevation?: string; habitat?: string }
   samplingDesign: string
@@ -220,17 +233,51 @@ interface VLMExtraction {
   species: {
     scientificName: string
     commonName?: string
-    authority?: string         // e.g., "Linnaeus, 1758"
+    authority?: string                    // e.g., "Linnaeus, 1758"
     family?: string
     order?: string
     class?: string
     kingdom?: string
-    role: string               // study subject, predator, pollinator, host, etc.
+    role: string                          // study subject, predator, pollinator, host, etc.
+    conservationStatus?: string           // IUCN code (LC/NT/VU/EN/CR/DD) — only if explicitly stated
+    nativeStatus?: string                 // native|introduced|invasive|unknown — only if explicitly stated
+    synonymsUsed?: string[]               // abbreviations and alternate names used in this paper
   }[]
-  locations: { name: string; type: string }[]
+  places: {
+    name: string
+    type: string                          // study_site/peak/valley/watershed/stream/lake/meadow/town/county/state/country/region/trail/named_point/bioregion
+    scale?: string                        // site/local/regional/state/national
+    parentName?: string                   // containing place name
+    coordinates?: string                  // "lat,lon" decimal degrees
+    elevation?: string                    // meters
+    elevationRange?: string               // e.g., "2800-3400 m"
+    habitat?: string
+    role: string                          // primary_study_site|secondary_site|reference_location|comparison_site|mentioned
+  }[]
+  // legacy `locations` retained for backward compat with results.json from prior runs
+  locations?: { name: string; type: string }[]
   chemicals: string[]
   datasets: string[]
   timespan: { start?: string; end?: string; duration?: string }
+
+  // Concepts (theories, frameworks, measurements)
+  concepts: {
+    name: string
+    type: string                          // theory|hypothesis|process|phenomenon|measurement|metric|framework|model_type
+    definition?: string                   // 1-sentence as used in the paper, or null if assumed
+    role: string                          // central|tested|framework|referenced|measured
+    scope?: string                        // general_ecology|climate|hydrology|population_ecology|community_ecology|evolution|biogeochemistry|landscape|molecular|methodological
+    aliases?: string[]
+  }[]
+
+  // Metadata enrichment (verbatim from paper, used to fill gaps in DB record)
+  metadataEnrichment?: {
+    title?: string                        // verbatim title
+    doi?: string                          // verbatim DOI
+    abstract?: string                     // verbatim abstract
+    keywords?: string[]                   // author-supplied keywords
+    authors?: { given: string; family: string; orcid?: string }[]
+  }
 
   // Visual content
   figures: { page: number; type: string; description: string; keyInsight: string }[]
@@ -240,16 +287,16 @@ interface VLMExtraction {
   // Code & data availability
   codeAvailability: {
     url: string
-    platform: string            // 'GitHub', 'GitLab', 'Zenodo', 'Dryad', 'Figshare', 'CRAN', 'PyPI', 'other'
-    description: string         // what the code does
-    language?: string           // 'R', 'Python', 'MATLAB', etc.
-    license?: string            // if stated
+    platform: string                      // 'GitHub', 'GitLab', 'Zenodo', 'Dryad', 'Figshare', 'CRAN', 'PyPI', 'other'
+    description: string                   // what the code does
+    language?: string                     // 'R', 'Python', 'MATLAB', etc.
+    license?: string                      // if stated
   }[]
   dataAvailability: {
     url: string
-    platform: string            // 'Dryad', 'Zenodo', 'EDI', 'USGS', 'GitHub', 'other'
-    description: string         // what data is available
-    doi?: string                // dataset DOI if given
+    platform: string                      // 'Dryad', 'Zenodo', 'EDI', 'USGS', 'GitHub', 'other'
+    description: string                   // what data is available
+    doi?: string                          // dataset DOI if given
   }[]
 
   // Relationships to other work
@@ -279,6 +326,21 @@ const VLM_PROMPT = `Analyze this scientific paper. Extract the following as JSON
       "equipment": ["specific tools used in this step"]
     }
   ],
+  "protocolsNamed": [
+    {
+      "proposedName": "A short descriptive name for this method (e.g., 'Mark-recapture of yellow-bellied marmots', 'Sterivex eDNA filtration', 'Phenocam NDVI timeseries')",
+      "category": "sampling | measurement | analytical | experimental | observational | computational | laboratory",
+      "subcategory": "short descriptor (e.g., 'demographic monitoring', 'remote sensing', 'molecular')",
+      "description": "2-3 sentence abstract of the method as used in this paper",
+      "isStandardized": true,
+      "standardName": "Established name of this protocol if it is a recognized standard method (e.g., 'Breeding Bird Survey', 'Daubenmire frame cover estimation', 'mark-recapture'), or null",
+      "standardReference": "citation if the paper cites a methods paper for this protocol, or null",
+      "outputMeasurements": ["what data this protocol produces (e.g., 'individual mass', 'capture histories', 'NDVI timeseries')"],
+      "protocolStepIndices": [1, 2, 3],
+      "equipmentUsed": ["subset of top-level equipment list used by this protocol"],
+      "role": "introducing | using | modifying | comparing"
+    }
+  ],
   "equipment": ["ALL specific instruments, sensors, traps, software, tools — include model numbers and manufacturers if stated"],
   "studySite": {
     "description": "Full location description",
@@ -305,13 +367,53 @@ const VLM_PROMPT = `Analyze this scientific paper. Extract the following as JSON
       "order": "taxonomic order if stated or inferable (e.g., 'Rodentia'), or null",
       "class": "taxonomic class if inferable (e.g., 'Mammalia'), or null",
       "kingdom": "Animalia / Plantae / Fungi / etc.",
-      "role": "study subject / predator / prey / pollinator / host plant / parasite / competitor / indicator species / etc."
+      "role": "study subject / predator / prey / pollinator / host plant / parasite / competitor / indicator species / etc.",
+      "conservationStatus": "IUCN code (LC/NT/VU/EN/CR/DD) — ONLY if explicitly stated in the paper, otherwise null",
+      "nativeStatus": "native | introduced | invasive | unknown — ONLY if explicitly stated in the paper, otherwise null",
+      "synonymsUsed": ["abbreviations and alternate names used for this taxon in this paper, e.g., 'M. flaviventris'"]
     }
   ],
-  "locations": [{"name": "Gothic", "type": "study site / reference location / etc."}],
+  "places": [
+    {
+      "name": "Gothic",
+      "type": "study_site | peak | valley | watershed | stream | lake | meadow | town | county | state | country | region | trail | named_point | bioregion",
+      "scale": "site | local | regional | state | national",
+      "parentName": "name of the containing place if mentioned (e.g., 'East River watershed', 'Gunnison County'), or null",
+      "coordinates": "lat,lon in decimal degrees if given (e.g., '38.9583,-106.9881'), or null",
+      "elevation": "elevation in meters if given, or null",
+      "elevationRange": "e.g., '2800-3400 m' if a range is given, or null",
+      "habitat": "habitat type (subalpine meadow, riparian, alpine tundra, conifer forest, etc.), or null",
+      "role": "primary_study_site | secondary_site | reference_location | comparison_site | mentioned"
+    }
+  ],
   "chemicals": ["compounds, elements, nutrients measured or manipulated"],
   "datasets": ["names of datasets produced or referenced"],
   "timespan": {"start": "earliest year of data", "end": "latest year", "duration": "e.g., 3 summers"},
+
+  "concepts": [
+    {
+      "name": "canonical concept name (e.g., 'phenological mismatch', 'trophic cascade', 'NDVI', 'metapopulation theory', 'thermal performance curve')",
+      "type": "theory | hypothesis | process | phenomenon | measurement | metric | framework | model_type",
+      "definition": "1-sentence definition of this concept as used in this paper, or null if the paper assumes familiarity",
+      "role": "central | tested | framework | referenced | measured",
+      "scope": "general_ecology | climate | hydrology | population_ecology | community_ecology | evolution | biogeochemistry | landscape | molecular | methodological",
+      "aliases": ["abbreviations or alternative names used (e.g., 'NDVI' for 'Normalized Difference Vegetation Index')"]
+    }
+  ],
+
+  "metadataEnrichment": {
+    "title": "The exact paper title as printed on the title page",
+    "doi": "DOI as printed in the paper (e.g., '10.1234/abc'), or null if not visible in the paper",
+    "abstract": "The full abstract verbatim as printed in the paper, or null if no abstract section",
+    "keywords": ["author-supplied keywords if listed under a 'Keywords' section"],
+    "authors": [
+      {
+        "given": "given name(s) as printed",
+        "family": "family name as printed",
+        "orcid": "ORCID if printed near author (e.g., '0000-0001-2345-6789'), or null"
+      }
+    ]
+  },
 
   "figures": [{"page": 1, "type": "scatter plot / map / photograph / diagram / bar chart", "description": "What it shows", "keyInsight": "The main finding or information this figure communicates"}],
   "tables": [{"page": 1, "description": "What the table contains", "variables": ["column names"], "keyData": "Most important values or patterns"}],
@@ -342,12 +444,16 @@ const VLM_PROMPT = `Analyze this scientific paper. Extract the following as JSON
 
 CRITICAL INSTRUCTIONS:
 - Extract information from figures, tables, and photographs — not just text.
-- For protocolSteps, provide maximum detail from the paper. Include exact quantities, timing, spacing, equipment per step. If the paper says "we established 12 plots at 50m intervals along 3 transects", that level of detail belongs in the step.
-- For species, include ALL organisms mentioned — study subjects, predators, prey, food plants, parasites, competitors. Provide taxonomic hierarchy where you can confidently infer it (e.g., marmots → Sciuridae → Rodentia → Mammalia → Animalia).
+- For protocolSteps, provide maximum detail from the paper. Include exact quantities, timing, spacing, equipment per step.
+- For protocolsNamed, identify 1-5 distinct protocols. Group related steps from protocolSteps under each protocol via protocolStepIndices. Recognize standard methods (mark-recapture, point counts, Tullgren funnels, DNA metabarcoding, Daubenmire frames). For novel methods, propose a concise descriptive name.
+- For species, include ALL organisms mentioned — study subjects, predators, prey, food plants, parasites, competitors. Provide taxonomic hierarchy where you can confidently infer it (e.g., marmots → Sciuridae → Rodentia → Mammalia → Animalia). Use the formally published scientific name. If the paper uses an abbreviation (e.g., 'M. flaviventris' after introducing 'Marmota flaviventris'), record the full name in scientificName and the abbreviation in synonymsUsed. Only fill conservationStatus and nativeStatus if explicitly stated — do NOT infer from general knowledge.
+- For places, extract the hierarchical context. If the paper says 'at the Rocky Mountain Biological Laboratory (RMBL) in Gothic, Colorado', emit three entries: RMBL (type=study_site, parentName=Gothic), Gothic (type=town, parentName=Gunnison County), Colorado (type=state). Extract coordinates exactly as given — do not convert between DMS and decimal unless the paper provides the conversion.
+- For concepts, identify 3-8 concepts the paper *actively engages with* — tests, measures, builds on, or uses as theoretical framework. Do NOT list every term in passing. Focus on concepts that would be useful for grouping related studies. Use canonical names ('phenological mismatch', not 'mismatch in phenology between species').
+- For metadataEnrichment, extract these fields verbatim from the paper. Do NOT paraphrase or invent. If a field is not present (e.g., the paper has no Keywords section), return null or an empty array. The downstream linker uses this only to fill empty fields in the existing publication record.
 - For codeAvailability and dataAvailability, extract ALL URLs mentioned in Data Availability, Code Availability, or Supplementary sections. Capture the EXACT URLs — do not abbreviate or paraphrase them. Include GitHub repos, Zenodo archives, Dryad deposits, EDI packages, CRAN packages, etc. If a DOI is given for a dataset, include it.
 - Do NOT fabricate information not present in the paper.`
 
-const PAGE_BATCH_SIZE = 10 // max pages per Claude call
+const PAGE_BATCH_SIZE = 20 // max pages per Claude call (most articles fit in a single batch)
 
 async function callClaudeWithPages(
   imageContents: any[],
@@ -363,7 +469,7 @@ async function callClaudeWithPages(
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 8192,
+      max_tokens: 16384, // increased from 8192 to accommodate the enhanced schema (places, protocolsNamed, concepts, metadataEnrichment)
       messages: [{
         role: 'user',
         content: [
@@ -449,9 +555,42 @@ function mergeExtractions(parts: VLMExtraction[]): VLMExtraction {
       merged.statisticalMethods = [...(merged.statisticalMethods || []), ...newMethods]
     }
     if (p.chemicals?.length) merged.chemicals = [...new Set([...(merged.chemicals || []), ...p.chemicals])]
-    if (p.locations?.length) {
-      const existingLocs = new Set((merged.locations || []).map((l) => (l.name || '').toLowerCase()))
-      merged.locations = [...(merged.locations || []), ...p.locations.filter((l) => l.name && !existingLocs.has(l.name.toLowerCase()))]
+    if (p.places?.length) {
+      // Dedupe by lowercase name + type; on conflict prefer the entry with more populated fields
+      const fieldCount = (place: any) => Object.values(place).filter((v) => v != null && v !== '').length
+      const byKey = new Map<string, any>()
+      for (const place of merged.places || []) {
+        const key = `${(place.name || '').toLowerCase()}|${place.type || ''}`
+        byKey.set(key, place)
+      }
+      for (const place of p.places) {
+        if (!place.name) continue
+        const key = `${place.name.toLowerCase()}|${place.type || ''}`
+        const existing = byKey.get(key)
+        if (!existing || fieldCount(place) > fieldCount(existing)) {
+          byKey.set(key, place)
+        }
+      }
+      merged.places = [...byKey.values()]
+    }
+    if (p.protocolsNamed?.length) {
+      const existingNames = new Set((merged.protocolsNamed || []).map((pn) => (pn.proposedName || '').toLowerCase()))
+      merged.protocolsNamed = [...(merged.protocolsNamed || []), ...p.protocolsNamed.filter((pn) => pn.proposedName && !existingNames.has(pn.proposedName.toLowerCase()))]
+    }
+    if (p.concepts?.length) {
+      const existingNames = new Set((merged.concepts || []).map((c) => (c.name || '').toLowerCase()))
+      merged.concepts = [...(merged.concepts || []), ...p.concepts.filter((c) => c.name && !existingNames.has(c.name.toLowerCase()))]
+    }
+    if (p.metadataEnrichment) {
+      // Merge field-by-field: prefer first non-empty value (the title page is typically in batch 1)
+      merged.metadataEnrichment = merged.metadataEnrichment || {}
+      const m = merged.metadataEnrichment
+      const next = p.metadataEnrichment
+      if (!m.title && next.title) m.title = next.title
+      if (!m.doi && next.doi) m.doi = next.doi
+      if ((!m.abstract || m.abstract.length < 100) && next.abstract && next.abstract.length > (m.abstract?.length || 0)) m.abstract = next.abstract
+      if ((!m.keywords || m.keywords.length === 0) && next.keywords?.length) m.keywords = next.keywords
+      if ((!m.authors || m.authors.length === 0) && next.authors?.length) m.authors = next.authors
     }
     if (p.codeAvailability?.length) {
       const existingUrls = new Set((merged.codeAvailability || []).map((c: any) => c.url))
@@ -486,11 +625,11 @@ async function strategy3VLM(pdfPath: string, title: string): Promise<{ extractio
     const pageCountStr = execSync(`pdfinfo "${pdfPath}" 2>/dev/null | grep Pages | awk '{print $2}'`, { encoding: 'utf-8' }).trim()
     const totalPages = parseInt(pageCountStr) || 1
 
-    if (totalPages > 50) {
-      return { extraction: null, error: `Skipped: ${totalPages} pages exceeds 50-page limit (use --long for theses/books)` }
+    if (totalPages > 40) {
+      return { extraction: null, error: `Skipped: ${totalPages} pages exceeds 40-page limit (long-form documents — books, theses, multi-chapter reports — handled by separate Phase 4b pipeline with chapter-aware chunking)` }
     }
 
-    const maxPages = Math.min(totalPages, 40) // process up to 40 pages
+    const maxPages = totalPages // process all pages (already ≤40)
 
     // Render all pages
     execSync(`pdftoppm -jpeg -r 150 -l ${maxPages} "${pdfPath}" "${tmpDir}/${basename}"`, { encoding: 'utf-8' })
@@ -640,6 +779,14 @@ async function main() {
         console.log(`    Figures: ${e.figures?.length || 0}, Tables: ${e.tables?.length || 0}, Photos: ${e.photographs?.length || 0}`)
         console.log(`    Statistical methods: ${e.statisticalMethods?.map((s: any) => typeof s === 'string' ? s : s.name).join(', ') || 'none'}`)
         console.log(`    Timespan: ${e.timespan?.start || '?'} – ${e.timespan?.end || '?'} (${e.timespan?.duration || '?'})`)
+        console.log(`    Places: ${e.places?.length || 0}${e.places?.length ? ' — ' + e.places.slice(0, 3).map((pl: any) => pl.name).join(', ') + (e.places.length > 3 ? '…' : '') : ''}`)
+        console.log(`    Named protocols: ${e.protocolsNamed?.length || 0}${e.protocolsNamed?.length ? ' — ' + e.protocolsNamed.map((pn: any) => pn.proposedName).join('; ') : ''}`)
+        console.log(`    Concepts: ${e.concepts?.length || 0}${e.concepts?.length ? ' — ' + e.concepts.map((c: any) => c.name).join(', ') : ''}`)
+        if (e.metadataEnrichment) {
+          const m = e.metadataEnrichment
+          const filled = [m.title && 'title', m.doi && 'doi', m.abstract && 'abstract', m.keywords?.length && 'keywords', m.authors?.length && 'authors'].filter(Boolean)
+          console.log(`    Metadata enrichment: ${filled.length}/5 fields populated (${filled.join(', ') || 'none'})`)
+        }
         console.log(`    Code repos: ${e.codeAvailability?.length || 0}${e.codeAvailability?.length ? ' — ' + e.codeAvailability.map((c: any) => c.platform).join(', ') : ''}`)
         console.log(`    Data repos: ${e.dataAvailability?.length || 0}${e.dataAvailability?.length ? ' — ' + e.dataAvailability.map((d: any) => d.platform).join(', ') : ''}`)
         console.log(`    Builds on: ${e.buildsOn?.length || 0} prior works`)
@@ -759,8 +906,61 @@ async function main() {
         reportLines.push('')
       }
 
-      if (e.locations?.length > 0) {
+      if (e.places?.length > 0) {
+        reportLines.push(`**Places:**`)
+        for (const pl of e.places) {
+          let line = `- **${pl.name}** (${pl.type})`
+          if (pl.parentName) line += ` ⊂ ${pl.parentName}`
+          const details = [
+            pl.coordinates && `📍 ${pl.coordinates}`,
+            pl.elevation && `⛰️ ${pl.elevation}`,
+            pl.elevationRange && `⛰️ ${pl.elevationRange}`,
+            pl.habitat && `🌱 ${pl.habitat}`,
+          ].filter(Boolean)
+          if (details.length) line += ` — ${details.join(', ')}`
+          if (pl.role) line += ` (${pl.role})`
+          reportLines.push(line)
+        }
+        reportLines.push('')
+      } else if (e.locations?.length > 0) {
+        // legacy fallback for old result files
         reportLines.push(`**Locations:** ${e.locations.map((l: any) => `${l.name} (${l.type})`).join(', ')}\n`)
+      }
+
+      if (e.protocolsNamed?.length > 0) {
+        reportLines.push(`**Named Protocols:**`)
+        for (const pn of e.protocolsNamed) {
+          let line = `- **${pn.proposedName}** [${pn.category}${pn.subcategory ? '/' + pn.subcategory : ''}]`
+          if (pn.isStandardized) line += ` ✓ standardized`
+          if (pn.standardName) line += ` (${pn.standardName})`
+          line += ` — ${pn.role}`
+          reportLines.push(line)
+          if (pn.description) reportLines.push(`  - ${pn.description}`)
+        }
+        reportLines.push('')
+      }
+
+      if (e.concepts?.length > 0) {
+        reportLines.push(`**Concepts:**`)
+        for (const c of e.concepts) {
+          let line = `- **${c.name}** [${c.type}${c.scope ? '/' + c.scope : ''}] — ${c.role}`
+          reportLines.push(line)
+          if (c.definition) reportLines.push(`  - ${c.definition}`)
+        }
+        reportLines.push('')
+      }
+
+      if (e.metadataEnrichment) {
+        const m = e.metadataEnrichment
+        const filled: string[] = []
+        if (m.title) filled.push('title')
+        if (m.doi) filled.push('doi')
+        if (m.abstract) filled.push(`abstract (${m.abstract.length} chars)`)
+        if (m.keywords?.length) filled.push(`${m.keywords.length} keywords`)
+        if (m.authors?.length) filled.push(`${m.authors.length} authors`)
+        if (filled.length) {
+          reportLines.push(`**Metadata Enrichment:** ${filled.join(', ')}\n`)
+        }
       }
 
       if (e.chemicals?.length > 0) reportLines.push(`**Chemicals/Nutrients:** ${e.chemicals.join(', ')}\n`)
