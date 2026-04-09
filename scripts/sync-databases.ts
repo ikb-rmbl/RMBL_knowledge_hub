@@ -137,6 +137,30 @@ async function recordSync(
 // Merge logic
 // ---------------------------------------------------------------------------
 
+/**
+ * Value-based equality that handles Date objects (which fail strict ===
+ * even when they represent the same moment) and other reference types.
+ * Used to detect whether a field actually differs between local and remote.
+ */
+function valuesEqual(a: any, b: any): boolean {
+  if (a === b) return true
+  if (a == null && b == null) return true
+  if (a == null || b == null) return false
+  // Date: compare by epoch ms
+  if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
+  if (a instanceof Date || b instanceof Date) {
+    // One is Date, one is something else (likely a string from JSON parse)
+    const ta = a instanceof Date ? a.getTime() : new Date(a).getTime()
+    const tb = b instanceof Date ? b.getTime() : new Date(b).getTime()
+    return !isNaN(ta) && !isNaN(tb) && ta === tb
+  }
+  // Arrays / objects: structural equality via JSON
+  if (typeof a === 'object' || typeof b === 'object') {
+    return JSON.stringify(a) === JSON.stringify(b)
+  }
+  return false
+}
+
 function mergeRecord(
   localRecord: any,
   remoteRecord: any,
@@ -292,10 +316,11 @@ async function pushCollection(
       const shouldAttempt = fullPush || localUpdated > neonUpdated
 
       if (shouldAttempt) {
-        const { merged, changed } = mergeRecord(localRec, match, config, 'push')
+        const { merged } = mergeRecord(localRec, match, config, 'push')
         // Only update fields that actually differ between local and Neon
+        // (use valuesEqual to handle Date / vector / array types correctly)
         const fields = [...config.curatedFields, ...config.pipelineFields].filter(
-          (f) => merged[f] !== undefined && merged[f] !== match[f],
+          (f) => merged[f] !== undefined && !valuesEqual(merged[f], match[f]),
         )
         if (fields.length > 0) {
           if (!dryRun) {
@@ -502,7 +527,17 @@ async function syncReferencesCited(
       }
     }
 
-    // Atomic replace: delete then insert in a transaction
+    // Dedupe in TS first to avoid in-statement duplicate-key issues from latent
+    // local collisions (e.g., refs pointing to local datasets that share a DOI).
+    const seenKeys = new Set<string>()
+    const dedupedRefs = translatedRefs.filter((r) => {
+      const key = `${r.target_publication_id ?? 0}|${r.target_dataset_id ?? 0}|${(r.cited_doi || '').toLowerCase()}|${(r.cited_title || '').toLowerCase()}`
+      if (seenKeys.has(key)) return false
+      seenKeys.add(key)
+      return true
+    })
+
+    // Atomic replace: delete then bulk insert in a transaction
     const client = await neonDb.connect()
     try {
       await client.query('BEGIN')
@@ -512,13 +547,22 @@ async function syncReferencesCited(
       )
       totalDeleted += delResult.rowCount || 0
 
-      for (const r of translatedRefs) {
-        await client.query(
-          `INSERT INTO references_cited
-           (source_publication_id, cited_title, cited_authors, cited_year, cited_doi, cited_journal, raw_citation,
-            target_publication_id, target_dataset_id, link_type, match_method, match_confidence, extraction_source)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
-          [
+      // Bulk insert all refs in one query (chunked if very large)
+      // Postgres bind param limit is 65535; with 13 cols/row that's ~5000 rows max.
+      // Largest source has ~165 refs, so one query is almost always enough.
+      const COLS_PER_ROW = 13
+      const MAX_ROWS_PER_INSERT = 1000
+      for (let chunkStart = 0; chunkStart < dedupedRefs.length; chunkStart += MAX_ROWS_PER_INSERT) {
+        const chunk = dedupedRefs.slice(chunkStart, chunkStart + MAX_ROWS_PER_INSERT)
+        const placeholders = chunk
+          .map((_, i) => {
+            const base = i * COLS_PER_ROW
+            return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6}, $${base + 7}, $${base + 8}, $${base + 9}, $${base + 10}, $${base + 11}, $${base + 12}, $${base + 13})`
+          })
+          .join(', ')
+        const values: any[] = []
+        for (const r of chunk) {
+          values.push(
             neonSourceId,
             r.cited_title,
             r.cited_authors,
@@ -532,9 +576,17 @@ async function syncReferencesCited(
             r.match_method,
             r.match_confidence,
             r.extraction_source,
-          ],
+          )
+        }
+        const result = await client.query(
+          `INSERT INTO references_cited
+           (source_publication_id, cited_title, cited_authors, cited_year, cited_doi, cited_journal, raw_citation,
+            target_publication_id, target_dataset_id, link_type, match_method, match_confidence, extraction_source)
+           VALUES ${placeholders}
+           ON CONFLICT DO NOTHING`,
+          values,
         )
-        totalInserted++
+        totalInserted += result.rowCount || 0
       }
       await client.query('COMMIT')
     } catch (err: any) {
@@ -545,7 +597,7 @@ async function syncReferencesCited(
     }
 
     processed++
-    if (processed % 50 === 0) {
+    if (processed % 100 === 0 || processed === sources.length) {
       process.stdout.write(`\r    ${processed}/${sources.length} sources synced — ${totalInserted} refs inserted`)
     }
   }
