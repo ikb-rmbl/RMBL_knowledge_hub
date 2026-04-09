@@ -33,6 +33,9 @@ const collectionFilter = args.find((a) => a.startsWith('--collection='))?.split(
 const sinceArg = args.find((a) => a.startsWith('--since='))?.split('=')[1]
 const dryRun = args.includes('--dry-run')
 const verbose = args.includes('--verbose')
+const deleteOrphans = args.includes('--delete-orphans')
+const syncReferences = args.includes('--sync-references')
+const fullPush = args.includes('--full-push')
 
 const NEON_URL = process.env.NEON_DIRECT_URL
 const LOCAL_URL = process.env.DATABASE_URL || 'postgresql://localhost:5432/rmbl_knowledge_hub'
@@ -257,8 +260,10 @@ async function pushCollection(
   config: CollectionConfig,
   since: string | null,
 ) {
-  // Use parameterized query for since timestamp
-  const localChanged = since
+  // --full-push ignores the since timestamp and considers every row
+  // (use this when the pipeline scripts don't reliably bump updated_at on writes)
+  const useSince = since && !fullPush
+  const localChanged = useSince
     ? (await localDb.query(`SELECT * FROM ${config.table} WHERE updated_at > $1 ORDER BY id`, [since])).rows
     : (await localDb.query(`SELECT * FROM ${config.table} ORDER BY id`)).rows
 
@@ -279,16 +284,21 @@ async function pushCollection(
     const { match, confidence } = config.matchFields(localRec, neonRecords, neonIndex)
 
     if (match) {
-      // Record exists on Neon — only push if Neon hasn't been curated more recently
+      // Decide whether to attempt a push:
+      // - In default mode, only push if local updated_at is newer than Neon's
+      // - In --full-push mode, always attempt push (rely on content diff for skip)
       const neonUpdated = new Date(match.updated_at).getTime()
       const localUpdated = new Date(localRec.updated_at).getTime()
+      const shouldAttempt = fullPush || localUpdated > neonUpdated
 
-      if (localUpdated > neonUpdated) {
-        // Local is newer — push, but respect curated fields (only fill nulls)
+      if (shouldAttempt) {
         const { merged, changed } = mergeRecord(localRec, match, config, 'push')
-        if (changed && !dryRun) {
-          const fields = [...config.curatedFields, ...config.pipelineFields].filter((f) => merged[f] !== undefined && merged[f] !== match[f])
-          if (fields.length > 0) {
+        // Only update fields that actually differ between local and Neon
+        const fields = [...config.curatedFields, ...config.pipelineFields].filter(
+          (f) => merged[f] !== undefined && merged[f] !== match[f],
+        )
+        if (fields.length > 0) {
+          if (!dryRun) {
             const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ')
             const values = fields.map((f) => merged[f])
             await neonDb.query(
@@ -296,11 +306,12 @@ async function pushCollection(
               [match.id, ...values],
             )
           }
+          pushed++
+        } else {
+          skipped++
         }
-        if (changed) pushed++
-        else skipped++
       } else {
-        skipped++ // Neon has newer data — don't overwrite
+        skipped++ // Neon has newer data — don't overwrite (default mode)
       }
     } else {
       // New record locally — insert into Neon
@@ -325,6 +336,222 @@ async function pushCollection(
   }
 
   return { pulled: 0, pushed, skipped, conflicts }
+}
+
+// ---------------------------------------------------------------------------
+// Delete orphans: remove Neon records that no longer exist locally
+// (Only deletes records with data_source='discovered' to protect curated rows.)
+// ---------------------------------------------------------------------------
+
+async function deleteOrphansFromNeon(
+  localDb: pg.Pool,
+  neonDb: pg.Pool,
+  collectionName: string,
+  config: CollectionConfig,
+): Promise<{ deleted: number; protected: number }> {
+  // Only publications has data_source — other collections don't get orphan deletion for safety
+  if (config.table !== 'publications') {
+    console.log(`    Orphan deletion only supported for publications (skipping ${config.table})`)
+    return { deleted: 0, protected: 0 }
+  }
+
+  // Load all local records (we need to know what exists)
+  const { rows: localRecords } = await localDb.query(`SELECT id, doi, title, year FROM ${config.table}`)
+  const localIndex = buildMatchIndex(localRecords)
+
+  // Load Neon records that are 'discovered' (curated rmbl_database papers are protected)
+  const { rows: neonRecords } = await neonDb.query(
+    `SELECT id, doi, title, year, data_source FROM ${config.table} WHERE data_source = 'discovered'`,
+  )
+
+  let deleted = 0
+  let protectedCount = 0
+  const toDelete: number[] = []
+
+  for (const neonRec of neonRecords) {
+    const { match } = config.matchFields(neonRec, localRecords, localIndex)
+    if (!match) {
+      toDelete.push(neonRec.id)
+      if (verbose) {
+        console.log(`    ORPHAN: ${(neonRec.title || '').slice(0, 70)} (doi=${neonRec.doi || 'none'})`)
+      }
+    } else {
+      protectedCount++
+    }
+  }
+
+  if (toDelete.length === 0) {
+    console.log(`    No orphans found (${protectedCount} discovered records still match local)`)
+    return { deleted: 0, protected: protectedCount }
+  }
+
+  console.log(`    ${toDelete.length} orphan ${config.table} records to delete (${protectedCount} still matched)`)
+
+  if (dryRun) {
+    console.log(`    (DRY RUN — no deletes)`)
+    return { deleted: toDelete.length, protected: protectedCount }
+  }
+
+  // Delete in batches to avoid huge IN clauses
+  const BATCH_SIZE = 100
+  for (let i = 0; i < toDelete.length; i += BATCH_SIZE) {
+    const batch = toDelete.slice(i, i + BATCH_SIZE)
+    await neonDb.query(`DELETE FROM ${config.table} WHERE id = ANY($1)`, [batch])
+    deleted += batch.length
+    process.stdout.write(`\r    ${deleted}/${toDelete.length} deleted`)
+  }
+  console.log()
+
+  return { deleted, protected: protectedCount }
+}
+
+// ---------------------------------------------------------------------------
+// Sync references_cited: push from local to Neon
+// Strategy: per source publication, DELETE all Neon refs for that source, then
+// INSERT the current local refs. Idempotent and matches the new local pattern.
+// ---------------------------------------------------------------------------
+
+async function syncReferencesCited(
+  localDb: pg.Pool,
+  neonDb: pg.Pool,
+): Promise<{ sources: number; rowsDeleted: number; rowsInserted: number }> {
+  console.log('\n--- references_cited (push) ---')
+
+  // Build local→neon publication ID map (by DOI, then title)
+  const { rows: localPubs } = await localDb.query('SELECT id, doi, title FROM publications')
+  const { rows: neonPubs } = await neonDb.query('SELECT id, doi, title FROM publications')
+
+  const neonByDoi = new Map<string, number>()
+  const neonByTitle = new Map<string, number>()
+  for (const p of neonPubs) {
+    if (p.doi) neonByDoi.set(p.doi.toLowerCase(), p.id)
+    if (p.title) neonByTitle.set(p.title.toLowerCase(), p.id)
+  }
+
+  const localToNeonId = new Map<number, number>()
+  for (const p of localPubs) {
+    let neonId: number | undefined
+    if (p.doi) neonId = neonByDoi.get(p.doi.toLowerCase())
+    if (!neonId && p.title) neonId = neonByTitle.get(p.title.toLowerCase())
+    if (neonId) localToNeonId.set(p.id, neonId)
+  }
+
+  console.log(`    Mapped ${localToNeonId.size}/${localPubs.length} local pubs to Neon IDs`)
+
+  // Same maps for datasets (target_dataset_id translation)
+  const { rows: localDatasets } = await localDb.query('SELECT id, doi, title FROM datasets')
+  const { rows: neonDatasets } = await neonDb.query('SELECT id, doi, title FROM datasets')
+  const neonDsByDoi = new Map<string, number>()
+  const neonDsByTitle = new Map<string, number>()
+  for (const d of neonDatasets) {
+    if (d.doi) neonDsByDoi.set(d.doi.toLowerCase(), d.id)
+    if (d.title) neonDsByTitle.set(d.title.toLowerCase(), d.id)
+  }
+  const localDsToNeonId = new Map<number, number>()
+  for (const d of localDatasets) {
+    let neonId: number | undefined
+    if (d.doi) neonId = neonDsByDoi.get(d.doi.toLowerCase())
+    if (!neonId && d.title) neonId = neonDsByTitle.get(d.title.toLowerCase())
+    if (neonId) localDsToNeonId.set(d.id, neonId)
+  }
+
+  // Get list of source publications that have references locally
+  const { rows: sources } = await localDb.query(
+    'SELECT DISTINCT source_publication_id FROM references_cited WHERE source_publication_id IS NOT NULL ORDER BY source_publication_id',
+  )
+
+  console.log(`    ${sources.length} source publications have references to sync`)
+
+  if (dryRun) {
+    console.log('    (DRY RUN — no changes)')
+    return { sources: sources.length, rowsDeleted: 0, rowsInserted: 0 }
+  }
+
+  let processed = 0
+  let totalDeleted = 0
+  let totalInserted = 0
+  let unmappedSources = 0
+
+  for (const { source_publication_id: localSourceId } of sources) {
+    const neonSourceId = localToNeonId.get(localSourceId)
+    if (!neonSourceId) {
+      unmappedSources++
+      continue // source paper doesn't exist on Neon (e.g., we just deleted it as orphan)
+    }
+
+    // Load all local refs for this source
+    const { rows: localRefs } = await localDb.query(
+      `SELECT cited_title, cited_authors, cited_year, cited_doi, cited_journal, raw_citation,
+              target_publication_id, target_dataset_id, link_type, match_method, match_confidence, extraction_source
+       FROM references_cited WHERE source_publication_id = $1`,
+      [localSourceId],
+    )
+
+    // Translate target IDs from local → neon
+    const translatedRefs = localRefs.map((r) => ({
+      ...r,
+      target_publication_id: r.target_publication_id ? localToNeonId.get(r.target_publication_id) ?? null : null,
+      target_dataset_id: r.target_dataset_id ? localDsToNeonId.get(r.target_dataset_id) ?? null : null,
+    }))
+    // If translation failed, downgrade to external
+    for (const r of translatedRefs) {
+      if (!r.target_publication_id && !r.target_dataset_id && r.link_type === 'internal') {
+        r.link_type = 'external'
+        r.match_method = null
+        r.match_confidence = null
+      }
+    }
+
+    // Atomic replace: delete then insert in a transaction
+    const client = await neonDb.connect()
+    try {
+      await client.query('BEGIN')
+      const delResult = await client.query(
+        'DELETE FROM references_cited WHERE source_publication_id = $1',
+        [neonSourceId],
+      )
+      totalDeleted += delResult.rowCount || 0
+
+      for (const r of translatedRefs) {
+        await client.query(
+          `INSERT INTO references_cited
+           (source_publication_id, cited_title, cited_authors, cited_year, cited_doi, cited_journal, raw_citation,
+            target_publication_id, target_dataset_id, link_type, match_method, match_confidence, extraction_source)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+          [
+            neonSourceId,
+            r.cited_title,
+            r.cited_authors,
+            r.cited_year,
+            r.cited_doi,
+            r.cited_journal,
+            r.raw_citation,
+            r.target_publication_id,
+            r.target_dataset_id,
+            r.link_type,
+            r.match_method,
+            r.match_confidence,
+            r.extraction_source,
+          ],
+        )
+        totalInserted++
+      }
+      await client.query('COMMIT')
+    } catch (err: any) {
+      await client.query('ROLLBACK')
+      console.error(`    Error syncing refs for local pub ${localSourceId}: ${err.message?.slice(0, 100)}`)
+    } finally {
+      client.release()
+    }
+
+    processed++
+    if (processed % 50 === 0) {
+      process.stdout.write(`\r    ${processed}/${sources.length} sources synced — ${totalInserted} refs inserted`)
+    }
+  }
+  console.log(`\r    ${processed} sources synced — ${totalDeleted} deleted, ${totalInserted} inserted, ${unmappedSources} unmapped`)
+
+  return { sources: processed, rowsDeleted: totalDeleted, rowsInserted: totalInserted }
 }
 
 // ---------------------------------------------------------------------------
@@ -383,6 +610,19 @@ async function main() {
       console.log(`    ${stats.pushed} pushed, ${stats.skipped} skipped, ${stats.conflicts} conflicts`)
       await recordSync(localDb, 'push', collName, stats, now)
     }
+
+    if (deleteOrphans && (direction === 'push' || direction === 'both')) {
+      console.log('  DELETE ORPHANS on Neon:')
+      const stats = await deleteOrphansFromNeon(localDb, neonDb, collName, config)
+      if (stats.deleted > 0) {
+        console.log(`    Removed ${stats.deleted} orphan records`)
+      }
+    }
+  }
+
+  // Sync references_cited if requested (after main collections so target IDs resolve)
+  if (syncReferences && (direction === 'push' || direction === 'both')) {
+    await syncReferencesCited(localDb, neonDb)
   }
 
   // Summary: compare counts
@@ -394,7 +634,14 @@ async function main() {
     const { rows: [neon] } = await neonDb.query(`SELECT count(*)::int as n FROM ${config.table}`)
     const diff = local.n - neon.n
     const marker = diff === 0 ? '✓' : '✗'
-    console.log(`  ${marker} ${collName.padEnd(15)} local: ${String(local.n).padStart(6)}  neon: ${String(neon.n).padStart(6)}${diff !== 0 ? `  (${diff > 0 ? '+' : ''}${diff})` : ''}`)
+    console.log(`  ${marker} ${collName.padEnd(18)} local: ${String(local.n).padStart(7)}  neon: ${String(neon.n).padStart(7)}${diff !== 0 ? `  (${diff > 0 ? '+' : ''}${diff})` : ''}`)
+  }
+  if (syncReferences) {
+    const { rows: [local] } = await localDb.query('SELECT count(*)::int as n FROM references_cited')
+    const { rows: [neon] } = await neonDb.query('SELECT count(*)::int as n FROM references_cited')
+    const diff = local.n - neon.n
+    const marker = diff === 0 ? '✓' : '✗'
+    console.log(`  ${marker} ${'references_cited'.padEnd(18)} local: ${String(local.n).padStart(7)}  neon: ${String(neon.n).padStart(7)}${diff !== 0 ? `  (${diff > 0 ? '+' : ''}${diff})` : ''}`)
   }
 
   await localDb.end()

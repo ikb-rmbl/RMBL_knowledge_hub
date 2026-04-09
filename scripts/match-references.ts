@@ -57,15 +57,35 @@ async function main() {
   console.log('==========================')
   if (dryRun) console.log('(DRY RUN)')
 
-  // Load CrossRef references
-  const refsPath = `${OUTPUT_DIR}/references-all-pubs.json`
-  if (!existsSync(refsPath)) {
-    console.error('No references file found. Run extract-references-crossref.ts first.')
+  // Load and merge references from all extraction methods
+  const sources = [
+    { path: `${OUTPUT_DIR}/references-crossref.json`, label: 'crossref' },
+    { path: `${OUTPUT_DIR}/references-grobid.json`, label: 'grobid' },
+    { path: `${OUTPUT_DIR}/references-fulltext.json`, label: 'fulltext' },
+  ]
+
+  // Merge by sourceId — first method wins (CrossRef preferred over GROBID/fulltext)
+  const merged = new Map<string, PublicationRefs>()
+  for (const src of sources) {
+    if (!existsSync(src.path)) continue
+    const entries: PublicationRefs[] = JSON.parse(readFileSync(src.path, 'utf-8'))
+    let added = 0
+    for (const entry of entries) {
+      if (!merged.has(entry.sourceId)) {
+        merged.set(entry.sourceId, entry)
+        added++
+      }
+    }
+    console.log(`  ${src.label}: ${entries.length} entries (${added} new)`)
+  }
+
+  if (merged.size === 0) {
+    console.error('\nNo references files found. Run extract-references.ts first.')
     process.exit(1)
   }
 
-  let allPubRefs: PublicationRefs[] = JSON.parse(readFileSync(refsPath, 'utf-8'))
-  console.log(`\nLoaded ${allPubRefs.length} publications with references`)
+  let allPubRefs: PublicationRefs[] = [...merged.values()]
+  console.log(`\nLoaded ${allPubRefs.length} publications with references (merged across methods)`)
   const totalRefs = allPubRefs.reduce((n, r) => n + r.references.length, 0)
   console.log(`Total references to match: ${totalRefs}`)
 
