@@ -35,52 +35,53 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
 
   const taxonomy = [species.kingdom, species.phylum, species.class_name, species.order_name, species.family].filter(Boolean)
 
-  // Build specimen collection links based on taxonomy
-  // Each link filters to RMBL specimens where possible (via db[]=collid or recordset filter)
+  // Build external resource links — ordered: RMBL-local first, then broader databases
   const encodedName = encodeURIComponent(species.canonical_name)
-  const specimenLinks: { label: string; url: string; allUrl?: string; description: string }[] = []
+  const isSpeciesRank = species.rank === 'species' || species.rank === 'subspecies'
+  const specimenLinks: { label: string; url: string; description: string }[] = []
 
+  // --- RMBL-local links first ---
+
+  // RMBL Herbarium (plants/fungi only)
   if (species.kingdom === 'Plantae' || species.kingdom === 'Fungi') {
     specimenLinks.push({
-      label: 'RMBL Herbarium',
-      // db[]=112 filters to RMBL herbarium collection in SORO portal
+      label: 'RMBL Collections',
       url: `https://soroherbaria.org/portal/collections/listtabledisplay.php?taxa=${encodedName}&usethes=1&taxontype=2&db[]=112`,
-      allUrl: `https://soroherbaria.org/portal/collections/listtabledisplay.php?taxa=${encodedName}&usethes=1&taxontype=2`,
-      description: 'RMBL specimens in the Southern Rocky Mountain Herbaria',
-    })
-  }
-  if (species.kingdom === 'Animalia' && species.class_name === 'Mammalia') {
-    specimenLinks.push({
-      label: 'RMBL Mammal Collection',
-      // CVColl portal (not CSVColl) with db[]=1024 for RMBL mammals
-      url: `https://cvcoll.org/portal/collections/list.php?taxa=${encodedName}&usethes=1&taxontype=2&db[]=1024`,
-      allUrl: `https://cvcoll.org/portal/collections/list.php?taxa=${encodedName}&usethes=1&taxontype=2`,
-      description: 'RMBL specimens in the Consortium of Small Vertebrate Collections',
-    })
-    // Also link to iDigBio which has broader mammal coverage
-    specimenLinks.push({
-      label: 'iDigBio Specimens',
-      url: `https://portal.idigbio.org/portal/search?rq=${encodeURIComponent(JSON.stringify({ scientificname: species.canonical_name }))}`,
-      description: 'All digitized specimens across North American collections',
-    })
-  }
-  if (species.kingdom === 'Animalia' && (species.phylum === 'Arthropoda' || species.class_name === 'Insecta')) {
-    specimenLinks.push({
-      label: 'SCAN Arthropods',
-      url: `https://scan-bugs.org/portal/collections/list.php?taxa=${encodedName}&usethes=1&taxontype=2`,
-      description: 'Symbiota Collections of Arthropods Network',
+      description: 'RMBL Herbarium specimens in the Southern Rocky Mountain Herbaria',
     })
   }
 
-  // iNaturalist observations — available for all taxa, filtered to RMBL Biota project
-  if (species.rank === 'species' || species.rank === 'subspecies') {
+  // RMBL Mammals (mammals only)
+  if (species.kingdom === 'Animalia' && species.class_name === 'Mammalia') {
     specimenLinks.push({
-      label: 'iNaturalist (RMBL Biota)',
-      url: `https://www.inaturalist.org/observations?project_id=rmbl-biota&taxon_name=${encodedName}`,
-      allUrl: `https://www.inaturalist.org/observations?taxon_name=${encodedName}&place_id=any`,
-      description: 'Community observations in the RMBL Biota project',
+      label: 'RMBL Collections',
+      url: `https://cvcoll.org/portal/collections/list.php?taxa=${encodedName}&usethes=1&taxontype=2&db[]=1024`,
+      description: 'RMBL mammal skins, skulls, and skeletons',
     })
   }
+
+  // iNaturalist RMBL Biota project (all taxa at species rank)
+  if (isSpeciesRank) {
+    specimenLinks.push({
+      label: 'iNaturalist',
+      url: `https://www.inaturalist.org/observations?project_id=rmbl-biota&taxon_name=${encodedName}`,
+      description: 'RMBL Biota project observations',
+    })
+  }
+
+  // --- Broader databases ---
+
+  // iDigBio (all taxa — aggregates specimens across all North American collections)
+  if (isSpeciesRank) {
+    specimenLinks.push({
+      label: 'iDigBio',
+      url: `https://portal.idigbio.org/portal/search?rq=${encodeURIComponent(JSON.stringify({ scientificname: species.canonical_name }))}`,
+      description: 'Digitized specimens across North American collections',
+    })
+  }
+
+  // ITIS link (already shown in metadata, but also useful as action)
+  // (not added here — already in the metadata section above)
 
   return (
     <div className="detail">
@@ -122,32 +123,17 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
         )}
         {specimenLinks.length > 0 && (
           <div>
-            <strong>Specimen collections:</strong>{' '}
+            <strong>External:</strong>{' '}
             {specimenLinks.map((link, i) => (
               <span key={i}>
                 {i > 0 && ' · '}
-                <a href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a>
-                {link.allUrl && (
-                  <> (<a href={link.allUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px' }}>all collections</a>)</>
-                )}
+                <a href={link.url} target="_blank" rel="noopener noreferrer" title={link.description}>{link.label}</a>
               </span>
             ))}
           </div>
         )}
         <div><strong>Papers:</strong> {species.publication_count} | <strong>Mentions:</strong> {species.mention_count}</div>
       </div>
-
-      {specimenLinks.length > 0 && (
-        <div className="detail-actions">
-          {specimenLinks.map((link, i) => (
-            <a key={i} className="detail-action-secondary" href={link.url}
-               target="_blank" rel="noopener noreferrer"
-               title={link.description}>
-              {link.label}
-            </a>
-          ))}
-        </div>
-      )}
 
       {species.description && (
         <div className="detail-section">
