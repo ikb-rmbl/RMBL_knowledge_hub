@@ -89,8 +89,18 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
     })
   }
 
-  // ITIS link (already shown in metadata, but also useful as action)
-  // (not added here — already in the metadata section above)
+  // NCBI / GenBank (all taxa — genomic resources)
+  if (isSpeciesRank) {
+    const parts = species.canonical_name.split(/\s+/)
+    const genus = parts[0]
+    // Search both genus-level and species-level: (Genus) OR "Genus species"
+    const ncbiQuery = `(${genus}) OR "${species.canonical_name}"`
+    specimenLinks.push({
+      label: 'GenBank',
+      url: `https://www.ncbi.nlm.nih.gov/search/all/?term=${encodeURIComponent(ncbiQuery)}`,
+      description: 'NCBI genomic resources (sequences, genomes, proteins)',
+    })
+  }
 
   return (
     <div className="detail">
