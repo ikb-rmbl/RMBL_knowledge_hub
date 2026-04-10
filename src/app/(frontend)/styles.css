@@ -310,6 +310,10 @@ a:hover {
 .badge-document { background: var(--color-badge-doc); }
 .badge-publication { background: var(--color-badge-pub); }
 .badge-dataset { background: var(--color-badge-data); }
+.badge-species { background: #558b2f; }
+.badge-place { background: #6d4c41; }
+.badge-protocol { background: #1565c0; }
+.badge-concept { background: #7b1fa2; }
 
 /* ===== Recent / Result Cards ===== */
 
