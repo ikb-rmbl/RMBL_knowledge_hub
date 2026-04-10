@@ -72,6 +72,16 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
     })
   }
 
+  // iNaturalist observations — available for all taxa, filtered to RMBL Biota project
+  if (species.rank === 'species' || species.rank === 'subspecies') {
+    specimenLinks.push({
+      label: 'iNaturalist (RMBL Biota)',
+      url: `https://www.inaturalist.org/observations?project_id=rmbl-biota&taxon_name=${encodedName}`,
+      allUrl: `https://www.inaturalist.org/observations?taxon_name=${encodedName}&place_id=any`,
+      description: 'Community observations in the RMBL Biota project',
+    })
+  }
+
   return (
     <div className="detail">
       <Link href="/species" className="detail-back">&larr; Back to Species</Link>
