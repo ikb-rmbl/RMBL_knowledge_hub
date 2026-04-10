@@ -20,12 +20,40 @@
  */
 
 import pg from 'pg'
+import { readFileSync, writeFileSync, existsSync } from 'fs'
 import './lib/config.js'
+import { OUTPUT_DIR } from './lib/config.js'
 import { resolveSpeciesViaITIS, type ITISResult } from './lib/itis-client.js'
+import { runConcurrent } from './lib/concurrency.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
 const typeFilter = args.find((a) => a.startsWith('--type='))?.split('=')[1] || 'all'
+const forceItis = args.includes('--force-itis')
+const itisConcurrency = parseInt(args.find((a) => a.startsWith('--itis-concurrency='))?.split('=')[1] || '3', 10)
+
+// ---------------------------------------------------------------------------
+// ITIS disk cache — persists between runs so we don't re-query known names
+// ---------------------------------------------------------------------------
+
+const ITIS_CACHE_PATH = `${OUTPUT_DIR}/itis-cache.json`
+
+function loadItisCache(): Map<string, ITISResult | null> {
+  if (forceItis || !existsSync(ITIS_CACHE_PATH)) return new Map()
+  try {
+    const data = JSON.parse(readFileSync(ITIS_CACHE_PATH, 'utf-8'))
+    const cache = new Map<string, ITISResult | null>()
+    for (const [key, val] of Object.entries(data)) cache.set(key, val as ITISResult | null)
+    return cache
+  } catch {
+    return new Map()
+  }
+}
+
+function saveItisCache(cache: Map<string, ITISResult | null>): void {
+  const obj = Object.fromEntries(cache)
+  writeFileSync(ITIS_CACHE_PATH, JSON.stringify(obj, null, 2))
+}
 
 // ---------------------------------------------------------------------------
 // Species linking
@@ -77,27 +105,61 @@ async function linkSpecies(db: pg.Pool): Promise<void> {
   console.log(`  ${groups.size} unique species after initial grouping`)
 
   // --- ITIS Resolution: validate and canonicalize each name ---
-  console.log('  Resolving names via ITIS...')
-  const itisCache = new Map<string, ITISResult | null>()
-  let itisExact = 0, itisFuzzy = 0, itisNotFound = 0
+  // Uses disk cache (Fix 2) + parallel requests (Fix 3) for scale
+  const itisCache = loadItisCache()
+  const cachedCount = itisCache.size
+  console.log(`  ITIS cache: ${cachedCount} cached entries loaded`)
 
-  for (const [key] of groups) {
-    // Use the first member's scientificName for the lookup
-    const firstMember = groups.get(key)![0]
-    const lookupName = firstMember.raw_attributes.scientificName || firstMember.raw_name
-    const result = await resolveSpeciesViaITIS(lookupName)
-    itisCache.set(key, result)
+  // Identify names that need ITIS resolution (not in cache)
+  const groupKeys = [...groups.keys()]
+  const uncachedKeys = groupKeys.filter((key) => !itisCache.has(key))
+  console.log(`  ${uncachedKeys.length} names need ITIS resolution (${groupKeys.length - uncachedKeys.length} cached)`)
+
+  let itisExact = 0, itisFuzzy = 0, itisNotFound = 0
+  let resolved = 0
+
+  if (uncachedKeys.length > 0) {
+    console.log(`  Resolving via ITIS (concurrency=${itisConcurrency})...`)
+
+    // Build lookup name for each key
+    const keyToLookup = new Map<string, string>()
+    for (const key of uncachedKeys) {
+      const firstMember = groups.get(key)![0]
+      keyToLookup.set(key, firstMember.raw_attributes.scientificName || firstMember.raw_name)
+    }
+
+    await runConcurrent(
+      uncachedKeys,
+      itisConcurrency,
+      async (key) => {
+        const lookupName = keyToLookup.get(key)!
+        const result = await resolveSpeciesViaITIS(lookupName)
+        itisCache.set(key, result)
+        resolved++
+        if (resolved % 25 === 0) {
+          process.stdout.write(`\r    ${resolved}/${uncachedKeys.length} resolved`)
+        }
+      },
+      'ITIS resolution',
+    )
+    console.log(`\r    ${resolved}/${uncachedKeys.length} resolved`)
+  }
+
+  // Count match types across ALL cached results (including previously cached)
+  for (const key of groupKeys) {
+    const result = itisCache.get(key)
     if (result) {
       if (result.matchType === 'exact' || result.matchType === 'genus_only') itisExact++
       else itisFuzzy++
     } else {
       itisNotFound++
     }
-    if ((itisExact + itisFuzzy + itisNotFound) % 25 === 0) {
-      process.stdout.write(`\r    ${itisExact + itisFuzzy + itisNotFound}/${groups.size} resolved (${itisExact} exact, ${itisFuzzy} fuzzy, ${itisNotFound} not found)`)
-    }
   }
-  console.log(`\r    ${itisExact + itisFuzzy + itisNotFound}/${groups.size} resolved (${itisExact} exact, ${itisFuzzy} fuzzy, ${itisNotFound} not found)`)
+  console.log(`  ITIS totals: ${itisExact} exact, ${itisFuzzy} fuzzy, ${itisNotFound} not found`)
+
+  // Persist cache for future runs
+  saveItisCache(itisCache)
+  console.log(`  ITIS cache saved (${itisCache.size} entries)`)
 
   // Re-merge groups that resolved to the same ITIS canonical name
   const mergedGroups = new Map<string, { members: typeof candidates; itis: ITISResult | null; originalKeys: string[] }>()
@@ -137,7 +199,13 @@ async function linkSpecies(db: pg.Pool): Promise<void> {
   await db.query("UPDATE entity_candidates SET resolved_entity_id = NULL WHERE entity_type = 'species'")
 
   let created = 0
-  let mentions = 0
+
+  // Collect all candidate→entity links and entity_mentions for batch write
+  const allCandidateIds: number[] = []
+  const allResolvedIds: number[] = []
+  const allMentionEntityIds: number[] = []
+  const allMentionItemIds: number[] = []
+  const allMentionRoles: string[] = []
 
   for (const [, group] of mergedGroups) {
     const members = group.members
@@ -210,19 +278,35 @@ async function linkSpecies(db: pg.Pool): Promise<void> {
     )
     created++
 
-    // Link all members
+    // Collect batch data for all members
     for (const m of members) {
-      await db.query('UPDATE entity_candidates SET resolved_entity_id = $1 WHERE id = $2', [sp.id, m.id])
-      await db.query(
-        `INSERT INTO entity_mentions
-         (entity_type, entity_id, collection, item_id, role, confidence, extraction_method)
-         VALUES ('species', $1, 'publications', $2, $3, 1.0, 'vlm')
-         ON CONFLICT (entity_type, entity_id, collection, item_id, role) DO NOTHING`,
-        [sp.id, m.source_item_id, (m.raw_attributes.role || 'mentioned').slice(0, 30)],
-      )
-      mentions++
+      allCandidateIds.push(m.id)
+      allResolvedIds.push(sp.id)
+      allMentionEntityIds.push(sp.id)
+      allMentionItemIds.push(m.source_item_id)
+      allMentionRoles.push((m.raw_attributes.role || 'mentioned').slice(0, 30))
     }
   }
+
+  // Batch UPDATE entity_candidates.resolved_entity_id
+  if (allCandidateIds.length > 0) {
+    await db.query(`
+      UPDATE entity_candidates ec SET resolved_entity_id = t.resolved_id
+      FROM unnest($1::int[], $2::int[]) AS t(cand_id, resolved_id)
+      WHERE ec.id = t.cand_id
+    `, [allCandidateIds, allResolvedIds])
+  }
+
+  // Batch INSERT entity_mentions
+  if (allMentionEntityIds.length > 0) {
+    await db.query(`
+      INSERT INTO entity_mentions (entity_type, entity_id, collection, item_id, role, confidence, extraction_method)
+      SELECT 'species', unnest($1::int[]), 'publications', unnest($2::int[]), unnest($3::varchar[]), 1.0, 'vlm'
+      ON CONFLICT (entity_type, entity_id, collection, item_id, role) DO NOTHING
+    `, [allMentionEntityIds, allMentionItemIds, allMentionRoles])
+  }
+
+  const mentions = allMentionEntityIds.length
 
   // Update counts
   await db.query(`
@@ -288,10 +372,14 @@ async function linkPlaces(db: pg.Pool): Promise<void> {
   await db.query("UPDATE entity_candidates SET resolved_entity_id = NULL WHERE entity_type = 'place'")
 
   let created = 0
-  let mentions = 0
 
   // First pass: create all place records (without parent references)
   const placeIdByName = new Map<string, number>()
+  const placeCandidateIds: number[] = []
+  const placeResolvedIds: number[] = []
+  const placeMentionEntityIds: number[] = []
+  const placeMentionItemIds: number[] = []
+  const placeMentionRoles: string[] = []
 
   for (const [key, members] of groups) {
     // Pick the member with the most populated fields
@@ -364,23 +452,40 @@ async function linkPlaces(db: pg.Pool): Promise<void> {
     placeIdByName.set(key, pl.id)
     created++
 
-    // Link all members
+    // Collect batch data for all members
     for (const m of members) {
-      await db.query('UPDATE entity_candidates SET resolved_entity_id = $1 WHERE id = $2', [pl.id, m.id])
-      await db.query(
-        `INSERT INTO entity_mentions
-         (entity_type, entity_id, collection, item_id, role, confidence, extraction_method)
-         VALUES ('place', $1, 'publications', $2, $3, 1.0, 'vlm')
-         ON CONFLICT (entity_type, entity_id, collection, item_id, role) DO NOTHING`,
-        [pl.id, m.source_item_id, (m.raw_attributes.role || 'mentioned').slice(0, 30)],
-      )
-      mentions++
+      placeCandidateIds.push(m.id)
+      placeResolvedIds.push(pl.id)
+      placeMentionEntityIds.push(pl.id)
+      placeMentionItemIds.push(m.source_item_id)
+      placeMentionRoles.push((m.raw_attributes.role || 'mentioned').slice(0, 30))
     }
   }
 
-  // Second pass: resolve parent_place_id from parentName references
+  // Batch UPDATE entity_candidates.resolved_entity_id
+  if (placeCandidateIds.length > 0) {
+    await db.query(`
+      UPDATE entity_candidates ec SET resolved_entity_id = t.resolved_id
+      FROM unnest($1::int[], $2::int[]) AS t(cand_id, resolved_id)
+      WHERE ec.id = t.cand_id
+    `, [placeCandidateIds, placeResolvedIds])
+  }
+
+  // Batch INSERT entity_mentions
+  if (placeMentionEntityIds.length > 0) {
+    await db.query(`
+      INSERT INTO entity_mentions (entity_type, entity_id, collection, item_id, role, confidence, extraction_method)
+      SELECT 'place', unnest($1::int[]), 'publications', unnest($2::int[]), unnest($3::varchar[]), 1.0, 'vlm'
+      ON CONFLICT (entity_type, entity_id, collection, item_id, role) DO NOTHING
+    `, [placeMentionEntityIds, placeMentionItemIds, placeMentionRoles])
+  }
+
+  const mentions = placeMentionEntityIds.length
+
+  // Second pass: resolve parent_place_id from parentName references (Fix 7: batch UPDATE)
   console.log('  Resolving parent-child hierarchy...')
-  let parentsResolved = 0
+  const childIds: number[] = []
+  const parentIds: number[] = []
   for (const [key, members] of groups) {
     const best = members.sort((a, b) => {
       const aFields = Object.values(a.raw_attributes).filter((v) => v != null && v !== '').length
@@ -394,11 +499,18 @@ async function linkPlaces(db: pg.Pool): Promise<void> {
     const parentId = placeIdByName.get(parentKey)
     const childId = placeIdByName.get(key)
     if (parentId && childId && parentId !== childId) {
-      await db.query('UPDATE places SET parent_place_id = $1 WHERE id = $2', [parentId, childId])
-      parentsResolved++
+      childIds.push(childId)
+      parentIds.push(parentId)
     }
   }
-  console.log(`  ${parentsResolved} parent-child links resolved`)
+  if (childIds.length > 0) {
+    await db.query(`
+      UPDATE places p SET parent_place_id = t.parent_id
+      FROM unnest($1::int[], $2::int[]) AS t(child_id, parent_id)
+      WHERE p.id = t.child_id
+    `, [childIds, parentIds])
+  }
+  console.log(`  ${childIds.length} parent-child links resolved`)
 
   // Update counts
   await db.query(`

@@ -170,7 +170,12 @@ async function main() {
     await db.query("UPDATE entity_candidates SET resolved_entity_id = NULL WHERE entity_type = 'concept'")
 
     console.log(`\nCreating ${canonicals.length} concept records...`)
-    let created = 0, mentions = 0
+    let created = 0
+    const allCandIds: number[] = []
+    const allResolvedIds: number[] = []
+    const allMentionEntityIds: number[] = []
+    const allMentionItemIds: number[] = []
+    const allMentionRoles: string[] = []
 
     for (let ci = 0; ci < canonicals.length; ci++) {
       const canonical = canonicals[ci]
@@ -184,16 +189,33 @@ async function main() {
       created++
 
       for (const member of cluster.members) {
-        await db.query('UPDATE entity_candidates SET resolved_entity_id = $1 WHERE id = $2', [con.id, member.id])
-        await db.query(
-          `INSERT INTO entity_mentions (entity_type, entity_id, collection, item_id, role, confidence, extraction_method)
-           VALUES ('concept', $1, 'publications', $2, $3, 1.0, 'vlm')
-           ON CONFLICT (entity_type, entity_id, collection, item_id, role) DO NOTHING`,
-          [con.id, member.sourceItemId, (member.attrs.role || 'referenced').slice(0, 30)],
-        )
-        mentions++
+        allCandIds.push(member.id)
+        allResolvedIds.push(con.id)
+        allMentionEntityIds.push(con.id)
+        allMentionItemIds.push(member.sourceItemId)
+        allMentionRoles.push((member.attrs.role || 'referenced').slice(0, 30))
       }
     }
+
+    // Batch UPDATE entity_candidates.resolved_entity_id
+    if (allCandIds.length > 0) {
+      await db.query(`
+        UPDATE entity_candidates ec SET resolved_entity_id = t.resolved_id
+        FROM unnest($1::int[], $2::int[]) AS t(cand_id, resolved_id)
+        WHERE ec.id = t.cand_id
+      `, [allCandIds, allResolvedIds])
+    }
+
+    // Batch INSERT entity_mentions
+    if (allMentionEntityIds.length > 0) {
+      await db.query(`
+        INSERT INTO entity_mentions (entity_type, entity_id, collection, item_id, role, confidence, extraction_method)
+        SELECT 'concept', unnest($1::int[]), 'publications', unnest($2::int[]), unnest($3::varchar[]), 1.0, 'vlm'
+        ON CONFLICT (entity_type, entity_id, collection, item_id, role) DO NOTHING
+      `, [allMentionEntityIds, allMentionItemIds, allMentionRoles])
+    }
+
+    const mentions = allMentionEntityIds.length
 
     await db.query(`
       UPDATE concepts SET

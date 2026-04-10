@@ -210,6 +210,8 @@ CREATE INDEX IF NOT EXISTS entity_candidates_unresolved_idx
   ON entity_candidates (entity_type) WHERE resolved_entity_id IS NULL;
 CREATE INDEX IF NOT EXISTS entity_candidates_source_idx
   ON entity_candidates (source_collection, source_item_id);
+CREATE INDEX IF NOT EXISTS entity_candidates_dedup_idx
+  ON entity_candidates (entity_type, source_collection, source_item_id, lower(raw_name));
 
 -- ============================================================================
 -- code_repositories: code linked from publications

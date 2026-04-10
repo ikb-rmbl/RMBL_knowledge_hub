@@ -331,10 +331,15 @@ async function main() {
     await db.query('DELETE FROM protocols')
     await db.query('UPDATE entity_candidates SET resolved_entity_id = NULL WHERE entity_type = \'protocol\'')
 
-    // Create Protocol records + entity_mentions
+    // Create Protocol records, collect batch data for mentions
     console.log(`Creating ${canonicals.length} protocol records...`)
     let created = 0
-    let mentions = 0
+    const allCandIds: number[] = []
+    const allResolvedIds: number[] = []
+    const allMentionEntityIds: number[] = []
+    const allMentionItemIds: number[] = []
+    const allMentionRoles: string[] = []
+    const allMentionMetadata: (string | null)[] = []
 
     for (let ci = 0; ci < canonicals.length; ci++) {
       const canonical = canonicals[ci]
@@ -368,29 +373,40 @@ async function main() {
       const protocolId = proto.id
       created++
 
-      // Update entity_candidates.resolved_entity_id and create entity_mentions
       for (const member of cluster.members) {
-        await db.query(
-          'UPDATE entity_candidates SET resolved_entity_id = $1 WHERE id = $2',
-          [protocolId, member.id],
-        )
-
-        const role = member.attrs.role || 'using'
+        allCandIds.push(member.id)
+        allResolvedIds.push(protocolId)
+        allMentionEntityIds.push(protocolId)
+        allMentionItemIds.push(member.sourceItemId)
+        allMentionRoles.push((member.attrs.role || 'using').slice(0, 30))
         const stepIndices = member.attrs.protocolStepIndices || null
-        await db.query(
-          `INSERT INTO entity_mentions
-           (entity_type, entity_id, collection, item_id, role, confidence, extraction_method, metadata)
-           VALUES ('protocol', $1, 'publications', $2, $3, 1.0, 'vlm', $4)
-           ON CONFLICT (entity_type, entity_id, collection, item_id, role) DO NOTHING`,
-          [protocolId, member.sourceItemId, role, stepIndices ? JSON.stringify({ protocolStepIndices: stepIndices }) : null],
-        )
-        mentions++
+        allMentionMetadata.push(stepIndices ? JSON.stringify({ protocolStepIndices: stepIndices }) : null)
       }
 
       if (created % 50 === 0) {
-        process.stdout.write(`\r  ${created}/${canonicals.length} protocols created, ${mentions} mentions`)
+        process.stdout.write(`\r  ${created}/${canonicals.length} protocols created`)
       }
     }
+
+    // Batch UPDATE entity_candidates.resolved_entity_id
+    if (allCandIds.length > 0) {
+      await db.query(`
+        UPDATE entity_candidates ec SET resolved_entity_id = t.resolved_id
+        FROM unnest($1::int[], $2::int[]) AS t(cand_id, resolved_id)
+        WHERE ec.id = t.cand_id
+      `, [allCandIds, allResolvedIds])
+    }
+
+    // Batch INSERT entity_mentions
+    if (allMentionEntityIds.length > 0) {
+      await db.query(`
+        INSERT INTO entity_mentions (entity_type, entity_id, collection, item_id, role, confidence, extraction_method, metadata)
+        SELECT 'protocol', unnest($1::int[]), 'publications', unnest($2::int[]), unnest($3::varchar[]), 1.0, 'vlm', unnest($4::jsonb[])
+        ON CONFLICT (entity_type, entity_id, collection, item_id, role) DO NOTHING
+      `, [allMentionEntityIds, allMentionItemIds, allMentionRoles, allMentionMetadata])
+    }
+
+    const mentions = allMentionEntityIds.length
 
     // Update counts
     console.log(`\r  ${created} protocols created, ${mentions} entity_mentions inserted`)
