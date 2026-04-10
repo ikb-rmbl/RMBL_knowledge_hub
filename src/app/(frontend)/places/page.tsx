@@ -98,41 +98,43 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
     return `/places${qs ? '?' + qs : ''}`
   }
 
+  const activeStyle = { fontWeight: 700 as const, color: 'var(--color-accent)' }
+  const inactiveStyle = { fontWeight: 400 as const, color: 'inherit' }
+
   return (
-    <div className="browse-page">
-      <div className="browse-sidebar">
-        <h3>Sort</h3>
-        {SORT_OPTIONS.map((opt) => (
-          <Link key={opt.value} href={buildUrl({ sort: opt.value, page: '1' })}
-            className={`sidebar-link ${sortParam === opt.value ? 'active' : ''}`}>
-            {opt.label}
-          </Link>
-        ))}
-
-        <h3>Place Type</h3>
-        <Link href={buildUrl({ type: undefined, page: '1' })}
-          className={`sidebar-link ${!typeFilter ? 'active' : ''}`}>All Types</Link>
-        {typeCounts.map((tc: any) => (
-          <Link key={tc.place_type} href={buildUrl({ type: tc.place_type, page: '1' })}
-            className={`sidebar-link ${typeFilter === tc.place_type ? 'active' : ''}`}>
-            {tc.place_type.replace(/_/g, ' ')} ({tc.cnt})
-          </Link>
-        ))}
-
-        <h3>Show</h3>
-        <Link href={buildUrl({ show: undefined, page: '1' })}
-          className={`sidebar-link ${!showAll ? 'active' : ''}`}>Referenced only</Link>
-        <Link href={buildUrl({ show: 'all', page: '1' })}
-          className={`sidebar-link ${showAll ? 'active' : ''}`}>All places (inc. GNIS seeds)</Link>
+    <>
+      <div className="search-results-header">
+        <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 16px' }}>Places</h1>
+        <form className="search-form" action="/places" method="GET">
+          <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search places..." />
+          <button className="search-button" type="submit">Search</button>
+        </form>
+        <p className="results-count">{total.toLocaleString()} places{query ? ` matching "${query}"` : ''}</p>
       </div>
 
-      <div className="browse-main">
-        <h1>Places ({total})</h1>
+      <div className="search-layout">
+        <aside className="filters">
+          <div className="filter-group">
+            <h4>Sort By</h4>
+            {SORT_OPTIONS.map((opt) => (
+              <label key={opt.value}><Link href={buildUrl({ sort: opt.value, page: '1' })} style={sortParam === opt.value ? activeStyle : inactiveStyle}>{opt.label}</Link></label>
+            ))}
+          </div>
 
-        <form method="get" action="/places" className="browse-search">
-          <input type="text" name="q" defaultValue={query} placeholder="Search places..." />
-          <button type="submit">Search</button>
-        </form>
+          <div className="filter-group">
+            <h4>Place Type</h4>
+            <label><Link href={buildUrl({ type: undefined, page: '1' })} style={!typeFilter ? activeStyle : inactiveStyle}>All Types</Link></label>
+            {typeCounts.map((tc: any) => (
+              <label key={tc.place_type}><Link href={buildUrl({ type: tc.place_type, page: '1' })} style={typeFilter === tc.place_type ? activeStyle : inactiveStyle}>{tc.place_type.replace(/_/g, ' ')} ({tc.cnt})</Link></label>
+            ))}
+          </div>
+
+          <div className="filter-group">
+            <h4>Show</h4>
+            <label><Link href={buildUrl({ show: undefined, page: '1' })} style={!showAll ? activeStyle : inactiveStyle}>Referenced only</Link></label>
+            <label><Link href={buildUrl({ show: 'all', page: '1' })} style={showAll ? activeStyle : inactiveStyle}>All (inc. GNIS seeds)</Link></label>
+          </div>
+        </aside>
 
         <div className="result-cards">
           {rows.map((pl: any) => (
@@ -166,6 +168,6 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
           </div>
         )}
       </div>
-    </div>
+    </>
   )
 }

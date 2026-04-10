@@ -91,45 +91,45 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
     return `/concepts${qs ? '?' + qs : ''}`
   }
 
+  const activeStyle = { fontWeight: 700 as const, color: 'var(--color-accent)' }
+  const inactiveStyle = { fontWeight: 400 as const, color: 'inherit' }
+
   return (
-    <div className="browse-page">
-      <div className="browse-sidebar">
-        <h3>Sort</h3>
-        {SORT_OPTIONS.map((opt) => (
-          <Link key={opt.value} href={buildUrl({ sort: opt.value, page: '1' })}
-            className={`sidebar-link ${sortParam === opt.value ? 'active' : ''}`}>
-            {opt.label}
-          </Link>
-        ))}
-
-        <h3>Type</h3>
-        <Link href={buildUrl({ type: undefined, page: '1' })}
-          className={`sidebar-link ${!typeFilter ? 'active' : ''}`}>All</Link>
-        {typeCounts.map((tc: any) => (
-          <Link key={tc.concept_type} href={buildUrl({ type: tc.concept_type, page: '1' })}
-            className={`sidebar-link ${typeFilter === tc.concept_type ? 'active' : ''}`}>
-            {tc.concept_type.replace(/_/g, ' ')} ({tc.cnt})
-          </Link>
-        ))}
-
-        <h3>Scope</h3>
-        <Link href={buildUrl({ scope: undefined, page: '1' })}
-          className={`sidebar-link ${!scopeFilter ? 'active' : ''}`}>All</Link>
-        {scopeCounts.map((sc: any) => (
-          <Link key={sc.scope} href={buildUrl({ scope: sc.scope, page: '1' })}
-            className={`sidebar-link ${scopeFilter === sc.scope ? 'active' : ''}`}>
-            {sc.scope.replace(/_/g, ' ')} ({sc.cnt})
-          </Link>
-        ))}
+    <>
+      <div className="search-results-header">
+        <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 16px' }}>Concepts</h1>
+        <form className="search-form" action="/concepts" method="GET">
+          <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search concepts..." />
+          <button className="search-button" type="submit">Search</button>
+        </form>
+        <p className="results-count">{total.toLocaleString()} concepts{query ? ` matching "${query}"` : ''}</p>
       </div>
 
-      <div className="browse-main">
-        <h1>Concepts ({total})</h1>
+      <div className="search-layout">
+        <aside className="filters">
+          <div className="filter-group">
+            <h4>Sort By</h4>
+            {SORT_OPTIONS.map((opt) => (
+              <label key={opt.value}><Link href={buildUrl({ sort: opt.value, page: '1' })} style={sortParam === opt.value ? activeStyle : inactiveStyle}>{opt.label}</Link></label>
+            ))}
+          </div>
 
-        <form method="get" action="/concepts" className="browse-search">
-          <input type="text" name="q" defaultValue={query} placeholder="Search concepts..." />
-          <button type="submit">Search</button>
-        </form>
+          <div className="filter-group">
+            <h4>Type</h4>
+            <label><Link href={buildUrl({ type: undefined, page: '1' })} style={!typeFilter ? activeStyle : inactiveStyle}>All</Link></label>
+            {typeCounts.map((tc: any) => (
+              <label key={tc.concept_type}><Link href={buildUrl({ type: tc.concept_type, page: '1' })} style={typeFilter === tc.concept_type ? activeStyle : inactiveStyle}>{tc.concept_type.replace(/_/g, ' ')} ({tc.cnt})</Link></label>
+            ))}
+          </div>
+
+          <div className="filter-group">
+            <h4>Scope</h4>
+            <label><Link href={buildUrl({ scope: undefined, page: '1' })} style={!scopeFilter ? activeStyle : inactiveStyle}>All</Link></label>
+            {scopeCounts.map((sc: any) => (
+              <label key={sc.scope}><Link href={buildUrl({ scope: sc.scope, page: '1' })} style={scopeFilter === sc.scope ? activeStyle : inactiveStyle}>{sc.scope.replace(/_/g, ' ')} ({sc.cnt})</Link></label>
+            ))}
+          </div>
+        </aside>
 
         <div className="result-cards">
           {rows.map((c: any) => (
@@ -158,6 +158,6 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
           </div>
         )}
       </div>
-    </div>
+    </>
   )
 }

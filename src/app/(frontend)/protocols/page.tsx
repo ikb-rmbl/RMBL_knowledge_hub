@@ -80,35 +80,37 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
     return `/protocols${qs ? '?' + qs : ''}`
   }
 
-  return (
-    <div className="browse-page">
-      <div className="browse-sidebar">
-        <h3>Sort</h3>
-        {SORT_OPTIONS.map((opt) => (
-          <Link key={opt.value} href={buildUrl({ sort: opt.value, page: '1' })}
-            className={`sidebar-link ${sortParam === opt.value ? 'active' : ''}`}>
-            {opt.label}
-          </Link>
-        ))}
+  const activeStyle = { fontWeight: 700 as const, color: 'var(--color-accent)' }
+  const inactiveStyle = { fontWeight: 400 as const, color: 'inherit' }
 
-        <h3>Category</h3>
-        <Link href={buildUrl({ category: undefined, page: '1' })}
-          className={`sidebar-link ${!categoryFilter ? 'active' : ''}`}>All</Link>
-        {catCounts.map((cc: any) => (
-          <Link key={cc.category} href={buildUrl({ category: cc.category, page: '1' })}
-            className={`sidebar-link ${categoryFilter === cc.category ? 'active' : ''}`}>
-            {cc.category} ({cc.cnt})
-          </Link>
-        ))}
+  return (
+    <>
+      <div className="search-results-header">
+        <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 16px' }}>Protocols</h1>
+        <form className="search-form" action="/protocols" method="GET">
+          <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search protocols..." />
+          <button className="search-button" type="submit">Search</button>
+        </form>
+        <p className="results-count">{total.toLocaleString()} protocols{query ? ` matching "${query}"` : ''}</p>
       </div>
 
-      <div className="browse-main">
-        <h1>Protocols ({total})</h1>
+      <div className="search-layout">
+        <aside className="filters">
+          <div className="filter-group">
+            <h4>Sort By</h4>
+            {SORT_OPTIONS.map((opt) => (
+              <label key={opt.value}><Link href={buildUrl({ sort: opt.value, page: '1' })} style={sortParam === opt.value ? activeStyle : inactiveStyle}>{opt.label}</Link></label>
+            ))}
+          </div>
 
-        <form method="get" action="/protocols" className="browse-search">
-          <input type="text" name="q" defaultValue={query} placeholder="Search protocols..." />
-          <button type="submit">Search</button>
-        </form>
+          <div className="filter-group">
+            <h4>Category</h4>
+            <label><Link href={buildUrl({ category: undefined, page: '1' })} style={!categoryFilter ? activeStyle : inactiveStyle}>All</Link></label>
+            {catCounts.map((cc: any) => (
+              <label key={cc.category}><Link href={buildUrl({ category: cc.category, page: '1' })} style={categoryFilter === cc.category ? activeStyle : inactiveStyle}>{cc.category} ({cc.cnt})</Link></label>
+            ))}
+          </div>
+        </aside>
 
         <div className="result-cards">
           {rows.map((pr: any) => (
@@ -140,6 +142,6 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
           </div>
         )}
       </div>
-    </div>
+    </>
   )
 }

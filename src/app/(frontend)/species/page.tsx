@@ -87,43 +87,50 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
     return `/species${qs ? '?' + qs : ''}`
   }
 
+  const activeStyle = { fontWeight: 700 as const, color: 'var(--color-accent)' }
+  const inactiveStyle = { fontWeight: 400 as const, color: 'inherit' }
+
   return (
-    <div className="browse-page">
-      <div className="browse-sidebar">
-        <h3>Sort</h3>
-        {SORT_OPTIONS.map((opt) => (
-          <Link key={opt.value} href={buildUrl({ sort: opt.value, page: '1' })}
-            className={`sidebar-link ${sortParam === opt.value ? 'active' : ''}`}>
-            {opt.label}
-          </Link>
-        ))}
-
-        <h3>Kingdom</h3>
-        <Link href={buildUrl({ kingdom: undefined, page: '1' })}
-          className={`sidebar-link ${!kingdomFilter ? 'active' : ''}`}>All</Link>
-        {KINGDOM_OPTIONS.map((k) => (
-          <Link key={k} href={buildUrl({ kingdom: k, page: '1' })}
-            className={`sidebar-link ${kingdomFilter === k ? 'active' : ''}`}>{k}</Link>
-        ))}
-
-        <h3>Family</h3>
-        <Link href={buildUrl({ family: undefined, page: '1' })}
-          className={`sidebar-link ${!familyFilter ? 'active' : ''}`}>All</Link>
-        {families.map((f: any) => (
-          <Link key={f.family} href={buildUrl({ family: f.family, page: '1' })}
-            className={`sidebar-link ${familyFilter === f.family ? 'active' : ''}`}>
-            {f.family} ({f.cnt})
-          </Link>
-        ))}
+    <>
+      <div className="search-results-header">
+        <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 16px' }}>Species &amp; Taxa</h1>
+        <form className="search-form" action="/species" method="GET">
+          <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search species by name..." />
+          <button className="search-button" type="submit">Search</button>
+        </form>
+        <p className="results-count">{total.toLocaleString()} species{query ? ` matching "${query}"` : ''}</p>
       </div>
 
-      <div className="browse-main">
-        <h1>Species &amp; Taxa ({total})</h1>
+      <div className="search-layout">
+        <aside className="filters">
+          <div className="filter-group">
+            <h4>Sort By</h4>
+            {SORT_OPTIONS.map((opt) => (
+              <label key={opt.value}>
+                <Link href={buildUrl({ sort: opt.value, page: '1' })}
+                  style={sortParam === opt.value ? activeStyle : inactiveStyle}>
+                  {opt.label}
+                </Link>
+              </label>
+            ))}
+          </div>
 
-        <form method="get" action="/species" className="browse-search">
-          <input type="text" name="q" defaultValue={query} placeholder="Search species by name..." />
-          <button type="submit">Search</button>
-        </form>
+          <div className="filter-group">
+            <h4>Kingdom</h4>
+            <label><Link href={buildUrl({ kingdom: undefined, page: '1' })} style={!kingdomFilter ? activeStyle : inactiveStyle}>All</Link></label>
+            {KINGDOM_OPTIONS.map((k) => (
+              <label key={k}><Link href={buildUrl({ kingdom: k, page: '1' })} style={kingdomFilter === k ? activeStyle : inactiveStyle}>{k}</Link></label>
+            ))}
+          </div>
+
+          <div className="filter-group">
+            <h4>Family</h4>
+            <label><Link href={buildUrl({ family: undefined, page: '1' })} style={!familyFilter ? activeStyle : inactiveStyle}>All</Link></label>
+            {families.map((f: any) => (
+              <label key={f.family}><Link href={buildUrl({ family: f.family, page: '1' })} style={familyFilter === f.family ? activeStyle : inactiveStyle}>{f.family} ({f.cnt})</Link></label>
+            ))}
+          </div>
+        </aside>
 
         <div className="result-cards">
           {rows.map((sp: any) => (
@@ -162,6 +169,6 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
           </div>
         )}
       </div>
-    </div>
+    </>
   )
 }
