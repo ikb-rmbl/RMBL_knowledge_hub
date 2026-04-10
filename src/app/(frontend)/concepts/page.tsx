@@ -94,6 +94,16 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
   const activeStyle = { fontWeight: 700 as const, color: 'var(--color-accent)' }
   const inactiveStyle = { fontWeight: 400 as const, color: 'inherit' }
 
+  // Top concept types for chips (show ones with 10+)
+  const topTypes = typeCounts.filter((t: any) => t.cnt >= 10)
+
+  const chipStyle = (active: boolean) => ({
+    padding: '6px 14px', borderRadius: 'var(--radius-sm)',
+    background: active ? 'var(--color-accent)' : 'var(--color-surface)',
+    color: active ? '#fff' : 'inherit',
+    border: '1px solid var(--color-border)', textDecoration: 'none' as const, fontSize: '13px',
+  })
+
   return (
     <>
       <div className="search-results-header">
@@ -102,7 +112,15 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
           <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search concepts..." />
           <button className="search-button" type="submit">Search</button>
         </form>
-        <p className="results-count">{total.toLocaleString()} concepts{query ? ` matching "${query}"` : ''}</p>
+
+        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
+          <Link href={buildUrl({ type: undefined, page: '1' })} style={chipStyle(!typeFilter)}>All ({total.toLocaleString()})</Link>
+          {topTypes.map((t: any) => (
+            <Link key={t.concept_type} href={buildUrl({ type: t.concept_type, page: '1' })} style={chipStyle(typeFilter === t.concept_type)}>{t.concept_type.replace(/_/g, ' ')} ({t.cnt})</Link>
+          ))}
+        </div>
+
+        <p className="results-count">{total.toLocaleString()} concepts{query ? ` matching "${query}"` : ''}{typeFilter ? ` (${typeFilter.replace(/_/g, ' ')})` : ''}</p>
       </div>
 
       <div className="search-layout">

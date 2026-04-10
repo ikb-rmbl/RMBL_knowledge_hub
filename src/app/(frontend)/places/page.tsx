@@ -101,6 +101,20 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
   const activeStyle = { fontWeight: 700 as const, color: 'var(--color-accent)' }
   const inactiveStyle = { fontWeight: 400 as const, color: 'inherit' }
 
+  // Counts for chips
+  const { rows: [{ ref_count, all_count }] } = await db.query(`
+    SELECT
+      (SELECT COUNT(*)::int FROM places WHERE publication_count > 0) as ref_count,
+      (SELECT COUNT(*)::int FROM places) as all_count
+  `)
+
+  const chipStyle = (active: boolean) => ({
+    padding: '6px 14px', borderRadius: 'var(--radius-sm)',
+    background: active ? 'var(--color-accent)' : 'var(--color-surface)',
+    color: active ? '#fff' : 'inherit',
+    border: '1px solid var(--color-border)', textDecoration: 'none' as const, fontSize: '13px',
+  })
+
   return (
     <>
       <div className="search-results-header">
@@ -109,6 +123,12 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
           <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search places..." />
           <button className="search-button" type="submit">Search</button>
         </form>
+
+        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
+          <Link href={buildUrl({ show: undefined, page: '1' })} style={chipStyle(!showAll)}>Referenced ({ref_count})</Link>
+          <Link href={buildUrl({ show: 'all', page: '1' })} style={chipStyle(showAll)}>All ({all_count})</Link>
+        </div>
+
         <p className="results-count">{total.toLocaleString()} places{query ? ` matching "${query}"` : ''}</p>
       </div>
 

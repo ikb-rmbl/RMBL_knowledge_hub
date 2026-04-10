@@ -90,6 +90,20 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
   const activeStyle = { fontWeight: 700 as const, color: 'var(--color-accent)' }
   const inactiveStyle = { fontWeight: 400 as const, color: 'inherit' }
 
+  // Kingdom counts for chips
+  const { rows: kingdomCounts } = await db.query(`
+    SELECT kingdom, COUNT(*)::int as cnt FROM species
+    WHERE publication_count > 0 AND kingdom IS NOT NULL
+    GROUP BY kingdom ORDER BY cnt DESC
+  `)
+
+  const chipStyle = (active: boolean) => ({
+    padding: '6px 14px', borderRadius: 'var(--radius-sm)',
+    background: active ? 'var(--color-accent)' : 'var(--color-surface)',
+    color: active ? '#fff' : 'inherit',
+    border: '1px solid var(--color-border)', textDecoration: 'none' as const, fontSize: '13px',
+  })
+
   return (
     <>
       <div className="search-results-header">
@@ -98,7 +112,15 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
           <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search species by name..." />
           <button className="search-button" type="submit">Search</button>
         </form>
-        <p className="results-count">{total.toLocaleString()} species{query ? ` matching "${query}"` : ''}</p>
+
+        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
+          <Link href={buildUrl({ kingdom: undefined, page: '1' })} style={chipStyle(!kingdomFilter)}>All ({total.toLocaleString()})</Link>
+          {kingdomCounts.map((k: any) => (
+            <Link key={k.kingdom} href={buildUrl({ kingdom: k.kingdom, page: '1' })} style={chipStyle(kingdomFilter === k.kingdom)}>{k.kingdom} ({k.cnt})</Link>
+          ))}
+        </div>
+
+        <p className="results-count">{total.toLocaleString()} species{query ? ` matching "${query}"` : ''}{kingdomFilter ? ` in ${kingdomFilter}` : ''}</p>
       </div>
 
       <div className="search-layout">

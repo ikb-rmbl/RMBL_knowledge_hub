@@ -42,6 +42,9 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
     values.push(categoryFilter)
     paramIdx++
   }
+  if (params.std === 'true') {
+    where.push('standardized = true')
+  }
 
   const orderBy = sortParam === 'name' ? 'name ASC' : 'publication_count DESC, name ASC'
   const whereStr = where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''
@@ -74,6 +77,7 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
     if (merged.q) p.set('q', merged.q)
     if (merged.sort && merged.sort !== 'publications') p.set('sort', merged.sort)
     if (merged.category) p.set('category', merged.category)
+    if (merged.std === 'true') p.set('std', 'true')
     if (merged.show === 'all') p.set('show', 'all')
     if (merged.page && merged.page !== '1') p.set('page', merged.page)
     const qs = p.toString()
@@ -83,6 +87,22 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
   const activeStyle = { fontWeight: 700 as const, color: 'var(--color-accent)' }
   const inactiveStyle = { fontWeight: 400 as const, color: 'inherit' }
 
+  // Counts for chips
+  const { rows: [{ std_count, all_count }] } = await db.query(`
+    SELECT
+      (SELECT COUNT(*)::int FROM protocols WHERE standardized = true) as std_count,
+      (SELECT COUNT(*)::int FROM protocols) as all_count
+  `)
+
+  const stdFilter = params.std || ''
+
+  const chipStyle = (active: boolean) => ({
+    padding: '6px 14px', borderRadius: 'var(--radius-sm)',
+    background: active ? 'var(--color-accent)' : 'var(--color-surface)',
+    color: active ? '#fff' : 'inherit',
+    border: '1px solid var(--color-border)', textDecoration: 'none' as const, fontSize: '13px',
+  })
+
   return (
     <>
       <div className="search-results-header">
@@ -91,6 +111,12 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
           <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search protocols..." />
           <button className="search-button" type="submit">Search</button>
         </form>
+
+        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
+          <Link href={buildUrl({ std: undefined, page: '1' })} style={chipStyle(!stdFilter)}>All ({all_count})</Link>
+          <Link href={buildUrl({ std: 'true', page: '1' })} style={chipStyle(stdFilter === 'true')}>Standardized ({std_count})</Link>
+        </div>
+
         <p className="results-count">{total.toLocaleString()} protocols{query ? ` matching "${query}"` : ''}</p>
       </div>
 

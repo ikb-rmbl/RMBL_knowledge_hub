@@ -32,6 +32,24 @@ export default async function PlaceDetail({ params }: { params: Promise<{ id: st
     ORDER BY p.year DESC NULLS LAST
   `, [id])
 
+  // Datasets mentioning this place
+  const { rows: datasets } = await db.query(`
+    SELECT d.id, d.title, d.publication_year, d.resource_type, em.role
+    FROM entity_mentions em
+    JOIN datasets d ON d.id = em.item_id
+    WHERE em.entity_type = 'place' AND em.entity_id = $1 AND em.collection = 'datasets'
+    ORDER BY d.publication_year DESC NULLS LAST
+  `, [id])
+
+  // Documents mentioning this place
+  const { rows: docs } = await db.query(`
+    SELECT d.id, d.title, d.date_original, em.role
+    FROM entity_mentions em
+    JOIN documents d ON d.id = em.item_id
+    WHERE em.entity_type = 'place' AND em.entity_id = $1 AND em.collection = 'documents'
+    ORDER BY d.date_original DESC NULLS LAST
+  `, [id])
+
   // Co-occurring species at this place
   const { rows: coSpecies } = await db.query(`
     SELECT s.id, s.canonical_name, s.family, COUNT(*) as shared
@@ -75,6 +93,18 @@ export default async function PlaceDetail({ params }: { params: Promise<{ id: st
         <div><strong>Papers:</strong> {place.publication_count} | <strong>Mentions:</strong> {place.mention_count}</div>
       </div>
 
+      {place.lat && place.lon && (
+        <div className="detail-section">
+          <iframe
+            title={`Map of ${place.name}`}
+            width="100%"
+            height="300"
+            style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${place.lon - 0.05},${place.lat - 0.03},${place.lon + 0.05},${place.lat + 0.03}&layer=mapnik&marker=${place.lat},${place.lon}`}
+          />
+        </div>
+      )}
+
       {place.description && (
         <div className="detail-section">
           <h2>Description</h2>
@@ -117,6 +147,49 @@ export default async function PlaceDetail({ params }: { params: Promise<{ id: st
                 </div>
               </Link>
             ))}
+          </div>
+        </div>
+      )}
+
+      {datasets.length > 0 && (
+        <div className="detail-section">
+          <h2>Datasets ({datasets.length})</h2>
+          <div className="result-cards">
+            {datasets.map((ds: any) => (
+              <Link key={ds.id} href={`/datasets/${ds.id}`} className="result-card">
+                <div className="result-card-header">
+                  <span className="badge badge-dataset">{ds.resource_type || 'Dataset'}</span>
+                  <h3 className="result-card-title">{ds.title}</h3>
+                </div>
+                <div className="result-card-meta">
+                  {ds.publication_year && <span>{ds.publication_year}</span>}
+                  {ds.role && <span>{ds.role.replace(/_/g, ' ')}</span>}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {docs.length > 0 && (
+        <div className="detail-section">
+          <h2>Documents ({docs.length})</h2>
+          <div className="result-cards">
+            {docs.map((doc: any) => {
+              const yearStr = doc.date_original ? new Date(doc.date_original).getFullYear().toString() : null
+              return (
+                <Link key={doc.id} href={`/documents/${doc.id}`} className="result-card">
+                  <div className="result-card-header">
+                    <span className="badge badge-document">Document</span>
+                    <h3 className="result-card-title">{doc.title}</h3>
+                  </div>
+                  <div className="result-card-meta">
+                    {yearStr && <span>{yearStr}</span>}
+                    {doc.role && <span>{doc.role.replace(/_/g, ' ')}</span>}
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </div>
       )}

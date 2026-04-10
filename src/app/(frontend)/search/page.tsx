@@ -60,7 +60,7 @@ async function tsvectorSearch(
     )
     for (const row of rows) {
       const yearStr = row.date_original ? new Date(row.date_original).getFullYear().toString() : null
-      results.push({ collection: 'document', subtype: null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: yearStr ? parseInt(yearStr) : null, meta: [yearStr].filter(Boolean) as string[] })
+      results.push({ collection: 'document', subtype: null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: yearStr ? parseInt(yearStr) : null, meta: [yearStr].filter(Boolean) as string[], rank: parseFloat(row.rank) || 0 })
     }
     const countRes = await db.query("SELECT count(*)::int FROM documents WHERE search_vector @@ plainto_tsquery('english', $1)", [query])
     total += countRes.rows[0].count
@@ -79,7 +79,7 @@ async function tsvectorSearch(
       [query, limit, offset],
     )
     for (const row of rows) {
-      results.push({ collection: 'publication', subtype: row.publication_type || null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: row.year || null, meta: [row.journal, row.year ? String(row.year) : '', row.doi ? `DOI: ${row.doi}` : ''].filter(Boolean), externalCitationCount: row.external_citation_count, internalCitationCount: row.internal_citation_count })
+      results.push({ collection: 'publication', subtype: row.publication_type || null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: row.year || null, meta: [row.journal, row.year ? String(row.year) : '', row.doi ? `DOI: ${row.doi}` : ''].filter(Boolean), rank: parseFloat(row.rank) || 0, externalCitationCount: row.external_citation_count, internalCitationCount: row.internal_citation_count })
     }
     const countRes = await db.query("SELECT count(*)::int FROM publications WHERE search_vector @@ plainto_tsquery('english', $1)", [query])
     total += countRes.rows[0].count
@@ -98,14 +98,16 @@ async function tsvectorSearch(
       [query, limit, offset],
     )
     for (const row of rows) {
-      results.push({ collection: 'dataset', subtype: row.resource_type || null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: row.publication_year || null, meta: [row.publication_year ? String(row.publication_year) : ''].filter(Boolean), externalCitationCount: row.external_citation_count, internalCitationCount: row.internal_citation_count })
+      results.push({ collection: 'dataset', subtype: row.resource_type || null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: row.publication_year || null, meta: [row.publication_year ? String(row.publication_year) : ''].filter(Boolean), rank: parseFloat(row.rank) || 0, externalCitationCount: row.external_citation_count, internalCitationCount: row.internal_citation_count })
     }
     const countRes = await db.query("SELECT count(*)::int FROM datasets WHERE search_vector @@ plainto_tsquery('english', $1)", [query])
     total += countRes.rows[0].count
   }
 
-  // Re-sort merged results across collections
-  if (sortBy === 'newest') results.sort((a, b) => (b.year || 0) - (a.year || 0))
+  // Re-sort merged results across collections (critical for relevance — without this,
+  // documents appear before publications regardless of ts_rank score)
+  if (sortBy === 'relevance') results.sort((a, b) => (b.rank || 0) - (a.rank || 0))
+  else if (sortBy === 'newest') results.sort((a, b) => (b.year || 0) - (a.year || 0))
   else if (sortBy === 'oldest') results.sort((a, b) => (a.year || 0) - (b.year || 0))
   else if (sortBy === 'title') results.sort((a, b) => a.title.localeCompare(b.title))
   else if (sortBy === 'title-desc') results.sort((a, b) => b.title.localeCompare(a.title))
@@ -152,6 +154,7 @@ type ResultItem = {
   snippet: string
   year: number | null
   meta: string[]
+  rank?: number
   externalCitationCount?: number
   internalCitationCount?: number
 }
@@ -445,6 +448,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     id: number
     name: string
     detail: string
+    snippet: string
     count: number
   }
   const entityMatches: EntityMatch[] = []
@@ -453,27 +457,39 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     const db2 = getDb()
     const likeQ = `%${query}%`
 
-    // Search each entity table — limit to top 2 per type to avoid overwhelming results
+    // Search each entity table — up to 5 per type, show 3 initially with expand
     const [spRows, plRows, prRows, coRows] = await Promise.all([
       db2.query(
-        `SELECT id, canonical_name as name, coalesce(family, kingdom, '') as detail, publication_count as count
+        `SELECT id, canonical_name as name,
+                coalesce(family, '') as detail,
+                coalesce(common_names[1], '') || CASE WHEN kingdom IS NOT NULL THEN ' · ' || kingdom ELSE '' END as snippet,
+                publication_count as count
          FROM species WHERE publication_count > 0
-         AND (canonical_name ILIKE $1 OR $1 = ANY(common_names) OR $1 = ANY(synonyms))
-         ORDER BY publication_count DESC LIMIT 2`, [likeQ]),
+         AND (canonical_name ILIKE $1 OR EXISTS (SELECT 1 FROM unnest(common_names) cn WHERE cn ILIKE $1) OR EXISTS (SELECT 1 FROM unnest(synonyms) syn WHERE syn ILIKE $1))
+         ORDER BY publication_count DESC LIMIT 5`, [likeQ]),
       db2.query(
-        `SELECT id, name, coalesce(place_type, '') as detail, publication_count as count
+        `SELECT id, name,
+                coalesce(place_type, '') as detail,
+                coalesce(habitat_types[1], '') || CASE WHEN elevation_m IS NOT NULL THEN ' · ' || elevation_m || 'm' ELSE '' END as snippet,
+                publication_count as count
          FROM places WHERE publication_count > 0
          AND (name ILIKE $1 OR $1 = ANY(aliases))
-         ORDER BY publication_count DESC LIMIT 2`, [likeQ]),
+         ORDER BY publication_count DESC LIMIT 5`, [likeQ]),
       db2.query(
-        `SELECT id, name, coalesce(category, '') as detail, publication_count as count
+        `SELECT id, name,
+                coalesce(category, '') as detail,
+                coalesce(LEFT(description, 120), '') as snippet,
+                publication_count as count
          FROM protocols WHERE name ILIKE $1 OR description ILIKE $1
-         ORDER BY publication_count DESC LIMIT 2`, [likeQ]),
+         ORDER BY publication_count DESC LIMIT 5`, [likeQ]),
       db2.query(
-        `SELECT id, name, coalesce(concept_type, '') as detail, publication_count as count
+        `SELECT id, name,
+                coalesce(concept_type, '') as detail,
+                coalesce(LEFT(definition, 120), '') as snippet,
+                publication_count as count
          FROM concepts WHERE publication_count > 0
          AND (name ILIKE $1 OR $1 = ANY(aliases))
-         ORDER BY publication_count DESC LIMIT 2`, [likeQ]),
+         ORDER BY publication_count DESC LIMIT 5`, [likeQ]),
     ])
 
     for (const r of spRows.rows) entityMatches.push({ type: 'species', ...r })
@@ -666,31 +682,53 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         </aside>
 
         <div>
-          {entityMatches.length > 0 && (
-            <div style={{ marginBottom: '16px' }}>
-              <div className="result-cards" style={{ gap: '8px' }}>
-                {entityMatches.map((em) => {
-                  const href = `/${em.type === 'species' ? 'species' : em.type === 'place' ? 'places' : em.type === 'protocol' ? 'protocols' : 'concepts'}/${em.id}`
-                  const badgeClass = em.type === 'species' ? 'badge-species' : em.type === 'place' ? 'badge-place' : em.type === 'protocol' ? 'badge-protocol' : 'badge-concept'
-                  return (
-                    <Link key={`${em.type}-${em.id}`} className="result-card" href={href}
-                      style={{ borderLeft: '3px solid var(--color-accent)' }}>
-                      <div className="result-card-header">
-                        <span className={`badge ${badgeClass}`}>{em.type}</span>
-                        <h3 className="result-card-title" style={em.type === 'species' ? { fontStyle: 'italic' } : undefined}>
-                          {em.name}
-                        </h3>
-                      </div>
-                      <div className="result-card-meta">
-                        {em.detail && <span>{em.detail.replace(/_/g, ' ')}</span>}
-                        <span>{em.count} paper{em.count !== 1 ? 's' : ''}</span>
-                      </div>
-                    </Link>
-                  )
-                })}
+          {entityMatches.length > 0 && (() => {
+            const INITIAL_SHOW = 3
+            const hasMore = entityMatches.length > INITIAL_SHOW
+
+            function renderEntityCard(em: EntityMatch) {
+              const href = `/${em.type === 'species' ? 'species' : em.type === 'place' ? 'places' : em.type === 'protocol' ? 'protocols' : 'concepts'}/${em.id}`
+              const badgeClass = em.type === 'species' ? 'badge-species' : em.type === 'place' ? 'badge-place' : em.type === 'protocol' ? 'badge-protocol' : 'badge-concept'
+              return (
+                <Link key={`${em.type}-${em.id}`} className="result-card" href={href}
+                  style={{ borderLeft: '3px solid var(--color-accent)', flex: '1 1 0', minWidth: '220px' }}>
+                  <div className="result-card-header">
+                    <span className={`badge ${badgeClass}`}>{em.type}</span>
+                    <h3 className="result-card-title" style={em.type === 'species' ? { fontStyle: 'italic' } : undefined}>
+                      {em.name}
+                    </h3>
+                  </div>
+                  {em.snippet && (
+                    <p className="result-card-snippet" style={{ fontSize: '13px' }}>
+                      {em.snippet.slice(0, 120)}{em.snippet.length > 120 ? '...' : ''}
+                    </p>
+                  )}
+                  <div className="result-card-meta">
+                    {em.detail && <span>{em.detail.replace(/_/g, ' ')}</span>}
+                    <span>{em.count} paper{em.count !== 1 ? 's' : ''}</span>
+                  </div>
+                </Link>
+              )
+            }
+
+            return (
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  {entityMatches.slice(0, INITIAL_SHOW).map(renderEntityCard)}
+                </div>
+                {hasMore && (
+                  <details style={{ marginTop: '8px' }}>
+                    <summary style={{ cursor: 'pointer', fontSize: '13px', color: 'var(--color-accent)', fontWeight: 500 }}>
+                      Show {entityMatches.length - INITIAL_SHOW} more matching entities
+                    </summary>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '8px' }}>
+                      {entityMatches.slice(INITIAL_SHOW).map(renderEntityCard)}
+                    </div>
+                  </details>
+                )}
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           <div className="result-list">
             {results.length === 0 && entityMatches.length === 0 && (

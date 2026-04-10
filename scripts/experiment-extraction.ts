@@ -728,16 +728,34 @@ async function main() {
     ids = TEST_PAPER_IDS
   }
   console.log(`Output directory: ${RESULTS_DIR}`)
-  const results: any[] = []
+
+  // Resume support: load existing results and skip already-processed papers
+  const outputPath = `${RESULTS_DIR}/results.json`
+  let results: any[] = []
+  const processedIds = new Set<number>()
+  if (existsSync(outputPath)) {
+    results = JSON.parse(readFileSync(outputPath, 'utf-8'))
+    for (const r of results) processedIds.add(r.id)
+    console.log(`Resuming: ${processedIds.size} papers already processed, ${ids.length - processedIds.size} remaining`)
+  }
+
+  // Progress tracking
+  const startTime = Date.now()
+  let sessionProcessed = 0
+  let sessionCost = 0
+  let sessionErrors = 0
+  const PROGRESS_INTERVAL = 25
 
   for (const id of ids) {
+    if (processedIds.has(id)) continue
+
     const { rows: [paper] } = await db.query('SELECT id, title, publication_type, full_text, abstract FROM publications WHERE id = $1', [id])
     if (!paper) { console.log(`  Paper ${id} not found, skipping`); continue }
 
     const pdfPath = `${STAGING_DIR}/publications/pub_${id}.pdf`
     const hasPdf = existsSync(pdfPath)
 
-    console.log(`\n--- Paper ${id}: ${paper.title.slice(0, 60)}... ---`)
+    console.log(`\n--- [${sessionProcessed + 1}/${ids.length - processedIds.size + sessionProcessed}] Paper ${id}: ${paper.title.slice(0, 60)}... ---`)
     console.log(`  Type: ${paper.publication_type}, PDF: ${hasPdf}, Text: ${paper.full_text?.length || 0} chars`)
 
     const result: any = {
@@ -809,12 +827,33 @@ async function main() {
     }
 
     results.push(result)
+    sessionProcessed++
+    if (result.strategy3?.cost) sessionCost += result.strategy3.cost
+    if (result.strategy3?.error) sessionErrors++
+
+    // Incremental save after every paper (crash-safe)
+    writeFileSync(outputPath, JSON.stringify(results, null, 2))
+
+    // Periodic progress summary
+    if (sessionProcessed % PROGRESS_INTERVAL === 0 || sessionProcessed === ids.length - processedIds.size + sessionProcessed) {
+      const elapsed = (Date.now() - startTime) / 1000
+      const rate = sessionProcessed / (elapsed / 60)
+      const remaining = ids.length - processedIds.size + sessionProcessed - sessionProcessed - (processedIds.size - (results.length - sessionProcessed))
+      const totalRemaining = ids.length - results.length
+      const etaMin = totalRemaining > 0 && rate > 0 ? totalRemaining / rate : 0
+      const etaHrs = Math.floor(etaMin / 60)
+      const etaM = Math.round(etaMin % 60)
+      const totalCostSoFar = results.reduce((sum: number, r: any) => sum + (r.strategy3?.cost || 0), 0)
+      console.log(`\n========== Progress: ${results.length}/${ids.length} papers ==========`)
+      console.log(`  This session: ${sessionProcessed} papers in ${(elapsed / 60).toFixed(1)} min (${rate.toFixed(1)} papers/min)`)
+      console.log(`  Session cost: $${sessionCost.toFixed(2)} | Total cost: $${totalCostSoFar.toFixed(2)}`)
+      console.log(`  Errors: ${sessionErrors} | Remaining: ${totalRemaining}`)
+      if (totalRemaining > 0 && rate > 0) console.log(`  ETA: ~${etaHrs}h ${etaM}m`)
+      console.log('='.repeat(50))
+    }
   }
 
-  // Save results as JSON
-  const outputPath = `${RESULTS_DIR}/results.json`
-  writeFileSync(outputPath, JSON.stringify(results, null, 2))
-  console.log(`\nResults saved to ${outputPath}`)
+  console.log(`\nResults saved to ${outputPath} (${results.length} papers)`)
 
   // Save detailed markdown report
   const reportLines: string[] = ['# Extraction Strategy Experiment Results\n']
