@@ -439,6 +439,52 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   const totalPages = Math.ceil(totalResults / PAGE_SIZE)
 
+  // --- Entity search: surface matching species/places/protocols/concepts above results ---
+  type EntityMatch = {
+    type: 'species' | 'place' | 'protocol' | 'concept'
+    id: number
+    name: string
+    detail: string
+    count: number
+  }
+  const entityMatches: EntityMatch[] = []
+
+  if (query && query.length >= 2 && page === 1) {
+    const db2 = getDb()
+    const likeQ = `%${query}%`
+
+    // Search each entity table — limit to top 2 per type to avoid overwhelming results
+    const [spRows, plRows, prRows, coRows] = await Promise.all([
+      db2.query(
+        `SELECT id, canonical_name as name, coalesce(family, kingdom, '') as detail, publication_count as count
+         FROM species WHERE publication_count > 0
+         AND (canonical_name ILIKE $1 OR $1 = ANY(common_names) OR $1 = ANY(synonyms))
+         ORDER BY publication_count DESC LIMIT 2`, [likeQ]),
+      db2.query(
+        `SELECT id, name, coalesce(place_type, '') as detail, publication_count as count
+         FROM places WHERE publication_count > 0
+         AND (name ILIKE $1 OR $1 = ANY(aliases))
+         ORDER BY publication_count DESC LIMIT 2`, [likeQ]),
+      db2.query(
+        `SELECT id, name, coalesce(category, '') as detail, publication_count as count
+         FROM protocols WHERE name ILIKE $1 OR description ILIKE $1
+         ORDER BY publication_count DESC LIMIT 2`, [likeQ]),
+      db2.query(
+        `SELECT id, name, coalesce(concept_type, '') as detail, publication_count as count
+         FROM concepts WHERE publication_count > 0
+         AND (name ILIKE $1 OR $1 = ANY(aliases))
+         ORDER BY publication_count DESC LIMIT 2`, [likeQ]),
+    ])
+
+    for (const r of spRows.rows) entityMatches.push({ type: 'species', ...r })
+    for (const r of plRows.rows) entityMatches.push({ type: 'place', ...r })
+    for (const r of prRows.rows) entityMatches.push({ type: 'protocol', ...r })
+    for (const r of coRows.rows) entityMatches.push({ type: 'concept', ...r })
+
+    // Sort by publication count descending
+    entityMatches.sort((a, b) => b.count - a.count)
+  }
+
   // Topics for sidebar — organized by group
   const SIDEBAR_TOPIC_GROUPS = [
     { group: 'Life Sciences', topics: ['Flowering & Pollination', 'Wildlife Behavior', 'Alpine & Subalpine Ecology', 'Forest Ecology', 'Freshwater Ecology', 'Plant Biology', 'Insect Ecology', 'Vertebrate Biology', 'Microbial Ecology', 'Genetics & Evolution', 'Biodiversity & Conservation', 'Invasive Species & Disturbance'] },
@@ -620,8 +666,34 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         </aside>
 
         <div>
+          {entityMatches.length > 0 && (
+            <div style={{ marginBottom: '16px' }}>
+              <div className="result-cards" style={{ gap: '8px' }}>
+                {entityMatches.map((em) => {
+                  const href = `/${em.type === 'species' ? 'species' : em.type === 'place' ? 'places' : em.type === 'protocol' ? 'protocols' : 'concepts'}/${em.id}`
+                  const badgeClass = em.type === 'species' ? 'badge-species' : em.type === 'place' ? 'badge-place' : em.type === 'protocol' ? 'badge-protocol' : 'badge-concept'
+                  return (
+                    <Link key={`${em.type}-${em.id}`} className="result-card" href={href}
+                      style={{ borderLeft: '3px solid var(--color-accent)' }}>
+                      <div className="result-card-header">
+                        <span className={`badge ${badgeClass}`}>{em.type}</span>
+                        <h3 className="result-card-title" style={em.type === 'species' ? { fontStyle: 'italic' } : undefined}>
+                          {em.name}
+                        </h3>
+                      </div>
+                      <div className="result-card-meta">
+                        {em.detail && <span>{em.detail.replace(/_/g, ' ')}</span>}
+                        <span>{em.count} paper{em.count !== 1 ? 's' : ''}</span>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="result-list">
-            {results.length === 0 && (
+            {results.length === 0 && entityMatches.length === 0 && (
               <p style={{ color: 'var(--color-text-muted)', padding: '20px 0' }}>
                 No results found. Try a different search term or broaden your filters.
               </p>
