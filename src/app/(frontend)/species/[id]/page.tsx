@@ -60,6 +60,15 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
     })
   }
 
+  // RMBL Insects / Arthropods (via SCAN network)
+  if (species.kingdom === 'Animalia' && (species.phylum === 'Arthropoda' || species.class_name === 'Insecta')) {
+    specimenLinks.push({
+      label: 'RMBL Collections',
+      url: `https://scan-bugs.org/portal/collections/list.php?taxa=${encodedName}&usethes=1&taxontype=2`,
+      description: 'RMBL insect specimens via SCAN Arthropod Network',
+    })
+  }
+
   // iNaturalist RMBL Biota project (all taxa at species rank)
   if (isSpeciesRank) {
     specimenLinks.push({
