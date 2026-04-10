@@ -35,6 +35,40 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
 
   const taxonomy = [species.kingdom, species.phylum, species.class_name, species.order_name, species.family].filter(Boolean)
 
+  // Build specimen collection links based on taxonomy
+  const encodedName = encodeURIComponent(species.canonical_name)
+  const specimenLinks: { label: string; url: string; description: string }[] = []
+
+  if (species.kingdom === 'Plantae' || species.kingdom === 'Fungi') {
+    specimenLinks.push({
+      label: 'SORO Herbaria',
+      url: `https://soroherbaria.org/portal/collections/listtabledisplay.php?taxa=${encodedName}`,
+      description: 'Southern Rocky Mountain Herbaria — digital specimens and photos',
+    })
+  }
+  if (species.kingdom === 'Animalia' && species.class_name === 'Insecta') {
+    specimenLinks.push({
+      label: 'SCAN Arthropod Network',
+      url: `https://scan-bugs.org/portal/collections/list.php?taxa=${encodedName}&usethes=1&taxontype=2`,
+      description: 'Symbiota Collections of Arthropods Network — pinned and preserved specimens',
+    })
+  }
+  if (species.kingdom === 'Animalia' && species.class_name === 'Mammalia') {
+    specimenLinks.push({
+      label: 'CSVColl Vertebrate Collections',
+      url: `https://csvcoll.org/portal/collections/list.php?taxa=${encodedName}&usethes=1&taxontype=2`,
+      description: 'Consortium of Small Vertebrate Collections — skins, skulls, and skeletons',
+    })
+  }
+  // Arthropoda classes beyond Insecta (Arachnida, etc.) also go to SCAN
+  if (species.kingdom === 'Animalia' && species.phylum === 'Arthropoda' && species.class_name !== 'Insecta') {
+    specimenLinks.push({
+      label: 'SCAN Arthropod Network',
+      url: `https://scan-bugs.org/portal/collections/list.php?taxa=${encodedName}&usethes=1&taxontype=2`,
+      description: 'Symbiota Collections of Arthropods Network',
+    })
+  }
+
   return (
     <div className="detail">
       <Link href="/species" className="detail-back">&larr; Back to Species</Link>
@@ -73,8 +107,31 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
         {species.synonyms?.length > 0 && (
           <div><strong>Synonyms:</strong> {species.synonyms.join(', ')}</div>
         )}
+        {specimenLinks.length > 0 && (
+          <div>
+            <strong>Specimen collections:</strong>{' '}
+            {specimenLinks.map((link, i) => (
+              <span key={i}>
+                {i > 0 && ' · '}
+                <a href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a>
+              </span>
+            ))}
+          </div>
+        )}
         <div><strong>Papers:</strong> {species.publication_count} | <strong>Mentions:</strong> {species.mention_count}</div>
       </div>
+
+      {specimenLinks.length > 0 && (
+        <div className="detail-actions">
+          {specimenLinks.map((link, i) => (
+            <a key={i} className="detail-action-secondary" href={link.url}
+               target="_blank" rel="noopener noreferrer"
+               title={link.description}>
+              {link.label} Specimens
+            </a>
+          ))}
+        </div>
+      )}
 
       {species.description && (
         <div className="detail-section">
