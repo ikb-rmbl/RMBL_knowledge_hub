@@ -8,6 +8,11 @@ Unified search platform for environmental knowledge from the Rocky Mountain Biol
 - **Datasets** (1,216) — research datasets from 8 discovery sources
 - **Authors** (6,586) — deduplicated cross-collection author registry with ORCID enrichment
 - **Projects** (118) — research plans and programs with auto-discovered item assignments
+- **Species** (402) — taxonomic entities with ITIS validation and external links
+- **Places** (246 referenced + 641 GNIS seeds) — geographic entities with coordinates and hierarchy
+- **Protocols** (196) — research methods with embedding-based clustering
+- **Concepts** (331) — scientific concepts with type/scope classification
+- **Entity Mentions** (2,025) — cross-links between entities and publications
 - **References** (106,209) — citation network with 10,045 internal links
 - **Embeddings** (7,758) — vector embeddings for concept graph and similarity search
 
@@ -84,12 +89,20 @@ src/
     page.tsx                     — Home page
     layout.tsx                   — Site layout (RMBL header, footer)
     styles.css                   — RMBL brand styling
-    search/page.tsx              — Unified search with faceted filtering
+    search/page.tsx              — Unified search with faceted filtering + entity knowledge cards
     publications/[id]/page.tsx   — Publication detail
     documents/[id]/page.tsx      — Document detail
     datasets/[id]/page.tsx       — Dataset detail
     authors/page.tsx             — Author browse
-    authors/[id]/page.tsx        — Author detail with works
+    authors/[id]/page.tsx        — Author detail with project cards, sortable/filterable works
+    species/page.tsx             — Species browse with kingdom chips
+    species/[id]/page.tsx        — Species detail with external links, co-occurring species
+    places/page.tsx              — Places browse with Referenced/All chips
+    places/[id]/page.tsx         — Place detail with OpenStreetMap embed, linked works
+    protocols/page.tsx           — Protocols browse with Standardized chip
+    protocols/[id]/page.tsx      — Protocol detail with co-occurring entities
+    concepts/page.tsx            — Concepts browse with type chips
+    concepts/[id]/page.tsx       — Concept detail with co-occurring entities
     projects/page.tsx            — Project browse
     projects/[id]/page.tsx       — Project detail with assigned items
     api/search/route.ts          — Search API endpoint (validated, parameterized)
@@ -128,11 +141,17 @@ scripts/
   update-sources.ts          — Incremental source change detection
   sync-to-neon.ts            — Production sync: full restore, verify, safe enrichment, schema migration
   sync-databases.ts          — Bidirectional incremental sync (local <-> Neon)
-  experiment-extraction.ts   — VLM extraction experiment (regex vs Voyage multimodal vs Claude vision)
+  experiment-extraction.ts   — VLM entity extraction via Claude vision (resumable, incremental saves)
+  select-experiment-papers.ts — Stratified paper sampling for VLM extraction
+  load-extraction-results.ts — Load VLM results into entity_candidates tables
+  cluster-protocols.ts       — Embedding-based protocol dedup and clustering
+  cluster-concepts.ts        — Embedding-based concept dedup and clustering
+  link-species-places.ts     — Species ITIS validation + places hierarchy linking
+  seed-places-gnis.ts        — Seed places from GNIS authoritative data (668 locations)
   setup-local.sh             — Automated local development environment setup
   export-database.sh         — Database export for sharing (excludes sensitive tables)
-  lib/                       — 16 shared utility modules
-  sql/                       — 5 SQL migration files (provenance, citations, embeddings, projects, sync_log)
+  lib/                       — 17 shared utility modules (includes itis-client.ts)
+  sql/                       — 6 SQL migration files (provenance, citations, embeddings, projects, entities, sync_log)
   __tests__/                 — 12 test files (214 tests)
 
 public/
