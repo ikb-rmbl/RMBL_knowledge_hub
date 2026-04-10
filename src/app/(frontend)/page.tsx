@@ -2,11 +2,13 @@ import Link from 'next/link'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getBadgeLabel, getBadgeClass } from './lib/badges'
+import { getDb } from './lib/db'
 
 export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
   const payload = await getPayload({ config })
+  const db = getDb()
 
   // Fetch counts for each collection
   const [docCount, pubCount, dataCount, authorCount] = await Promise.all([
@@ -15,6 +17,18 @@ export default async function HomePage() {
     payload.count({ collection: 'datasets' }),
     payload.count({ collection: 'authors' }),
   ])
+
+  // Fetch entity + cross-link counts from custom tables
+  const { rows: [entityStats] } = await db.query(`
+    SELECT
+      (SELECT COUNT(*) FROM species WHERE publication_count > 0) as species,
+      (SELECT COUNT(*) FROM places WHERE publication_count > 0) as places,
+      (SELECT COUNT(*) FROM protocols) as protocols,
+      (SELECT COUNT(*) FROM concepts WHERE publication_count > 0) as concepts,
+      (SELECT COUNT(*) FROM projects) as projects,
+      (SELECT COUNT(*) FROM entity_mentions) as cross_links,
+      (SELECT COUNT(*) FROM references_cited WHERE link_type = 'internal') as citations
+  `)
 
   // Topic groups for Browse by Topic section
   const TOPIC_GROUPS = [
@@ -92,7 +106,9 @@ export default async function HomePage() {
         <h1>Explore Western Colorado's Environmental Knowledge</h1>
         <p>
           Search across {totalCount.toLocaleString()} documents, publications, and datasets
-          from {authorCount.totalDocs.toLocaleString()} researchers in the Gunnison Basin.
+          from {authorCount.totalDocs.toLocaleString()} researchers — connected by{' '}
+          {parseInt(entityStats.cross_links).toLocaleString()} entity links and{' '}
+          {parseInt(entityStats.citations).toLocaleString()} citation connections.
         </p>
 
         <form className="search-form" action="/search" method="GET">
@@ -120,11 +136,35 @@ export default async function HomePage() {
           <Link className="type-chip" href="/search?type=datasets">
             Datasets ({dataCount.totalDocs.toLocaleString()})
           </Link>
+        </div>
+      </div>
+
+      <section className="section">
+        <h2 className="section-title">Knowledge Graph</h2>
+        <p style={{ maxWidth: '680px', margin: '0 auto 20px', color: 'var(--color-text-secondary)', textAlign: 'center' }}>
+          Publications, datasets, and documents are linked to species, places, research protocols, and scientific concepts — enabling discovery across the research landscape.
+        </p>
+        <div className="type-chips" style={{ justifyContent: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <Link className="type-chip" href="/species">
+            Species ({parseInt(entityStats.species).toLocaleString()})
+          </Link>
+          <Link className="type-chip" href="/places">
+            Places ({parseInt(entityStats.places).toLocaleString()})
+          </Link>
+          <Link className="type-chip" href="/protocols">
+            Protocols ({parseInt(entityStats.protocols).toLocaleString()})
+          </Link>
+          <Link className="type-chip" href="/concepts">
+            Concepts ({parseInt(entityStats.concepts).toLocaleString()})
+          </Link>
           <Link className="type-chip" href="/authors">
             Authors ({authorCount.totalDocs.toLocaleString()})
           </Link>
+          <Link className="type-chip" href="/projects">
+            Projects ({parseInt(entityStats.projects).toLocaleString()})
+          </Link>
         </div>
-      </div>
+      </section>
 
       <section className="section">
         <h2 className="section-title">Browse by Topic</h2>
