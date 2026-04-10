@@ -36,34 +36,37 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
   const taxonomy = [species.kingdom, species.phylum, species.class_name, species.order_name, species.family].filter(Boolean)
 
   // Build specimen collection links based on taxonomy
+  // Each link filters to RMBL specimens where possible (via db[]=collid or recordset filter)
   const encodedName = encodeURIComponent(species.canonical_name)
-  const specimenLinks: { label: string; url: string; description: string }[] = []
+  const specimenLinks: { label: string; url: string; allUrl?: string; description: string }[] = []
 
   if (species.kingdom === 'Plantae' || species.kingdom === 'Fungi') {
     specimenLinks.push({
-      label: 'SORO Herbaria',
-      url: `https://soroherbaria.org/portal/collections/listtabledisplay.php?taxa=${encodedName}`,
-      description: 'Southern Rocky Mountain Herbaria — digital specimens and photos',
-    })
-  }
-  if (species.kingdom === 'Animalia' && species.class_name === 'Insecta') {
-    specimenLinks.push({
-      label: 'SCAN Arthropod Network',
-      url: `https://scan-bugs.org/portal/collections/list.php?taxa=${encodedName}&usethes=1&taxontype=2`,
-      description: 'Symbiota Collections of Arthropods Network — pinned and preserved specimens',
+      label: 'RMBL Herbarium',
+      // db[]=112 filters to RMBL herbarium collection in SORO portal
+      url: `https://soroherbaria.org/portal/collections/listtabledisplay.php?taxa=${encodedName}&usethes=1&taxontype=2&db[]=112`,
+      allUrl: `https://soroherbaria.org/portal/collections/listtabledisplay.php?taxa=${encodedName}&usethes=1&taxontype=2`,
+      description: 'RMBL specimens in the Southern Rocky Mountain Herbaria',
     })
   }
   if (species.kingdom === 'Animalia' && species.class_name === 'Mammalia') {
     specimenLinks.push({
-      label: 'CSVColl Vertebrate Collections',
-      url: `https://csvcoll.org/portal/collections/list.php?taxa=${encodedName}&usethes=1&taxontype=2`,
-      description: 'Consortium of Small Vertebrate Collections — skins, skulls, and skeletons',
+      label: 'RMBL Mammal Collection',
+      // CVColl portal (not CSVColl) with db[]=1024 for RMBL mammals
+      url: `https://cvcoll.org/portal/collections/list.php?taxa=${encodedName}&usethes=1&taxontype=2&db[]=1024`,
+      allUrl: `https://cvcoll.org/portal/collections/list.php?taxa=${encodedName}&usethes=1&taxontype=2`,
+      description: 'RMBL specimens in the Consortium of Small Vertebrate Collections',
+    })
+    // Also link to iDigBio which has broader mammal coverage
+    specimenLinks.push({
+      label: 'iDigBio Specimens',
+      url: `https://portal.idigbio.org/portal/search?rq=${encodeURIComponent(JSON.stringify({ scientificname: species.canonical_name }))}`,
+      description: 'All digitized specimens across North American collections',
     })
   }
-  // Arthropoda classes beyond Insecta (Arachnida, etc.) also go to SCAN
-  if (species.kingdom === 'Animalia' && species.phylum === 'Arthropoda' && species.class_name !== 'Insecta') {
+  if (species.kingdom === 'Animalia' && (species.phylum === 'Arthropoda' || species.class_name === 'Insecta')) {
     specimenLinks.push({
-      label: 'SCAN Arthropod Network',
+      label: 'SCAN Arthropods',
       url: `https://scan-bugs.org/portal/collections/list.php?taxa=${encodedName}&usethes=1&taxontype=2`,
       description: 'Symbiota Collections of Arthropods Network',
     })
@@ -114,6 +117,9 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
               <span key={i}>
                 {i > 0 && ' · '}
                 <a href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a>
+                {link.allUrl && (
+                  <> (<a href={link.allUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px' }}>all collections</a>)</>
+                )}
               </span>
             ))}
           </div>
@@ -127,7 +133,7 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
             <a key={i} className="detail-action-secondary" href={link.url}
                target="_blank" rel="noopener noreferrer"
                title={link.description}>
-              {link.label} Specimens
+              {link.label}
             </a>
           ))}
         </div>
