@@ -49,6 +49,12 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
     values.push(scopeFilter)
     paramIdx++
   }
+  const disciplineFilter = params.discipline || ''
+  if (disciplineFilter) {
+    where.push(`$${paramIdx} = ANY(disciplines)`)
+    values.push(disciplineFilter)
+    paramIdx++
+  }
 
   const orderBy = sortParam === 'name' ? 'name ASC' : 'publication_count DESC, name ASC'
   const whereStr = where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''
@@ -86,6 +92,7 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
     if (merged.sort && merged.sort !== 'publications') p.set('sort', merged.sort)
     if (merged.type) p.set('type', merged.type)
     if (merged.scope) p.set('scope', merged.scope)
+    if (merged.discipline) p.set('discipline', merged.discipline)
     if (merged.page && merged.page !== '1') p.set('page', merged.page)
     const qs = p.toString()
     return `/concepts${qs ? '?' + qs : ''}`
@@ -94,8 +101,18 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
   const activeStyle = { fontWeight: 700 as const, color: 'var(--color-accent)' }
   const inactiveStyle = { fontWeight: 400 as const, color: 'inherit' }
 
-  // Top concept types for chips (show ones with 10+)
-  const topTypes = typeCounts.filter((t: any) => t.cnt >= 10)
+  // Discipline counts for chips
+  const { rows: discCounts } = await db.query(`
+    SELECT d as discipline, COUNT(*) as cnt
+    FROM concepts, unnest(disciplines) as d
+    WHERE publication_count > 0
+    GROUP BY d ORDER BY cnt DESC
+  `)
+
+  const DISCIPLINE_LABELS: Record<string, string> = {
+    ecology: 'Ecology', earth_science: 'Earth Science', methods: 'Methods',
+    evolution: 'Evolution', molecular: 'Molecular', physiology: 'Physiology',
+  }
 
   const chipStyle = (active: boolean) => ({
     padding: '6px 14px', borderRadius: 'var(--radius-sm)',
@@ -114,13 +131,13 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
         </form>
 
         <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
-          <Link href={buildUrl({ type: undefined, page: '1' })} style={chipStyle(!typeFilter)}>All ({total.toLocaleString()})</Link>
-          {topTypes.map((t: any) => (
-            <Link key={t.concept_type} href={buildUrl({ type: t.concept_type, page: '1' })} style={chipStyle(typeFilter === t.concept_type)}>{t.concept_type.replace(/_/g, ' ')} ({t.cnt})</Link>
+          <Link href={buildUrl({ discipline: undefined, type: undefined, page: '1' })} style={chipStyle(!disciplineFilter && !typeFilter)}>All ({total.toLocaleString()})</Link>
+          {discCounts.map((dc: any) => (
+            <Link key={dc.discipline} href={buildUrl({ discipline: dc.discipline, type: undefined, page: '1' })} style={chipStyle(disciplineFilter === dc.discipline)}>{DISCIPLINE_LABELS[dc.discipline] || dc.discipline} ({dc.cnt})</Link>
           ))}
         </div>
 
-        <p className="results-count">{total.toLocaleString()} concepts{query ? ` matching "${query}"` : ''}{typeFilter ? ` (${typeFilter.replace(/_/g, ' ')})` : ''}</p>
+        <p className="results-count">{total.toLocaleString()} concepts{query ? ` matching "${query}"` : ''}{disciplineFilter ? ` in ${DISCIPLINE_LABELS[disciplineFilter] || disciplineFilter}` : ''}</p>
       </div>
 
       <div className="search-layout">
@@ -161,7 +178,6 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
               )}
               <div className="result-card-meta">
                 {c.scope && <span>{c.scope.replace(/_/g, ' ')}</span>}
-                {c.aliases?.length > 0 && <span>aka: {c.aliases.join(', ')}</span>}
                 <span>{c.publication_count} paper{c.publication_count !== 1 ? 's' : ''}</span>
               </div>
             </Link>

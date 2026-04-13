@@ -482,6 +482,49 @@ async function callClaudeWithPages(
     }),
   })
 
+  // Retry on transient errors (429 rate limit, 529 overloaded, 5xx server errors)
+  if (res.status === 529 || res.status === 429 || (res.status >= 500 && res.status < 600)) {
+    const errText = await res.text()
+    const MAX_RETRIES = 4
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      const backoff = Math.min(30 + attempt * 30, 120) // 60s, 90s, 120s, 120s
+      console.log(`    Retrying (${attempt}/${MAX_RETRIES}) after ${backoff}s — ${res.status} error`)
+      await sleep(backoff * 1000)
+      const retry = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 16384,
+          messages: [{
+            role: 'user',
+            content: [
+              ...imageContents,
+              { type: 'text', text: `This is "${title}" (${batchLabel}).\n\n${VLM_PROMPT}` },
+            ],
+          }],
+        }),
+      })
+      if (retry.ok) {
+        const data = await retry.json()
+        return {
+          text: data.content?.[0]?.text || '',
+          inputTokens: data.usage?.input_tokens || 0,
+          outputTokens: data.usage?.output_tokens || 0,
+        }
+      }
+      if (retry.status !== 529 && retry.status !== 429 && retry.status < 500) {
+        const retryErr = await retry.text()
+        throw new Error(`Claude API ${retry.status}: ${retryErr.slice(0, 200)}`)
+      }
+    }
+    throw new Error(`Claude API ${res.status} after ${MAX_RETRIES} retries: ${errText.slice(0, 200)}`)
+  }
+
   if (!res.ok) {
     const errText = await res.text()
     throw new Error(`Claude API ${res.status}: ${errText.slice(0, 200)}`)
@@ -679,6 +722,10 @@ async function strategy3VLM(pdfPath: string, title: string): Promise<{ extractio
             console.log(` ok (${extraction.protocolSteps?.length || 0} steps, ${extraction.species?.length || 0} species)`)
           } else {
             console.log(' no JSON parsed')
+            // Dump raw response for debugging
+            const debugPath = `${RESULTS_DIR}/debug-${basename}-raw.txt`
+            writeFileSync(debugPath, result.text)
+            console.log(`    Raw response saved to ${debugPath} (${result.text.length} chars)`)
           }
         }
       } catch (err: any) {

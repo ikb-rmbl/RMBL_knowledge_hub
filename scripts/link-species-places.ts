@@ -240,7 +240,9 @@ async function linkSpecies(db: pg.Pool): Promise<void> {
 
     // Use ITIS data for taxonomy (authoritative), VLM for the rest
     const canonicalName = itis?.canonicalName || best.scientificName || members[0].raw_name
-    const rank = itis?.rank || 'species'
+    // Infer rank: trust ITIS if available; otherwise detect genus-only names (single word, no epithet)
+    const inferredName = itis?.canonicalName || best.scientificName || members[0].raw_name
+    const rank = itis?.rank || (inferredName.trim().split(/\s+/).length === 1 ? 'genus' : 'species')
     const kingdom = itis?.kingdom || best.kingdom || null
     const phylum = itis?.phylum || best.phylum || null
     const className = itis?.className || best.class || null
@@ -257,6 +259,10 @@ async function linkSpecies(db: pg.Pool): Promise<void> {
         kingdom, phylum, class_name, order_name, family,
         conservation_status, native_to_rmbl, ecological_roles, external_ids)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+       ON CONFLICT (canonical_name, rank) DO UPDATE SET
+         common_names = CASE WHEN array_length(EXCLUDED.common_names, 1) > coalesce(array_length(species.common_names, 1), 0) THEN EXCLUDED.common_names ELSE species.common_names END,
+         synonyms = CASE WHEN array_length(EXCLUDED.synonyms, 1) > coalesce(array_length(species.synonyms, 1), 0) THEN EXCLUDED.synonyms ELSE species.synonyms END,
+         external_ids = COALESCE(EXCLUDED.external_ids, species.external_ids)
        RETURNING id`,
       [
         canonicalName,

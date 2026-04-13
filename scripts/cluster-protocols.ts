@@ -90,6 +90,8 @@ interface Candidate {
   attrs: any               // raw_attributes jsonb
   sourceItemId: number     // publication.id
   pubYear: number | null   // publication year (for recency scoring)
+  pubType: string | null   // publication_type (article, thesis, student_paper, etc.)
+  taxon: string | null     // primary study-subject taxon (family or kingdom)
   embedding: number[]
 }
 
@@ -146,8 +148,8 @@ interface CanonicalRecord {
   standardized: boolean
   standardName: string | null
   standardReference: string | null
-  equipment: string[]       // union across all members
-  outputs: string[]         // union across all members
+  equipment: string[]       // from canonical member
+  outputs: string[]         // from canonical member
   centroid: number[]
   canonicalMember: Candidate // the member that scored highest
   memberScores: { candidate: Candidate; score: number; centrality: number; detail: number; recency: number }[]
@@ -186,25 +188,43 @@ function selectCanonical(cluster: Cluster): CanonicalRecord {
   scored.sort((a, b) => b.score - a.score)
   const best = scored[0].candidate
 
-  // Aggregate equipment and outputs from ALL members
-  const allEquipment = new Set<string>()
-  const allOutputs = new Set<string>()
-  let standardized = false
+  // Use equipment and outputs from the canonical (best-scoring) member only,
+  // to avoid near-duplicate entries from different papers' phrasings
+
+  // Standardized = appears in 2+ distinct peer-reviewed articles.
+  // This replaces the LLM's isStandardized flag, which was inconsistent.
+  const peerReviewedPubs = new Set(
+    members.filter((m) => m.pubType === 'article').map((m) => m.sourceItemId),
+  )
+  const standardized = peerReviewedPubs.size >= 2
+
+  // Still inherit standard name/reference from LLM if available
   let standardName: string | null = null
   let standardReference: string | null = null
-
   for (const m of members) {
-    for (const e of m.attrs.equipmentUsed || []) allEquipment.add(e)
-    for (const o of m.attrs.outputMeasurements || []) allOutputs.add(o)
-    if (m.attrs.isStandardized) {
-      standardized = true
-      if (m.attrs.standardName) standardName = m.attrs.standardName
-      if (m.attrs.standardReference) standardReference = m.attrs.standardReference
-    }
+    if (m.attrs.standardName) standardName = m.attrs.standardName
+    if (m.attrs.standardReference) standardReference = m.attrs.standardReference
+  }
+
+  // Determine dominant taxon for this cluster — if ≥60% of members share a taxon,
+  // include it in the name to distinguish taxon-specific protocols
+  const taxonCounts = new Map<string, number>()
+  for (const m of members) {
+    if (m.taxon) taxonCounts.set(m.taxon, (taxonCounts.get(m.taxon) || 0) + 1)
+  }
+  let dominantTaxon: string | null = null
+  if (taxonCounts.size > 0) {
+    const [topTaxon, topCount] = [...taxonCounts.entries()].sort((a, b) => b[1] - a[1])[0]
+    if (topCount / members.length >= 0.6) dominantTaxon = topTaxon
   }
 
   // Name: prefer standardName if available, else best-scoring member's proposedName
-  const name = standardName || best.attrs.proposedName || best.rawName
+  // Append taxon qualifier when the cluster is taxon-specific and the name doesn't already contain it
+  let baseName = standardName || best.attrs.proposedName || best.rawName
+  if (dominantTaxon && !baseName.toLowerCase().includes(dominantTaxon.toLowerCase())) {
+    baseName = `${baseName} (${dominantTaxon})`
+  }
+  const name = baseName
 
   return {
     name,
@@ -214,8 +234,8 @@ function selectCanonical(cluster: Cluster): CanonicalRecord {
     standardized,
     standardName,
     standardReference,
-    equipment: [...allEquipment],
-    outputs: [...allOutputs],
+    equipment: best.attrs.equipmentUsed || [],
+    outputs: best.attrs.outputMeasurements || [],
     centroid: cluster.centroid,
     canonicalMember: best,
     memberScores: scored,
@@ -252,9 +272,10 @@ async function main() {
   })
 
   try {
-    // Load protocol candidates with publication year for recency scoring
+    // Load protocol candidates with publication year and type
     const { rows } = await db.query(`
-      SELECT ec.id, ec.raw_name, ec.raw_attributes, ec.source_item_id, p.year as pub_year
+      SELECT ec.id, ec.raw_name, ec.raw_attributes, ec.source_item_id,
+             p.year as pub_year, p.publication_type as pub_type
       FROM entity_candidates ec
       LEFT JOIN publications p ON p.id = ec.source_item_id
       WHERE ec.entity_type = 'protocol'
@@ -269,11 +290,46 @@ async function main() {
       return
     }
 
-    // Build embedding texts
+    // Look up primary study-subject taxon per paper for taxon-aware embedding.
+    // This ensures "mark-recapture [mammals/Sciuridae]" clusters separately from
+    // "mark-recapture [amphibians/Ambystomatidae]" since the methods differ by taxon.
+    console.log('\nLooking up study-subject taxa per paper...')
+    const pubIds = [...new Set(candidates.map((c) => c.source_item_id))]
+    const { rows: taxonRows } = await db.query(`
+      SELECT source_item_id,
+             raw_attributes->>'kingdom' as kingdom,
+             raw_attributes->>'family' as family,
+             raw_attributes->>'class' as class_name
+      FROM entity_candidates
+      WHERE entity_type = 'species'
+        AND raw_attributes->>'role' = 'study subject'
+        AND source_item_id = ANY($1)
+    `, [pubIds])
+
+    // Build per-paper taxon summary: most common family + kingdom
+    const pubTaxon = new Map<number, string>()
+    const familyByPub = new Map<number, Map<string, number>>()
+    for (const r of taxonRows) {
+      const fam = r.family || r.class_name || r.kingdom || ''
+      if (!fam) continue
+      if (!familyByPub.has(r.source_item_id)) familyByPub.set(r.source_item_id, new Map())
+      const counts = familyByPub.get(r.source_item_id)!
+      counts.set(fam, (counts.get(fam) || 0) + 1)
+    }
+    for (const [pubId, counts] of familyByPub) {
+      const top = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]
+      if (top) pubTaxon.set(pubId, top[0])
+    }
+    const withTaxon = candidates.filter((c) => pubTaxon.has(c.source_item_id)).length
+    console.log(`  ${withTaxon}/${candidates.length} candidates have taxon context`)
+
+    // Build embedding texts — include taxon context for taxon-aware clustering
     console.log('\nComputing embeddings...')
     const texts = candidates.map((c) => {
       const attrs = c.raw_attributes
-      return `${attrs.proposedName || c.raw_name} — ${attrs.description || ''}`
+      const taxon = pubTaxon.get(c.source_item_id) || ''
+      const base = `${attrs.proposedName || c.raw_name} — ${attrs.description || ''}`
+      return taxon ? `${base} [${taxon}]` : base
     })
     const embeddings = await embedTexts(texts)
     console.log(`  ${embeddings.length} embeddings computed (${EMBEDDING_DIMENSIONS} dims)`)
@@ -285,6 +341,8 @@ async function main() {
       attrs: c.raw_attributes,
       sourceItemId: c.source_item_id,
       pubYear: c.pub_year || null,
+      pubType: c.pub_type || null,
+      taxon: pubTaxon.get(c.source_item_id) || null,
       embedding: embeddings[i],
     }))
 

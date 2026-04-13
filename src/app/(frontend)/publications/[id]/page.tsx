@@ -188,8 +188,88 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
         )}
       </div>
 
+      {await renderEntitySections(parseInt(id))}
       {await renderRelatedWorks('publications', parseInt(id))}
       {await renderCitationSections(parseInt(id), payload)}
+    </div>
+  )
+}
+
+async function renderEntitySections(pubId: number) {
+  const db = getDb()
+  const INITIAL = 10
+
+  const [spRows, plRows, prRows, coRows] = await Promise.all([
+    db.query(`
+      SELECT s.id, s.canonical_name as name, s.family, s.kingdom, em.role,
+             s.publication_count, 'species' as entity_type
+      FROM entity_mentions em JOIN species s ON s.id = em.entity_id
+      WHERE em.entity_type = 'species' AND em.collection = 'publications' AND em.item_id = $1`, [pubId]),
+    db.query(`
+      SELECT p.id, p.name, p.place_type, p.elevation_m, em.role,
+             p.publication_count, 'place' as entity_type
+      FROM entity_mentions em JOIN places p ON p.id = em.entity_id
+      WHERE em.entity_type = 'place' AND em.collection = 'publications' AND em.item_id = $1`, [pubId]),
+    db.query(`
+      SELECT p.id, p.name, p.category, p.standardized, em.role,
+             p.publication_count, 'protocol' as entity_type
+      FROM entity_mentions em JOIN protocols p ON p.id = em.entity_id
+      WHERE em.entity_type = 'protocol' AND em.collection = 'publications' AND em.item_id = $1`, [pubId]),
+    db.query(`
+      SELECT c.id, c.name, c.concept_type, c.scope, em.role,
+             c.publication_count, 'concept' as entity_type
+      FROM entity_mentions em JOIN concepts c ON c.id = em.entity_id
+      WHERE em.entity_type = 'concept' AND em.collection = 'publications' AND em.item_id = $1`, [pubId]),
+  ])
+
+  const allEntities = [
+    ...spRows.rows, ...plRows.rows, ...prRows.rows, ...coRows.rows,
+  ].sort((a, b) => (b.publication_count || 0) - (a.publication_count || 0))
+
+  if (allEntities.length === 0) return null
+
+  function renderEntityCard(e: any) {
+    const type = e.entity_type
+    const href = `/${type === 'species' ? 'species' : type === 'place' ? 'places' : type === 'protocol' ? 'protocols' : 'concepts'}/${e.id}`
+    const badgeClass = type === 'species' ? 'badge-species' : type === 'place' ? 'badge-place' : type === 'protocol' ? 'badge-protocol' : 'badge-concept'
+    const badgeLabel = type === 'species' ? (e.kingdom || 'species')
+      : type === 'place' ? (e.place_type || 'place').replace(/_/g, ' ')
+      : type === 'protocol' ? (e.category || 'protocol')
+      : (e.concept_type || 'concept').replace(/_/g, ' ')
+
+    return (
+      <Link key={`${type}-${e.id}`} href={href} className="result-card">
+        <div className="result-card-header">
+          <span className={`badge ${badgeClass}`}>{badgeLabel}</span>
+          {type === 'protocol' && e.standardized && <span className="badge" style={{ background: '#2e7d32', color: 'white' }}>standardized</span>}
+          <h3 className="result-card-title" style={type === 'species' ? { fontStyle: 'italic' } : undefined}>{e.name}</h3>
+        </div>
+        <div className="result-card-meta">
+          {type === 'species' && e.family && <span>{e.family}</span>}
+          {type === 'place' && e.elevation_m && <span>{e.elevation_m}m</span>}
+          {type === 'concept' && e.scope && <span>{e.scope.replace(/_/g, ' ')}</span>}
+          {e.role && <span>{e.role}</span>}
+        </div>
+      </Link>
+    )
+  }
+
+  return (
+    <div className="detail-section">
+      <h2>Knowledge Graph ({allEntities.length})</h2>
+      <div className="result-cards">
+        {allEntities.slice(0, INITIAL).map(renderEntityCard)}
+      </div>
+      {allEntities.length > INITIAL && (
+        <details style={{ marginTop: '8px' }}>
+          <summary style={{ cursor: 'pointer', fontSize: '13px', color: 'var(--color-accent)', fontWeight: 500 }}>
+            Show {allEntities.length - INITIAL} more linked entities
+          </summary>
+          <div className="result-cards" style={{ marginTop: '8px' }}>
+            {allEntities.slice(INITIAL).map(renderEntityCard)}
+          </div>
+        </details>
+      )}
     </div>
   )
 }

@@ -45,6 +45,12 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
   if (params.std === 'true') {
     where.push('standardized = true')
   }
+  const disciplineFilter = params.discipline || ''
+  if (disciplineFilter) {
+    where.push(`$${paramIdx} = ANY(disciplines)`)
+    values.push(disciplineFilter)
+    paramIdx++
+  }
 
   const orderBy = sortParam === 'name' ? 'name ASC' : 'publication_count DESC, name ASC'
   const whereStr = where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''
@@ -78,6 +84,7 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
     if (merged.sort && merged.sort !== 'publications') p.set('sort', merged.sort)
     if (merged.category) p.set('category', merged.category)
     if (merged.std === 'true') p.set('std', 'true')
+    if (merged.discipline) p.set('discipline', merged.discipline)
     if (merged.show === 'all') p.set('show', 'all')
     if (merged.page && merged.page !== '1') p.set('page', merged.page)
     const qs = p.toString()
@@ -87,14 +94,22 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
   const activeStyle = { fontWeight: 700 as const, color: 'var(--color-accent)' }
   const inactiveStyle = { fontWeight: 400 as const, color: 'inherit' }
 
-  // Counts for chips
+  // Discipline counts for chips
+  const { rows: discCounts } = await db.query(`
+    SELECT d as discipline, COUNT(*) as cnt
+    FROM protocols, unnest(disciplines) as d
+    GROUP BY d ORDER BY cnt DESC
+  `)
   const { rows: [{ std_count, all_count }] } = await db.query(`
     SELECT
       (SELECT COUNT(*)::int FROM protocols WHERE standardized = true) as std_count,
       (SELECT COUNT(*)::int FROM protocols) as all_count
   `)
 
-  const stdFilter = params.std || ''
+  const DISCIPLINE_LABELS: Record<string, string> = {
+    ecology: 'Ecology', earth_science: 'Earth Science', methods: 'Methods',
+    evolution: 'Evolution', molecular: 'Molecular', physiology: 'Physiology',
+  }
 
   const chipStyle = (active: boolean) => ({
     padding: '6px 14px', borderRadius: 'var(--radius-sm)',
@@ -113,11 +128,14 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
         </form>
 
         <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
-          <Link href={buildUrl({ std: undefined, page: '1' })} style={chipStyle(!stdFilter)}>All ({all_count})</Link>
-          <Link href={buildUrl({ std: 'true', page: '1' })} style={chipStyle(stdFilter === 'true')}>Standardized ({std_count})</Link>
+          <Link href={buildUrl({ discipline: undefined, std: undefined, page: '1' })} style={chipStyle(!disciplineFilter && !params.std)}>All ({all_count})</Link>
+          {discCounts.map((dc: any) => (
+            <Link key={dc.discipline} href={buildUrl({ discipline: dc.discipline, std: undefined, page: '1' })} style={chipStyle(disciplineFilter === dc.discipline)}>{DISCIPLINE_LABELS[dc.discipline] || dc.discipline} ({dc.cnt})</Link>
+          ))}
+          <Link href={buildUrl({ std: 'true', discipline: undefined, page: '1' })} style={chipStyle(params.std === 'true')}>Standardized ({std_count})</Link>
         </div>
 
-        <p className="results-count">{total.toLocaleString()} protocols{query ? ` matching "${query}"` : ''}</p>
+        <p className="results-count">{total.toLocaleString()} protocols{query ? ` matching "${query}"` : ''}{disciplineFilter ? ` in ${DISCIPLINE_LABELS[disciplineFilter] || disciplineFilter}` : ''}</p>
       </div>
 
       <div className="search-layout">
