@@ -111,7 +111,7 @@ async function callClaude(docText: string, title: string): Promise<any | null> {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 4096,
+        max_tokens: 8192,
         messages: [{
           role: 'user',
           content: `${PROMPT}\n\nDocument title: "${title}"\n\nDocument text:\n${docText}`,
@@ -138,7 +138,8 @@ async function callClaude(docText: string, title: string): Promise<any | null> {
     const inputTokens = data.usage?.input_tokens || 0
     const outputTokens = data.usage?.output_tokens || 0
 
-    // Parse JSON
+    // Parse JSON — handle truncated responses from max_tokens cutoff
+    const stopReason = data.stop_reason
     let cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
     try {
       return { extraction: JSON.parse(cleaned), inputTokens, outputTokens }
@@ -150,7 +151,21 @@ async function callClaude(docText: string, title: string): Promise<any | null> {
           return { extraction: JSON.parse(cleaned.slice(start, end + 1)), inputTokens, outputTokens }
         } catch { /* fall through */ }
       }
-      console.log(` JSON parse failed (${text.length} chars)`)
+      // Truncated JSON recovery: if stop_reason is max_tokens, try closing open braces/brackets
+      if (start >= 0 && (stopReason === 'max_tokens' || end === -1 || end <= start)) {
+        let attempt = cleaned.slice(start)
+        // Trim to last complete value (before a trailing comma or incomplete string)
+        attempt = attempt.replace(/,\s*"[^"]*$/, '').replace(/,\s*$/, '')
+        const openBraces = (attempt.match(/\{/g) || []).length - (attempt.match(/\}/g) || []).length
+        const openBrackets = (attempt.match(/\[/g) || []).length - (attempt.match(/\]/g) || []).length
+        attempt += ']'.repeat(Math.max(0, openBrackets)) + '}'.repeat(Math.max(0, openBraces))
+        try {
+          const parsed = JSON.parse(attempt)
+          console.log(` recovered truncated JSON (${text.length} chars, stop=${stopReason})`)
+          return { extraction: parsed, inputTokens, outputTokens }
+        } catch { /* fall through */ }
+      }
+      console.log(` JSON parse failed (${text.length} chars, stop=${stopReason})`)
       return null
     }
   }
