@@ -2,10 +2,9 @@
  * Cluster Concept Candidates
  *
  * Groups similar concept candidates from entity_candidates into canonical
- * Concept records using embedding-based clustering (same approach as
- * cluster-protocols.ts). Concept names vary across papers — e.g.,
- * "phenological mismatch" vs "phenology-pollinator mismatch" vs "temporal
- * mismatch" — so exact name matching is insufficient.
+ * Concept records using embedding-based clustering. Concept names vary
+ * across papers — e.g., "phenological mismatch" vs "phenology-pollinator
+ * mismatch" vs "temporal mismatch" — so exact name matching is insufficient.
  *
  * Usage:
  *   npx tsx scripts/cluster-concepts.ts [--threshold=0.82] [--dry-run]
@@ -13,66 +12,19 @@
 
 import pg from 'pg'
 import './lib/config.js'
-import { VOYAGE_API_KEY, VOYAGE_MODEL, EMBEDDING_DIMENSIONS } from './lib/config.js'
-import { sleep } from './lib/concurrency.js'
+import { VOYAGE_API_KEY } from './lib/config.js'
+import { embedTexts, cosineSimilarity, clusterCandidates, type Cluster } from './lib/embedding-cluster.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
 const thresholdArg = args.find((a) => a.startsWith('--threshold='))?.split('=')[1]
 const THRESHOLD = thresholdArg ? parseFloat(thresholdArg) : 0.82
 
-const VOYAGE_API_URL = 'https://api.voyageai.com/v1/embeddings'
-const EMBED_BATCH_SIZE = 128
-
-async function embedTexts(texts: string[]): Promise<number[][]> {
-  const all: number[][] = []
-  for (let i = 0; i < texts.length; i += EMBED_BATCH_SIZE) {
-    const batch = texts.slice(i, i + EMBED_BATCH_SIZE)
-    const res = await fetch(VOYAGE_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${VOYAGE_API_KEY}` },
-      body: JSON.stringify({ input: batch, model: VOYAGE_MODEL, input_type: 'document', output_dimension: EMBEDDING_DIMENSIONS }),
-    })
-    if (!res.ok) throw new Error(`Voyage AI error ${res.status}: ${(await res.text()).slice(0, 200)}`)
-    const data = await res.json()
-    all.push(...data.data.map((d: any) => d.embedding))
-    if (i + EMBED_BATCH_SIZE < texts.length) await sleep(200)
-  }
-  return all
-}
-
-function cosineSimilarity(a: number[], b: number[]): number {
-  let dot = 0, na = 0, nb = 0
-  for (let i = 0; i < a.length; i++) { dot += a[i]*b[i]; na += a[i]*a[i]; nb += b[i]*b[i] }
-  return dot / (Math.sqrt(na) * Math.sqrt(nb))
-}
-
 interface Candidate {
   id: number; rawName: string; attrs: any; sourceItemId: number; pubYear: number | null; embedding: number[]
 }
 
-interface Cluster { centroid: number[]; members: Candidate[] }
-
-function clusterCandidates(candidates: Candidate[], threshold: number): Cluster[] {
-  const clusters: Cluster[] = []
-  for (const c of candidates) {
-    let best: Cluster | null = null, bestSim = -1
-    for (const cl of clusters) {
-      const sim = cosineSimilarity(c.embedding, cl.centroid)
-      if (sim > bestSim) { bestSim = sim; best = cl }
-    }
-    if (best && bestSim >= threshold) {
-      best.members.push(c)
-      for (let i = 0; i < best.centroid.length; i++)
-        best.centroid[i] = (best.centroid[i] * (best.members.length - 1) + c.embedding[i]) / best.members.length
-    } else {
-      clusters.push({ centroid: [...c.embedding], members: [c] })
-    }
-  }
-  return clusters
-}
-
-function selectCanonical(cluster: Cluster) {
+function selectCanonical(cluster: Cluster<Candidate>) {
   const members = cluster.members
   const descLens = members.map(m => (m.attrs.definition || '').length)
   const aliasCount = members.map(m => (m.attrs.aliases || []).length)
@@ -92,7 +44,6 @@ function selectCanonical(cluster: Cluster) {
   scored.sort((a, b) => b.score - a.score)
   const best = scored[0].member
 
-  // Aggregate aliases across all members
   const allAliases = new Set<string>()
   for (const m of members) for (const a of m.attrs.aliases || []) allAliases.add(a)
 
@@ -146,7 +97,6 @@ async function main() {
     console.log(`    multi-member: ${multiMember.length} (covering ${multiMember.reduce((n, c) => n + c.members.length, 0)} candidates)`)
     console.log(`    singletons: ${clusters.length - multiMember.length}`)
 
-    // Show top clusters
     console.log('\n  Top clusters:')
     const sorted = canonicals.map((c, i) => ({ c, cl: clusters[i] })).sort((a, b) => b.cl.members.length - a.cl.members.length)
     for (const { c, cl } of sorted.slice(0, 15)) {
@@ -164,7 +114,6 @@ async function main() {
       return
     }
 
-    // Clear previous
     await db.query("DELETE FROM entity_mentions WHERE entity_type = 'concept'")
     await db.query('DELETE FROM concepts')
     await db.query("UPDATE entity_candidates SET resolved_entity_id = NULL WHERE entity_type = 'concept'")
@@ -197,7 +146,6 @@ async function main() {
       }
     }
 
-    // Batch UPDATE entity_candidates.resolved_entity_id
     if (allCandIds.length > 0) {
       await db.query(`
         UPDATE entity_candidates ec SET resolved_entity_id = t.resolved_id
@@ -206,7 +154,6 @@ async function main() {
       `, [allCandIds, allResolvedIds])
     }
 
-    // Batch INSERT entity_mentions
     if (allMentionEntityIds.length > 0) {
       await db.query(`
         INSERT INTO entity_mentions (entity_type, entity_id, collection, item_id, role, confidence, extraction_method)
@@ -215,15 +162,13 @@ async function main() {
       `, [allMentionEntityIds, allMentionItemIds, allMentionRoles])
     }
 
-    const mentions = allMentionEntityIds.length
-
     await db.query(`
       UPDATE concepts SET
         mention_count = (SELECT count(*) FROM entity_mentions WHERE entity_type = 'concept' AND entity_id = concepts.id),
         publication_count = (SELECT count(DISTINCT item_id) FROM entity_mentions WHERE entity_type = 'concept' AND entity_id = concepts.id AND collection = 'publications')
     `)
 
-    console.log(`  Created ${created} concept records, ${mentions} entity_mentions`)
+    console.log(`  Created ${created} concept records, ${allMentionEntityIds.length} entity_mentions`)
     const { rows: [stats] } = await db.query(`SELECT count(*) as total, count(*) FILTER (WHERE publication_count > 1) as multi_pub FROM concepts`)
     console.log(`  Multi-publication concepts: ${stats.multi_pub}`)
   } finally {
