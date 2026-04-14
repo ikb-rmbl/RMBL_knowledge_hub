@@ -30,6 +30,66 @@ export default async function HomePage() {
       (SELECT COUNT(*) FROM references_cited WHERE link_type = 'internal') as citations
   `)
 
+  // Featured research connections: entities bridging publications and datasets
+  const { rows: connectionCards } = await db.query(`
+    WITH cross_entities AS (
+      SELECT em.entity_type, em.entity_id,
+        COUNT(DISTINCT em.item_id) FILTER (WHERE em.collection = 'publications') as pubs,
+        COUNT(DISTINCT em.item_id) FILTER (WHERE em.collection = 'datasets') as datasets,
+        COUNT(DISTINCT em.item_id) as total
+      FROM entity_mentions em
+      GROUP BY em.entity_type, em.entity_id
+      HAVING COUNT(DISTINCT em.collection) >= 2
+    )
+    SELECT ce.entity_type, ce.entity_id, ce.pubs, ce.datasets, ce.total,
+      CASE ce.entity_type
+        WHEN 'species' THEN (SELECT canonical_name FROM species WHERE id = ce.entity_id)
+        WHEN 'place' THEN (SELECT name FROM places WHERE id = ce.entity_id)
+        WHEN 'protocol' THEN (SELECT name FROM protocols WHERE id = ce.entity_id)
+        WHEN 'concept' THEN (SELECT name FROM concepts WHERE id = ce.entity_id)
+      END as name,
+      CASE ce.entity_type
+        WHEN 'place' THEN (SELECT place_type FROM places WHERE id = ce.entity_id)
+        WHEN 'species' THEN (SELECT family FROM species WHERE id = ce.entity_id)
+        WHEN 'concept' THEN (SELECT scope FROM concepts WHERE id = ce.entity_id)
+        WHEN 'protocol' THEN (SELECT category FROM protocols WHERE id = ce.entity_id)
+      END as detail
+    FROM cross_entities ce
+    WHERE ce.pubs >= 5 AND ce.datasets >= 3
+    ORDER BY ln(ce.total + 1) * (0.3 + 0.7 * random()) DESC
+    LIMIT 20
+  `)
+
+  // Cross-discipline bridges: species linked to earth science concepts
+  const { rows: bridges } = await db.query(`
+    SELECT s.canonical_name as species, c.name as concept, c.scope,
+      COUNT(DISTINCT em1.item_id) as shared_items
+    FROM entity_mentions em1
+    JOIN entity_mentions em2 ON em2.item_id = em1.item_id AND em2.collection = em1.collection
+      AND em2.entity_type = 'concept'
+    JOIN species s ON s.id = em1.entity_id
+    JOIN concepts c ON c.id = em2.entity_id
+    WHERE em1.entity_type = 'species'
+      AND c.scope IN ('hydrology', 'biogeochemistry', 'climate', 'landscape')
+      AND s.publication_count >= 10
+    GROUP BY s.id, s.canonical_name, c.id, c.name, c.scope
+    HAVING COUNT(DISTINCT em1.item_id) >= 8
+    ORDER BY ln(COUNT(DISTINCT em1.item_id) + 1) * (0.3 + 0.7 * random()) DESC
+    LIMIT 40
+  `)
+
+  // Cross-collection stats for hero
+  const { rows: [crossStats] } = await db.query(`
+    SELECT
+      (SELECT COUNT(DISTINCT entity_id) FROM (
+        SELECT entity_type, entity_id FROM entity_mentions WHERE collection = 'publications'
+        INTERSECT
+        SELECT entity_type, entity_id FROM entity_mentions WHERE collection = 'datasets'
+      ) x) as shared_entities,
+      (SELECT COUNT(DISTINCT item_id) FROM entity_mentions WHERE collection = 'publications') as pubs_linked,
+      (SELECT COUNT(DISTINCT item_id) FROM entity_mentions WHERE collection = 'datasets') as datasets_linked
+  `)
+
   // Topic groups for Browse by Topic section
   const TOPIC_GROUPS = [
     { group: 'Life Sciences', topics: ['Flowering & Pollination', 'Wildlife Behavior', 'Alpine & Subalpine Ecology', 'Forest Ecology', 'Freshwater Ecology', 'Plant Biology', 'Insect Ecology', 'Vertebrate Biology', 'Microbial Ecology', 'Genetics & Evolution', 'Biodiversity & Conservation', 'Invasive Species & Disturbance'] },
@@ -107,8 +167,9 @@ export default async function HomePage() {
         <p>
           Search across {totalCount.toLocaleString()} documents, publications, and datasets
           from {authorCount.totalDocs.toLocaleString()} researchers — connected by{' '}
-          {parseInt(entityStats.cross_links).toLocaleString()} entity links and{' '}
-          {parseInt(entityStats.citations).toLocaleString()} citation connections.
+          {parseInt(entityStats.cross_links).toLocaleString()} entity links,{' '}
+          {parseInt(entityStats.citations).toLocaleString()} citation connections, and{' '}
+          {parseInt(crossStats.shared_entities).toLocaleString()} entities shared across collections.
         </p>
 
         <form className="search-form" action="/search" method="GET">
@@ -136,6 +197,100 @@ export default async function HomePage() {
           <Link className="type-chip" href="/projects">Projects ({parseInt(entityStats.projects).toLocaleString()})</Link>
         </div>
       </div>
+
+      {connectionCards.length > 0 && (
+        <section className="section">
+          <h2 className="section-title">Research Connections</h2>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginBottom: '16px' }}>
+            Entities that bridge publications and datasets — showing where research and data meet.
+          </p>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            {(() => {
+              // Pick a diverse set: one per entity type, then fill remaining slots
+              const byType = new Map<string, typeof connectionCards>()
+              for (const c of connectionCards) {
+                if (!byType.has(c.entity_type)) byType.set(c.entity_type, [])
+                byType.get(c.entity_type)!.push(c)
+              }
+              const picks: typeof connectionCards = []
+              for (const [, items] of byType) {
+                if (picks.length < 6 && items.length > 0) picks.push(items.shift()!)
+              }
+              // Fill remaining from highest-total
+              for (const c of connectionCards) {
+                if (picks.length >= 6) break
+                if (!picks.find((p) => p.entity_id === c.entity_id && p.entity_type === c.entity_type)) picks.push(c)
+              }
+              return picks.map((c) => {
+                const type = c.entity_type
+                const href = `/${type === 'species' ? 'species' : type === 'place' ? 'places' : type === 'protocol' ? 'protocols' : 'concepts'}/${c.entity_id}`
+                const badgeClass = type === 'species' ? 'badge-species' : type === 'place' ? 'badge-place' : type === 'protocol' ? 'badge-protocol' : 'badge-concept'
+                return (
+                  <Link key={`${type}-${c.entity_id}`} className="result-card" href={href}
+                    style={{ flex: '1 1 280px', maxWidth: '400px', borderLeft: '3px solid var(--color-accent)' }}>
+                    <div className="result-card-header">
+                      <span className={`badge ${badgeClass}`}>{type}</span>
+                      <h3 className="result-card-title" style={type === 'species' ? { fontStyle: 'italic' } : undefined}>
+                        {c.name}
+                      </h3>
+                    </div>
+                    <div className="result-card-meta">
+                      {c.detail && <span>{(c.detail as string).replace(/_/g, ' ')}</span>}
+                      <span>{`${c.pubs} publications`}</span>
+                      <span>{`${c.datasets} datasets`}</span>
+                    </div>
+                  </Link>
+                )
+              })
+            })()}
+          </div>
+        </section>
+      )}
+
+      {bridges.length > 0 && (
+        <section className="section">
+          <h2 className="section-title">Species &times; Climate &amp; Landscape</h2>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginBottom: '16px' }}>
+            Species linked to climate, hydrology, and landscape research across the knowledge hub.
+          </p>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {(() => {
+              // Diversify: pick the top bridge per unique concept, then fill
+              const seenConcepts = new Set<string>()
+              const diverse: typeof bridges = []
+              for (const b of bridges) {
+                if (!seenConcepts.has(b.concept as string)) {
+                  seenConcepts.add(b.concept as string)
+                  diverse.push(b)
+                }
+                if (diverse.length >= 8) break
+              }
+              // If we have fewer than 8 concepts, fill with top remaining
+              if (diverse.length < 8) {
+                for (const b of bridges) {
+                  if (!diverse.find((d) => d.species === b.species && d.concept === b.concept)) {
+                    diverse.push(b)
+                    if (diverse.length >= 8) break
+                  }
+                }
+              }
+              return diverse
+            })().map((b, i) => (
+              <Link key={i} href={`/search?q=${encodeURIComponent(b.species)}`}
+                style={{
+                  padding: '8px 14px', borderRadius: 'var(--radius)',
+                  background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+                  textDecoration: 'none', fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center',
+                }}>
+                <span style={{ fontStyle: 'italic', fontWeight: 500 }}>{(b.species as string).split(' ').slice(0, 2).join(' ')}</span>
+                <span style={{ color: 'var(--color-text-muted)' }}>+</span>
+                <span>{b.concept}</span>
+                <span style={{ color: 'var(--color-text-muted)', fontSize: '11px' }}>({b.shared_items})</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="section">
         <h2 className="section-title">Browse by Topic</h2>
