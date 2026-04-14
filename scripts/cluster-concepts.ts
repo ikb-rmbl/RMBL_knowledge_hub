@@ -21,7 +21,7 @@ const thresholdArg = args.find((a) => a.startsWith('--threshold='))?.split('=')[
 const THRESHOLD = thresholdArg ? parseFloat(thresholdArg) : 0.82
 
 interface Candidate {
-  id: number; rawName: string; attrs: any; sourceItemId: number; pubYear: number | null; embedding: number[]
+  id: number; rawName: string; attrs: any; sourceItemId: number; sourceCollection: string; pubYear: number | null; embedding: number[]
 }
 
 function selectCanonical(cluster: Cluster<Candidate>) {
@@ -71,8 +71,8 @@ async function main() {
 
   try {
     const { rows } = await db.query(`
-      SELECT ec.id, ec.raw_name, ec.raw_attributes, ec.source_item_id, p.year as pub_year
-      FROM entity_candidates ec LEFT JOIN publications p ON p.id = ec.source_item_id
+      SELECT ec.id, ec.raw_name, ec.raw_attributes, ec.source_item_id, ec.source_collection, p.year as pub_year
+      FROM entity_candidates ec LEFT JOIN publications p ON p.id = ec.source_item_id AND ec.source_collection = 'publications'
       WHERE ec.entity_type = 'concept' AND ec.resolved_entity_id IS NULL ORDER BY ec.id
     `)
     console.log(`\nLoaded ${rows.length} unresolved concept candidates`)
@@ -85,7 +85,7 @@ async function main() {
 
     const candidateObjs: Candidate[] = rows.map((c, i) => ({
       id: c.id, rawName: c.raw_name, attrs: c.raw_attributes, sourceItemId: c.source_item_id,
-      pubYear: c.pub_year || null, embedding: embeddings[i],
+      sourceCollection: c.source_collection || 'publications', pubYear: c.pub_year || null, embedding: embeddings[i],
     }))
 
     console.log(`\nClustering with threshold ${THRESHOLD}...`)
@@ -124,6 +124,7 @@ async function main() {
     const allResolvedIds: number[] = []
     const allMentionEntityIds: number[] = []
     const allMentionItemIds: number[] = []
+    const allMentionCollections: string[] = []
     const allMentionRoles: string[] = []
 
     for (let ci = 0; ci < canonicals.length; ci++) {
@@ -142,6 +143,7 @@ async function main() {
         allResolvedIds.push(con.id)
         allMentionEntityIds.push(con.id)
         allMentionItemIds.push(member.sourceItemId)
+        allMentionCollections.push(member.sourceCollection || 'publications')
         allMentionRoles.push((member.attrs.role || 'referenced').slice(0, 30))
       }
     }
@@ -157,9 +159,9 @@ async function main() {
     if (allMentionEntityIds.length > 0) {
       await db.query(`
         INSERT INTO entity_mentions (entity_type, entity_id, collection, item_id, role, confidence, extraction_method)
-        SELECT 'concept', unnest($1::int[]), 'publications', unnest($2::int[]), unnest($3::varchar[]), 1.0, 'vlm'
+        SELECT 'concept', unnest($1::int[]), unnest($4::varchar[]), unnest($2::int[]), unnest($3::varchar[]), 1.0, 'vlm'
         ON CONFLICT (entity_type, entity_id, collection, item_id, role) DO NOTHING
-      `, [allMentionEntityIds, allMentionItemIds, allMentionRoles])
+      `, [allMentionEntityIds, allMentionItemIds, allMentionRoles, allMentionCollections])
     }
 
     await db.query(`

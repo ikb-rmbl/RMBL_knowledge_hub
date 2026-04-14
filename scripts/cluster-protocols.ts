@@ -40,6 +40,7 @@ interface Candidate {
   rawName: string
   attrs: any
   sourceItemId: number
+  sourceCollection: string
   pubYear: number | null
   pubType: string | null
   taxon: string | null
@@ -185,10 +186,10 @@ async function main() {
   try {
     // Load protocol candidates with publication year and type
     const { rows } = await db.query(`
-      SELECT ec.id, ec.raw_name, ec.raw_attributes, ec.source_item_id,
+      SELECT ec.id, ec.raw_name, ec.raw_attributes, ec.source_item_id, ec.source_collection,
              p.year as pub_year, p.publication_type as pub_type
       FROM entity_candidates ec
-      LEFT JOIN publications p ON p.id = ec.source_item_id
+      LEFT JOIN publications p ON p.id = ec.source_item_id AND ec.source_collection = 'publications'
       WHERE ec.entity_type = 'protocol'
         AND ec.resolved_entity_id IS NULL
       ORDER BY ec.id
@@ -251,6 +252,7 @@ async function main() {
       rawName: c.raw_name,
       attrs: c.raw_attributes,
       sourceItemId: c.source_item_id,
+      sourceCollection: c.source_collection || 'publications',
       pubYear: c.pub_year || null,
       pubType: c.pub_type || null,
       taxon: pubTaxon.get(c.source_item_id) || null,
@@ -307,6 +309,7 @@ async function main() {
     const allResolvedIds: number[] = []
     const allMentionEntityIds: number[] = []
     const allMentionItemIds: number[] = []
+    const allMentionCollections: string[] = []
     const allMentionRoles: string[] = []
     const allMentionMetadata: (string | null)[] = []
 
@@ -347,6 +350,7 @@ async function main() {
         allResolvedIds.push(protocolId)
         allMentionEntityIds.push(protocolId)
         allMentionItemIds.push(member.sourceItemId)
+        allMentionCollections.push(member.sourceCollection || 'publications')
         allMentionRoles.push((member.attrs.role || 'using').slice(0, 30))
         const stepIndices = member.attrs.protocolStepIndices || null
         allMentionMetadata.push(stepIndices ? JSON.stringify({ protocolStepIndices: stepIndices }) : null)
@@ -370,9 +374,9 @@ async function main() {
     if (allMentionEntityIds.length > 0) {
       await db.query(`
         INSERT INTO entity_mentions (entity_type, entity_id, collection, item_id, role, confidence, extraction_method, metadata)
-        SELECT 'protocol', unnest($1::int[]), 'publications', unnest($2::int[]), unnest($3::varchar[]), 1.0, 'vlm', unnest($4::jsonb[])
+        SELECT 'protocol', unnest($1::int[]), unnest($5::varchar[]), unnest($2::int[]), unnest($3::varchar[]), 1.0, 'vlm', unnest($4::jsonb[])
         ON CONFLICT (entity_type, entity_id, collection, item_id, role) DO NOTHING
-      `, [allMentionEntityIds, allMentionItemIds, allMentionRoles, allMentionMetadata])
+      `, [allMentionEntityIds, allMentionItemIds, allMentionRoles, allMentionMetadata, allMentionCollections])
     }
 
     const mentions = allMentionEntityIds.length

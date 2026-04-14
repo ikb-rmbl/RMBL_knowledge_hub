@@ -63,9 +63,9 @@ async function linkSpecies(db: pg.Pool): Promise<void> {
   console.log('\n--- Species ---')
 
   const { rows: candidates } = await db.query(`
-    SELECT ec.id, ec.raw_name, ec.raw_attributes, ec.source_item_id, p.year as pub_year
+    SELECT ec.id, ec.raw_name, ec.raw_attributes, ec.source_item_id, ec.source_collection, p.year as pub_year
     FROM entity_candidates ec
-    LEFT JOIN publications p ON p.id = ec.source_item_id
+    LEFT JOIN publications p ON p.id = ec.source_item_id AND ec.source_collection = 'publications'
     WHERE ec.entity_type = 'species' AND ec.resolved_entity_id IS NULL
     ORDER BY ec.id
   `)
@@ -205,6 +205,7 @@ async function linkSpecies(db: pg.Pool): Promise<void> {
   const allResolvedIds: number[] = []
   const allMentionEntityIds: number[] = []
   const allMentionItemIds: number[] = []
+  const allMentionCollections: string[] = []
   const allMentionRoles: string[] = []
 
   for (const [, group] of mergedGroups) {
@@ -290,6 +291,7 @@ async function linkSpecies(db: pg.Pool): Promise<void> {
       allResolvedIds.push(sp.id)
       allMentionEntityIds.push(sp.id)
       allMentionItemIds.push(m.source_item_id)
+      allMentionCollections.push(m.source_collection || 'publications')
       allMentionRoles.push((m.raw_attributes.role || 'mentioned').slice(0, 30))
     }
   }
@@ -307,9 +309,9 @@ async function linkSpecies(db: pg.Pool): Promise<void> {
   if (allMentionEntityIds.length > 0) {
     await db.query(`
       INSERT INTO entity_mentions (entity_type, entity_id, collection, item_id, role, confidence, extraction_method)
-      SELECT 'species', unnest($1::int[]), 'publications', unnest($2::int[]), unnest($3::varchar[]), 1.0, 'vlm'
+      SELECT 'species', unnest($1::int[]), unnest($4::varchar[]), unnest($2::int[]), unnest($3::varchar[]), 1.0, 'vlm'
       ON CONFLICT (entity_type, entity_id, collection, item_id, role) DO NOTHING
-    `, [allMentionEntityIds, allMentionItemIds, allMentionRoles])
+    `, [allMentionEntityIds, allMentionItemIds, allMentionRoles, allMentionCollections])
   }
 
   const mentions = allMentionEntityIds.length
@@ -337,9 +339,9 @@ async function linkPlaces(db: pg.Pool): Promise<void> {
   console.log('\n--- Places ---')
 
   const { rows: candidates } = await db.query(`
-    SELECT ec.id, ec.raw_name, ec.raw_attributes, ec.source_item_id, p.year as pub_year
+    SELECT ec.id, ec.raw_name, ec.raw_attributes, ec.source_item_id, ec.source_collection, p.year as pub_year
     FROM entity_candidates ec
-    LEFT JOIN publications p ON p.id = ec.source_item_id
+    LEFT JOIN publications p ON p.id = ec.source_item_id AND ec.source_collection = 'publications'
     WHERE ec.entity_type = 'place' AND ec.resolved_entity_id IS NULL
     ORDER BY ec.id
   `)
@@ -385,6 +387,7 @@ async function linkPlaces(db: pg.Pool): Promise<void> {
   const placeResolvedIds: number[] = []
   const placeMentionEntityIds: number[] = []
   const placeMentionItemIds: number[] = []
+  const placeMentionCollections: string[] = []
   const placeMentionRoles: string[] = []
 
   for (const [key, members] of groups) {
@@ -464,6 +467,7 @@ async function linkPlaces(db: pg.Pool): Promise<void> {
       placeResolvedIds.push(pl.id)
       placeMentionEntityIds.push(pl.id)
       placeMentionItemIds.push(m.source_item_id)
+      placeMentionCollections.push(m.source_collection || 'publications')
       placeMentionRoles.push((m.raw_attributes.role || 'mentioned').slice(0, 30))
     }
   }
@@ -481,9 +485,9 @@ async function linkPlaces(db: pg.Pool): Promise<void> {
   if (placeMentionEntityIds.length > 0) {
     await db.query(`
       INSERT INTO entity_mentions (entity_type, entity_id, collection, item_id, role, confidence, extraction_method)
-      SELECT 'place', unnest($1::int[]), 'publications', unnest($2::int[]), unnest($3::varchar[]), 1.0, 'vlm'
+      SELECT 'place', unnest($1::int[]), unnest($4::varchar[]), unnest($2::int[]), unnest($3::varchar[]), 1.0, 'vlm'
       ON CONFLICT (entity_type, entity_id, collection, item_id, role) DO NOTHING
-    `, [placeMentionEntityIds, placeMentionItemIds, placeMentionRoles])
+    `, [placeMentionEntityIds, placeMentionItemIds, placeMentionRoles, placeMentionCollections])
   }
 
   const mentions = placeMentionEntityIds.length

@@ -34,6 +34,7 @@ import './lib/config.js'
 const args = process.argv.slice(2)
 const resultsArg = args.find((a) => a.startsWith('--results='))?.split('=')[1]
 const paperArg = args.find((a) => a.startsWith('--paper='))?.split('=')[1]
+const collectionArg = args.find((a) => a.startsWith('--collection='))?.split('=')[1] || 'publications'
 const dryRun = args.includes('--dry-run')
 
 if (!resultsArg) {
@@ -81,26 +82,33 @@ async function loadPaper(
   datasetDoiMap: Map<string, number>,
   stats: LoadStats,
 ): Promise<void> {
-  const paperId = result.id
+  const rawId = String(result.id).replace(/^(dataset_|pub_|doc_)/, '')
+  const itemId = parseInt(rawId)
+  if (isNaN(itemId)) {
+    console.log(`  [${result.collection || collectionArg}:${result.id}] invalid ID — skipping`)
+    return
+  }
+  const collection = result.collection || collectionArg
   const extraction = result.strategy3?.extraction
   if (!extraction) {
-    console.log(`  [pub:${paperId}] no VLM extraction — skipping`)
+    console.log(`  [${collection}:${itemId}] no extraction — skipping`)
     return
   }
 
-  // Verify the publication exists
-  const { rows: pubRows } = await db.query('SELECT id, title FROM publications WHERE id = $1', [paperId])
-  if (pubRows.length === 0) {
-    console.log(`  [pub:${paperId}] publication not found in DB — skipping`)
+  // Verify the item exists in its collection
+  const table = collection === 'datasets' ? 'datasets' : collection === 'documents' ? 'documents' : 'publications'
+  const { rows: itemRows } = await db.query(`SELECT id, title FROM ${table} WHERE id = $1`, [itemId])
+  if (itemRows.length === 0) {
+    console.log(`  [${collection}:${itemId}] not found in ${table} — skipping`)
     return
   }
 
-  console.log(`  [pub:${paperId}] ${pubRows[0].title?.slice(0, 70)}`)
+  console.log(`  [${collection}:${itemId}] ${itemRows[0].title?.slice(0, 70)}`)
 
   // ---------- Species candidates ----------
   for (const sp of extraction.species || []) {
     if (!sp.scientificName) continue
-    const r = await insertCandidate(db, 'species', sp.scientificName, sp, paperId)
+    const r = await insertCandidate(db, 'species', sp.scientificName, sp, itemId)
     if (r === 'inserted') stats.candidates.species++
     else if (r === 'duplicate') stats.duplicates.species++
     else stats.errors.species++
@@ -109,7 +117,7 @@ async function loadPaper(
   // ---------- Place candidates ----------
   for (const pl of extraction.places || []) {
     if (!pl.name) continue
-    const r = await insertCandidate(db, 'place', pl.name, pl, paperId)
+    const r = await insertCandidate(db, 'place', pl.name, pl, itemId)
     if (r === 'inserted') stats.candidates.place++
     else if (r === 'duplicate') stats.duplicates.place++
     else stats.errors.place++
@@ -118,7 +126,7 @@ async function loadPaper(
   // ---------- Protocol candidates ----------
   for (const pn of extraction.protocolsNamed || []) {
     if (!pn.proposedName) continue
-    const r = await insertCandidate(db, 'protocol', pn.proposedName, pn, paperId)
+    const r = await insertCandidate(db, 'protocol', pn.proposedName, pn, itemId)
     if (r === 'inserted') stats.candidates.protocol++
     else if (r === 'duplicate') stats.duplicates.protocol++
     else stats.errors.protocol++
@@ -127,7 +135,7 @@ async function loadPaper(
   // ---------- Concept candidates ----------
   for (const c of extraction.concepts || []) {
     if (!c.name) continue
-    const r = await insertCandidate(db, 'concept', c.name, c, paperId)
+    const r = await insertCandidate(db, 'concept', c.name, c, itemId)
     if (r === 'inserted') stats.candidates.concept++
     else if (r === 'duplicate') stats.duplicates.concept++
     else stats.errors.concept++
@@ -144,7 +152,7 @@ async function loadPaper(
          VALUES ($1, $2, $3, $4, $5, $6, 'vlm')
          ON CONFLICT (publication_id, url) DO NOTHING
          RETURNING id`,
-        [paperId, code.url, code.platform || null, code.description || null, code.language || null, code.license || null],
+        [itemId, code.url, code.platform || null, code.description || null, code.language || null, code.license || null],
       )
       if (result.rowCount && result.rowCount > 0) stats.codeRepos++
       else stats.duplicates.codeRepo++
@@ -166,7 +174,7 @@ async function loadPaper(
          VALUES ($1, $2, $3, $4, $5, $6, 'vlm')
          ON CONFLICT (publication_id, url) DO NOTHING
          RETURNING id`,
-        [paperId, data.url, data.platform || null, data.description || null, data.doi || null, linkedDatasetId],
+        [itemId, data.url, data.platform || null, data.description || null, data.doi || null, linkedDatasetId],
       )
       if (result.rowCount && result.rowCount > 0) {
         stats.dataRepos++
@@ -187,17 +195,18 @@ async function loadPaper(
       // Use a deterministic chunk_index of 0 for the VLM blob (one per publication)
       // Delete any prior VLM extract blob first to keep this idempotent
       await db.query(
-        `DELETE FROM content_chunks WHERE collection = 'publications' AND item_id = $1 AND chunk_method = 'vlm_extract'`,
-        [paperId],
+        `DELETE FROM content_chunks WHERE collection = $1 AND item_id = $2 AND chunk_method = 'vlm_extract'`,
+        [collection, itemId],
       )
       await db.query(
         `INSERT INTO content_chunks (collection, item_id, chunk_index, chunk_text, chunk_method, metadata)
-         VALUES ('publications', $1, 0, $2, 'vlm_extract', $3)`,
+         VALUES ($4, $1, 0, $2, 'vlm_extract', $3)`,
         [
-          paperId,
+          itemId,
           // chunk_text gets the abstract (or first 500 chars of methods) for searchability
           (extraction.metadataEnrichment?.abstract || extraction.methods || '').slice(0, 4000),
           JSON.stringify(extraction),
+          collection,
         ],
       )
       stats.contentChunks++
@@ -231,15 +240,15 @@ async function insertCandidate(
     // SELECT-without-FROM with the same param appearing in WHERE).
     const { rowCount } = await db.query(
       `INSERT INTO entity_candidates (entity_type, raw_name, raw_attributes, source_collection, source_item_id, confidence)
-       SELECT $1::varchar, $2::text, $3::jsonb, 'publications', $4::integer, 1.0
+       SELECT $1::varchar, $2::text, $3::jsonb, $5::varchar, $4::integer, 1.0
        WHERE NOT EXISTS (
          SELECT 1 FROM entity_candidates
          WHERE entity_type = $1::varchar
-           AND source_collection = 'publications'
+           AND source_collection = $5::varchar
            AND source_item_id = $4::integer
            AND lower(raw_name) = lower($2::text)
        )`,
-      [entityType, rawName, JSON.stringify(rawAttributes), publicationId],
+      [entityType, rawName, JSON.stringify(rawAttributes), publicationId, collectionArg],
     )
     return (rowCount || 0) > 0 ? 'inserted' : 'duplicate'
   } catch (err: any) {
