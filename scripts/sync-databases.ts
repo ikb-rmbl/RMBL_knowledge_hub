@@ -362,22 +362,18 @@ async function pushCollection(
   let pushed = 0
   let skipped = 0
   let conflicts = 0
+  const deferred: { localRec: any; match: any | null }[] = [] // FK failures retried in second pass
 
   for (const localRec of localChanged) {
     const { match, confidence } = config.matchFields(localRec, neonRecords, neonIndex)
 
     if (match) {
-      // Decide whether to attempt a push:
-      // - In default mode, only push if local updated_at is newer than Neon's
-      // - In --full-push mode, always attempt push (rely on content diff for skip)
       const neonUpdated = new Date(match.updated_at).getTime()
       const localUpdated = new Date(localRec.updated_at).getTime()
       const shouldAttempt = fullPush || localUpdated > neonUpdated
 
       if (shouldAttempt) {
         const { merged } = mergeRecord(localRec, match, config, 'push')
-        // Only update fields that actually differ between local and Neon
-        // (use valuesEqual to handle Date / vector / array types correctly)
         const fields = [...config.curatedFields, ...config.pipelineFields].filter(
           (f) => merged[f] !== undefined && !valuesEqual(merged[f], match[f]),
         )
@@ -385,20 +381,27 @@ async function pushCollection(
           if (!dryRun) {
             const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ')
             const values = fields.map((f) => merged[f])
-            await neonDb.query(
-              `UPDATE ${config.table} SET ${setClause}, updated_at = NOW() WHERE id = $1`,
-              [match.id, ...values],
-            )
+            try {
+              await neonDb.query(
+                `UPDATE ${config.table} SET ${setClause}, updated_at = NOW() WHERE id = $1`,
+                [match.id, ...values],
+              )
+            } catch (err: any) {
+              if (err.code === '23503') { // FK violation — defer to second pass
+                deferred.push({ localRec, match })
+                continue
+              }
+              throw err
+            }
           }
           pushed++
         } else {
           skipped++
         }
       } else {
-        skipped++ // Neon has newer data — don't overwrite (default mode)
+        skipped++
       }
     } else {
-      // New record locally — insert into Neon (preserve ID for FK consistency)
       if (verbose) console.log(`    NEW to Neon: ${localRec.title?.slice(0, 60) || localRec.name || localRec.canonical_name || localRec.id}`)
       if (!dryRun) {
         const fields = ['id', ...config.curatedFields, ...config.pipelineFields].filter((f) => localRec[f] !== undefined)
@@ -411,12 +414,48 @@ async function pushCollection(
             values,
           )
         } catch (err: any) {
+          if (err.code === '23503') { // FK violation — defer to second pass
+            deferred.push({ localRec, match: null })
+            continue
+          }
           if (verbose) console.log(`    Insert error: ${err.message?.slice(0, 80)}`)
           conflicts++
           continue
         }
       }
       pushed++
+    }
+  }
+
+  // Second pass: retry deferred FK failures (parents should exist now)
+  if (deferred.length > 0) {
+    console.log(`    Retrying ${deferred.length} deferred FK records...`)
+    for (const { localRec, match } of deferred) {
+      try {
+        if (match) {
+          const { merged } = mergeRecord(localRec, match, config, 'push')
+          const fields = [...config.curatedFields, ...config.pipelineFields].filter(
+            (f) => merged[f] !== undefined && !valuesEqual(merged[f], match[f]),
+          )
+          if (fields.length > 0 && !dryRun) {
+            const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ')
+            const values = fields.map((f) => merged[f])
+            await neonDb.query(`UPDATE ${config.table} SET ${setClause}, updated_at = NOW() WHERE id = $1`, [match.id, ...values])
+          }
+          pushed++
+        } else {
+          const fields = ['id', ...config.curatedFields, ...config.pipelineFields].filter((f) => localRec[f] !== undefined)
+          const placeholders = fields.map((_, i) => `$${i + 1}`).join(', ')
+          const values = fields.map((f) => localRec[f])
+          if (!dryRun) {
+            await neonDb.query(`INSERT INTO ${config.table} (${fields.join(', ')}) VALUES (${placeholders}) ON CONFLICT (id) DO NOTHING`, values)
+          }
+          pushed++
+        }
+      } catch (err: any) {
+        if (verbose) console.log(`    Deferred retry failed: ${err.message?.slice(0, 80)}`)
+        conflicts++
+      }
     }
   }
 
@@ -507,8 +546,10 @@ async function syncEntityBulkTables(
   localDb: pg.Pool,
   neonDb: pg.Pool,
 ): Promise<void> {
-  // Bulk tables in delete order (children first)
+  // Bulk tables in delete order (children first, then parents)
   const BULK_TABLES = [
+    'neighborhood_members',
+    'neighborhoods',
     'content_chunks',
     'entity_mentions',
     'entity_candidates',
@@ -788,6 +829,7 @@ async function main() {
   const allTables = [
     ...Object.values(COLLECTIONS).map((c) => c.table),
     ...Object.values(ENTITY_COLLECTIONS).map((c) => c.table),
+    'neighborhoods', 'neighborhood_members',
     'entity_mentions', 'entity_candidates', 'code_repositories', 'data_repositories', 'content_chunks', 'references_cited',
     'authors_rels', 'datasets_rels', 'projects_rels', 'datasets_creators',
   ]
@@ -894,7 +936,7 @@ async function main() {
       const marker = diff === 0 ? '✓' : '✗'
       console.log(`  ${marker} ${collName.padEnd(18)} local: ${String(local.n).padStart(7)}  neon: ${String(neon.n).padStart(7)}${diff !== 0 ? `  (${diff > 0 ? '+' : ''}${diff})` : ''}`)
     }
-    for (const bulk of ['entity_mentions', 'entity_candidates', 'code_repositories', 'data_repositories', 'content_chunks']) {
+    for (const bulk of ['neighborhoods', 'neighborhood_members', 'entity_mentions', 'entity_candidates', 'code_repositories', 'data_repositories', 'content_chunks']) {
       const { rows: [local] } = await localDb.query(`SELECT count(*)::int as n FROM ${bulk}`)
       const { rows: [neon] } = await neonDb.query(`SELECT count(*)::int as n FROM ${bulk}`)
       const diff = local.n - neon.n
