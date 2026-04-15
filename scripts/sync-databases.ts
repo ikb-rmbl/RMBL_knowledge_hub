@@ -324,9 +324,31 @@ async function pushCollection(
   // --full-push ignores the since timestamp and considers every row
   // (use this when the pipeline scripts don't reliably bump updated_at on writes)
   const useSince = since && !fullPush
-  const localChanged = useSince
+  let localChanged = useSince
     ? (await localDb.query(`SELECT * FROM ${config.table} WHERE updated_at > $1 ORDER BY id`, [since])).rows
     : (await localDb.query(`SELECT * FROM ${config.table} ORDER BY id`)).rows
+
+  // For self-referencing tables (places, protocols, concepts, species with parent FK),
+  // topological sort so parents are always inserted before their children
+  if (config.table === 'places' || config.table === 'protocols' || config.table === 'concepts' || config.table === 'species') {
+    const parentField = config.table === 'places' ? 'parent_place_id'
+      : config.table === 'protocols' ? 'parent_protocol_id'
+      : config.table === 'concepts' ? 'parent_concept_id'
+      : 'parent_taxon_id'
+    const byId = new Map(localChanged.map((r) => [r.id, r]))
+    const sorted: any[] = []
+    const visited = new Set<number>()
+    function visit(rec: any) {
+      if (visited.has(rec.id)) return
+      visited.add(rec.id)
+      if (rec[parentField] != null && byId.has(rec[parentField])) {
+        visit(byId.get(rec[parentField]))
+      }
+      sorted.push(rec)
+    }
+    for (const r of localChanged) visit(r)
+    localChanged = sorted
+  }
 
   if (localChanged.length === 0) {
     console.log(`    No local changes since last sync`)
@@ -376,15 +398,16 @@ async function pushCollection(
         skipped++ // Neon has newer data — don't overwrite (default mode)
       }
     } else {
-      // New record locally — insert into Neon
-      if (verbose) console.log(`    NEW to Neon: ${localRec.title?.slice(0, 60) || localRec.name || localRec.id}`)
+      // New record locally — insert into Neon (preserve ID for FK consistency)
+      if (verbose) console.log(`    NEW to Neon: ${localRec.title?.slice(0, 60) || localRec.name || localRec.canonical_name || localRec.id}`)
       if (!dryRun) {
-        const fields = [...config.curatedFields, ...config.pipelineFields].filter((f) => localRec[f] !== undefined)
+        const fields = ['id', ...config.curatedFields, ...config.pipelineFields].filter((f) => localRec[f] !== undefined)
         const placeholders = fields.map((_, i) => `$${i + 1}`).join(', ')
         const values = fields.map((f) => localRec[f])
         try {
           await neonDb.query(
-            `INSERT INTO ${config.table} (${fields.join(', ')}) VALUES (${placeholders})`,
+            `INSERT INTO ${config.table} (${fields.join(', ')}) VALUES (${placeholders})
+             ON CONFLICT (id) DO NOTHING`,
             values,
           )
         } catch (err: any) {
@@ -826,6 +849,12 @@ async function main() {
       console.log(`\n--- ${collName} ---`)
       const stats = await pushCollection(localDb, neonDb, collName, config, null) // always full push for entities
       console.log(`    ${stats.pushed} pushed, ${stats.skipped} skipped, ${stats.conflicts} conflicts`)
+      // Reset sequence to max ID to prevent future PK conflicts
+      if (!dryRun && stats.pushed > 0) {
+        try {
+          await neonDb.query(`SELECT setval('${config.table}_id_seq', (SELECT COALESCE(MAX(id), 1) FROM ${config.table}))`)
+        } catch { /* sequence may not exist */ }
+      }
     }
 
     // Bulk sync for entity_mentions, entity_candidates, etc.
