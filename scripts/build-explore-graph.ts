@@ -27,6 +27,7 @@ interface EntityConfig {
   extraCols: string       // additional columns for node attributes
   colorField: string      // which attribute to use for coloring
   outputFile: string
+  extraWhere?: string     // additional WHERE clause for node selection
 }
 
 const CONFIGS: EntityConfig[] = [
@@ -54,6 +55,15 @@ const CONFIGS: EntityConfig[] = [
     colorField: 'category',
     outputFile: 'public/graph/protocols.json',
   },
+  {
+    entityType: 'place',
+    table: 'places',
+    nameCol: 'name',
+    extraCols: 'place_type, scale, elevation_m, habitat_types, lat, lon',
+    colorField: 'place_type',
+    outputFile: 'public/graph/places.json',
+    extraWhere: "AND scale IN ('site', 'local') AND place_type NOT IN ('country', 'state', 'region')",
+  },
 ]
 
 async function buildGraph(config: EntityConfig, db: pg.Pool) {
@@ -62,9 +72,9 @@ async function buildGraph(config: EntityConfig, db: pg.Pool) {
   const { rows: entities } = await db.query(`
     SELECT id, ${config.nameCol} as name, publication_count, ${config.extraCols}
     FROM ${config.table}
-    WHERE publication_count >= $1
+    WHERE publication_count >= 1 ${config.extraWhere || ''}
     ORDER BY publication_count DESC
-  `, [minPubs])
+  `)
   console.log(`  ${entities.length} ${config.entityType}s`)
 
   const { rows: edges } = await db.query(`
@@ -73,13 +83,13 @@ async function buildGraph(config: EntityConfig, db: pg.Pool) {
     FROM entity_mentions em1
     JOIN entity_mentions em2 ON em2.item_id = em1.item_id AND em2.collection = em1.collection
       AND em2.entity_type = $1 AND em2.entity_id > em1.entity_id
-    JOIN ${config.table} c1 ON c1.id = em1.entity_id AND c1.publication_count >= $2
-    JOIN ${config.table} c2 ON c2.id = em2.entity_id AND c2.publication_count >= $2
+    JOIN ${config.table} c1 ON c1.id = em1.entity_id AND c1.publication_count >= 1
+    JOIN ${config.table} c2 ON c2.id = em2.entity_id AND c2.publication_count >= 1
     WHERE em1.entity_type = $1
     GROUP BY em1.entity_id, em2.entity_id
-    HAVING COUNT(*) >= 2
+    HAVING COUNT(*) >= 1
     ORDER BY weight DESC
-  `, [config.entityType, minPubs])
+  `, [config.entityType])
   console.log(`  ${edges.length} co-occurrence edges`)
 
   // For protocols: add embedding similarity edges and shared-species edges
@@ -90,12 +100,11 @@ async function buildGraph(config: EntityConfig, db: pg.Pool) {
         (p1.embedding <=> p2.embedding) as distance
       FROM protocols p1
       JOIN protocols p2 ON p2.id > p1.id
-        AND p1.publication_count >= $1 AND p2.publication_count >= $1
+        AND p1.publication_count >= 1 AND p2.publication_count >= 1
         AND p1.embedding IS NOT NULL AND p2.embedding IS NOT NULL
       WHERE (p1.embedding <=> p2.embedding) < 0.3
       ORDER BY distance
-      LIMIT 500
-    `, [minPubs])
+    `)
     // Merge with existing edges (don't duplicate)
     const edgeSet = new Set(edges.map((e: any) => `${e.source}-${e.target}`))
     let simAdded = 0
@@ -120,13 +129,12 @@ async function buildGraph(config: EntityConfig, db: pg.Pool) {
       JOIN entity_mentions em2 ON em2.entity_type = 'protocol' AND em2.entity_id > em1.entity_id
       JOIN entity_mentions sp2 ON sp2.item_id = em2.item_id AND sp2.collection = em2.collection AND sp2.entity_type = 'species' AND sp2.entity_id = sp1.entity_id
       WHERE em1.entity_type = 'protocol'
-        AND em1.entity_id IN (SELECT id FROM protocols WHERE publication_count >= $1)
-        AND em2.entity_id IN (SELECT id FROM protocols WHERE publication_count >= $1)
+        AND em1.entity_id IN (SELECT id FROM protocols WHERE publication_count >= 1)
+        AND em2.entity_id IN (SELECT id FROM protocols WHERE publication_count >= 1)
       GROUP BY em1.entity_id, em2.entity_id
       HAVING COUNT(DISTINCT sp1.entity_id) >= 2
       ORDER BY shared_species DESC
-      LIMIT 500
-    `, [minPubs])
+    `)
     let speciesAdded = 0
     for (const e of speciesEdges) {
       const key1 = `${e.source}-${e.target}`

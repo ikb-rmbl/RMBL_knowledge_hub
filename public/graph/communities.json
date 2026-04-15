@@ -1,0 +1,1381 @@
+{
+  "communities": [
+    {
+      "id": 10,
+      "size": 1096,
+      "label": "Crested Butte + Kenneth Hurst Williams",
+      "description": "261 concepts, 199 datasets, 190 protocols, 136 places, 136 publications, 127 authors, 47 speciess",
+      "topMembers": [
+        {
+          "type": "place",
+          "name": "Crested Butte",
+          "degree": 295
+        },
+        {
+          "type": "author",
+          "name": "Kenneth Hurst Williams",
+          "degree": 233
+        },
+        {
+          "type": "place",
+          "name": "East River",
+          "degree": 215
+        },
+        {
+          "type": "publication",
+          "name": "The East River, Colorado, Watershed: A mountainous",
+          "degree": 118
+        },
+        {
+          "type": "author",
+          "name": "S. S. Hubbard",
+          "degree": 80
+        },
+        {
+          "type": "place",
+          "name": "Washington Gulch",
+          "degree": 71
+        },
+        {
+          "type": "concept",
+          "name": "groundwater storage dynamics",
+          "degree": 69
+        },
+        {
+          "type": "author",
+          "name": "Baptiste Dafflon",
+          "degree": 67
+        }
+      ],
+      "typeCounts": {
+        "species": 47,
+        "concept": 261,
+        "protocol": 190,
+        "place": 136,
+        "author": 127,
+        "publication": 136,
+        "dataset": 199
+      }
+    },
+    {
+      "id": 8,
+      "size": 1026,
+      "label": "Rocky Mountain Biological Laboratory + David W. Inouye",
+      "description": "331 speciess, 271 publications, 132 concepts, 115 places, 91 protocols, 66 authors, 20 datasets",
+      "topMembers": [
+        {
+          "type": "place",
+          "name": "Rocky Mountain Biological Laboratory",
+          "degree": 518
+        },
+        {
+          "type": "place",
+          "name": "Gothic",
+          "degree": 424
+        },
+        {
+          "type": "author",
+          "name": "David W. Inouye",
+          "degree": 118
+        },
+        {
+          "type": "publication",
+          "name": "Effects of climate change on phenology, frost dama",
+          "degree": 82
+        },
+        {
+          "type": "publication",
+          "name": "Coupled dynamics of body mass and population growt",
+          "degree": 62
+        },
+        {
+          "type": "publication",
+          "name": "Yellow-bellied marmots: insights from an emergent ",
+          "degree": 60
+        },
+        {
+          "type": "publication",
+          "name": "An examination of synchrony between insect emergen",
+          "degree": 59
+        },
+        {
+          "type": "publication",
+          "name": "Effects of climate change on phenologies and distr",
+          "degree": 58
+        }
+      ],
+      "typeCounts": {
+        "species": 331,
+        "concept": 132,
+        "protocol": 91,
+        "place": 115,
+        "author": 66,
+        "publication": 271,
+        "dataset": 20
+      }
+    },
+    {
+      "id": 3,
+      "size": 519,
+      "label": "Populus tremuloides + Ian K Breckheimer",
+      "description": "180 datasets, 86 concepts, 76 speciess, 55 protocols, 51 places, 36 authors, 35 publications",
+      "topMembers": [
+        {
+          "type": "species",
+          "name": "Populus tremuloides",
+          "degree": 93
+        },
+        {
+          "type": "species",
+          "name": "Picea engelmannii",
+          "degree": 86
+        },
+        {
+          "type": "author",
+          "name": "Ian K Breckheimer",
+          "degree": 81
+        },
+        {
+          "type": "place",
+          "name": "Upper East River Beaver Pond",
+          "degree": 73
+        },
+        {
+          "type": "concept",
+          "name": "snowpack persistence",
+          "degree": 60
+        },
+        {
+          "type": "concept",
+          "name": "space use",
+          "degree": 56
+        },
+        {
+          "type": "concept",
+          "name": "leaf water content",
+          "degree": 56
+        },
+        {
+          "type": "species",
+          "name": "Abies lasiocarpa",
+          "degree": 43
+        }
+      ],
+      "typeCounts": {
+        "species": 76,
+        "concept": 86,
+        "protocol": 55,
+        "place": 51,
+        "author": 36,
+        "publication": 35,
+        "dataset": 180
+      }
+    },
+    {
+      "id": 1,
+      "size": 404,
+      "label": "phenological mismatch + Rebecca E. Irwin",
+      "description": "102 speciess, 94 publications, 78 concepts, 54 protocols, 30 authors, 28 places, 18 datasets",
+      "topMembers": [
+        {
+          "type": "concept",
+          "name": "phenological mismatch",
+          "degree": 263
+        },
+        {
+          "type": "concept",
+          "name": "plant-pollinator mutualism",
+          "degree": 217
+        },
+        {
+          "type": "species",
+          "name": "Ipomopsis aggregata",
+          "degree": 164
+        },
+        {
+          "type": "author",
+          "name": "Rebecca E. Irwin",
+          "degree": 119
+        },
+        {
+          "type": "concept",
+          "name": "pollinator foraging behavior",
+          "degree": 118
+        },
+        {
+          "type": "author",
+          "name": "Diane R. Campbell",
+          "degree": 106
+        },
+        {
+          "type": "species",
+          "name": "Bombus bifarius",
+          "degree": 102
+        },
+        {
+          "type": "species",
+          "name": "Bombus flavifrons",
+          "degree": 100
+        }
+      ],
+      "typeCounts": {
+        "species": 102,
+        "concept": 78,
+        "protocol": 54,
+        "place": 28,
+        "author": 30,
+        "publication": 94,
+        "dataset": 18
+      }
+    },
+    {
+      "id": 4,
+      "size": 401,
+      "label": "phenotypic plasticity + Carol L. Boggs",
+      "description": "113 speciess, 78 concepts, 68 publications, 49 places, 48 protocols, 36 authors, 9 datasets",
+      "topMembers": [
+        {
+          "type": "concept",
+          "name": "phenotypic plasticity",
+          "degree": 124
+        },
+        {
+          "type": "species",
+          "name": "Boechera stricta",
+          "degree": 70
+        },
+        {
+          "type": "author",
+          "name": "Carol L. Boggs",
+          "degree": 57
+        },
+        {
+          "type": "concept",
+          "name": "thermal performance",
+          "degree": 50
+        },
+        {
+          "type": "concept",
+          "name": "local adaptation",
+          "degree": 41
+        },
+        {
+          "type": "concept",
+          "name": "herbivory",
+          "degree": 40
+        },
+        {
+          "type": "publication",
+          "name": "Genes involved in the evolution of herbivory by a ",
+          "degree": 36
+        },
+        {
+          "type": "species",
+          "name": "Arabidopsis thaliana",
+          "degree": 34
+        }
+      ],
+      "typeCounts": {
+        "species": 113,
+        "concept": 78,
+        "protocol": 48,
+        "place": 49,
+        "author": 36,
+        "publication": 68,
+        "dataset": 9
+      }
+    },
+    {
+      "id": 6,
+      "size": 341,
+      "label": "interspecific competition + B. L. Peckarsky",
+      "description": "128 speciess, 56 publications, 54 concepts, 43 places, 33 protocols, 19 authors, 8 datasets",
+      "topMembers": [
+        {
+          "type": "concept",
+          "name": "interspecific competition",
+          "degree": 81
+        },
+        {
+          "type": "author",
+          "name": "B. L. Peckarsky",
+          "degree": 76
+        },
+        {
+          "type": "concept",
+          "name": "mutualistic relationships",
+          "degree": 59
+        },
+        {
+          "type": "author",
+          "name": "B. W. Taylor",
+          "degree": 57
+        },
+        {
+          "type": "concept",
+          "name": "trophic cascade",
+          "degree": 49
+        },
+        {
+          "type": "species",
+          "name": "Baetis bicaudatus",
+          "degree": 38
+        },
+        {
+          "type": "publication",
+          "name": "Elevational cline in herbivore abundance driven by",
+          "degree": 37
+        },
+        {
+          "type": "publication",
+          "name": "The Evolution and Ecology of Interactions Between ",
+          "degree": 36
+        }
+      ],
+      "typeCounts": {
+        "species": 128,
+        "concept": 54,
+        "protocol": 33,
+        "place": 43,
+        "author": 19,
+        "publication": 56,
+        "dataset": 8
+      }
+    },
+    {
+      "id": 0,
+      "size": 339,
+      "label": "capture-mark-recapture (Sciuridae) + Daniel T. Blumstein",
+      "description": "107 concepts, 85 speciess, 47 protocols, 33 publications, 29 places, 29 authors, 9 datasets",
+      "topMembers": [
+        {
+          "type": "author",
+          "name": "Daniel T. Blumstein",
+          "degree": 333
+        },
+        {
+          "type": "protocol",
+          "name": "capture-mark-recapture (Sciuridae)",
+          "degree": 213
+        },
+        {
+          "type": "species",
+          "name": "Marmota",
+          "degree": 186
+        },
+        {
+          "type": "author",
+          "name": "Kenneth B. Armitage",
+          "degree": 124
+        },
+        {
+          "type": "place",
+          "name": "Colorado East River Valley",
+          "degree": 117
+        },
+        {
+          "type": "concept",
+          "name": "anti-predator behavior",
+          "degree": 88
+        },
+        {
+          "type": "protocol",
+          "name": "focal animal sampling (Sciuridae)",
+          "degree": 73
+        },
+        {
+          "type": "species",
+          "name": "Canis latrans",
+          "degree": 65
+        }
+      ],
+      "typeCounts": {
+        "species": 85,
+        "concept": 107,
+        "protocol": 47,
+        "place": 29,
+        "author": 29,
+        "publication": 33,
+        "dataset": 9
+      }
+    },
+    {
+      "id": 2,
+      "size": 284,
+      "label": "elevational gradients + John Harte",
+      "description": "114 speciess, 59 concepts, 36 publications, 34 protocols, 22 places, 13 authors, 6 datasets",
+      "topMembers": [
+        {
+          "type": "concept",
+          "name": "elevational gradients",
+          "degree": 144
+        },
+        {
+          "type": "concept",
+          "name": "climate change",
+          "degree": 144
+        },
+        {
+          "type": "species",
+          "name": "Helianthella quinquenervis",
+          "degree": 133
+        },
+        {
+          "type": "species",
+          "name": "Delphinium nuttallianum",
+          "degree": 126
+        },
+        {
+          "type": "species",
+          "name": "Erigeron speciosus",
+          "degree": 120
+        },
+        {
+          "type": "species",
+          "name": "Delphinium barbeyi",
+          "degree": 111
+        },
+        {
+          "type": "concept",
+          "name": "species diversity",
+          "degree": 102
+        },
+        {
+          "type": "species",
+          "name": "Artemisia tridentata",
+          "degree": 98
+        }
+      ],
+      "typeCounts": {
+        "species": 114,
+        "concept": 59,
+        "protocol": 34,
+        "place": 22,
+        "author": 13,
+        "publication": 36,
+        "dataset": 6
+      }
+    },
+    {
+      "id": 5,
+      "size": 150,
+      "label": "Ambystoma mavortium + S. A. Wissinger",
+      "description": "35 speciess, 34 concepts, 29 publications, 27 protocols, 10 places, 9 authors, 6 datasets",
+      "topMembers": [
+        {
+          "type": "author",
+          "name": "S. A. Wissinger",
+          "degree": 70
+        },
+        {
+          "type": "species",
+          "name": "Ambystoma mavortium",
+          "degree": 43
+        },
+        {
+          "type": "species",
+          "name": "Limnephilus externus",
+          "degree": 42
+        },
+        {
+          "type": "concept",
+          "name": "climate-induced range shifts",
+          "degree": 39
+        },
+        {
+          "type": "publication",
+          "name": "Species-specific traits predict whole-assemblage d",
+          "degree": 38
+        },
+        {
+          "type": "concept",
+          "name": "biogeochemical cycling",
+          "degree": 37
+        },
+        {
+          "type": "author",
+          "name": "Howard Whiteman",
+          "degree": 36
+        },
+        {
+          "type": "publication",
+          "name": "Caddisfly life histories along permanence gradient",
+          "degree": 36
+        }
+      ],
+      "typeCounts": {
+        "species": 35,
+        "concept": 34,
+        "protocol": 27,
+        "place": 10,
+        "author": 9,
+        "publication": 29,
+        "dataset": 6
+      }
+    },
+    {
+      "id": 13,
+      "size": 67,
+      "label": "vegetation community composition + Manuel K. Lopez",
+      "description": "19 datasets, 13 speciess, 13 concepts, 8 protocols, 7 places, 5 authors, 2 publications",
+      "topMembers": [
+        {
+          "type": "concept",
+          "name": "vegetation community composition",
+          "degree": 44
+        },
+        {
+          "type": "publication",
+          "name": "Rare species do not disproportionately contribute ",
+          "degree": 34
+        },
+        {
+          "type": "species",
+          "name": "Centrocercus minimus",
+          "degree": 21
+        },
+        {
+          "type": "publication",
+          "name": "Microbes on mountainsides: contrasting elevational",
+          "degree": 16
+        },
+        {
+          "type": "protocol",
+          "name": "section-line land-survey fire reconstruction (Animalia)",
+          "degree": 14
+        },
+        {
+          "type": "author",
+          "name": "Manuel K. Lopez",
+          "degree": 11
+        },
+        {
+          "type": "concept",
+          "name": "spatial fire-scar reconstruction",
+          "degree": 10
+        },
+        {
+          "type": "author",
+          "name": "Jessica R. Young",
+          "degree": 10
+        }
+      ],
+      "typeCounts": {
+        "species": 13,
+        "concept": 13,
+        "protocol": 8,
+        "place": 7,
+        "author": 5,
+        "publication": 2,
+        "dataset": 19
+      }
+    },
+    {
+      "id": 7,
+      "size": 59,
+      "label": "Nicrophorus investigator + Carl F. Baker",
+      "description": "22 speciess, 14 concepts, 11 protocols, 6 publications, 3 places, 2 datasets, 1 author",
+      "topMembers": [
+        {
+          "type": "publication",
+          "name": "Genes Suggest Ancestral Colour Polymorphisms Are S",
+          "degree": 26
+        },
+        {
+          "type": "publication",
+          "name": "Detection, prevalence and phylogenetic relationshi",
+          "degree": 18
+        },
+        {
+          "type": "species",
+          "name": "Nicrophorus investigator",
+          "degree": 16
+        },
+        {
+          "type": "concept",
+          "name": "maternal care",
+          "degree": 15
+        },
+        {
+          "type": "species",
+          "name": "Peromyscus maniculatus",
+          "degree": 14
+        },
+        {
+          "type": "publication",
+          "name": "DNA methylation networks underlying mammalian trai",
+          "degree": 13
+        },
+        {
+          "type": "protocol",
+          "name": "Burying beetle habitat reproduction experiment (Silphidae)",
+          "degree": 11
+        },
+        {
+          "type": "publication",
+          "name": "Effect of larval body size on overwinter survival ",
+          "degree": 11
+        }
+      ],
+      "typeCounts": {
+        "species": 22,
+        "concept": 14,
+        "protocol": 11,
+        "place": 3,
+        "author": 1,
+        "publication": 6,
+        "dataset": 2
+      }
+    },
+    {
+      "id": 12,
+      "size": 56,
+      "label": "courtship displays + A. Hoikkala",
+      "description": "20 speciess, 12 concepts, 7 places, 7 publications, 5 protocols, 5 authors",
+      "topMembers": [
+        {
+          "type": "publication",
+          "name": "Atypical flowers can be as profitable as typical h",
+          "degree": 34
+        },
+        {
+          "type": "publication",
+          "name": "Evolvability and trait function predict phenotypic",
+          "degree": 16
+        },
+        {
+          "type": "publication",
+          "name": "The extent of variation in male song, wing and gen",
+          "degree": 16
+        },
+        {
+          "type": "author",
+          "name": "A. Hoikkala",
+          "degree": 14
+        },
+        {
+          "type": "publication",
+          "name": "Synchronization of speed, sound and iridescent col",
+          "degree": 14
+        },
+        {
+          "type": "publication",
+          "name": "Wild hummingbirds discriminate nonspectral colors",
+          "degree": 11
+        },
+        {
+          "type": "publication",
+          "name": "Bringing the male side of plant sex into focus",
+          "degree": 9
+        },
+        {
+          "type": "concept",
+          "name": "courtship displays",
+          "degree": 7
+        }
+      ],
+      "typeCounts": {
+        "species": 20,
+        "concept": 12,
+        "protocol": 5,
+        "place": 7,
+        "author": 5,
+        "publication": 7
+      }
+    },
+    {
+      "id": 9,
+      "size": 29,
+      "label": "Trap-nest sampling (Megachilidae) + Jessica R.K. Forrest",
+      "description": "8 speciess, 8 concepts, 6 protocols, 3 publications, 2 authors, 2 datasets",
+      "topMembers": [
+        {
+          "type": "author",
+          "name": "Jessica R.K. Forrest",
+          "degree": 46
+        },
+        {
+          "type": "protocol",
+          "name": "Trap-nest sampling (Megachilidae)",
+          "degree": 29
+        },
+        {
+          "type": "publication",
+          "name": "Asteraceae pollen provisions protect <i>Osmia</i> ",
+          "degree": 25
+        },
+        {
+          "type": "species",
+          "name": "Osmia iridis",
+          "degree": 22
+        },
+        {
+          "type": "concept",
+          "name": "environmental variability",
+          "degree": 21
+        },
+        {
+          "type": "concept",
+          "name": "lecty",
+          "degree": 20
+        },
+        {
+          "type": "publication",
+          "name": "Foraging efficiency and size matching in a plant-p",
+          "degree": 14
+        },
+        {
+          "type": "concept",
+          "name": "brood parasitism",
+          "degree": 13
+        }
+      ],
+      "typeCounts": {
+        "species": 8,
+        "concept": 8,
+        "protocol": 6,
+        "author": 2,
+        "publication": 3,
+        "dataset": 2
+      }
+    },
+    {
+      "id": 11,
+      "size": 22,
+      "label": "Halictus rubicundus",
+      "description": "9 speciess, 4 concepts, 4 places, 3 protocols, 2 publications",
+      "topMembers": [
+        {
+          "type": "publication",
+          "name": "Chemical Variation among Castes, Female Life Stage",
+          "degree": 18
+        },
+        {
+          "type": "publication",
+          "name": "Chemical Variation among Castes, Female Life Stage",
+          "degree": 17
+        },
+        {
+          "type": "species",
+          "name": "Halictus rubicundus",
+          "degree": 13
+        },
+        {
+          "type": "species",
+          "name": "Panurginus cressoniellus",
+          "degree": 8
+        },
+        {
+          "type": "species",
+          "name": "Hoplitis robusta",
+          "degree": 6
+        },
+        {
+          "type": "species",
+          "name": "Halictus virgatellus",
+          "degree": 5
+        },
+        {
+          "type": "species",
+          "name": "Panurginus ineptus",
+          "degree": 5
+        },
+        {
+          "type": "species",
+          "name": "Pseudopanurgus bakeri",
+          "degree": 5
+        }
+      ],
+      "typeCounts": {
+        "species": 9,
+        "concept": 4,
+        "protocol": 3,
+        "place": 4,
+        "publication": 2
+      }
+    },
+    {
+      "id": 16,
+      "size": 20,
+      "label": "logistic growth",
+      "description": "6 places, 5 concepts, 4 protocols, 3 datasets, 2 publications",
+      "topMembers": [
+        {
+          "type": "publication",
+          "name": "A multi-year case study highlighting the influence",
+          "degree": 15
+        },
+        {
+          "type": "publication",
+          "name": "A pathogen's spatial range is not constrained by g",
+          "degree": 15
+        },
+        {
+          "type": "dataset",
+          "name": "Data from: A multi-year case study highlighting th",
+          "degree": 11
+        },
+        {
+          "type": "dataset",
+          "name": "A pathogen's spatial range is not constrained by g",
+          "degree": 8
+        },
+        {
+          "type": "concept",
+          "name": "logistic growth",
+          "degree": 3
+        },
+        {
+          "type": "concept",
+          "name": "epidemic dynamics",
+          "degree": 3
+        },
+        {
+          "type": "concept",
+          "name": "pathogen range shifts",
+          "degree": 1
+        },
+        {
+          "type": "concept",
+          "name": "disease prevalence",
+          "degree": 1
+        }
+      ],
+      "typeCounts": {
+        "concept": 5,
+        "protocol": 4,
+        "place": 6,
+        "publication": 2,
+        "dataset": 3
+      }
+    },
+    {
+      "id": 18,
+      "size": 17,
+      "label": "Tripartite Integration Model of Social Influence + Arthur E. Smith",
+      "description": "9 concepts, 4 authors, 2 protocols, 2 publications",
+      "topMembers": [
+        {
+          "type": "publication",
+          "name": "Virtually the Same? Evaluating the  Effectiveness ",
+          "degree": 11
+        },
+        {
+          "type": "publication",
+          "name": "“How Do We Do This at a Distance?!” A Descriptive ",
+          "degree": 10
+        },
+        {
+          "type": "author",
+          "name": "Arthur E. Smith",
+          "degree": 5
+        },
+        {
+          "type": "author",
+          "name": "Rebecca A. Cole",
+          "degree": 3
+        },
+        {
+          "type": "concept",
+          "name": "Tripartite Integration Model of Social Influence",
+          "degree": 1
+        },
+        {
+          "type": "concept",
+          "name": "Expectancy-Value-Cost theory",
+          "degree": 1
+        },
+        {
+          "type": "concept",
+          "name": "scientific self-efficacy",
+          "degree": 1
+        },
+        {
+          "type": "concept",
+          "name": "scientific identity",
+          "degree": 1
+        }
+      ],
+      "typeCounts": {
+        "concept": 9,
+        "protocol": 2,
+        "author": 4,
+        "publication": 2
+      }
+    },
+    {
+      "id": 17,
+      "size": 14,
+      "label": "undergraduate field experiences",
+      "description": "6 concepts, 6 places, 2 publications",
+      "topMembers": [
+        {
+          "type": "publication",
+          "name": "Community College Students in the Field: A review ",
+          "degree": 14
+        },
+        {
+          "type": "publication",
+          "name": "Assessing science training programs: Structured un",
+          "degree": 5
+        },
+        {
+          "type": "concept",
+          "name": "undergraduate field experiences",
+          "degree": 2
+        },
+        {
+          "type": "concept",
+          "name": "STEM retention",
+          "degree": 2
+        },
+        {
+          "type": "concept",
+          "name": "community college transfer pathway",
+          "degree": 1
+        },
+        {
+          "type": "concept",
+          "name": "underrepresented minority students",
+          "degree": 1
+        },
+        {
+          "type": "concept",
+          "name": "scientific productivity",
+          "degree": 1
+        },
+        {
+          "type": "concept",
+          "name": "matched pair design",
+          "degree": 1
+        }
+      ],
+      "typeCounts": {
+        "concept": 6,
+        "place": 6,
+        "publication": 2
+      }
+    },
+    {
+      "id": 15,
+      "size": 7,
+      "label": "polarimetric radar",
+      "description": "4 concepts, 2 protocols, 1 publication",
+      "topMembers": [
+        {
+          "type": "publication",
+          "name": "Impact of Crosstalk on Reflectivity and Doppler Me",
+          "degree": 6
+        },
+        {
+          "type": "concept",
+          "name": "polarimetric radar",
+          "degree": 1
+        },
+        {
+          "type": "concept",
+          "name": "Bayesian retrieval",
+          "degree": 1
+        },
+        {
+          "type": "concept",
+          "name": "crosstalk contamination",
+          "degree": 1
+        },
+        {
+          "type": "concept",
+          "name": "polarization diversity pulse pair",
+          "degree": 1
+        },
+        {
+          "type": "protocol",
+          "name": "Polarization Diversity Pulse Pair technique",
+          "degree": 1
+        },
+        {
+          "type": "protocol",
+          "name": "Optimal Estimation",
+          "degree": 1
+        }
+      ],
+      "typeCounts": {
+        "concept": 4,
+        "protocol": 2,
+        "publication": 1
+      }
+    },
+    {
+      "id": 24,
+      "size": 7,
+      "label": "Kenneth L. Jones",
+      "description": "7 authors",
+      "topMembers": [
+        {
+          "type": "author",
+          "name": "Kenneth L. Jones",
+          "degree": 7
+        },
+        {
+          "type": "author",
+          "name": "Cynthia S. Jones",
+          "degree": 7
+        },
+        {
+          "type": "author",
+          "name": "J. D. Gerut",
+          "degree": 6
+        },
+        {
+          "type": "author",
+          "name": "A. Head",
+          "degree": 6
+        },
+        {
+          "type": "author",
+          "name": "B. Eiseman",
+          "degree": 6
+        },
+        {
+          "type": "author",
+          "name": "A. S. Daggett",
+          "degree": 5
+        },
+        {
+          "type": "author",
+          "name": "M. Duff",
+          "degree": 5
+        }
+      ],
+      "typeCounts": {
+        "author": 7
+      }
+    },
+    {
+      "id": 33,
+      "size": 5,
+      "label": "K. J. Taylor",
+      "description": "3 authors, 2 publications",
+      "topMembers": [
+        {
+          "type": "author",
+          "name": "K. J. Taylor",
+          "degree": 3
+        },
+        {
+          "type": "publication",
+          "name": "Restoration of vegetation communities of created d",
+          "degree": 3
+        },
+        {
+          "type": "author",
+          "name": "J. J. Gutrich",
+          "degree": 2
+        },
+        {
+          "type": "publication",
+          "name": "Assessing the substitutability of mitigation wetla",
+          "degree": 2
+        },
+        {
+          "type": "author",
+          "name": "R. V. Seagrist",
+          "degree": 1
+        }
+      ],
+      "typeCounts": {
+        "author": 3,
+        "publication": 2
+      }
+    },
+    {
+      "id": 19,
+      "size": 4,
+      "label": "Doppler velocity",
+      "description": "3 datasets, 1 concept",
+      "topMembers": [
+        {
+          "type": "concept",
+          "name": "Doppler velocity",
+          "degree": 3
+        },
+        {
+          "type": "dataset",
+          "name": "Unoccupied Aerial System-mounted image velocimetry",
+          "degree": 1
+        },
+        {
+          "type": "dataset",
+          "name": "Unoccupied Aerial System-mounted image velocimetry",
+          "degree": 1
+        },
+        {
+          "type": "dataset",
+          "name": "Unoccupied Aerial System-mounted image velocimetry",
+          "degree": 1
+        }
+      ],
+      "typeCounts": {
+        "concept": 1,
+        "dataset": 3
+      }
+    },
+    {
+      "id": 25,
+      "size": 4,
+      "label": "B. A. Roy",
+      "description": "3 publications, 1 author",
+      "topMembers": [
+        {
+          "type": "publication",
+          "name": "Context-dependent pollinator behavior: An explanat",
+          "degree": 4
+        },
+        {
+          "type": "publication",
+          "name": "Polyploidy in Indian paintbrush (<i>Castilleja</i>",
+          "degree": 3
+        },
+        {
+          "type": "author",
+          "name": "B. A. Roy",
+          "degree": 2
+        },
+        {
+          "type": "publication",
+          "name": "Tangled trios?: Characterizing a hybrid zone in <i",
+          "degree": 2
+        }
+      ],
+      "typeCounts": {
+        "author": 1,
+        "publication": 3
+      }
+    },
+    {
+      "id": 28,
+      "size": 4,
+      "label": "S. M. Louda",
+      "description": "4 authors",
+      "topMembers": [
+        {
+          "type": "author",
+          "name": "S. M. Louda",
+          "degree": 3
+        },
+        {
+          "type": "author",
+          "name": "P. M. Dixon",
+          "degree": 2
+        },
+        {
+          "type": "author",
+          "name": "N. J. Huntly",
+          "degree": 2
+        },
+        {
+          "type": "author",
+          "name": "J. E. Rodman",
+          "degree": 1
+        }
+      ],
+      "typeCounts": {
+        "author": 4
+      }
+    },
+    {
+      "id": 35,
+      "size": 4,
+      "label": "Global Biotic Interaction Community",
+      "description": "3 authors, 1 dataset",
+      "topMembers": [
+        {
+          "type": "dataset",
+          "name": "Global Bee Interaction Data",
+          "degree": 5
+        },
+        {
+          "type": "author",
+          "name": "Global Biotic Interaction Community",
+          "degree": 1
+        },
+        {
+          "type": "author",
+          "name": "Jorrit H. Poelen",
+          "degree": 1
+        },
+        {
+          "type": "author",
+          "name": "Katja C Seltmann",
+          "degree": 1
+        }
+      ],
+      "typeCounts": {
+        "author": 3,
+        "dataset": 1
+      }
+    },
+    {
+      "id": 14,
+      "size": 3,
+      "label": "thermochronology",
+      "description": "2 concepts, 1 protocol",
+      "topMembers": [
+        {
+          "type": "concept",
+          "name": "thermochronology",
+          "degree": 2
+        },
+        {
+          "type": "concept",
+          "name": "exhumation",
+          "degree": 2
+        },
+        {
+          "type": "protocol",
+          "name": "Apatite (U-Th)/He thermochronology",
+          "degree": 2
+        }
+      ],
+      "typeCounts": {
+        "concept": 2,
+        "protocol": 1
+      }
+    },
+    {
+      "id": 20,
+      "size": 3,
+      "label": "W. A. Calder",
+      "description": "3 authors",
+      "topMembers": [
+        {
+          "type": "author",
+          "name": "W. A. Calder",
+          "degree": 3
+        },
+        {
+          "type": "author",
+          "name": "L. L. Calder",
+          "degree": 1
+        },
+        {
+          "type": "author",
+          "name": "S. M. Hiebert",
+          "degree": 1
+        }
+      ],
+      "typeCounts": {
+        "author": 3
+      }
+    },
+    {
+      "id": 26,
+      "size": 3,
+      "label": "United States.",
+      "description": "3 authors",
+      "topMembers": [
+        {
+          "type": "author",
+          "name": "United States.",
+          "degree": 2
+        },
+        {
+          "type": "author",
+          "name": "Mountain States Mineral Enterprises.",
+          "degree": 2
+        },
+        {
+          "type": "author",
+          "name": "Wallaby Enterprises.",
+          "degree": 2
+        }
+      ],
+      "typeCounts": {
+        "author": 3
+      }
+    },
+    {
+      "id": 27,
+      "size": 3,
+      "label": "Brian N. Andrews",
+      "description": "3 authors",
+      "topMembers": [
+        {
+          "type": "author",
+          "name": "Brian N. Andrews",
+          "degree": 2
+        },
+        {
+          "type": "author",
+          "name": "David J. Meltzer",
+          "degree": 2
+        },
+        {
+          "type": "author",
+          "name": "Mark Stiger",
+          "degree": 2
+        }
+      ],
+      "typeCounts": {
+        "author": 3
+      }
+    },
+    {
+      "id": 31,
+      "size": 3,
+      "label": "K. M. Jarecke",
+      "description": "3 authors",
+      "topMembers": [
+        {
+          "type": "author",
+          "name": "K. M. Jarecke",
+          "degree": 2
+        },
+        {
+          "type": "author",
+          "name": "D. E. Winkler",
+          "degree": 2
+        },
+        {
+          "type": "author",
+          "name": "C. Cloyed",
+          "degree": 2
+        }
+      ],
+      "typeCounts": {
+        "author": 3
+      }
+    },
+    {
+      "id": 36,
+      "size": 3,
+      "label": "A. F. Camfield",
+      "description": "2 publications, 1 author",
+      "topMembers": [
+        {
+          "type": "author",
+          "name": "A. F. Camfield",
+          "degree": 2
+        },
+        {
+          "type": "publication",
+          "name": "Resource value affects territorial defense by Broa",
+          "degree": 1
+        },
+        {
+          "type": "publication",
+          "name": "Quality of food source affects female visitation a",
+          "degree": 1
+        }
+      ],
+      "typeCounts": {
+        "author": 1,
+        "publication": 2
+      }
+    }
+  ],
+  "meta": {
+    "totalCommunities": 30,
+    "resolution": 1,
+    "generatedAt": "2026-04-15T18:06:14.183Z"
+  }
+}

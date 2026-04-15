@@ -348,7 +348,7 @@ async function linkPlaces(db: pg.Pool): Promise<void> {
   console.log(`  ${candidates.length} unresolved place candidates`)
   if (candidates.length === 0) return
 
-  // Group by lowercase name (place names are relatively stable across papers)
+  // --- Pass 1: Exact name grouping ---
   const groups = new Map<string, typeof candidates>()
   for (const c of candidates) {
     const name = (c.raw_name || '').trim()
@@ -357,7 +357,106 @@ async function linkPlaces(db: pg.Pool): Promise<void> {
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key)!.push(c)
   }
-  console.log(`  ${groups.size} unique places after grouping`)
+  console.log(`  ${groups.size} unique places after exact grouping`)
+
+  // --- Pass 2: Normalized name merging ---
+  // Strip common suffixes/prefixes and merge groups with matching normalized forms
+  function normalizePlaceName(name: string): string {
+    return name.toLowerCase()
+      .replace(/\s+(townsite|town site|township|area|region|site|meadow area|research area|research center)$/i, '')
+      .replace(/^(the|mt\.|mount|lake)\s+/i, (m) => m.toLowerCase())
+      .replace(/\s+co\.?$/i, '') // "Gothic CO" → "Gothic"
+      .replace(/,\s*(colorado|co)$/i, '') // "Gothic, Colorado" → "Gothic"
+      .trim()
+  }
+
+  // Known abbreviation expansions
+  const ABBREVIATIONS: Record<string, string> = {
+    'rmbl': 'rocky mountain biological laboratory',
+    'rocky mountain biological lab': 'rocky mountain biological laboratory',
+    'rocky mountain biological laboratories': 'rocky mountain biological laboratory',
+    'rocky mountain biological station': 'rocky mountain biological laboratory',
+    'rocky mountain biological research laboratory': 'rocky mountain biological laboratory',
+    'the rocky mountain biological laboratory': 'rocky mountain biological laboratory',
+  }
+
+  const normalizedIndex = new Map<string, string>() // normalized → canonical group key
+  const mergeCount = { normalized: 0, trigram: 0 }
+
+  for (const key of [...groups.keys()]) {
+    let norm = normalizePlaceName(key)
+    // Check abbreviation table
+    if (ABBREVIATIONS[norm]) norm = ABBREVIATIONS[norm]
+    if (ABBREVIATIONS[key]) norm = ABBREVIATIONS[key]
+
+    if (normalizedIndex.has(norm) && normalizedIndex.get(norm) !== key) {
+      // Merge this group into the existing canonical group
+      const canonKey = normalizedIndex.get(norm)!
+      if (groups.has(canonKey)) {
+        groups.get(canonKey)!.push(...groups.get(key)!)
+        groups.delete(key)
+        mergeCount.normalized++
+      }
+    } else {
+      normalizedIndex.set(norm, key)
+    }
+  }
+  console.log(`  ${groups.size} unique places after normalization (${mergeCount.normalized} merged)`)
+
+  // --- Pass 3: Trigram similarity merging ---
+  // Merge groups with high name similarity (> 0.8)
+  function trigramSim(a: string, b: string): number {
+    if (a === b) return 1
+    const ta = new Set<string>()
+    const tb = new Set<string>()
+    for (let i = 0; i <= a.length - 3; i++) ta.add(a.slice(i, i + 3))
+    for (let i = 0; i <= b.length - 3; i++) tb.add(b.slice(i, i + 3))
+    if (ta.size === 0 || tb.size === 0) return 0
+    let intersection = 0
+    for (const t of ta) if (tb.has(t)) intersection++
+    return intersection / (ta.size + tb.size - intersection)
+  }
+
+  // Only attempt trigram merging for groups with similar names and short enough to be meaningful
+  const groupKeys = [...groups.keys()].filter((k) => k.length >= 4)
+  // Sort by group size descending so larger groups absorb smaller ones
+  groupKeys.sort((a, b) => (groups.get(b)?.length || 0) - (groups.get(a)?.length || 0))
+
+  for (let i = 0; i < groupKeys.length; i++) {
+    const keyA = groupKeys[i]
+    if (!groups.has(keyA)) continue // already merged away
+    for (let j = i + 1; j < groupKeys.length; j++) {
+      const keyB = groupKeys[j]
+      if (!groups.has(keyB)) continue
+      // Only merge if one name contains the other or trigram sim is very high
+      const sim = trigramSim(keyA, keyB)
+      const containment = keyA.includes(keyB) || keyB.includes(keyA)
+      if (sim > 0.8 || (containment && sim > 0.6 && Math.abs(keyA.length - keyB.length) <= 15)) {
+        groups.get(keyA)!.push(...groups.get(keyB)!)
+        groups.delete(keyB)
+        mergeCount.trigram++
+      }
+    }
+  }
+  console.log(`  ${groups.size} unique places after trigram merging (${mergeCount.trigram} merged)`)
+
+  // --- Pass 4: Scale/type correction ---
+  // Fix known misclassifications based on name patterns
+  const SCALE_OVERRIDES: Record<string, { scale: string; placeType: string }> = {
+    'colorado': { scale: 'state', placeType: 'state' },
+    'usa': { scale: 'national', placeType: 'country' },
+    'united states': { scale: 'national', placeType: 'country' },
+    'canada': { scale: 'national', placeType: 'country' },
+    'mexico': { scale: 'national', placeType: 'country' },
+    'california': { scale: 'state', placeType: 'state' },
+    'utah': { scale: 'state', placeType: 'state' },
+    'wyoming': { scale: 'state', placeType: 'state' },
+    'montana': { scale: 'state', placeType: 'state' },
+    'arizona': { scale: 'state', placeType: 'state' },
+    'new mexico': { scale: 'state', placeType: 'state' },
+    'rocky mountains': { scale: 'regional', placeType: 'region' },
+    'north america': { scale: 'national', placeType: 'region' },
+  }
 
   if (dryRun) {
     const topGroups = [...groups.entries()].sort((a, b) => b[1].length - a[1].length).slice(0, 15)
@@ -439,6 +538,16 @@ async function linkPlaces(db: pg.Pool): Promise<void> {
 
     const canonicalName = best.name || members[0].raw_name
 
+    // Apply scale/type overrides for known misclassifications
+    const override = SCALE_OVERRIDES[key]
+    const placeType = override?.placeType || best.type || null
+    const scale = override?.scale || best.scale || null
+
+    // Collect aliases from all merged group members (different original names)
+    const memberNames = new Set(members.map((m) => m.raw_name?.trim()).filter(Boolean))
+    memberNames.delete(canonicalName)
+    for (const n of memberNames) aliases.add(n)
+
     const { rows: [pl] } = await db.query(
       `INSERT INTO places
        (name, place_type, scale, lat, lon, elevation_m, elevation_min_m, elevation_max_m,
@@ -447,8 +556,8 @@ async function linkPlaces(db: pg.Pool): Promise<void> {
        RETURNING id`,
       [
         canonicalName,
-        best.type || null,
-        best.scale || null,
+        placeType,
+        scale,
         lat,
         lon,
         elevM,

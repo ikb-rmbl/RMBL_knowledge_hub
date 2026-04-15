@@ -20,6 +20,19 @@ const COLOR_PALETTES: Record<string, Record<string, string>> = {
     measurement: '#0097a7', analytical: '#7b1fa2', computational: '#6d4c41',
     laboratory: '#d84315',
   },
+  place_type: {
+    study_site: '#2e7d32', town: '#6d4c41', watershed: '#1565c0',
+    valley: '#0097a7', stream: '#1976d2', lake: '#0288d1',
+    peak: '#795548', meadow: '#43a047', county: '#e65100',
+    trail: '#7b1fa2', named_point: '#999', bioregion: '#d84315',
+  },
+  scale: {
+    site: '#2e7d32',
+    local: '#1565c0',
+    regional: '#e65100',
+    state: '#7b1fa2',
+    national: '#d84315',
+  },
   publication_type: {
     article: '#1565c0', thesis: '#e65100', student_paper: '#2e7d32',
     book: '#7b1fa2', chapter: '#6d4c41', other: '#795548',
@@ -91,7 +104,7 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
   const [loaded, setLoaded] = useState(false)
   const [search, setSearch] = useState('')
   const [selectedNode, setSelectedNode] = useState<any>(null)
-  const [minDegree, setMinDegree] = useState(5)
+  const [minDegree, setMinDegree] = useState(2)
 
   const colorField = data.colorField
 
@@ -226,7 +239,7 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
           style={{ padding: '6px 12px', fontSize: '13px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', width: '220px' }} />
         <label style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           Min papers:
-          <input type="range" min={2} max={50} value={minDegree} onChange={(e) => setMinDegree(parseInt(e.target.value))} style={{ width: '100px' }} />
+          <input type="range" min={1} max={50} value={minDegree} onChange={(e) => setMinDegree(parseInt(e.target.value))} style={{ width: '100px' }} />
           <span style={{ minWidth: '20px' }}>{minDegree}</span>
         </label>
       </div>
@@ -248,6 +261,12 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
           <div style={{ color: 'var(--color-text-muted)', marginTop: '4px', fontSize: '12px' }}>
             {(selectedNode[colorField] || '').replace(/_/g, ' ')} · {selectedNode.degree} papers · {selectedNode.neighborCount} connections
           </div>
+          {selectedNode.lat && selectedNode.lon && (
+            <div style={{ color: 'var(--color-text-muted)', marginTop: '2px', fontSize: '11px' }}>
+              {Number(selectedNode.lat).toFixed(4)}, {Number(selectedNode.lon).toFixed(4)}
+              {selectedNode.elevation_m && ` · ${selectedNode.elevation_m}m`}
+            </div>
+          )}
           {detailField && selectedNode[detailField] && (
             <p style={{ marginTop: '8px', fontSize: '12px', lineHeight: 1.4, color: 'var(--color-text-secondary)' }}>
               {String(selectedNode[detailField]).slice(0, 150)}{String(selectedNode[detailField]).length > 150 ? '...' : ''}

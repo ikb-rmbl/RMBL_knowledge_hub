@@ -38,6 +38,7 @@ export default async function HomePage() {
     { type: 'species', label: 'Species', href: '/explore/species', file: 'species.json', description: 'Co-occurrence in publications and datasets, colored by kingdom' },
     { type: 'concepts', label: 'Concepts', href: '/explore/concepts', file: 'concepts.json', description: 'Co-occurrence in publications and datasets, colored by research scope' },
     { type: 'protocols', label: 'Protocols', href: '/explore/protocols', file: 'protocols.json', description: 'Co-occurrence, embedding similarity, and shared study species' },
+    { type: 'places', label: 'Places', href: '/explore/places', file: 'places.json', description: 'Co-occurrence in publications, colored by place type (sites, watersheds, towns)' },
     { type: 'authors', label: 'Authors', href: '/explore/authors', file: 'authors.json', description: 'Co-authorship on 2+ shared publications, colored by research area' },
     { type: 'publications', label: 'Publications', href: '/explore/publications', file: 'publications.json', description: 'Internal citations and shared authorship, sized by citation count' },
     { type: 'datasets', label: 'Datasets', href: '/explore/datasets', file: 'datasets.json', description: 'Shared entities and shared authors, colored by research area' },
