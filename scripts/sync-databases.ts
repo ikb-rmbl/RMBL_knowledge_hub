@@ -789,6 +789,7 @@ async function main() {
     ...Object.values(COLLECTIONS).map((c) => c.table),
     ...Object.values(ENTITY_COLLECTIONS).map((c) => c.table),
     'entity_mentions', 'entity_candidates', 'code_repositories', 'data_repositories', 'content_chunks', 'references_cited',
+    'authors_rels', 'datasets_rels', 'projects_rels', 'datasets_creators',
   ]
   for (const table of [...new Set(allTables)]) {
     try {
