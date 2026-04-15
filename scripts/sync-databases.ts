@@ -24,6 +24,10 @@ import {
   matchAuthor,
   matchTopic,
   matchProject,
+  matchSpecies,
+  matchPlace,
+  matchProtocol,
+  matchConcept,
   mergeField,
 } from './lib/record-matching.js'
 
@@ -35,6 +39,7 @@ const dryRun = args.includes('--dry-run')
 const verbose = args.includes('--verbose')
 const deleteOrphans = args.includes('--delete-orphans')
 const syncReferences = args.includes('--sync-references')
+const syncEntities = args.includes('--sync-entities')
 const fullPush = args.includes('--full-push')
 
 const NEON_URL = process.env.NEON_DIRECT_URL
@@ -98,6 +103,38 @@ const COLLECTIONS: Record<string, CollectionConfig> = {
     matchFields: matchProject,
     pipelineFields: ['embedding'],
     curatedFields: ['name', 'description', 'project_type', 'status', 'pi', 'pi_author_id', 'field_of_science', 'research_areas', 'start_year', 'end_year', 'discovery_keywords', 'auto_discovery_enabled', 'parent_project_id'],
+    skipFields: ['id', 'created_at', 'updated_at'],
+  },
+}
+
+// Entity collections: all fields are pipeline-managed (no curation conflicts)
+const ENTITY_COLLECTIONS: Record<string, CollectionConfig> = {
+  species: {
+    table: 'species',
+    matchFields: matchSpecies,
+    pipelineFields: ['canonical_name', 'rank', 'scientific_name', 'authority', 'common_names', 'synonyms', 'parent_taxon_id', 'kingdom', 'phylum', 'class_name', 'order_name', 'family', 'conservation_status', 'native_to_rmbl', 'ecological_roles', 'description', 'external_ids', 'mention_count', 'publication_count', 'embedding'],
+    curatedFields: [],
+    skipFields: ['id', 'created_at', 'updated_at'],
+  },
+  places: {
+    table: 'places',
+    matchFields: matchPlace,
+    pipelineFields: ['name', 'place_type', 'scale', 'parent_place_id', 'lat', 'lon', 'elevation_m', 'elevation_min_m', 'elevation_max_m', 'habitat_types', 'aliases', 'description', 'external_ids', 'mention_count', 'publication_count', 'embedding'],
+    curatedFields: [],
+    skipFields: ['id', 'created_at', 'updated_at'],
+  },
+  protocols: {
+    table: 'protocols',
+    matchFields: matchProtocol,
+    pipelineFields: ['name', 'slug', 'category', 'subcategory', 'description', 'typical_equipment', 'output_measurements', 'standardized', 'standard_reference', 'disciplines', 'mention_count', 'publication_count', 'embedding'],
+    curatedFields: ['approved'],
+    skipFields: ['id', 'created_at', 'updated_at'],
+  },
+  concepts: {
+    table: 'concepts',
+    matchFields: matchConcept,
+    pipelineFields: ['name', 'concept_type', 'definition', 'scope', 'aliases', 'disciplines', 'mention_count', 'publication_count', 'embedding'],
+    curatedFields: [],
     skipFields: ['id', 'created_at', 'updated_at'],
   },
 }
@@ -436,6 +473,99 @@ async function deleteOrphansFromNeon(
 // INSERT the current local refs. Idempotent and matches the new local pattern.
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Sync entity tables (bulk): entity_mentions, entity_candidates, etc.
+// Strategy: DELETE all rows from Neon, then bulk INSERT from local using
+// batched INSERT VALUES (not COPY, which Neon restricts).
+// Tables are synced in FK-safe order.
+// ---------------------------------------------------------------------------
+
+async function syncEntityBulkTables(
+  localDb: pg.Pool,
+  neonDb: pg.Pool,
+): Promise<void> {
+  // Bulk tables in delete order (children first)
+  const BULK_TABLES = [
+    'content_chunks',
+    'entity_mentions',
+    'entity_candidates',
+    'code_repositories',
+    'data_repositories',
+  ]
+
+  for (const table of BULK_TABLES) {
+    console.log(`\n  --- ${table} ---`)
+
+    // Count local rows
+    const { rows: [{ n: localCount }] } = await localDb.query(`SELECT count(*)::int as n FROM ${table}`)
+    console.log(`    Local: ${localCount} rows`)
+
+    if (localCount === 0) {
+      console.log('    Skipping (empty locally)')
+      continue
+    }
+
+    const { rows: [{ n: neonCount }] } = await neonDb.query(`SELECT count(*)::int as n FROM ${table}`)
+    console.log(`    Neon: ${neonCount} rows → will replace with ${localCount}`)
+
+    if (dryRun) continue
+
+    // Safety check: refuse to delete Neon data if local has far fewer rows
+    // (protects against syncing from an incomplete local DB)
+    if (neonCount > 0 && localCount < neonCount * 0.5) {
+      console.log(`    ⚠ SKIPPED: local has <50% of Neon rows (${localCount} vs ${neonCount}). Use --force to override.`)
+      continue
+    }
+
+    // Delete all Neon rows
+    await neonDb.query(`DELETE FROM ${table}`)
+    console.log('    Neon cleared')
+
+    // Fetch local rows and insert in batches
+    const { rows: localRows } = await localDb.query(`SELECT * FROM ${table} ORDER BY id`)
+    if (localRows.length === 0) continue
+
+    const columns = Object.keys(localRows[0])
+    const BATCH = 500
+    let inserted = 0
+
+    for (let i = 0; i < localRows.length; i += BATCH) {
+      const batch = localRows.slice(i, i + BATCH)
+      const valueSets: string[] = []
+      const allValues: any[] = []
+
+      for (const row of batch) {
+        const placeholders = columns.map((_, ci) => `$${allValues.length + ci + 1}`).join(', ')
+        valueSets.push(`(${placeholders})`)
+        for (const col of columns) allValues.push(row[col])
+      }
+
+      try {
+        await neonDb.query(
+          `INSERT INTO ${table} (${columns.join(', ')}) VALUES ${valueSets.join(', ')}`,
+          allValues,
+        )
+        inserted += batch.length
+      } catch (err: any) {
+        // Fall back to row-by-row on batch failure
+        for (const row of batch) {
+          const vals = columns.map((c) => row[c])
+          const ph = columns.map((_, i) => `$${i + 1}`).join(', ')
+          try {
+            await neonDb.query(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${ph})`, vals)
+            inserted++
+          } catch { /* skip individual failures */ }
+        }
+      }
+
+      if ((i + BATCH) % 5000 === 0 || i + BATCH >= localRows.length) {
+        process.stdout.write(`\r    Inserted ${inserted}/${localRows.length}`)
+      }
+    }
+    console.log(`\r    Inserted ${inserted}/${localRows.length}`)
+  }
+}
+
 async function syncReferencesCited(
   localDb: pg.Pool,
   neonDb: pg.Pool,
@@ -629,6 +759,22 @@ async function main() {
     process.exit(1)
   }
 
+  // Pre-flight snapshot: record Neon row counts before any changes
+  // This enables post-sync validation and rollback detection
+  const preflightCounts = new Map<string, number>()
+  const allTables = [
+    ...Object.values(COLLECTIONS).map((c) => c.table),
+    ...Object.values(ENTITY_COLLECTIONS).map((c) => c.table),
+    'entity_mentions', 'entity_candidates', 'code_repositories', 'data_repositories', 'content_chunks', 'references_cited',
+  ]
+  for (const table of [...new Set(allTables)]) {
+    try {
+      const { rows: [{ n }] } = await neonDb.query(`SELECT count(*)::int as n FROM ${table}`)
+      preflightCounts.set(table, n)
+    } catch { /* table may not exist */ }
+  }
+  console.log(`Pre-flight: ${preflightCounts.size} tables snapshotted on Neon`)
+
   const collectionsToSync = collectionFilter === 'all'
     ? Object.keys(COLLECTIONS)
     : [collectionFilter]
@@ -672,6 +818,21 @@ async function main() {
     }
   }
 
+  // Sync entity collections if requested (row-by-row upsert for species/places/protocols/concepts)
+  if (syncEntities && (direction === 'push' || direction === 'both')) {
+    console.log('\n--- Entity Collections (push) ---')
+    for (const [collName, config] of Object.entries(ENTITY_COLLECTIONS)) {
+      if (collectionFilter !== 'all' && collectionFilter !== collName) continue
+      console.log(`\n--- ${collName} ---`)
+      const stats = await pushCollection(localDb, neonDb, collName, config, null) // always full push for entities
+      console.log(`    ${stats.pushed} pushed, ${stats.skipped} skipped, ${stats.conflicts} conflicts`)
+    }
+
+    // Bulk sync for entity_mentions, entity_candidates, etc.
+    console.log('\n--- Bulk Entity Tables ---')
+    await syncEntityBulkTables(localDb, neonDb)
+  }
+
   // Sync references_cited if requested (after main collections so target IDs resolve)
   if (syncReferences && (direction === 'push' || direction === 'both')) {
     await syncReferencesCited(localDb, neonDb)
@@ -694,6 +855,40 @@ async function main() {
     const diff = local.n - neon.n
     const marker = diff === 0 ? '✓' : '✗'
     console.log(`  ${marker} ${'references_cited'.padEnd(18)} local: ${String(local.n).padStart(7)}  neon: ${String(neon.n).padStart(7)}${diff !== 0 ? `  (${diff > 0 ? '+' : ''}${diff})` : ''}`)
+  }
+  if (syncEntities) {
+    for (const [collName, config] of Object.entries(ENTITY_COLLECTIONS)) {
+      const { rows: [local] } = await localDb.query(`SELECT count(*)::int as n FROM ${config.table}`)
+      const { rows: [neon] } = await neonDb.query(`SELECT count(*)::int as n FROM ${config.table}`)
+      const diff = local.n - neon.n
+      const marker = diff === 0 ? '✓' : '✗'
+      console.log(`  ${marker} ${collName.padEnd(18)} local: ${String(local.n).padStart(7)}  neon: ${String(neon.n).padStart(7)}${diff !== 0 ? `  (${diff > 0 ? '+' : ''}${diff})` : ''}`)
+    }
+    for (const bulk of ['entity_mentions', 'entity_candidates', 'code_repositories', 'data_repositories', 'content_chunks']) {
+      const { rows: [local] } = await localDb.query(`SELECT count(*)::int as n FROM ${bulk}`)
+      const { rows: [neon] } = await neonDb.query(`SELECT count(*)::int as n FROM ${bulk}`)
+      const diff = local.n - neon.n
+      const marker = diff === 0 ? '✓' : '✗'
+      console.log(`  ${marker} ${bulk.padEnd(18)} local: ${String(local.n).padStart(7)}  neon: ${String(neon.n).padStart(7)}${diff !== 0 ? `  (${diff > 0 ? '+' : ''}${diff})` : ''}`)
+    }
+  }
+
+  // Post-sync safety check: verify no table lost >50% of its rows unexpectedly
+  if (!dryRun) {
+    console.log('\n========== Post-Sync Safety Check ==========')
+    let warnings = 0
+    for (const [table, priorCount] of preflightCounts) {
+      if (priorCount === 0) continue
+      try {
+        const { rows: [{ n: currentCount }] } = await neonDb.query(`SELECT count(*)::int as n FROM ${table}`)
+        if (currentCount < priorCount * 0.5) {
+          console.log(`  ⚠ WARNING: ${table} dropped from ${priorCount} to ${currentCount} rows!`)
+          warnings++
+        }
+      } catch { /* skip */ }
+    }
+    if (warnings === 0) console.log('  All tables healthy.')
+    else console.log(`  ${warnings} table(s) may need attention.`)
   }
 
   await localDb.end()

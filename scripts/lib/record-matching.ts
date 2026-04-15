@@ -38,6 +38,11 @@ export function buildMatchIndex(candidates: any[]): MatchIndex {
     if (c.source_url) bySourceUrl.set(c.source_url, c)
     if (c.orcid) byOrcid.set(c.orcid, c)
     if (c.name) byName.set(c.name.toLowerCase(), c)
+    if (c.canonical_name) {
+      byName.set(c.canonical_name.toLowerCase(), c)
+      byName.set(`${c.canonical_name.toLowerCase()}|${c.rank || ''}`, c)
+    }
+    if (c.slug) byDoi.set(c.slug, c) // reuse byDoi map for slug lookups
     if (c.family_name) {
       const key = `${c.family_name.toLowerCase()}|${(c.given_name || '').toLowerCase()}`
       byFamilyGiven.set(key, c)
@@ -138,6 +143,32 @@ export function matchTopic(record: any, _candidates: any[], index?: MatchIndex):
 }
 
 export function matchProject(record: any, _candidates: any[], index?: MatchIndex): MatchResult {
+  const nameMatch = index!.byName.get(record.name?.toLowerCase())
+  return nameMatch ? { match: nameMatch, confidence: 'exact' } : { match: null, confidence: 'none' }
+}
+
+export function matchSpecies(record: any, _candidates: any[], index?: MatchIndex): MatchResult {
+  const key = `${record.canonical_name?.toLowerCase()}|${record.rank || ''}`
+  const nameMatch = index!.byName.get(key) || index!.byName.get(record.canonical_name?.toLowerCase())
+  return nameMatch ? { match: nameMatch, confidence: 'exact' } : { match: null, confidence: 'none' }
+}
+
+export function matchPlace(record: any, _candidates: any[], index?: MatchIndex): MatchResult {
+  const nameMatch = index!.byName.get(record.name?.toLowerCase())
+  return nameMatch ? { match: nameMatch, confidence: 'exact' } : { match: null, confidence: 'none' }
+}
+
+export function matchProtocol(record: any, _candidates: any[], index?: MatchIndex): MatchResult {
+  // Match by slug (unique) or name
+  if (record.slug) {
+    const slugMatch = index!.byDoi.get(record.slug)
+    if (slugMatch) return { match: slugMatch, confidence: 'exact' }
+  }
+  const nameMatch = index!.byName.get(record.name?.toLowerCase())
+  return nameMatch ? { match: nameMatch, confidence: 'exact' } : { match: null, confidence: 'none' }
+}
+
+export function matchConcept(record: any, _candidates: any[], index?: MatchIndex): MatchResult {
   const nameMatch = index!.byName.get(record.name?.toLowerCase())
   return nameMatch ? { match: nameMatch, confidence: 'exact' } : { match: null, confidence: 'none' }
 }
