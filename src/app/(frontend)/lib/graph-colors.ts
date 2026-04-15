@@ -17,4 +17,6 @@ export const ENTITY_TYPE_LABELS: Record<string, string> = {
   concept: 'Concept',
   author: 'Author',
   publication: 'Publication',
+  dataset: 'Dataset',
+  document: 'Document',
 }

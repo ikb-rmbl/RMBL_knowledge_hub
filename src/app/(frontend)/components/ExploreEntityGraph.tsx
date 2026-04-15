@@ -76,8 +76,21 @@ function getColor(colorField: string, value: string): string {
   if (value) {
     let hash = 0
     for (let i = 0; i < value.length; i++) hash = value.charCodeAt(i) + ((hash << 5) - hash)
-    const hue = Math.abs(hash) % 360
-    return `hsl(${hue}, 55%, 45%)`
+    const hue = (Math.abs(hash) % 360) / 360
+    const sat = 0.55, light = 0.45
+    const q = light < 0.5 ? light * (1 + sat) : light + sat - light * sat
+    const p = 2 * light - q
+    const toRgb = (t: number) => {
+      if (t < 0) t += 1; if (t > 1) t -= 1
+      if (t < 1/6) return p + (q - p) * 6 * t
+      if (t < 1/2) return q
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6
+      return p
+    }
+    const r = Math.round(toRgb(hue + 1/3) * 255)
+    const g = Math.round(toRgb(hue) * 255)
+    const b = Math.round(toRgb(hue - 1/3) * 255)
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
   }
   return '#999'
 }
@@ -98,6 +111,42 @@ interface Props {
 }
 
 export default function ExploreEntityGraph({ data, detailSlug, detailField, labelField }: Props) {
+  // Build a dynamic palette for colorFields not in COLOR_PALETTES (e.g. communityTitle)
+  const dynamicPalette = useMemo(() => {
+    const cf = data.colorField
+    if (COLOR_PALETTES[cf]) return null // static palette exists
+    const values = [...new Set(data.nodes.map(n => n[cf]).filter(Boolean))]
+    if (values.length === 0) return null
+    const GOLDEN_ANGLE = 137.508
+    const palette: Record<string, string> = {}
+    values.forEach((v, i) => {
+      const hue = (i * GOLDEN_ANGLE) % 360
+      const sat = (55 + (i % 3) * 10) / 100
+      const light = (40 + (i % 4) * 5) / 100
+      // Convert HSL to hex (Sigma.js WebGL needs hex, not hsl() strings)
+      const h = hue / 360
+      const q = light < 0.5 ? light * (1 + sat) : light + sat - light * sat
+      const p = 2 * light - q
+      const toRgb = (t: number) => {
+        if (t < 0) t += 1; if (t > 1) t -= 1
+        if (t < 1/6) return p + (q - p) * 6 * t
+        if (t < 1/2) return q
+        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6
+        return p
+      }
+      const r = Math.round(toRgb(h + 1/3) * 255)
+      const g = Math.round(toRgb(h) * 255)
+      const b = Math.round(toRgb(h - 1/3) * 255)
+      palette[v] = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
+    })
+    return palette
+  }, [data])
+
+  const resolveColor = useCallback((colorFld: string, value: string) => {
+    if (dynamicPalette?.[value]) return dynamicPalette[value]
+    return getColor(colorFld, value)
+  }, [dynamicPalette])
+
   const containerRef = useRef<HTMLDivElement>(null)
   const sigmaRef = useRef<any>(null)
   const graphRef = useRef<any>(null)
@@ -116,7 +165,7 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
       counts.set(v, (counts.get(v) || 0) + 1)
     }
     return [...counts.entries()].sort((a, b) => b[1] - a[1])
-  }, [data, colorField])
+  }, [data, colorField, resolveColor])
 
   const [hiddenColors, setHiddenColors] = useState<Set<string>>(new Set())
   const toggleColor = useCallback((val: string) => {
@@ -165,7 +214,7 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
     for (const node of data.nodes) {
       graph.addNode(node.id, {
         ...node,
-        color: getColor(colorField, node[colorField]),
+        color: resolveColor(colorField, node[colorField]),
       })
     }
     const seen = new Set<string>()
@@ -182,7 +231,7 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
     const renderer = new Sigma(graph, containerRef.current, {
       renderEdgeLabels: false, labelRenderedSizeThreshold: 5, defaultEdgeType: 'line',
       labelFont: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      labelSize: 11, labelWeight: '500', labelGridCellSize: 100, labelDensity: 0.7,
+      labelSize: 11, labelWeight: '500', labelGridCellSize: 150, labelDensity: 0.5,
     } as any)
 
     sigmaRef.current = renderer
@@ -223,7 +272,7 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
     applyFilters(renderer, graph, filtersRef.current)
 
     setLoaded(true)
-  }, [data, colorField])
+  }, [data, colorField, resolveColor])
 
   useEffect(() => {
     initGraph()
@@ -291,14 +340,22 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
       )}
 
       {loaded && (
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '8px', fontSize: '11px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '8px', fontSize: '11px', alignItems: 'center' }}>
+          {colorCounts.filter(([, cnt]) => cnt >= 3).length > 5 && (
+            <button onClick={() => {
+              const allVals = colorCounts.filter(([, cnt]) => cnt >= 3).map(([v]) => v)
+              setHiddenColors((prev) => prev.size === allVals.length ? new Set() : new Set(allVals))
+            }} style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '2px 8px', cursor: 'pointer', fontSize: '11px', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
+              {hiddenColors.size === colorCounts.filter(([, cnt]) => cnt >= 3).length ? 'Check all' : 'Uncheck all'}
+            </button>
+          )}
           {colorCounts.filter(([, cnt]) => cnt >= 3).map(([val, cnt]) => {
             const hidden = hiddenColors.has(val)
             return (
               <label key={val} style={{ display: 'flex', alignItems: 'center', gap: '3px', cursor: 'pointer', opacity: hidden ? 0.3 : 1 }}>
                 <input type="checkbox" checked={!hidden} onChange={() => toggleColor(val)}
-                  style={{ accentColor: getColor(colorField, val), width: 12, height: 12, cursor: 'pointer' }} />
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: getColor(colorField, val), display: 'inline-block' }} />
+                  style={{ accentColor: resolveColor(colorField, val), width: 12, height: 12, cursor: 'pointer' }} />
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: resolveColor(colorField, val), display: 'inline-block' }} />
                 {val.replace(/_/g, ' ')} ({cnt})
               </label>
             )

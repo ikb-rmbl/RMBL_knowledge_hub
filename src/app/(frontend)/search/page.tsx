@@ -144,6 +144,7 @@ interface SearchParams {
   yearTo?: string
   sort?: string
   page?: string
+  neighborhood?: string
 }
 
 type ResultItem = {
@@ -170,6 +171,7 @@ function buildUrl(current: SearchParams, overrides: Record<string, string | unde
   if (merged.yearFrom) p.set('yearFrom', merged.yearFrom)
   if (merged.yearTo) p.set('yearTo', merged.yearTo)
   if (merged.sort) p.set('sort', merged.sort)
+  if (merged.neighborhood) p.set('neighborhood', merged.neighborhood)
   if (merged.page && merged.page !== '1') p.set('page', merged.page)
   return `/search?${p.toString()}`
 }
@@ -204,12 +206,54 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const page = Math.max(1, parseInt(params.page || '1'))
 
   const payload = await getPayload({ config })
+  const neighborhoodParam = params.neighborhood || ''
 
   // Use tsvector full-text search when there's a query text
   // This provides ranked results with stemming and snippet highlighting
-  const useFts = Boolean(query) && !topicFilter && !pubTypeFilter && !yearFrom && !yearTo
+  const useFts = Boolean(query) && !topicFilter && !pubTypeFilter && !yearFrom && !yearTo && !neighborhoodParam
   let results: ResultItem[] = []
   let totalResults = 0
+
+  // Neighborhood-filtered browse: raw SQL path
+  if (neighborhoodParam) {
+    const db = getDb()
+    const offset = (page - 1) * PAGE_SIZE
+    const searchPubs = !typeFilter || typeFilter === 'publications'
+    const searchData = !typeFilter || typeFilter === 'datasets'
+    const searchDocs = !typeFilter || typeFilter === 'documents'
+
+    if (searchPubs) {
+      const { rows } = await db.query(`
+        SELECT p.id, p.title, p.year, p.journal, p.doi, p.publication_type,
+          coalesce(p.external_citation_count, 0) as external_citation_count
+        FROM publications p
+        JOIN neighborhood_members nm ON nm.entity_id = p.id AND nm.entity_type = 'publication'
+        WHERE nm.neighborhood_id = $1
+        ORDER BY p.year DESC NULLS LAST
+        LIMIT $2 OFFSET $3
+      `, [neighborhoodParam, PAGE_SIZE, offset])
+      for (const row of rows) {
+        results.push({ collection: 'publication', subtype: row.publication_type || null, id: String(row.id), title: row.title, snippet: '', year: row.year || null, meta: [row.journal, row.year ? String(row.year) : ''].filter(Boolean), rank: 0, externalCitationCount: row.external_citation_count })
+      }
+      const { rows: [{ count }] } = await db.query(`SELECT count(*)::int FROM neighborhood_members WHERE neighborhood_id = $1 AND entity_type = 'publication'`, [neighborhoodParam])
+      totalResults += count
+    }
+    if (searchData) {
+      const { rows } = await db.query(`
+        SELECT d.id, d.title, d.publication_year, d.resource_type
+        FROM datasets d
+        JOIN neighborhood_members nm ON nm.entity_id = d.id AND nm.entity_type = 'dataset'
+        WHERE nm.neighborhood_id = $1
+        ORDER BY d.publication_year DESC NULLS LAST
+        LIMIT $2 OFFSET $3
+      `, [neighborhoodParam, PAGE_SIZE, offset])
+      for (const row of rows) {
+        results.push({ collection: 'dataset', subtype: row.resource_type || null, id: String(row.id), title: row.title, snippet: '', year: row.publication_year || null, meta: [row.publication_year ? String(row.publication_year) : ''].filter(Boolean), rank: 0 })
+      }
+      const { rows: [{ count }] } = await db.query(`SELECT count(*)::int FROM neighborhood_members WHERE neighborhood_id = $1 AND entity_type = 'dataset'`, [neighborhoodParam])
+      totalResults += count
+    }
+  }
 
   if (useFts) {
     const ftsOffset = (page - 1) * PAGE_SIZE
@@ -239,7 +283,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     }
   }
 
-  if (!useFts) {
+  if (!useFts && !neighborhoodParam) {
   // Payload-based search (used when browsing with filters but no text query,
   // or when combining text query with topic/date/pubType filters)
 
@@ -522,6 +566,18 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   return (
     <>
       <div className="search-results-header">
+        {neighborhoodParam && await (async () => {
+          const db = getDb()
+          const { rows: [nbr] } = await db.query('SELECT title FROM neighborhoods WHERE id = $1', [neighborhoodParam])
+          if (!nbr) return null
+          return (
+            <div style={{ fontSize: '13px', marginBottom: '12px', padding: '8px 12px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Filtered by neighborhood:</span>
+              <Link href={`/neighborhoods/${neighborhoodParam}`} style={{ fontWeight: 600, color: 'var(--color-accent)' }}>{nbr.title}</Link>
+              <Link href={`/search${typeFilter ? '?type=' + typeFilter : ''}`} style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--color-text-muted)' }}>Clear filter</Link>
+            </div>
+          )
+        })()}
         <form className="search-form" action="/search" method="GET">
           <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search..." />
           {typeFilter && <input type="hidden" name="type" value={typeFilter} />}
@@ -529,6 +585,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           {pubTypeFilter && <input type="hidden" name="pubType" value={pubTypeFilter} />}
           {yearFrom && <input type="hidden" name="yearFrom" value={String(yearFrom)} />}
           {yearTo && <input type="hidden" name="yearTo" value={String(yearTo)} />}
+          {neighborhoodParam && <input type="hidden" name="neighborhood" value={neighborhoodParam} />}
           {sortParam !== defaultSort && <input type="hidden" name="sort" value={sortParam} />}
           <button className="search-button" type="submit">Search</button>
         </form>

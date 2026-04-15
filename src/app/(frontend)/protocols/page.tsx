@@ -20,6 +20,7 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
   const sortParam = params.sort || 'publications'
   const categoryFilter = params.category || ''
   const showUnapproved = params.show === 'all'
+  const neighborhoodParam = params.neighborhood || ''
   const page = Math.max(1, parseInt(params.page || '1'))
   const offset = (page - 1) * PAGE_SIZE
 
@@ -29,8 +30,11 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
   const values: any[] = []
   let paramIdx = 1
 
-  // Default: show all protocols (since none are approved yet in dev)
-  // In production, uncomment: if (!showUnapproved) where.push('approved = true')
+  if (neighborhoodParam) {
+    where.push(`id IN (SELECT entity_id FROM neighborhood_members WHERE neighborhood_id = $${paramIdx} AND entity_type = 'protocol')`)
+    values.push(neighborhoodParam)
+    paramIdx++
+  }
 
   if (query) {
     where.push(`(name ILIKE $${paramIdx} OR description ILIKE $${paramIdx})`)
@@ -86,6 +90,7 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
     if (merged.std === 'true') p.set('std', 'true')
     if (merged.discipline) p.set('discipline', merged.discipline)
     if (merged.show === 'all') p.set('show', 'all')
+    if (merged.neighborhood) p.set('neighborhood', merged.neighborhood)
     if (merged.page && merged.page !== '1') p.set('page', merged.page)
     const qs = p.toString()
     return `/protocols${qs ? '?' + qs : ''}`
@@ -121,6 +126,17 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
   return (
     <>
       <div className="search-results-header">
+        {neighborhoodParam && await (async () => {
+          const { rows: [nbr] } = await db.query('SELECT title FROM neighborhoods WHERE id = $1', [neighborhoodParam])
+          if (!nbr) return null
+          return (
+            <div style={{ fontSize: '13px', marginBottom: '12px', padding: '8px 12px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Filtered by neighborhood:</span>
+              <Link href={`/neighborhoods/${neighborhoodParam}`} style={{ fontWeight: 600, color: 'var(--color-accent)' }}>{nbr.title}</Link>
+              <Link href="/protocols" style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--color-text-muted)' }}>Clear filter</Link>
+            </div>
+          )
+        })()}
         <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 16px' }}>Protocols</h1>
         <form className="search-form" action="/protocols" method="GET">
           <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search protocols..." />

@@ -16,7 +16,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <div className="site-header-inner">
             <Link href="/" className="site-logo">
               <img src="/rmbl-logo.jpg" alt="RMBL" />
-              <span>Knowledge Hub</span>
+              <span>Knowledge<br />Hub</span>
             </Link>
             <nav className="site-nav">
               <Link href="/search">Search</Link>
@@ -27,6 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Link href="/species">Species</Link>
               <Link href="/protocols">Protocols</Link>
               <Link href="/concepts">Concepts</Link>
+              <Link href="/neighborhoods">Neighborhoods</Link>
               <Link href="/places">Places</Link>
               <Link href="/projects">Projects</Link>
             </nav>

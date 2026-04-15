@@ -11,6 +11,7 @@ interface AuthorSearchParams {
   letter?: string
   sort?: string
   filter?: string
+  neighborhood?: string
 }
 
 const PAGE_SIZE = 50
@@ -36,6 +37,7 @@ function buildUrl(params: AuthorSearchParams, overrides: Record<string, string |
   if (merged.letter) p.set('letter', merged.letter)
   if (merged.sort && merged.sort !== 'works') p.set('sort', merged.sort)
   if (merged.filter) p.set('filter', merged.filter)
+  if (merged.neighborhood) p.set('neighborhood', merged.neighborhood)
   if (merged.page && merged.page !== '1') p.set('page', merged.page)
   return `/authors?${p.toString()}`
 }
@@ -46,17 +48,44 @@ export default async function AuthorsPage({ searchParams }: { searchParams: Prom
   const letter = params.letter || ''
   const sortParam = params.sort || 'works'
   const filterParam = params.filter || ''
+  const neighborhoodParam = params.neighborhood || ''
   const page = Math.max(1, parseInt(params.page || '1'))
 
   const payload = await getPayload({ config })
+  const db = getDb()
 
   // Use raw SQL for "most works" sort (workCount column not in Payload schema)
   // Use Payload API for name-based sorts (simpler)
+  // Neighborhood filter always uses raw SQL path
   let authors: { docs: any[]; totalDocs: number; totalPages: number }
 
-  if (sortParam === 'works' && !query && !letter && !filterParam) {
+  if (neighborhoodParam) {
+    const offset = (page - 1) * PAGE_SIZE
+    const nbrFilter = 'id IN (SELECT entity_id FROM neighborhood_members WHERE neighborhood_id = $1 AND entity_type = \'author\')'
+    const where: string[] = [nbrFilter]
+    const values: any[] = [neighborhoodParam]
+    let paramIdx = 2
+    if (query) {
+      where.push(`(display_name ILIKE $${paramIdx} OR family_name ILIKE $${paramIdx} OR affiliation ILIKE $${paramIdx})`)
+      values.push(`%${query}%`)
+      paramIdx++
+    }
+    if (letter) {
+      where.push(`family_name ILIKE $${paramIdx}`)
+      values.push(`${letter}%`)
+      paramIdx++
+    }
+    const orderBy = sortParam === 'name' ? 'family_name ASC' : sortParam === 'name-desc' ? 'family_name DESC' : 'work_count DESC, family_name ASC'
+    const whereStr = `WHERE ${where.join(' AND ')}`
+    const { rows } = await db.query(
+      `SELECT id, display_name as "displayName", family_name as "familyName", given_name as "givenName", orcid, affiliation, work_count as "workCount" FROM authors ${whereStr} ORDER BY ${orderBy} LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+      [...values, PAGE_SIZE, offset],
+    )
+    const countRes = await db.query(`SELECT count(*)::int FROM authors ${whereStr}`, values)
+    const totalDocs = countRes.rows[0].count
+    authors = { docs: rows, totalDocs, totalPages: Math.ceil(totalDocs / PAGE_SIZE) }
+  } else if (sortParam === 'works' && !query && !letter && !filterParam) {
     // Fast path: raw SQL sort by work_count
-    const db = getDb()
     const offset = (page - 1) * PAGE_SIZE
     const { rows } = await db.query(
       'SELECT id, display_name as "displayName", family_name as "familyName", given_name as "givenName", orcid, affiliation, work_count as "workCount" FROM authors ORDER BY work_count DESC, family_name ASC LIMIT $1 OFFSET $2',
@@ -98,6 +127,17 @@ export default async function AuthorsPage({ searchParams }: { searchParams: Prom
   return (
     <>
       <div className="search-results-header">
+        {neighborhoodParam && await (async () => {
+          const { rows: [nbr] } = await db.query('SELECT title FROM neighborhoods WHERE id = $1', [neighborhoodParam])
+          if (!nbr) return null
+          return (
+            <div style={{ fontSize: '13px', marginBottom: '12px', padding: '8px 12px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Filtered by neighborhood:</span>
+              <Link href={`/neighborhoods/${neighborhoodParam}`} style={{ fontWeight: 600, color: 'var(--color-accent)' }}>{nbr.title}</Link>
+              <Link href="/authors" style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--color-text-muted)' }}>Clear filter</Link>
+            </div>
+          )
+        })()}
         <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 16px' }}>Browse Authors</h1>
 
         <form className="search-form" action="/authors" method="GET">

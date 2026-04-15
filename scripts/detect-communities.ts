@@ -68,16 +68,36 @@ async function main() {
   const sorted = [...communityMembers.entries()].sort((a, b) => b[1].length - a[1].length)
 
   // Label each community by its top members per type
+  interface TopMember {
+    id: string       // node ID (e.g. "species-42")
+    type: string     // entity/collection type
+    name: string
+    degree: number
+    slug: string     // URL path (e.g. "/species/42")
+  }
+
   interface CommunityInfo {
     id: number
     size: number
     label: string
     description: string
-    topMembers: { type: string; name: string; degree: number }[]
+    topMembers: TopMember[]
+    topByType: Record<string, TopMember[]>  // top 3 per type for detail display
     typeCounts: Record<string, number>
   }
 
   const communityInfos: CommunityInfo[] = []
+
+  const slugMap: Record<string, string> = {
+    species: 'species', place: 'places', protocol: 'protocols', concept: 'concepts',
+    author: 'authors', publication: 'publications', pub: 'publications',
+    dataset: 'datasets',
+  }
+  function toTopMember(m: { id: string; type: string; label: string; degree: number }): TopMember {
+    const rawId = m.id.includes('-') ? m.id.slice(m.id.indexOf('-') + 1) : m.id
+    const slug = `/${slugMap[m.type] || m.type}/${rawId}`
+    return { id: m.id, type: m.type, name: m.label, degree: m.degree, slug }
+  }
 
   for (const [cid, members] of sorted) {
     if (members.length < 3) continue // skip tiny communities
@@ -96,24 +116,36 @@ async function main() {
     // Sort by degree, pick top members per type for labeling
     memberDetails.sort((a, b) => b.degree - a.degree)
 
-    const topByType = new Map<string, typeof memberDetails[0]>()
+    // Top 3 per type for detail display
+    const topByType: Record<string, TopMember[]> = {}
+    const typeCounters = new Map<string, number>()
     for (const m of memberDetails) {
-      if (!topByType.has(m.type)) topByType.set(m.type, m)
+      const cnt = typeCounters.get(m.type) || 0
+      if (cnt < 3) {
+        if (!topByType[m.type]) topByType[m.type] = []
+        topByType[m.type].push(toTopMember(m))
+        typeCounters.set(m.type, cnt + 1)
+      }
     }
 
-    // Generate label from top 2-3 most prominent members
-    const topMembers = memberDetails.slice(0, 8).map((m) => ({
-      type: m.type, name: m.label, degree: m.degree,
-    }))
+    // Overall top members
+    const topMembers = memberDetails.slice(0, 8).map(toTopMember)
 
-    // Label: use the top entity (species/concept/protocol) + top author if present
-    const topEntity = memberDetails.find((m) => ['species', 'concept', 'protocol', 'place'].includes(m.type))
-    const topAuthor = memberDetails.find((m) => m.type === 'author')
-    const labelParts = []
-    if (topEntity) labelParts.push(topEntity.label)
-    if (topAuthor && labelParts.length < 2) labelParts.push(topAuthor.label)
+    // Label: use top 2-3 entity names (no researcher names) to describe the theme
+    const entityTypes = ['concept', 'species', 'protocol', 'place']
+    const topEntities = memberDetails.filter((m) => entityTypes.includes(m.type))
+    // Pick from different entity types if possible for a richer label
+    const labelParts: string[] = []
+    const usedTypes = new Set<string>()
+    for (const m of topEntities) {
+      if (labelParts.length >= 3) break
+      if (!usedTypes.has(m.type) || labelParts.length < 2) {
+        labelParts.push(m.label)
+        usedTypes.add(m.type)
+      }
+    }
     if (labelParts.length === 0) labelParts.push(memberDetails[0]?.label || `Community ${cid}`)
-    const label = labelParts.join(' + ')
+    const label = labelParts.join(', ')
 
     // Description: summarize the types
     const typeDesc = Object.entries(typeCounts)
@@ -127,6 +159,7 @@ async function main() {
       label,
       description: typeDesc,
       topMembers,
+      topByType,
       typeCounts,
     })
   }

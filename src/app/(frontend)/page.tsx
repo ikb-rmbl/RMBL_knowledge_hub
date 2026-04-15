@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { getBadgeLabel, getBadgeClass } from './lib/badges'
+import { GRAPH_COLORS } from './lib/graph-colors'
 import { getDb } from './lib/db'
 
 export const dynamic = 'force-dynamic'
@@ -30,10 +31,24 @@ export default async function HomePage() {
       (SELECT COUNT(*) FROM references_cited WHERE link_type = 'internal') as citations
   `)
 
-  // Graph stats for explore cards (read from pre-computed JSON files)
-  const graphStats: { type: string; label: string; href: string; nodes: number; edges: number; description: string }[] = []
+  // Load pre-computed data files
   const { readFileSync } = await import('fs')
   const { join } = await import('path')
+
+  // Communities (knowledge neighborhoods) — from DB, with fallback to JSON file
+  let communities: any[] = []
+  try {
+    const { rows } = await db.query('SELECT id, title, summary, size, type_counts, top_by_type, themes FROM neighborhoods ORDER BY size DESC')
+    communities = rows.map((r: any) => ({ ...r, topByType: r.top_by_type, typeCounts: r.type_counts }))
+  } catch {
+    try {
+      const commData = JSON.parse(readFileSync(join(process.cwd(), 'public/graph/communities.json'), 'utf-8'))
+      communities = commData.communities || []
+    } catch {}
+  }
+
+  // Graph stats for explore cards
+  const graphStats: { type: string; label: string; href: string; nodes: number; edges: number; description: string }[] = []
   const graphConfigs = [
     { type: 'species', label: 'Species', href: '/explore/species', file: 'species.json', description: 'Co-occurrence in publications and datasets, colored by kingdom' },
     { type: 'concepts', label: 'Concepts', href: '/explore/concepts', file: 'concepts.json', description: 'Co-occurrence in publications and datasets, colored by research scope' },
@@ -49,24 +64,6 @@ export default async function HomePage() {
       graphStats.push({ ...gc, nodes: data.meta.nodeCount, edges: data.meta.edgeCount })
     } catch { /* graph not built yet */ }
   }
-
-  // Cross-discipline bridges: species linked to earth science concepts
-  const { rows: bridges } = await db.query(`
-    SELECT s.canonical_name as species, c.name as concept, c.scope,
-      COUNT(DISTINCT em1.item_id) as shared_items
-    FROM entity_mentions em1
-    JOIN entity_mentions em2 ON em2.item_id = em1.item_id AND em2.collection = em1.collection
-      AND em2.entity_type = 'concept'
-    JOIN species s ON s.id = em1.entity_id
-    JOIN concepts c ON c.id = em2.entity_id
-    WHERE em1.entity_type = 'species'
-      AND c.scope IN ('hydrology', 'biogeochemistry', 'climate', 'landscape')
-      AND s.publication_count >= 10
-    GROUP BY s.id, s.canonical_name, c.id, c.name, c.scope
-    HAVING COUNT(DISTINCT em1.item_id) >= 8
-    ORDER BY ln(COUNT(DISTINCT em1.item_id) + 1) * (0.3 + 0.7 * random()) DESC
-    LIMIT 40
-  `)
 
   // Cross-collection stats for hero
   const { rows: [crossStats] } = await db.query(`
@@ -91,14 +88,8 @@ export default async function HomePage() {
     { group: 'Education & Training', topics: ['Science Education & Pedagogy', 'Mentoring & Research Training'] },
   ]
 
-  // Fetch recently published from each collection (by content date, not ingestion date)
-  const [recentDocs, recentPubs, recentData] = await Promise.all([
-    payload.find({ collection: 'documents', limit: 3, sort: '-dateOriginal' }),
-    payload.find({ collection: 'publications', limit: 3, sort: '-year' }),
-    payload.find({ collection: 'datasets', limit: 3, sort: '-publicationYear' }),
-  ])
-
-  // Combine and sort by year descending
+  // Recent highly connected works: publications and datasets from recent years
+  // ranked by combined connectivity (citations + entity mentions + co-authors)
   type RecentItem = {
     collection: 'document' | 'publication' | 'dataset'
     subtype: string | null
@@ -107,46 +98,60 @@ export default async function HomePage() {
     slug: string
     year: number
     meta: string
+    connectivity: number
   }
+
+  const { rows: connectedPubs } = await db.query(`
+    SELECT p.id, p.title, p.year, p.publication_type, p.journal,
+      coalesce(p.external_citation_count, 0) as citations,
+      (SELECT count(*) FROM entity_mentions em WHERE em.item_id = p.id AND em.collection = 'publications') as entity_links,
+      (SELECT count(*) FROM references_cited r WHERE r.source_publication_id = p.id OR r.target_publication_id = p.id) as citation_links,
+      (SELECT count(*) FROM publications_rels pr WHERE pr.parent_id = p.id AND pr.path = 'authors') as author_count
+    FROM publications p
+    WHERE p.year >= 2020
+    ORDER BY (
+      coalesce(p.external_citation_count, 0) * 2
+      + (SELECT count(*) FROM entity_mentions em WHERE em.item_id = p.id AND em.collection = 'publications')
+      + (SELECT count(*) FROM references_cited r WHERE r.source_publication_id = p.id OR r.target_publication_id = p.id) * 3
+    ) DESC
+    LIMIT 5
+  `)
+
+  const { rows: connectedDatasets } = await db.query(`
+    SELECT DISTINCT ON (d.title) d.id, d.title, d.publication_year, d.resource_type,
+      (SELECT count(*) FROM entity_mentions em WHERE em.item_id = d.id AND em.collection = 'datasets') as entity_links,
+      (SELECT count(*) FROM datasets_rels dr WHERE dr.parent_id = d.id AND dr.path = 'creators') as author_count,
+      (SELECT count(*) FROM entity_mentions em WHERE em.item_id = d.id AND em.collection = 'datasets') * 2
+        + (SELECT count(*) FROM datasets_rels dr WHERE dr.parent_id = d.id AND dr.path = 'creators') as score
+    FROM datasets d
+    WHERE d.publication_year >= 2020
+    ORDER BY d.title, score DESC
+  `)
+  connectedDatasets.sort((a: any, b: any) => parseInt(b.score) - parseInt(a.score))
+  connectedDatasets.splice(3)
+
   const recentItems: RecentItem[] = []
-
-  for (const doc of recentDocs.docs) {
-    const year = (doc.dateOriginal as string)?.slice(0, 4)
+  for (const p of connectedPubs) {
+    const connections = parseInt(p.citations) + parseInt(p.entity_links) + parseInt(p.citation_links)
     recentItems.push({
-      collection: 'document',
-      subtype: null,
-      title: doc.title,
-      id: String(doc.id),
-      slug: 'documents',
-      year: year ? parseInt(year) : 0,
-      meta: year || '',
+      collection: 'publication', subtype: p.publication_type || null,
+      title: p.title, id: String(p.id), slug: 'publications',
+      year: p.year || 0,
+      meta: [p.year, p.journal, `${connections} connections`].filter(Boolean).join(' · '),
+      connectivity: connections,
     })
   }
-  for (const pub of recentPubs.docs) {
+  for (const d of connectedDatasets) {
+    const connections = parseInt(d.entity_links) + parseInt(d.author_count)
     recentItems.push({
-      collection: 'publication',
-      subtype: pub.publicationType || null,
-      title: pub.title,
-      id: String(pub.id),
-      slug: 'publications',
-      year: pub.year || 0,
-      meta: pub.year ? String(pub.year) : '',
+      collection: 'dataset', subtype: d.resource_type || null,
+      title: d.title, id: String(d.id), slug: 'datasets',
+      year: d.publication_year || 0,
+      meta: [d.publication_year, `${connections} connections`].filter(Boolean).join(' · '),
+      connectivity: connections,
     })
   }
-  for (const ds of recentData.docs) {
-    recentItems.push({
-      collection: 'dataset',
-      subtype: ds.resourceType || null,
-      title: ds.title,
-      id: String(ds.id),
-      slug: 'datasets',
-      year: ds.publicationYear || 0,
-      meta: ds.publicationYear ? String(ds.publicationYear) : '',
-    })
-  }
-
-  // Sort combined list by year descending
-  recentItems.sort((a, b) => b.year - a.year)
+  recentItems.sort((a, b) => b.connectivity - a.connectivity)
 
   const totalCount = docCount.totalDocs + pubCount.totalDocs + dataCount.totalDocs
 
@@ -188,6 +193,34 @@ export default async function HomePage() {
         </div>
       </div>
 
+      {communities.length > 0 && (
+        <section className="section">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '4px' }}>
+            <h2 className="section-title" style={{ margin: 0 }}>Knowledge Neighborhoods</h2>
+            <Link href="/neighborhoods" style={{
+              padding: '6px 14px', fontSize: '13px', borderRadius: 'var(--radius-sm)',
+              background: 'var(--color-accent)', color: '#fff', textDecoration: 'none',
+            }}>Browse All</Link>
+          </div>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginBottom: '16px' }}>
+            {communities.length} research communities detected by analyzing connections between species, concepts, protocols, places, authors, and publications.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '12px' }}>
+            {communities.slice(0, 6).map((c: any) => <CommunityCard key={c.id} c={c} />)}
+          </div>
+          {communities.length > 6 && (
+            <details style={{ marginTop: '12px' }}>
+              <summary style={{ cursor: 'pointer', fontSize: '13px', color: 'var(--color-accent)', fontWeight: 500 }}>
+                Show all {communities.length} neighborhoods
+              </summary>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '12px', marginTop: '12px' }}>
+                {communities.slice(6).map((c: any) => <CommunityCard key={c.id} c={c} />)}
+              </div>
+            </details>
+          )}
+        </section>
+      )}
+
       {graphStats.length > 0 && (
         <section className="section">
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
@@ -210,51 +243,6 @@ export default async function HomePage() {
                   <span>{gs.nodes.toLocaleString()} nodes</span>
                   <span>{gs.edges.toLocaleString()} connections</span>
                 </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {bridges.length > 0 && (
-        <section className="section">
-          <h2 className="section-title">Species &times; Climate &amp; Landscape</h2>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginBottom: '16px' }}>
-            Species linked to climate, hydrology, and landscape research across the knowledge hub.
-          </p>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {(() => {
-              // Diversify: pick the top bridge per unique concept, then fill
-              const seenConcepts = new Set<string>()
-              const diverse: typeof bridges = []
-              for (const b of bridges) {
-                if (!seenConcepts.has(b.concept as string)) {
-                  seenConcepts.add(b.concept as string)
-                  diverse.push(b)
-                }
-                if (diverse.length >= 8) break
-              }
-              // If we have fewer than 8 concepts, fill with top remaining
-              if (diverse.length < 8) {
-                for (const b of bridges) {
-                  if (!diverse.find((d) => d.species === b.species && d.concept === b.concept)) {
-                    diverse.push(b)
-                    if (diverse.length >= 8) break
-                  }
-                }
-              }
-              return diverse
-            })().map((b, i) => (
-              <Link key={i} href={`/search?q=${encodeURIComponent(b.species)}`}
-                style={{
-                  padding: '8px 14px', borderRadius: 'var(--radius)',
-                  background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-                  textDecoration: 'none', fontSize: '13px', display: 'flex', gap: '6px', alignItems: 'center',
-                }}>
-                <span style={{ fontStyle: 'italic', fontWeight: 500 }}>{(b.species as string).split(' ').slice(0, 2).join(' ')}</span>
-                <span style={{ color: 'var(--color-text-muted)' }}>+</span>
-                <span>{b.concept}</span>
-                <span style={{ color: 'var(--color-text-muted)', fontSize: '11px' }}>({b.shared_items})</span>
               </Link>
             ))}
           </div>
@@ -284,9 +272,12 @@ export default async function HomePage() {
       </section>
 
       <section className="section">
-        <h2 className="section-title">Recent Works</h2>
+        <h2 className="section-title">Recent Highly Connected Works</h2>
+        <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginBottom: '16px' }}>
+          Recent publications and datasets with the most connections across citations, co-author networks, and entity mentions.
+        </p>
         <div className="result-list">
-          {recentItems.slice(0, 6).map((item) => (
+          {recentItems.slice(0, 8).map((item) => (
             <Link
               key={`${item.slug}-${item.id}`}
               className="result-card"
@@ -304,5 +295,42 @@ export default async function HomePage() {
         </div>
       </section>
     </>
+  )
+}
+
+function CommunityCard({ c }: { c: any }) {
+  const highlights: { type: string; name: string; slug: string }[] = []
+  for (const type of ['concept', 'species', 'protocol', 'place']) {
+    const items = c.topByType?.[type] || []
+    if (items.length > 0) highlights.push({ type, name: items[0].name, slug: items[0].slug })
+    if (highlights.length >= 4) break
+  }
+  const typeDesc = c.description || Object.entries(c.typeCounts || {})
+    .sort((a, b) => (b[1] as number) - (a[1] as number))
+    .map(([t, n]) => `${n} ${t}${(n as number) > 1 ? 's' : ''}`)
+    .join(', ')
+  return (
+    <Link href={`/neighborhoods/${c.id}`} className="result-card" style={{ borderLeft: '3px solid var(--color-accent)', textDecoration: 'none', color: 'inherit' }}>
+      <h3 className="result-card-title" style={{ fontSize: '14px' }}>{c.title || c.label}</h3>
+      {c.summary && (
+        <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', margin: '4px 0 6px', lineHeight: 1.4 }}>
+          {c.summary}
+        </p>
+      )}
+      <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
+        {c.size} items · {typeDesc}
+      </div>
+      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+        {highlights.map((h, i) => (
+          <span key={i} style={{
+            padding: '2px 8px', borderRadius: '10px', fontSize: '11px',
+            background: GRAPH_COLORS[h.type] || '#999', color: '#fff',
+            whiteSpace: 'nowrap',
+          }}>
+            {h.name.slice(0, 30)}{h.name.length > 30 ? '...' : ''}
+          </span>
+        ))}
+      </div>
+    </Link>
   )
 }

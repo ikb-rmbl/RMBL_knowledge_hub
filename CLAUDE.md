@@ -12,6 +12,7 @@ Unified search platform for environmental knowledge from the Rocky Mountain Biol
 - **Places** (246 referenced + 641 GNIS seeds) — geographic entities with coordinates and hierarchy
 - **Protocols** (196) — research methods with embedding-based clustering
 - **Concepts** (331) — scientific concepts with type/scope classification
+- **Neighborhoods** (43) — Louvain-detected research communities with LLM-generated descriptions
 - **Entity Mentions** (2,025) — cross-links between entities and publications
 - **References** (106,209) — citation network with 10,045 internal links
 - **Embeddings** (7,758) — vector embeddings for concept graph and similarity search
@@ -103,15 +104,20 @@ src/
     protocols/[id]/page.tsx      — Protocol detail with co-occurring entities
     concepts/page.tsx            — Concepts browse with type chips
     concepts/[id]/page.tsx       — Concept detail with co-occurring entities
+    neighborhoods/page.tsx       — Neighborhoods browse with entity type filters and sidebar
+    neighborhoods/[id]/page.tsx  — Neighborhood detail with expandable member lists per type
     projects/page.tsx            — Project browse
     projects/[id]/page.tsx       — Project detail with assigned items
+    explore/neighborhoods/       — Neighborhood-colored unified graph visualization
     api/search/route.ts          — Search API endpoint (validated, parameterized)
     lib/badges.ts                — Collection type badge labels/classes
     lib/db.ts                    — Shared PostgreSQL pool for frontend (serverless tuning)
     lib/related-works.tsx        — Related works panel via pgvector similarity
     lib/url-validation.ts        — URL/DOI/ORCID format validation for safe rendering
+    lib/graph-colors.ts          — GRAPH_COLORS and ENTITY_TYPE_LABELS for graph/badge coloring
     components/ExpandableRelatedWorks.tsx — Client-side expand/collapse for related works
     components/ExpandableTopics.tsx       — Client-side expand/collapse for topic lists
+    components/ExploreEntityGraph.tsx     — Sigma.js WebGL graph with dynamic color palettes
   app/(payload)/                 — Payload admin panel routes
 
 scripts/
@@ -148,10 +154,16 @@ scripts/
   cluster-concepts.ts        — Embedding-based concept dedup and clustering
   link-species-places.ts     — Species ITIS validation + places hierarchy linking
   seed-places-gnis.ts        — Seed places from GNIS authoritative data (668 locations)
+  build-explore-graph.ts     — Pre-compute entity co-occurrence graphs (concepts, species, protocols, places)
+  build-collection-graph.ts  — Pre-compute collection graphs (authors, publications, datasets)
+  build-unified-graph.ts     — Combined graph across all entity and collection types
+  detect-communities.ts      — Louvain community detection on unified graph (43 neighborhoods)
+  describe-communities.ts    — LLM-generated titles, summaries, and themes for neighborhoods
+  load-neighborhoods.ts      — Load community data + members into neighborhoods tables
   setup-local.sh             — Automated local development environment setup
   export-database.sh         — Database export for sharing (excludes sensitive tables)
   lib/                       — 17 shared utility modules (includes itis-client.ts)
-  sql/                       — 6 SQL migration files (provenance, citations, embeddings, projects, entities, sync_log)
+  sql/                       — 7 SQL migration files (provenance, citations, embeddings, projects, entities, sync_log, neighborhoods)
   __tests__/                 — 12 test files (214 tests)
 
 public/
