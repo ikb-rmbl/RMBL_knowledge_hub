@@ -538,6 +538,12 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           <Link className={`type-chip ${typeFilter === 'documents' ? 'active' : ''}`} href={buildUrl(params, { type: 'documents', pubType: undefined, page: undefined })}>Documents</Link>
           <Link className={`type-chip ${typeFilter === 'publications' ? 'active' : ''}`} href={buildUrl(params, { type: 'publications', page: undefined })}>Publications</Link>
           <Link className={`type-chip ${typeFilter === 'datasets' ? 'active' : ''}`} href={buildUrl(params, { type: 'datasets', pubType: undefined, page: undefined })}>Datasets</Link>
+          {typeFilter === 'publications' && (
+            <Link href="/explore/publications" style={{ marginLeft: 'auto', padding: '6px 14px', fontSize: '12px', borderRadius: 'var(--radius-sm)', background: 'var(--color-accent)', color: '#fff', textDecoration: 'none' }}>Explore Publication Graph</Link>
+          )}
+          {typeFilter === 'datasets' && (
+            <Link href="/explore/datasets" style={{ marginLeft: 'auto', padding: '6px 14px', fontSize: '12px', borderRadius: 'var(--radius-sm)', background: 'var(--color-accent)', color: '#fff', textDecoration: 'none' }}>Explore Dataset Graph</Link>
+          )}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

@@ -30,35 +30,24 @@ export default async function HomePage() {
       (SELECT COUNT(*) FROM references_cited WHERE link_type = 'internal') as citations
   `)
 
-  // Featured research connections: entities bridging publications and datasets
-  const { rows: connectionCards } = await db.query(`
-    WITH cross_entities AS (
-      SELECT em.entity_type, em.entity_id,
-        COUNT(DISTINCT em.item_id) FILTER (WHERE em.collection = 'publications') as pubs,
-        COUNT(DISTINCT em.item_id) FILTER (WHERE em.collection = 'datasets') as datasets,
-        COUNT(DISTINCT em.item_id) as total
-      FROM entity_mentions em
-      GROUP BY em.entity_type, em.entity_id
-      HAVING COUNT(DISTINCT em.collection) >= 2
-    )
-    SELECT ce.entity_type, ce.entity_id, ce.pubs, ce.datasets, ce.total,
-      CASE ce.entity_type
-        WHEN 'species' THEN (SELECT canonical_name FROM species WHERE id = ce.entity_id)
-        WHEN 'place' THEN (SELECT name FROM places WHERE id = ce.entity_id)
-        WHEN 'protocol' THEN (SELECT name FROM protocols WHERE id = ce.entity_id)
-        WHEN 'concept' THEN (SELECT name FROM concepts WHERE id = ce.entity_id)
-      END as name,
-      CASE ce.entity_type
-        WHEN 'place' THEN (SELECT place_type FROM places WHERE id = ce.entity_id)
-        WHEN 'species' THEN (SELECT family FROM species WHERE id = ce.entity_id)
-        WHEN 'concept' THEN (SELECT scope FROM concepts WHERE id = ce.entity_id)
-        WHEN 'protocol' THEN (SELECT category FROM protocols WHERE id = ce.entity_id)
-      END as detail
-    FROM cross_entities ce
-    WHERE ce.pubs >= 5 AND ce.datasets >= 3
-    ORDER BY ln(ce.total + 1) * (0.3 + 0.7 * random()) DESC
-    LIMIT 20
-  `)
+  // Graph stats for explore cards (read from pre-computed JSON files)
+  const graphStats: { type: string; label: string; href: string; nodes: number; edges: number; description: string }[] = []
+  const { readFileSync } = await import('fs')
+  const { join } = await import('path')
+  const graphConfigs = [
+    { type: 'species', label: 'Species', href: '/explore/species', file: 'species.json', description: 'Co-occurrence in publications and datasets, colored by kingdom' },
+    { type: 'concepts', label: 'Concepts', href: '/explore/concepts', file: 'concepts.json', description: 'Co-occurrence in publications and datasets, colored by research scope' },
+    { type: 'protocols', label: 'Protocols', href: '/explore/protocols', file: 'protocols.json', description: 'Co-occurrence, embedding similarity, and shared study species' },
+    { type: 'authors', label: 'Authors', href: '/explore/authors', file: 'authors.json', description: 'Co-authorship on 2+ shared publications, colored by research area' },
+    { type: 'publications', label: 'Publications', href: '/explore/publications', file: 'publications.json', description: 'Internal citations and shared authorship, sized by citation count' },
+    { type: 'datasets', label: 'Datasets', href: '/explore/datasets', file: 'datasets.json', description: 'Shared entities and shared authors, colored by research area' },
+  ]
+  for (const gc of graphConfigs) {
+    try {
+      const data = JSON.parse(readFileSync(join(process.cwd(), 'public/graph', gc.file), 'utf-8'))
+      graphStats.push({ ...gc, nodes: data.meta.nodeCount, edges: data.meta.edgeCount })
+    } catch { /* graph not built yet */ }
+  }
 
   // Cross-discipline bridges: species linked to earth science concepts
   const { rows: bridges } = await db.query(`
@@ -198,51 +187,30 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {connectionCards.length > 0 && (
+      {graphStats.length > 0 && (
         <section className="section">
-          <h2 className="section-title">Research Connections</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+            <h2 className="section-title" style={{ margin: 0 }}>Explore Knowledge Graphs</h2>
+            <Link href="/explore/unified" style={{
+              padding: '6px 14px', fontSize: '13px', borderRadius: 'var(--radius-sm)',
+              background: 'var(--color-accent)', color: '#fff', textDecoration: 'none',
+            }}>Explore Unified Graph</Link>
+          </div>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginBottom: '16px' }}>
-            Entities that bridge publications and datasets — showing where research and data meet.
+            Interactive network visualizations connecting species, concepts, protocols, authors, publications, and datasets.
           </p>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            {(() => {
-              // Pick a diverse set: one per entity type, then fill remaining slots
-              const byType = new Map<string, typeof connectionCards>()
-              for (const c of connectionCards) {
-                if (!byType.has(c.entity_type)) byType.set(c.entity_type, [])
-                byType.get(c.entity_type)!.push(c)
-              }
-              const picks: typeof connectionCards = []
-              for (const [, items] of byType) {
-                if (picks.length < 6 && items.length > 0) picks.push(items.shift()!)
-              }
-              // Fill remaining from highest-total
-              for (const c of connectionCards) {
-                if (picks.length >= 6) break
-                if (!picks.find((p) => p.entity_id === c.entity_id && p.entity_type === c.entity_type)) picks.push(c)
-              }
-              return picks.map((c) => {
-                const type = c.entity_type
-                const href = `/${type === 'species' ? 'species' : type === 'place' ? 'places' : type === 'protocol' ? 'protocols' : 'concepts'}/${c.entity_id}`
-                const badgeClass = type === 'species' ? 'badge-species' : type === 'place' ? 'badge-place' : type === 'protocol' ? 'badge-protocol' : 'badge-concept'
-                return (
-                  <Link key={`${type}-${c.entity_id}`} className="result-card" href={href}
-                    style={{ flex: '1 1 280px', maxWidth: '400px', borderLeft: '3px solid var(--color-accent)' }}>
-                    <div className="result-card-header">
-                      <span className={`badge ${badgeClass}`}>{type}</span>
-                      <h3 className="result-card-title" style={type === 'species' ? { fontStyle: 'italic' } : undefined}>
-                        {c.name}
-                      </h3>
-                    </div>
-                    <div className="result-card-meta">
-                      {c.detail && <span>{(c.detail as string).replace(/_/g, ' ')}</span>}
-                      <span>{`${c.pubs} publications`}</span>
-                      <span>{`${c.datasets} datasets`}</span>
-                    </div>
-                  </Link>
-                )
-              })
-            })()}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '12px' }}>
+            {graphStats.map((gs) => (
+              <Link key={gs.type} className="result-card" href={gs.href}
+                style={{ borderLeft: '3px solid var(--color-accent)' }}>
+                <h3 className="result-card-title">{gs.label} Graph</h3>
+                <p className="result-card-snippet" style={{ fontSize: '12px' }}>{gs.description}</p>
+                <div className="result-card-meta">
+                  <span>{gs.nodes.toLocaleString()} nodes</span>
+                  <span>{gs.edges.toLocaleString()} connections</span>
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
       )}

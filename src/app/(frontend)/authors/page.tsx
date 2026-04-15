@@ -125,6 +125,7 @@ export default async function AuthorsPage({ searchParams }: { searchParams: Prom
               {l}
             </Link>
           ))}
+          <Link href="/explore/authors" style={{ marginLeft: 'auto', padding: '6px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--color-accent)', color: '#fff', border: '1px solid var(--color-border)', textDecoration: 'none', fontSize: '13px' }}>Explore Author Graph</Link>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>

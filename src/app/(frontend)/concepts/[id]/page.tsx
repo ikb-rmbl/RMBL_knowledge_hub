@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
+import { fetchNeighborhood } from '../../lib/graph-data'
+import LazyGraph from '../../components/LazyGraph'
 
 export const dynamic = 'force-dynamic'
 
@@ -57,6 +59,17 @@ export default async function ConceptDetail({ params }: { params: Promise<{ id: 
         {concept.canonical_reference && <div><strong>Key reference:</strong> {concept.canonical_reference}</div>}
         <div><strong>Papers:</strong> {concept.publication_count} | <strong>Mentions:</strong> {concept.mention_count}</div>
       </div>
+
+      {await (async () => {
+        const neighborhood = await fetchNeighborhood('concept', parseInt(id), 30)
+        if (neighborhood.nodes.length <= 1) return null
+        return (
+          <div className="detail-section">
+            <h2>Local Knowledge Graph ({neighborhood.nodes.length} entities)</h2>
+            <LazyGraph nodes={neighborhood.nodes} edges={neighborhood.edges} focalId={neighborhood.focalId} />
+          </div>
+        )
+      })()}
 
       {concept.definition && (
         <div className="detail-section">

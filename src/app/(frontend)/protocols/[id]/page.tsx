@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
+import { fetchNeighborhood } from '../../lib/graph-data'
+import LazyGraph from '../../components/LazyGraph'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,6 +63,17 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
         {protocol.typical_frequency && <div><strong>Frequency:</strong> {protocol.typical_frequency}</div>}
         <div><strong>Papers:</strong> {protocol.publication_count} | <strong>Mentions:</strong> {protocol.mention_count}</div>
       </div>
+
+      {await (async () => {
+        const neighborhood = await fetchNeighborhood('protocol', parseInt(id), 30)
+        if (neighborhood.nodes.length <= 1) return null
+        return (
+          <div className="detail-section">
+            <h2>Local Knowledge Graph ({neighborhood.nodes.length} entities)</h2>
+            <LazyGraph nodes={neighborhood.nodes} edges={neighborhood.edges} focalId={neighborhood.focalId} />
+          </div>
+        )
+      })()}
 
       {protocol.description && (
         <div className="detail-section">

@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
+import { fetchNeighborhood } from '../../lib/graph-data'
+import LazyGraph from '../../components/LazyGraph'
 
 export const dynamic = 'force-dynamic'
 
@@ -160,6 +162,21 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
           <p>{species.description}</p>
         </div>
       )}
+
+      {await (async () => {
+        const neighborhood = await fetchNeighborhood('species', parseInt(id), 30)
+        if (neighborhood.nodes.length <= 1) return null
+        return (
+          <div className="detail-section">
+            <h2>Local Knowledge Graph ({neighborhood.nodes.length} entities)</h2>
+            <LazyGraph
+              nodes={neighborhood.nodes}
+              edges={neighborhood.edges}
+              focalId={neighborhood.focalId}
+            />
+          </div>
+        )
+      })()}
 
       {pubs.length > 0 && (
         <div className="detail-section">

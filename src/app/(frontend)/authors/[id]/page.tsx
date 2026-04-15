@@ -5,6 +5,8 @@ import config from '@/payload.config'
 import { getBadgeLabel, getBadgeClass } from '../../lib/badges'
 import { isValidOrcid } from '../../lib/url-validation'
 import { getDb } from '../../lib/db'
+import { fetchAuthorNetwork } from '../../lib/graph-data'
+import LazyGraph from '../../components/LazyGraph'
 
 export const dynamic = 'force-dynamic'
 
@@ -140,6 +142,17 @@ export default async function AuthorDetail({ params, searchParams }: { params: P
                 </div>
               </details>
             )}
+          </div>
+        )
+      })()}
+
+      {await (async () => {
+        const network = await fetchAuthorNetwork(parseInt(id), author.displayName as string, 30)
+        if (network.nodes.length <= 1) return null
+        return (
+          <div className="detail-section">
+            <h2>Local Knowledge Graph ({network.nodes.length} entities)</h2>
+            <LazyGraph nodes={network.nodes} edges={network.edges} focalId={network.focalId} />
           </div>
         )
       })()}

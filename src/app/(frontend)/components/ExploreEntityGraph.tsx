@@ -1,0 +1,291 @@
+'use client'
+
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { GRAPH_COLORS } from '../lib/graph-colors'
+
+// Color palettes per colorField
+const COLOR_PALETTES: Record<string, Record<string, string>> = {
+  scope: {
+    community_ecology: '#2e7d32', population_ecology: '#388e3c', general_ecology: '#43a047',
+    behavioral_ecology: '#4caf50', climate: '#1565c0', hydrology: '#1976d2',
+    biogeochemistry: '#0097a7', landscape: '#00838f', evolution: '#e65100',
+    molecular: '#d84315', methodological: '#6d4c41',
+  },
+  kingdom: {
+    Animalia: '#1565c0', Plantae: '#2e7d32', Fungi: '#e65100',
+    Bacteria: '#d84315', Chromista: '#6d4c41', Protozoa: '#795548',
+  },
+  category: {
+    observational: '#2e7d32', sampling: '#1565c0', experimental: '#e65100',
+    measurement: '#0097a7', analytical: '#7b1fa2', computational: '#6d4c41',
+    laboratory: '#d84315',
+  },
+  publication_type: {
+    article: '#1565c0', thesis: '#e65100', student_paper: '#2e7d32',
+    book: '#7b1fa2', chapter: '#6d4c41', other: '#795548',
+  },
+  year: {
+    // Datasets colored by decade
+    '2020s': '#1565c0', '2010s': '#2e7d32', '2000s': '#e65100',
+    '1990s': '#7b1fa2', 'older': '#6d4c41',
+  },
+  research_area: {
+    'Life Sciences': '#2e7d32',
+    'Earth & Water': '#1565c0',
+    'Climate': '#0097a7',
+    'Human Dimensions': '#6d4c41',
+    'Technology & Data': '#7b1fa2',
+    'Education': '#e65100',
+    'Other': '#999',
+  },
+  nodeType: {
+    species: '#558b2f',
+    concept: '#7b1fa2',
+    protocol: '#1565c0',
+    author: '#c62828',
+    publication: '#3a6b7b',
+    dataset: '#7b5a3a',
+  },
+}
+
+function getColor(colorField: string, value: string): string {
+  if (COLOR_PALETTES[colorField]?.[value]) return COLOR_PALETTES[colorField][value]
+  // For year-based coloring, bucket into decades
+  if (colorField === 'year' && value) {
+    const y = parseInt(value)
+    if (y >= 2020) return '#1565c0'
+    if (y >= 2010) return '#2e7d32'
+    if (y >= 2000) return '#e65100'
+    if (y >= 1990) return '#7b1fa2'
+    return '#6d4c41'
+  }
+  // Hash-based color for unbounded fields like affiliation
+  if (value) {
+    let hash = 0
+    for (let i = 0; i < value.length; i++) hash = value.charCodeAt(i) + ((hash << 5) - hash)
+    const hue = Math.abs(hash) % 360
+    return `hsl(${hue}, 55%, 45%)`
+  }
+  return '#999'
+}
+
+interface GraphData {
+  entityType: string
+  colorField: string
+  nodes: any[]
+  edges: { source: string; target: string; weight: number }[]
+  meta: { nodeCount: number; edgeCount: number }
+}
+
+interface Props {
+  data: GraphData
+  detailSlug: string  // e.g. 'concepts', 'species', 'protocols'
+  detailField?: string // which node attribute to show as description (e.g. 'definition', 'description')
+  labelField?: string  // secondary label (e.g. 'common_names' for species)
+}
+
+export default function ExploreEntityGraph({ data, detailSlug, detailField, labelField }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const sigmaRef = useRef<any>(null)
+  const graphRef = useRef<any>(null)
+  const [loaded, setLoaded] = useState(false)
+  const [search, setSearch] = useState('')
+  const [selectedNode, setSelectedNode] = useState<any>(null)
+  const [minDegree, setMinDegree] = useState(5)
+
+  const colorField = data.colorField
+
+  // Collect color field values for legend
+  const colorCounts = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const n of data.nodes) {
+      const v = n[colorField] || 'other'
+      counts.set(v, (counts.get(v) || 0) + 1)
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1])
+  }, [data, colorField])
+
+  const [hiddenColors, setHiddenColors] = useState<Set<string>>(new Set())
+  const toggleColor = useCallback((val: string) => {
+    setHiddenColors((prev) => { const n = new Set(prev); n.has(val) ? n.delete(val) : n.add(val); return n })
+  }, [])
+
+  const filtersRef = useRef({ search, minDegree, hiddenColors })
+  filtersRef.current = { search, minDegree, hiddenColors }
+
+  function applyFilters(renderer: any, graph: any, f: typeof filtersRef.current) {
+    const q = f.search.toLowerCase()
+    renderer.setSetting('nodeReducer', (node: string, d: any) => {
+      if (!graph.hasNode(node)) return { ...d, hidden: true }
+      const a = graph.getNodeAttributes(node)
+      if (a.degree < f.minDegree) return { ...d, hidden: true }
+      if (f.hiddenColors.has(a[colorField] || 'other')) return { ...d, hidden: true }
+      if (q && !a.label.toLowerCase().includes(q)) return { ...d, color: '#e0e0e0', label: null, size: a.size * 0.5 }
+      return d
+    })
+    renderer.setSetting('edgeReducer', (edge: string, d: any) => {
+      const src = graph.source(edge), tgt = graph.target(edge)
+      const sa = graph.getNodeAttributes(src), ta = graph.getNodeAttributes(tgt)
+      if (sa.degree < f.minDegree || ta.degree < f.minDegree) return { ...d, hidden: true }
+      if (f.hiddenColors.has(sa[colorField] || 'other') || f.hiddenColors.has(ta[colorField] || 'other')) return { ...d, hidden: true }
+      if (q) {
+        const sm = sa.label.toLowerCase().includes(q), tm = ta.label.toLowerCase().includes(q)
+        if (!sm && !tm) return { ...d, hidden: true }
+        if (sm || tm) return { ...d, color: '#999' }
+      }
+      return d
+    })
+    renderer.refresh()
+  }
+
+  useEffect(() => {
+    const r = sigmaRef.current, g = graphRef.current
+    if (r && g) applyFilters(r, g, filtersRef.current)
+  }, [search, minDegree, hiddenColors])
+
+  const initGraph = useCallback(async () => {
+    if (!containerRef.current || data.nodes.length === 0) return
+    const { default: Graph } = await import('graphology')
+    const { default: Sigma } = await import('sigma')
+
+    const graph = new Graph()
+    for (const node of data.nodes) {
+      graph.addNode(node.id, {
+        ...node,
+        color: getColor(colorField, node[colorField]),
+      })
+    }
+    const seen = new Set<string>()
+    for (const edge of data.edges) {
+      if (!graph.hasNode(edge.source) || !graph.hasNode(edge.target)) continue
+      const k = `${edge.source}--${edge.target}`
+      if (seen.has(k) || seen.has(`${edge.target}--${edge.source}`)) continue
+      seen.add(k)
+      try { graph.addEdge(edge.source, edge.target, { weight: edge.weight, size: Math.max(0.3, Math.log(edge.weight + 1) * 0.3), color: '#e0ddd8' }) }
+      catch {}
+    }
+
+    if (sigmaRef.current) sigmaRef.current.kill()
+    const renderer = new Sigma(graph, containerRef.current, {
+      renderEdgeLabels: false, labelRenderedSizeThreshold: 5, defaultEdgeType: 'line',
+      labelFont: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      labelSize: 11, labelWeight: '500', labelGridCellSize: 100, labelDensity: 0.7,
+    } as any)
+
+    sigmaRef.current = renderer
+    graphRef.current = graph
+
+    renderer.on('clickNode', ({ node }: { node: string }) => {
+      if (!graph.hasNode(node)) return
+      const attrs = graph.getNodeAttributes(node)
+      const neighborIds = new Set(graph.neighbors(node))
+      const neighbors = graph.neighbors(node).map((n: string) => graph.getNodeAttributes(n).label).slice(0, 8)
+      setSelectedNode({ id: node, ...attrs, neighborCount: neighborIds.size, topNeighbors: neighbors })
+
+      const f = filtersRef.current
+      renderer.setSetting('nodeReducer', (n: string, d: any) => {
+        if (!graph.hasNode(n)) return { ...d, hidden: true }
+        const a = graph.getNodeAttributes(n)
+        if (a.degree < f.minDegree || f.hiddenColors.has(a[colorField] || 'other')) return { ...d, hidden: true }
+        if (n === node || neighborIds.has(n)) return d
+        return { ...d, color: '#e8e8e8', label: null, size: a.size * 0.4 }
+      })
+      renderer.setSetting('edgeReducer', (e: string, d: any) => {
+        const s = graph.source(e), t = graph.target(e)
+        if (s === node || t === node) return { ...d, color: '#999', size: 1 }
+        return { ...d, hidden: true }
+      })
+      renderer.refresh()
+    })
+
+    renderer.on('clickStage', () => {
+      setSelectedNode(null)
+      applyFilters(renderer, graph, filtersRef.current)
+    })
+
+    renderer.on('enterNode', () => { containerRef.current!.style.cursor = 'pointer' })
+    renderer.on('leaveNode', () => { containerRef.current!.style.cursor = 'default' })
+
+    // Apply initial filters so default threshold takes effect
+    applyFilters(renderer, graph, filtersRef.current)
+
+    setLoaded(true)
+  }, [data, colorField])
+
+  useEffect(() => {
+    initGraph()
+    return () => { if (sigmaRef.current) { sigmaRef.current.kill(); sigmaRef.current = null }; graphRef.current = null }
+  }, [initGraph])
+
+  if (data.nodes.length === 0) return <p>No graph data. Run: <code>npx tsx scripts/build-explore-graph.ts --type={data.entityType}</code></p>
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
+        <input type="text" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)}
+          style={{ padding: '6px 12px', fontSize: '13px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', width: '220px' }} />
+        <label style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          Min papers:
+          <input type="range" min={2} max={50} value={minDegree} onChange={(e) => setMinDegree(parseInt(e.target.value))} style={{ width: '100px' }} />
+          <span style={{ minWidth: '20px' }}>{minDegree}</span>
+        </label>
+      </div>
+
+      <div ref={containerRef} style={{ aspectRatio: '4/3', maxHeight: '80vh', width: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }} />
+
+      {selectedNode && (
+        <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(255,255,255,0.97)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', padding: '14px 18px', fontSize: '13px', maxWidth: '300px', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '8px' }}>
+            <strong style={{ fontSize: '15px', fontStyle: data.entityType === 'species' ? 'italic' : undefined }}>{selectedNode.label}</strong>
+            <button onClick={() => { setSelectedNode(null); applyFilters(sigmaRef.current, graphRef.current, filtersRef.current) }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: 'var(--color-text-muted)', padding: 0, lineHeight: 1 }}>&times;</button>
+          </div>
+          {labelField && selectedNode[labelField] && (
+            <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+              {Array.isArray(selectedNode[labelField]) ? selectedNode[labelField].slice(0, 3).join(', ') : selectedNode[labelField]}
+            </div>
+          )}
+          <div style={{ color: 'var(--color-text-muted)', marginTop: '4px', fontSize: '12px' }}>
+            {(selectedNode[colorField] || '').replace(/_/g, ' ')} · {selectedNode.degree} papers · {selectedNode.neighborCount} connections
+          </div>
+          {detailField && selectedNode[detailField] && (
+            <p style={{ marginTop: '8px', fontSize: '12px', lineHeight: 1.4, color: 'var(--color-text-secondary)' }}>
+              {String(selectedNode[detailField]).slice(0, 150)}{String(selectedNode[detailField]).length > 150 ? '...' : ''}
+            </p>
+          )}
+          <a href={(() => {
+              // For unified graphs, derive slug from node ID prefix or nodeType attribute
+              const nt = selectedNode.nodeType || ''
+              const slugMap: Record<string, string> = {
+                species: 'species', concept: 'concepts', protocol: 'protocols',
+                author: 'authors', publication: 'publications', dataset: 'datasets', pub: 'publications',
+              }
+              const slug = slugMap[nt] || detailSlug
+              // For unified graph, IDs are prefixed (e.g. "species-42"), strip the prefix
+              const nodeId = selectedNode.id.includes('-') && nt ? selectedNode.id.split('-').slice(1).join('-') : selectedNode.id
+              return `/${slug}/${nodeId}`
+            })()}
+            style={{ display: 'inline-block', marginTop: '10px', fontSize: '12px', color: 'var(--color-accent)', fontWeight: 500 }}>
+            View full detail &rarr;
+          </a>
+        </div>
+      )}
+
+      {loaded && (
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '8px', fontSize: '11px' }}>
+          {colorCounts.filter(([, cnt]) => cnt >= 3).map(([val, cnt]) => {
+            const hidden = hiddenColors.has(val)
+            return (
+              <label key={val} style={{ display: 'flex', alignItems: 'center', gap: '3px', cursor: 'pointer', opacity: hidden ? 0.3 : 1 }}>
+                <input type="checkbox" checked={!hidden} onChange={() => toggleColor(val)}
+                  style={{ accentColor: getColor(colorField, val), width: 12, height: 12, cursor: 'pointer' }} />
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: getColor(colorField, val), display: 'inline-block' }} />
+                {val.replace(/_/g, ' ')} ({cnt})
+              </label>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}

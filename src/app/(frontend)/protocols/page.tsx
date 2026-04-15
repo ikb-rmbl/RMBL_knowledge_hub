@@ -112,10 +112,10 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
   }
 
   const chipStyle = (active: boolean) => ({
-    padding: '6px 14px', borderRadius: 'var(--radius-sm)',
+    padding: '5px 10px', borderRadius: 'var(--radius-sm)',
     background: active ? 'var(--color-accent)' : 'var(--color-surface)',
     color: active ? '#fff' : 'inherit',
-    border: '1px solid var(--color-border)', textDecoration: 'none' as const, fontSize: '13px',
+    border: '1px solid var(--color-border)', textDecoration: 'none' as const, fontSize: '12px',
   })
 
   return (
@@ -132,7 +132,7 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
           {discCounts.map((dc: any) => (
             <Link key={dc.discipline} href={buildUrl({ discipline: dc.discipline, std: undefined, page: '1' })} style={chipStyle(disciplineFilter === dc.discipline)}>{DISCIPLINE_LABELS[dc.discipline] || dc.discipline} ({dc.cnt})</Link>
           ))}
-          <Link href={buildUrl({ std: 'true', discipline: undefined, page: '1' })} style={chipStyle(params.std === 'true')}>Standardized ({std_count})</Link>
+          <Link href="/explore/protocols" style={{ ...chipStyle(false), marginLeft: 'auto', background: 'var(--color-accent)', color: '#fff' }}>Explore Protocol Graph</Link>
         </div>
 
         <p className="results-count">{total.toLocaleString()} protocols{query ? ` matching "${query}"` : ''}{disciplineFilter ? ` in ${DISCIPLINE_LABELS[disciplineFilter] || disciplineFilter}` : ''}</p>

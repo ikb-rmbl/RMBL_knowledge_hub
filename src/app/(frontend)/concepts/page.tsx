@@ -115,10 +115,10 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
   }
 
   const chipStyle = (active: boolean) => ({
-    padding: '6px 14px', borderRadius: 'var(--radius-sm)',
+    padding: '5px 10px', borderRadius: 'var(--radius-sm)',
     background: active ? 'var(--color-accent)' : 'var(--color-surface)',
     color: active ? '#fff' : 'inherit',
-    border: '1px solid var(--color-border)', textDecoration: 'none' as const, fontSize: '13px',
+    border: '1px solid var(--color-border)', textDecoration: 'none' as const, fontSize: '12px',
   })
 
   return (
@@ -130,11 +130,12 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
           <button className="search-button" type="submit">Search</button>
         </form>
 
-        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
           <Link href={buildUrl({ discipline: undefined, type: undefined, page: '1' })} style={chipStyle(!disciplineFilter && !typeFilter)}>All ({total.toLocaleString()})</Link>
           {discCounts.map((dc: any) => (
             <Link key={dc.discipline} href={buildUrl({ discipline: dc.discipline, type: undefined, page: '1' })} style={chipStyle(disciplineFilter === dc.discipline)}>{DISCIPLINE_LABELS[dc.discipline] || dc.discipline} ({dc.cnt})</Link>
           ))}
+          <Link href="/explore/concepts" style={{ ...chipStyle(false), marginLeft: 'auto', background: 'var(--color-accent)', color: '#fff' }}>Explore Concept Graph</Link>
         </div>
 
         <p className="results-count">{total.toLocaleString()} concepts{query ? ` matching "${query}"` : ''}{disciplineFilter ? ` in ${DISCIPLINE_LABELS[disciplineFilter] || disciplineFilter}` : ''}</p>
