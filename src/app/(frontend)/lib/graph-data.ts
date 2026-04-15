@@ -4,6 +4,31 @@
 
 import { getDb } from './db'
 
+/**
+ * SQL filter for entity types to include in graph visualizations.
+ * Includes places only at local/site scale (excludes countries, states, generic regions).
+ */
+/**
+ * SQL filter for entity types to include in graph visualizations.
+ * Includes places only at local/site scale (excludes countries, states, generic regions).
+ * Use GRAPH_ENTITY_FILTER with `em.` alias, GRAPH_ENTITY_FILTER_BARE without.
+ */
+const GRAPH_ENTITY_FILTER = `(
+  em.entity_type IN ('species', 'concept', 'protocol')
+  OR (em.entity_type = 'place' AND em.entity_id IN (
+    SELECT id FROM places WHERE scale IN ('site', 'local')
+      AND place_type NOT IN ('country', 'state', 'region')
+  ))
+)`
+
+const GRAPH_ENTITY_FILTER_BARE = `(
+  entity_type IN ('species', 'concept', 'protocol')
+  OR (entity_type = 'place' AND entity_id IN (
+    SELECT id FROM places WHERE scale IN ('site', 'local')
+      AND place_type NOT IN ('country', 'state', 'region')
+  ))
+)`
+
 export interface GraphNode {
   id: string
   label: string
@@ -61,7 +86,7 @@ export async function fetchNeighborhood(
       FROM entity_mentions em
       JOIN focal_items fi ON fi.collection = em.collection AND fi.item_id = em.item_id
       WHERE NOT (em.entity_type = $1 AND em.entity_id = $2)
-        AND em.entity_type != 'place'
+        AND ${GRAPH_ENTITY_FILTER}
       GROUP BY em.entity_type, em.entity_id
       ORDER BY weight DESC
       LIMIT $3
@@ -202,7 +227,7 @@ export async function fetchNeighborhood(
       const { rows: epLinks } = await db.query(`
         SELECT entity_type, entity_id, item_id
         FROM entity_mentions
-        WHERE collection = 'publications' AND item_id = ANY($1) AND entity_type != 'place'
+        WHERE collection = 'publications' AND item_id = ANY($1) AND ${GRAPH_ENTITY_FILTER_BARE}
       `, [pubIds])
       const entitySet = new Set(entityNodeIds)
       for (const e of epLinks) {
@@ -244,7 +269,7 @@ export async function fetchItemNetwork(
         END as degree
       FROM entity_mentions em
       WHERE em.collection = $1 AND em.item_id = $2
-        AND em.entity_type != 'place'
+        AND ${GRAPH_ENTITY_FILTER}
       ORDER BY em.entity_type, em.entity_id
     ) sub
     ORDER BY degree DESC NULLS LAST
@@ -404,7 +429,7 @@ export async function fetchItemNetwork(
       SELECT entity_type, entity_id, item_id
       FROM entity_mentions
       WHERE collection = 'publications' AND item_id = ANY($1)
-        AND entity_type != 'place'
+        AND ${GRAPH_ENTITY_FILTER_BARE}
     `, [pubIds])
     const entityNodeSet = new Set(entityNodeIds)
     for (const e of entityPubLinks) {
@@ -431,7 +456,7 @@ export async function fetchItemNetwork(
         FROM entity_mentions em
         JOIN authors_rels ar ON ar.publications_id = em.item_id AND ar.path = 'publications'
         WHERE ar.parent_id = ANY($1) AND em.collection = 'publications'
-          AND em.entity_type != 'place'
+          AND ${GRAPH_ENTITY_FILTER}
         LIMIT 500
       `, [authorIds])
       const entityNodeSet = new Set(entityNodeIds)
@@ -594,7 +619,7 @@ export async function fetchAuthorNetwork(
       COUNT(DISTINCT em.item_id) as author_mentions
     FROM entity_mentions em
     JOIN authors_rels ar ON ar.publications_id = em.item_id AND ar.path = 'publications'
-    WHERE ar.parent_id = $1 AND em.collection = 'publications' AND em.entity_type != 'place'
+    WHERE ar.parent_id = $1 AND em.collection = 'publications' AND ${GRAPH_ENTITY_FILTER}
     GROUP BY em.entity_type, em.entity_id
     ORDER BY author_mentions DESC
     LIMIT $2
@@ -620,7 +645,7 @@ export async function fetchAuthorNetwork(
     const { rows: epLinks } = await db.query(`
       SELECT entity_type, entity_id, item_id
       FROM entity_mentions
-      WHERE collection = 'publications' AND item_id = ANY($1) AND entity_type != 'place'
+      WHERE collection = 'publications' AND item_id = ANY($1) AND ${GRAPH_ENTITY_FILTER_BARE}
     `, [pubIds])
     const entitySet = new Set(entityNodeIds)
     for (const e of epLinks) {

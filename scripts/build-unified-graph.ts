@@ -80,6 +80,24 @@ async function main() {
   }
   console.log(`  ${protocols.length} protocols`)
 
+  // Places (local/site scale only — excludes countries, states, generic regions)
+  const { rows: places } = await db.query(`
+    SELECT id, name, place_type, scale, publication_count
+    FROM places
+    WHERE publication_count >= $1
+      AND scale IN ('site', 'local')
+      AND place_type NOT IN ('country', 'state', 'region')
+    ORDER BY publication_count DESC
+  `, [minDegree])
+  for (const p of places) {
+    graph.addNode(`place-${p.id}`, {
+      label: p.name, nodeType: 'place', placeType: p.place_type, scale: p.scale,
+      degree: p.publication_count, size: 1.5 + Math.log(p.publication_count + 1) * 0.8,
+      x: 50 + Math.random() * 50, y: -50 + Math.random() * 50,
+    })
+  }
+  console.log(`  ${places.length} places`)
+
   // Authors (top by work count)
   const { rows: authors } = await db.query(`
     SELECT id, display_name, work_count
@@ -146,6 +164,7 @@ async function main() {
   // Entity co-occurrence (species↔concept, species↔protocol, concept↔protocol)
   const entityIds = [
     ...species.map((s: any) => ({ type: 'species', id: s.id })),
+    ...places.map((p: any) => ({ type: 'place', id: p.id })),
     ...concepts.map((c: any) => ({ type: 'concept', id: c.id })),
     ...protocols.map((p: any) => ({ type: 'protocol', id: p.id })),
   ]
@@ -161,8 +180,8 @@ async function main() {
     FROM entity_mentions em1
     JOIN entity_mentions em2 ON em2.item_id = em1.item_id AND em2.collection = em1.collection
       AND (em2.entity_type > em1.entity_type OR (em2.entity_type = em1.entity_type AND em2.entity_id > em1.entity_id))
-    WHERE em1.entity_type IN ('species', 'concept', 'protocol')
-      AND em2.entity_type IN ('species', 'concept', 'protocol')
+    WHERE em1.entity_type IN ('species', 'concept', 'protocol', 'place')
+      AND em2.entity_type IN ('species', 'concept', 'protocol', 'place')
       AND em1.entity_type != 'place' AND em2.entity_type != 'place'
     GROUP BY em1.entity_type, em1.entity_id, em2.entity_type, em2.entity_id
     HAVING COUNT(DISTINCT (em1.collection || ':' || em1.item_id)) >= 3
@@ -184,7 +203,7 @@ async function main() {
     SELECT em.entity_type, em.entity_id, em.item_id
     FROM entity_mentions em
     WHERE em.collection = 'publications' AND em.item_id = ANY($1)
-      AND em.entity_type IN ('species', 'concept', 'protocol')
+      AND em.entity_type IN ('species', 'concept', 'protocol', 'place')
     LIMIT 10000
   `, [[...pubIdSet]])
   let epEdges = 0
@@ -236,7 +255,7 @@ async function main() {
     FROM authors_rels ar
     JOIN entity_mentions em ON em.item_id = ar.publications_id AND em.collection = 'publications'
     WHERE ar.parent_id = ANY($1) AND ar.path = 'publications'
-      AND em.entity_type IN ('species', 'concept', 'protocol')
+      AND em.entity_type IN ('species', 'concept', 'protocol', 'place')
     GROUP BY ar.parent_id, em.entity_type, em.entity_id
     HAVING COUNT(DISTINCT em.item_id) >= 3
     ORDER BY shared DESC
@@ -270,7 +289,7 @@ async function main() {
     SELECT em.entity_type, em.entity_id, em.item_id
     FROM entity_mentions em
     WHERE em.collection = 'datasets' AND em.item_id = ANY($1)
-      AND em.entity_type IN ('species', 'concept', 'protocol')
+      AND em.entity_type IN ('species', 'concept', 'protocol', 'place')
     LIMIT 10000
   `, [[...dsIdSet]])
   let deEdges = 0

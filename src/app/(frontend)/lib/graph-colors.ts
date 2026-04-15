@@ -12,6 +12,7 @@ export const GRAPH_COLORS: Record<string, string> = {
 
 export const ENTITY_TYPE_LABELS: Record<string, string> = {
   species: 'Species',
+  place: 'Place',
   protocol: 'Protocol',
   concept: 'Concept',
   author: 'Author',
