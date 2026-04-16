@@ -345,10 +345,12 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '8px', fontSize: '11px', alignItems: 'center' }}>
           {colorCounts.filter(([, cnt]) => cnt >= 3).length > 5 && (
             <button onClick={() => {
-              const allVals = colorCounts.filter(([, cnt]) => cnt >= 3).map(([v]) => v)
-              setHiddenColors((prev) => prev.size === allVals.length ? new Set() : new Set(allVals))
+              // Uncheck all hides every unique value, including small categories
+              // not shown in the legend (otherwise their nodes remain visible)
+              const allVals = colorCounts.map(([v]) => v)
+              setHiddenColors((prev) => prev.size >= allVals.length ? new Set() : new Set(allVals))
             }} style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', padding: '2px 8px', cursor: 'pointer', fontSize: '11px', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
-              {hiddenColors.size === colorCounts.filter(([, cnt]) => cnt >= 3).length ? 'Check all' : 'Uncheck all'}
+              {hiddenColors.size >= colorCounts.length ? 'Check all' : 'Uncheck all'}
             </button>
           )}
           {colorCounts.filter(([, cnt]) => cnt >= 3).map(([val, cnt]) => {

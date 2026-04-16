@@ -85,7 +85,13 @@ async function main() {
     for (const r of results) {
       if (!r.authors || r.authors.length === 0) continue
       for (const cand of r.authors) {
-        if (!cand.familyName && !cand.fullName) { skipped++; continue }
+        // Derive family name from fullName if missing (last whitespace-separated token)
+        let familyName = cand.familyName
+        if (!familyName && cand.fullName) {
+          const parts = String(cand.fullName).trim().split(/\s+/)
+          if (parts.length > 1) familyName = parts[parts.length - 1].replace(/[,.]+$/, '')
+        }
+        if (!familyName || familyName.length < 2) { skipped++; continue }
 
         // Find or create author
         const fullNorm = normalize(cand.fullName)
@@ -98,8 +104,8 @@ async function main() {
         }
 
         // 2. Family + initial match (if unambiguous)
-        if (!authorId && cand.familyName && cand.givenName) {
-          const fam = normalize(cand.familyName)
+        if (!authorId && familyName && cand.givenName) {
+          const fam = normalize(familyName)
           const initial = normalize(cand.givenName[0])
           const candidates = byFamilyAndInitial.get(`${fam}|${initial}`) || []
           if (candidates.length === 1) {
@@ -116,12 +122,12 @@ async function main() {
         // 4. Create new
         if (!authorId) {
           if (!dryRun) {
-            const displayName = cand.fullName || [cand.givenName, cand.familyName].filter(Boolean).join(' ')
+            const displayName = cand.fullName || [cand.givenName, familyName].filter(Boolean).join(' ')
             const { rows: [newAuthor] } = await db.query(
               `INSERT INTO authors (display_name, family_name, given_name, affiliation, work_count, created_at, updated_at)
                VALUES ($1, $2, $3, $4, 0, NOW(), NOW())
                RETURNING id`,
-              [displayName, cand.familyName, cand.givenName, cand.affiliation],
+              [displayName, familyName, cand.givenName, cand.affiliation],
             )
             authorId = newAuthor.id
             if (fullNorm) createdCache.set(fullNorm, authorId!)
