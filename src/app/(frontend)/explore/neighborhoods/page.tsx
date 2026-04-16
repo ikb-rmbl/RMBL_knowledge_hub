@@ -47,15 +47,18 @@ export default async function ExploreNeighborhoodsPage({ searchParams }: { searc
   const visibleCommunities = new Set<number>()
   for (const n of raw.nodes) if (n.community !== undefined && n.community >= 0) visibleCommunities.add(n.community)
 
+  const modeToggle = (
+    <div style={{ display: 'flex', gap: '6px' }}>
+      <Link href="/explore/neighborhoods" style={tabStyle(!isResearch)}>All content</Link>
+      <Link href="/explore/neighborhoods?mode=research" style={tabStyle(isResearch)}>Research only</Link>
+    </div>
+  )
+
   return (
     <div style={{ maxWidth: 'var(--max-width)', margin: '0 auto', padding: '0 var(--gutter)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
         <Link href="/neighborhoods" style={{ fontSize: '13px', color: 'var(--color-accent)' }}>&larr; Neighborhoods</Link>
         <h1 style={{ fontSize: '22px', fontWeight: 600, margin: 0 }}>Knowledge Neighborhoods Graph</h1>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <Link href="/explore/neighborhoods" style={tabStyle(!isResearch)}>All content</Link>
-          <Link href="/explore/neighborhoods?mode=research" style={tabStyle(isResearch)}>Research only</Link>
-        </div>
         <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
           {graphData.meta.nodeCount?.toLocaleString()} nodes, {visibleCommunities.size} neighborhoods
         </span>
@@ -68,7 +71,7 @@ export default async function ExploreNeighborhoodsPage({ searchParams }: { searc
         )}
         {' '}Use the checkboxes below to show/hide individual neighborhoods.
       </p>
-      <ExploreEntityGraph data={graphData} detailSlug="" />
+      <ExploreEntityGraph data={graphData} detailSlug="" extraControls={modeToggle} />
     </div>
   )
 }

@@ -24,15 +24,18 @@ export default async function ExploreUnifiedPage({ searchParams }: { searchParam
     cursor: 'pointer',
   })
 
+  const modeToggle = (
+    <div style={{ display: 'flex', gap: '6px' }}>
+      <Link href="/explore/unified" style={tabStyle(!isResearch)}>All content</Link>
+      <Link href="/explore/unified?mode=research" style={tabStyle(isResearch)}>Research only</Link>
+    </div>
+  )
+
   return (
     <div style={{ maxWidth: 'var(--max-width)', margin: '0 auto', padding: '0 var(--gutter)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
         <Link href="/" style={{ fontSize: '13px', color: 'var(--color-accent)' }}>&larr; Home</Link>
         <h1 style={{ fontSize: '22px', fontWeight: 600, margin: 0 }}>Explore the Knowledge Graph</h1>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <Link href="/explore/unified" style={tabStyle(!isResearch)}>All content</Link>
-          <Link href="/explore/unified?mode=research" style={tabStyle(isResearch)}>Research only</Link>
-        </div>
         <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
           {graphData.meta.nodeCount?.toLocaleString()} nodes, {graphData.meta.edgeCount?.toLocaleString()} connections
         </span>
@@ -44,7 +47,7 @@ export default async function ExploreUnifiedPage({ searchParams }: { searchParam
           <>A unified view of the RMBL Knowledge Hub connecting species, concepts, protocols, places, stakeholders, authors, publications, documents, and datasets. Edges represent co-occurrence, co-authorship, citations, and entity mentions. Use the checkboxes to show/hide node types.</>
         )}
       </p>
-      <ExploreEntityGraph data={graphData} detailSlug="" />
+      <ExploreEntityGraph data={graphData} detailSlug="" extraControls={modeToggle} />
     </div>
   )
 }

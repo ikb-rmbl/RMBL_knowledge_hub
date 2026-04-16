@@ -108,9 +108,10 @@ interface Props {
   detailSlug: string  // e.g. 'concepts', 'species', 'protocols'
   detailField?: string // which node attribute to show as description (e.g. 'definition', 'description')
   labelField?: string  // secondary label (e.g. 'common_names' for species)
+  extraControls?: React.ReactNode // optional controls to render alongside search/slider
 }
 
-export default function ExploreEntityGraph({ data, detailSlug, detailField, labelField }: Props) {
+export default function ExploreEntityGraph({ data, detailSlug, detailField, labelField, extraControls }: Props) {
   // Build a dynamic palette for colorFields not in COLOR_PALETTES (e.g. communityTitle)
   const dynamicPalette = useMemo(() => {
     const cf = data.colorField
@@ -291,6 +292,7 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
           <input type="range" min={1} max={50} value={minDegree} onChange={(e) => setMinDegree(parseInt(e.target.value))} style={{ width: '100px' }} />
           <span style={{ minWidth: '20px' }}>{minDegree}</span>
         </label>
+        {extraControls}
       </div>
 
       <div ref={containerRef} style={{ aspectRatio: '4/3', maxHeight: '80vh', width: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }} />
