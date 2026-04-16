@@ -125,33 +125,29 @@ export async function renderRelatedWorks(
   }
 
   // --- Signal 3: Co-authored works ---
-  // Get author IDs for this item via authors_rels (Payload's many-to-many table)
+  // Get author IDs for this item via authors_rels (parent_id = author, *_id = item)
   const authorsRelsField = collection === 'publications' ? 'publications_id'
     : collection === 'datasets' ? 'datasets_id'
     : 'documents_id'
   const { rows: authorRows } = await db.query(
-    `SELECT DISTINCT "authors_id" FROM authors_rels WHERE ${authorsRelsField} = $1`,
+    `SELECT DISTINCT parent_id FROM authors_rels WHERE ${authorsRelsField} = $1`,
     [itemId],
   )
-  const authorIds = authorRows.map((r: any) => r.authors_id)
+  const authorIds = authorRows.map((r: any) => r.parent_id)
 
   if (authorIds.length > 0) {
+    // Note: datasets_creators uses name strings, not author IDs, so we skip datasets here
     const { rows: coauthored } = await db.query(`
       SELECT type, id, title, year, subtype, journal, count(*)::int as shared_authors FROM (
         SELECT 'publication' as type, p.id, p.title, p.year, p.publication_type::text as subtype, p.journal
         FROM publications p
         JOIN authors_rels ar ON ar.publications_id = p.id
-        WHERE ar.authors_id = ANY($1::int[]) AND NOT (p.id = $2 AND 'publications' = $3)
-        UNION ALL
-        SELECT 'dataset', d.id, d.title, d.publication_year, d.resource_type::text, NULL
-        FROM datasets d
-        JOIN datasets_creators dc ON dc.datasets_id = d.id
-        WHERE dc.authors_id = ANY($1::int[]) AND NOT (d.id = $2 AND 'datasets' = $3)
+        WHERE ar.parent_id = ANY($1::int[]) AND NOT (p.id = $2 AND 'publications' = $3)
         UNION ALL
         SELECT 'document', doc.id, doc.title, NULL::int, doc.document_type::text, NULL
         FROM documents doc
         JOIN authors_rels ar ON ar.documents_id = doc.id
-        WHERE ar.authors_id = ANY($1::int[]) AND NOT (doc.id = $2 AND 'documents' = $3)
+        WHERE ar.parent_id = ANY($1::int[]) AND NOT (doc.id = $2 AND 'documents' = $3)
       ) sub
       GROUP BY type, id, title, year, subtype, journal
       ORDER BY shared_authors DESC LIMIT ${MAX_PER_SIGNAL}
