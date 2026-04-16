@@ -546,52 +546,74 @@ async function syncEntityBulkTables(
   localDb: pg.Pool,
   neonDb: pg.Pool,
 ): Promise<void> {
-  // Bulk tables in delete order (children first, then parents)
-  const BULK_TABLES = [
-    'neighborhood_members',
+  // Tables in insert order (parents first, then children)
+  const INSERT_ORDER = [
     'neighborhoods',
-    'content_chunks',
+    'neighborhood_members',
     'entity_mentions',
     'entity_candidates',
     'code_repositories',
     'data_repositories',
+    'content_chunks',
   ]
+  // Delete in reverse (children first)
+  const DELETE_ORDER = [...INSERT_ORDER].reverse()
 
-  for (const table of BULK_TABLES) {
+  // Phase 1: Delete all in child-first order
+  console.log('\n  Phase 1: Clearing Neon tables (children first)...')
+  const skippedTables = new Set<string>()
+  for (const table of DELETE_ORDER) {
+    const { rows: [{ n }] } = await neonDb.query(`SELECT count(*)::int as n FROM ${table}`)
+    if (n > 0) {
+      const { rows: [{ n: localN }] } = await localDb.query(`SELECT count(*)::int as n FROM ${table}`)
+      if (localN > 0 && localN < n * 0.5) {
+        console.log(`    ⚠ ${table}: SKIPPED delete (local ${localN} < 50% of Neon ${n})`)
+        skippedTables.add(table)
+        continue
+      }
+      await neonDb.query(`DELETE FROM ${table}`)
+      console.log(`    ${table}: cleared ${n} rows`)
+    } else {
+      console.log(`    ${table}: already empty`)
+    }
+  }
+
+  // Phase 2: Insert all in parent-first order
+  console.log('\n  Phase 2: Inserting data (parents first)...')
+  for (const table of INSERT_ORDER) {
+    if (skippedTables.has(table)) {
+      console.log(`\n  --- ${table} --- skipped (delete was skipped)`)
+      continue
+    }
+
     console.log(`\n  --- ${table} ---`)
 
-    // Count local rows
     const { rows: [{ n: localCount }] } = await localDb.query(`SELECT count(*)::int as n FROM ${table}`)
-    console.log(`    Local: ${localCount} rows`)
-
     if (localCount === 0) {
       console.log('    Skipping (empty locally)')
       continue
     }
+    console.log(`    Local: ${localCount} rows`)
 
-    const { rows: [{ n: neonCount }] } = await neonDb.query(`SELECT count(*)::int as n FROM ${table}`)
-    console.log(`    Neon: ${neonCount} rows → will replace with ${localCount}`)
-
-    if (dryRun) continue
-
-    // Safety check: refuse to delete Neon data if local has far fewer rows
-    // (protects against syncing from an incomplete local DB)
-    if (neonCount > 0 && localCount < neonCount * 0.5) {
-      console.log(`    ⚠ SKIPPED: local has <50% of Neon rows (${localCount} vs ${neonCount}). Use --force to override.`)
-      continue
-    }
-
-    // Delete all Neon rows
-    await neonDb.query(`DELETE FROM ${table}`)
-    console.log('    Neon cleared')
+    if (dryRun) { console.log('    (dry run)'); continue }
 
     // Fetch local rows and insert in batches
     const { rows: localRows } = await localDb.query(`SELECT * FROM ${table} ORDER BY id`)
     if (localRows.length === 0) continue
 
+    // Detect JSONB columns from schema (runtime detection fails for JSON arrays)
     const columns = Object.keys(localRows[0])
+    const { rows: colInfo } = await localDb.query(
+      `SELECT column_name FROM information_schema.columns WHERE table_name = $1 AND udt_name = 'jsonb'`,
+      [table],
+    )
+    const jsonbCols = new Set<string>(colInfo.map((c: any) => c.column_name))
+    if (jsonbCols.size > 0) console.log(`    JSONB columns: ${[...jsonbCols].join(', ')}`)
+
     const BATCH = 500
     let inserted = 0
+    let batchErrors = 0
+    let rowErrors = 0
 
     for (let i = 0; i < localRows.length; i += BATCH) {
       const batch = localRows.slice(i, i + BATCH)
@@ -601,7 +623,10 @@ async function syncEntityBulkTables(
       for (const row of batch) {
         const placeholders = columns.map((_, ci) => `$${allValues.length + ci + 1}`).join(', ')
         valueSets.push(`(${placeholders})`)
-        for (const col of columns) allValues.push(row[col])
+        for (const col of columns) {
+          const val = row[col]
+          allValues.push(jsonbCols.has(col) && val !== null ? JSON.stringify(val) : val)
+        }
       }
 
       try {
@@ -611,14 +636,24 @@ async function syncEntityBulkTables(
         )
         inserted += batch.length
       } catch (err: any) {
+        batchErrors++
+        console.log(`    Batch ${Math.floor(i / BATCH) + 1} failed (${err.code || '?'}): ${err.message?.slice(0, 120)}`)
         // Fall back to row-by-row on batch failure
         for (const row of batch) {
-          const vals = columns.map((c) => row[c])
-          const ph = columns.map((_, i) => `$${i + 1}`).join(', ')
+          const vals = columns.map((c) => {
+            const v = row[c]
+            return jsonbCols.has(c) && v !== null ? JSON.stringify(v) : v
+          })
+          const ph = columns.map((_, ci) => `$${ci + 1}`).join(', ')
           try {
             await neonDb.query(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${ph})`, vals)
             inserted++
-          } catch { /* skip individual failures */ }
+          } catch (rowErr: any) {
+            rowErrors++
+            if (rowErrors <= 3) {
+              console.log(`    Row ${row.id || '?'} failed (${rowErr.code || '?'}): ${rowErr.message?.slice(0, 120)}`)
+            }
+          }
         }
       }
 
@@ -626,7 +661,8 @@ async function syncEntityBulkTables(
         process.stdout.write(`\r    Inserted ${inserted}/${localRows.length}`)
       }
     }
-    console.log(`\r    Inserted ${inserted}/${localRows.length}`)
+    const errorSuffix = (batchErrors || rowErrors) ? ` (${batchErrors} batch errors, ${rowErrors} row errors)` : ''
+    console.log(`\r    Inserted ${inserted}/${localRows.length}${errorSuffix}`)
   }
 }
 
