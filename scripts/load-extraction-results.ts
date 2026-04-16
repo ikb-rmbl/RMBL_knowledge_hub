@@ -108,7 +108,7 @@ async function loadPaper(
   // ---------- Species candidates ----------
   for (const sp of extraction.species || []) {
     if (!sp.scientificName) continue
-    const r = await insertCandidate(db, 'species', sp.scientificName, sp, itemId)
+    const r = await insertCandidate(db, 'species', sp.scientificName, sp, itemId, collection)
     if (r === 'inserted') stats.candidates.species++
     else if (r === 'duplicate') stats.duplicates.species++
     else stats.errors.species++
@@ -117,7 +117,7 @@ async function loadPaper(
   // ---------- Place candidates ----------
   for (const pl of extraction.places || []) {
     if (!pl.name) continue
-    const r = await insertCandidate(db, 'place', pl.name, pl, itemId)
+    const r = await insertCandidate(db, 'place', pl.name, pl, itemId, collection)
     if (r === 'inserted') stats.candidates.place++
     else if (r === 'duplicate') stats.duplicates.place++
     else stats.errors.place++
@@ -126,7 +126,7 @@ async function loadPaper(
   // ---------- Protocol candidates ----------
   for (const pn of extraction.protocolsNamed || []) {
     if (!pn.proposedName) continue
-    const r = await insertCandidate(db, 'protocol', pn.proposedName, pn, itemId)
+    const r = await insertCandidate(db, 'protocol', pn.proposedName, pn, itemId, collection)
     if (r === 'inserted') stats.candidates.protocol++
     else if (r === 'duplicate') stats.duplicates.protocol++
     else stats.errors.protocol++
@@ -135,7 +135,7 @@ async function loadPaper(
   // ---------- Concept candidates ----------
   for (const c of extraction.concepts || []) {
     if (!c.name) continue
-    const r = await insertCandidate(db, 'concept', c.name, c, itemId)
+    const r = await insertCandidate(db, 'concept', c.name, c, itemId, collection)
     if (r === 'inserted') stats.candidates.concept++
     else if (r === 'duplicate') stats.duplicates.concept++
     else stats.errors.concept++
@@ -231,13 +231,11 @@ async function insertCandidate(
   entityType: 'species' | 'place' | 'protocol' | 'concept',
   rawName: string,
   rawAttributes: any,
-  publicationId: number,
+  itemId: number,
+  collection: string,
 ): Promise<InsertResult> {
   if (dryRun) return 'inserted'
   try {
-    // We don't have a unique constraint on entity_candidates, so use a custom dedup
-    // via explicit cast on the parameters (otherwise PG can't infer types in
-    // SELECT-without-FROM with the same param appearing in WHERE).
     const { rowCount } = await db.query(
       `INSERT INTO entity_candidates (entity_type, raw_name, raw_attributes, source_collection, source_item_id, confidence)
        SELECT $1::varchar, $2::text, $3::jsonb, $5::varchar, $4::integer, 1.0
@@ -248,7 +246,7 @@ async function insertCandidate(
            AND source_item_id = $4::integer
            AND lower(raw_name) = lower($2::text)
        )`,
-      [entityType, rawName, JSON.stringify(rawAttributes), publicationId, collectionArg],
+      [entityType, rawName, JSON.stringify(rawAttributes), itemId, collection],
     )
     return (rowCount || 0) > 0 ? 'inserted' : 'duplicate'
   } catch (err: any) {
