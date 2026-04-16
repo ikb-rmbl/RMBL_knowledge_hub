@@ -12,6 +12,10 @@ export interface RelatedItem {
   similarity: number
   journal: string | null
   subtype: string | null
+  signals?: string[]
+  sharedEntities?: number
+  coauthors?: number
+  isCitation?: boolean
 }
 
 const hrefMap: Record<string, string> = {
@@ -51,9 +55,24 @@ export default function ExpandableRelatedWorks({
             <div className="result-card-meta">
               {row.year && <span>{row.year}</span>}
               {row.journal && <span>{row.journal}</span>}
-              <span style={{ color: 'var(--color-text-muted)' }}>
-                {Math.round(row.similarity * 100)}% similar
-              </span>
+              {row.sharedEntities && (
+                <span style={{ color: 'var(--color-accent)' }}>
+                  {row.sharedEntities} shared entities
+                </span>
+              )}
+              {row.coauthors ? (
+                <span style={{ color: 'var(--color-accent)' }}>
+                  {row.coauthors} shared author{row.coauthors > 1 ? 's' : ''}
+                </span>
+              ) : null}
+              {row.isCitation && (
+                <span style={{ color: 'var(--color-accent)' }}>cited</span>
+              )}
+              {!row.sharedEntities && !row.coauthors && !row.isCitation && (
+                <span style={{ color: 'var(--color-text-muted)' }}>
+                  {Math.round(row.similarity * 100)}% similar
+                </span>
+              )}
             </div>
           </Link>
         ))}
