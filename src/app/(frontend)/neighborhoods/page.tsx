@@ -9,7 +9,7 @@ const SORT_OPTIONS = [
   { value: 'title', label: 'Title (A-Z)' },
 ]
 
-const ENTITY_TYPES = ['species', 'concept', 'protocol', 'place', 'author', 'publication', 'dataset']
+const ENTITY_TYPES = ['species', 'concept', 'protocol', 'place', 'stakeholder', 'author', 'publication', 'document', 'dataset']
 
 export default async function NeighborhoodsPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const params = await searchParams

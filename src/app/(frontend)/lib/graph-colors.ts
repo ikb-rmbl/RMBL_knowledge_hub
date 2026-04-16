@@ -8,6 +8,7 @@ export const GRAPH_COLORS: Record<string, string> = {
   publication: '#3a6b7b',
   dataset: '#7b5a3a',
   document: '#6b7b3a',
+  stakeholder: '#546e7a',
 }
 
 export const ENTITY_TYPE_LABELS: Record<string, string> = {
@@ -19,4 +20,5 @@ export const ENTITY_TYPE_LABELS: Record<string, string> = {
   publication: 'Publication',
   dataset: 'Dataset',
   document: 'Document',
+  stakeholder: 'Stakeholder',
 }

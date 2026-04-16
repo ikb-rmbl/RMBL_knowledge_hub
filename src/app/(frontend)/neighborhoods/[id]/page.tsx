@@ -8,14 +8,22 @@ export const dynamic = 'force-dynamic'
 const SLUG_MAP: Record<string, string> = {
   species: 'species', place: 'places', protocol: 'protocols', concept: 'concepts',
   author: 'authors', publication: 'publications', dataset: 'datasets',
+  document: 'documents', stakeholder: 'stakeholders',
 }
 
 const BROWSE_MAP: Record<string, string> = {
   species: '/species', place: '/places', protocol: '/protocols', concept: '/concepts',
   author: '/authors', publication: '/search?type=publications', dataset: '/search?type=datasets',
+  document: '/search?type=documents',
 }
 
-const TYPE_ORDER = ['species', 'concept', 'protocol', 'place', 'author', 'publication', 'dataset']
+const TYPE_ORDER = ['species', 'concept', 'protocol', 'place', 'stakeholder', 'author', 'publication', 'document', 'dataset']
+
+const STAKEHOLDER_COLORS: Record<string, string> = {
+  federal_agency: '#1565c0', state_agency: '#2e7d32', local_gov: '#6d4c41',
+  academic: '#7b1fa2', ngo: '#c62828', industry: '#e65100',
+  tribal: '#558b2f', other: '#999',
+}
 const INITIAL_SHOW = 10
 
 function renderMeta(m: any, type: string): React.ReactNode {
@@ -100,6 +108,36 @@ function renderMeta(m: any, type: string): React.ReactNode {
           </div>
         </div>
       )
+    case 'document':
+      return (
+        <div>
+          {m.summary ? (
+            <p className="result-card-snippet">
+              {String(m.summary).replace(/^"|"$/g, '').slice(0, 150)}{String(m.summary).length > 150 ? '...' : ''}
+            </p>
+          ) : null}
+          <div className="result-card-meta">
+            {m.document_type ? <span>{String(m.document_type).replace(/_/g, ' ')}</span> : null}
+            {m.date_year ? <span>{m.date_year}</span> : null}
+          </div>
+        </div>
+      )
+    case 'stakeholder':
+      return (
+        <div className="result-card-meta">
+          {m.stakeholder_type ? (
+            <span style={{
+              padding: '1px 8px', borderRadius: '8px', fontSize: '11px',
+              background: STAKEHOLDER_COLORS[m.stakeholder_type] || STAKEHOLDER_COLORS.other,
+              color: '#fff',
+            }}>
+              {String(m.stakeholder_type).replace(/_/g, ' ')}
+            </span>
+          ) : null}
+          <span>{m.document_count || 0} doc{(m.document_count || 0) !== 1 ? 's' : ''}</span>
+          {(m.publication_count || 0) > 0 && <span>{m.publication_count} pub{m.publication_count !== 1 ? 's' : ''}</span>}
+        </div>
+      )
     default:
       return (
         <div className="result-card-meta">
@@ -110,16 +148,25 @@ function renderMeta(m: any, type: string): React.ReactNode {
 }
 
 function renderCard(m: any, type: string, slug: string) {
-  return (
-    <Link key={m.entity_id} href={`/${slug}/${m.entity_id}`} className="result-card">
+  const hasDetailPage = type !== 'stakeholder' // stakeholders have no /stakeholders/[id] page yet
+  const content = (
+    <>
       <h3 className="result-card-title" style={{
         fontStyle: type === 'species' ? 'italic' : undefined,
       }}>
         {m.label}
       </h3>
       {renderMeta(m, type)}
-    </Link>
+    </>
   )
+  if (hasDetailPage) {
+    return (
+      <Link key={m.entity_id} href={`/${slug}/${m.entity_id}`} className="result-card">
+        {content}
+      </Link>
+    )
+  }
+  return <div key={m.entity_id} className="result-card" style={{ cursor: 'default' }}>{content}</div>
 }
 
 export default async function NeighborhoodDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -141,6 +188,8 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
     { rows: authorMembers },
     { rows: pubMembers },
     { rows: datasetMembers },
+    { rows: documentMembers },
+    { rows: stakeholderMembers },
   ] = await Promise.all([
     db.query(`
       SELECT nm.entity_id, nm.label, nm.degree,
@@ -198,6 +247,23 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
       WHERE nm.neighborhood_id = $1 AND nm.entity_type = 'dataset'
       ORDER BY nm.degree DESC
     `, [id]),
+    db.query(`
+      SELECT nm.entity_id, COALESCE(d.title, nm.label) as label, nm.degree,
+        d.document_type, d.summary::text as summary,
+        EXTRACT(YEAR FROM d.date_original)::int as date_year
+      FROM neighborhood_members nm
+      LEFT JOIN documents d ON d.id = nm.entity_id
+      WHERE nm.neighborhood_id = $1 AND nm.entity_type = 'document'
+      ORDER BY nm.degree DESC
+    `, [id]),
+    db.query(`
+      SELECT nm.entity_id, COALESCE(s.name, nm.label) as label, nm.degree,
+        s.stakeholder_type, s.document_count, s.publication_count
+      FROM neighborhood_members nm
+      LEFT JOIN stakeholders s ON s.id = nm.entity_id
+      WHERE nm.neighborhood_id = $1 AND nm.entity_type = 'stakeholder'
+      ORDER BY nm.degree DESC
+    `, [id]),
   ])
 
   const membersByType: Record<string, any[]> = {
@@ -208,6 +274,8 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
     author: authorMembers,
     publication: pubMembers,
     dataset: datasetMembers,
+    document: documentMembers,
+    stakeholder: stakeholderMembers,
   }
 
   return (
