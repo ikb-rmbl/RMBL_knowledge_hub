@@ -17,9 +17,11 @@ const forceAtlas2 = (await import('graphology-layout-forceatlas2')).default
 
 const args = process.argv.slice(2)
 const minDegree = parseInt(args.find((a) => a.startsWith('--min-degree='))?.split('=')[1] || '5')
+const excludeDocs = args.includes('--exclude-docs')
+const outputFile = args.find((a) => a.startsWith('--output='))?.split('=')[1] || 'unified.json'
 
 async function main() {
-  console.log(`Building unified knowledge graph (min degree ${minDegree})...`)
+  console.log(`Building unified knowledge graph (min degree ${minDegree})${excludeDocs ? ' [research mode — excluding documents/stakeholders]' : ''}...`)
 
   const db = new pg.Pool({
     connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/rmbl_knowledge_hub',
@@ -28,6 +30,12 @@ async function main() {
 
   const graph = new Graph()
   const edgeKeys = new Set<string>()
+
+  // Entity mention filter: in research mode, count only publications+datasets
+  // (otherwise entities seen only in documents would appear as ghost nodes)
+  const collectionFilter = excludeDocs
+    ? "AND em.collection IN ('publications', 'datasets')"
+    : ''
 
   function addEdge(source: string, target: string, weight: number) {
     if (!graph.hasNode(source) || !graph.hasNode(target)) return
@@ -39,14 +47,14 @@ async function main() {
 
   // --- Add nodes ---
 
-  // Species (filter by total mentions across all collections — includes documents)
+  // Species (filter by total mentions across selected collections)
   const { rows: species } = await db.query(`
     SELECT s.id, s.canonical_name as name, s.kingdom, s.family,
       (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-       WHERE em.entity_type = 'species' AND em.entity_id = s.id) as total_count
+       WHERE em.entity_type = 'species' AND em.entity_id = s.id ${collectionFilter}) as total_count
     FROM species s
     WHERE (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-           WHERE em.entity_type = 'species' AND em.entity_id = s.id) >= $1
+           WHERE em.entity_type = 'species' AND em.entity_id = s.id ${collectionFilter}) >= $1
     ORDER BY total_count DESC
   `, [minDegree])
   for (const s of species) {
@@ -62,10 +70,10 @@ async function main() {
   const { rows: concepts } = await db.query(`
     SELECT c.id, c.name, c.scope, c.concept_type,
       (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-       WHERE em.entity_type = 'concept' AND em.entity_id = c.id) as total_count
+       WHERE em.entity_type = 'concept' AND em.entity_id = c.id ${collectionFilter}) as total_count
     FROM concepts c
     WHERE (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-           WHERE em.entity_type = 'concept' AND em.entity_id = c.id) >= $1
+           WHERE em.entity_type = 'concept' AND em.entity_id = c.id ${collectionFilter}) >= $1
     ORDER BY total_count DESC
   `, [minDegree])
   for (const c of concepts) {
@@ -81,10 +89,10 @@ async function main() {
   const { rows: protocols } = await db.query(`
     SELECT p.id, p.name, p.category,
       (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-       WHERE em.entity_type = 'protocol' AND em.entity_id = p.id) as total_count
+       WHERE em.entity_type = 'protocol' AND em.entity_id = p.id ${collectionFilter}) as total_count
     FROM protocols p
     WHERE (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-           WHERE em.entity_type = 'protocol' AND em.entity_id = p.id) >= $1
+           WHERE em.entity_type = 'protocol' AND em.entity_id = p.id ${collectionFilter}) >= $1
     ORDER BY total_count DESC
   `, [minDegree])
   for (const p of protocols) {
@@ -100,12 +108,12 @@ async function main() {
   const { rows: places } = await db.query(`
     SELECT pl.id, pl.name, pl.place_type, pl.scale,
       (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-       WHERE em.entity_type = 'place' AND em.entity_id = pl.id) as total_count
+       WHERE em.entity_type = 'place' AND em.entity_id = pl.id ${collectionFilter}) as total_count
     FROM places pl
     WHERE (pl.scale IS NULL OR pl.scale IN ('site', 'local'))
       AND (pl.place_type IS NULL OR pl.place_type NOT IN ('country', 'state', 'region'))
       AND (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-           WHERE em.entity_type = 'place' AND em.entity_id = pl.id) >= $1
+           WHERE em.entity_type = 'place' AND em.entity_id = pl.id ${collectionFilter}) >= $1
     ORDER BY total_count DESC
   `, [minDegree])
   for (const p of places) {
@@ -117,22 +125,26 @@ async function main() {
   }
   console.log(`  ${places.length} places`)
 
-  // Stakeholders (agencies, NGOs, orgs with significant mention count)
-  const { rows: stakeholders } = await db.query(`
-    SELECT id, name, stakeholder_type, document_count, publication_count
-    FROM stakeholders
-    WHERE (document_count + publication_count) >= $1
-    ORDER BY (document_count + publication_count) DESC
-  `, [minDegree])
-  for (const s of stakeholders) {
-    const deg = s.document_count + s.publication_count
-    graph.addNode(`stakeholder-${s.id}`, {
-      label: s.name, nodeType: 'stakeholder', stakeholderType: s.stakeholder_type,
-      degree: deg, size: 1.5 + Math.log(deg + 1) * 0.8,
-      x: -150 + Math.random() * 50, y: 0 + Math.random() * 50,
-    })
+  // Stakeholders (agencies, NGOs, orgs with significant mention count) — excluded in research mode
+  let stakeholders: any[] = []
+  if (!excludeDocs) {
+    const { rows } = await db.query(`
+      SELECT id, name, stakeholder_type, document_count, publication_count
+      FROM stakeholders
+      WHERE (document_count + publication_count) >= $1
+      ORDER BY (document_count + publication_count) DESC
+    `, [minDegree])
+    stakeholders = rows
+    for (const s of stakeholders) {
+      const deg = s.document_count + s.publication_count
+      graph.addNode(`stakeholder-${s.id}`, {
+        label: s.name, nodeType: 'stakeholder', stakeholderType: s.stakeholder_type,
+        degree: deg, size: 1.5 + Math.log(deg + 1) * 0.8,
+        x: -150 + Math.random() * 50, y: 0 + Math.random() * 50,
+      })
+    }
   }
-  console.log(`  ${stakeholders.length} stakeholders`)
+  console.log(`  ${stakeholders.length} stakeholders${excludeDocs ? ' (excluded)' : ''}`)
 
   // Authors (top by work count)
   const { rows: authors } = await db.query(`
@@ -160,7 +172,6 @@ async function main() {
       UNION SELECT target_publication_id FROM references_cited WHERE source_document_id IS NOT NULL AND target_publication_id IS NOT NULL
     )
     ORDER BY cite_count DESC
-    LIMIT 800
   `, [minDegree])
   for (const p of pubs) {
     graph.addNode(`pub-${p.id}`, {
@@ -171,24 +182,27 @@ async function main() {
   }
   console.log(`  ${pubs.length} publications`)
 
-  // Documents (those with entity mentions — most policy/community documents)
-  const { rows: documents } = await db.query(`
-    SELECT d.id, d.title, d.document_type, d.date_original,
-      (SELECT count(*) FROM entity_mentions em WHERE em.collection = 'documents' AND em.item_id = d.id) as mention_count
-    FROM documents d
-    WHERE d.id IN (SELECT DISTINCT item_id FROM entity_mentions WHERE collection = 'documents')
-    ORDER BY mention_count DESC
-    LIMIT 800
-  `)
-  for (const d of documents) {
-    graph.addNode(`document-${d.id}`, {
-      label: (d.title || '').slice(0, 50), nodeType: 'document',
-      documentType: d.document_type,
-      degree: parseInt(d.mention_count), size: 1.5 + Math.log(parseInt(d.mention_count) + 1) * 0.6,
-      x: -50 + Math.random() * 50, y: 50 + Math.random() * 50,
-    })
+  // Documents (those with entity mentions) — excluded in research mode
+  let documents: any[] = []
+  if (!excludeDocs) {
+    const { rows } = await db.query(`
+      SELECT d.id, d.title, d.document_type, d.date_original,
+        (SELECT count(*) FROM entity_mentions em WHERE em.collection = 'documents' AND em.item_id = d.id) as mention_count
+      FROM documents d
+      WHERE d.id IN (SELECT DISTINCT item_id FROM entity_mentions WHERE collection = 'documents')
+      ORDER BY mention_count DESC
+    `)
+    documents = rows
+    for (const d of documents) {
+      graph.addNode(`document-${d.id}`, {
+        label: (d.title || '').slice(0, 50), nodeType: 'document',
+        documentType: d.document_type,
+        degree: parseInt(d.mention_count), size: 1.5 + Math.log(parseInt(d.mention_count) + 1) * 0.6,
+        x: -50 + Math.random() * 50, y: 50 + Math.random() * 50,
+      })
+    }
   }
-  console.log(`  ${documents.length} documents`)
+  console.log(`  ${documents.length} documents${excludeDocs ? ' (excluded)' : ''}`)
 
   // Datasets (those with entity links)
   const { rows: datasets } = await db.query(`
@@ -196,7 +210,6 @@ async function main() {
     FROM datasets d
     WHERE d.id IN (SELECT DISTINCT item_id FROM entity_mentions WHERE collection = 'datasets')
     ORDER BY d.publication_year DESC NULLS LAST
-    LIMIT 500
   `)
   for (const d of datasets) {
     graph.addNode(`dataset-${d.id}`, {
@@ -536,7 +549,7 @@ async function main() {
   })
 
   mkdirSync('public/graph', { recursive: true })
-  const outPath = 'public/graph/unified.json'
+  const outPath = `public/graph/${outputFile}`
   writeFileSync(outPath, JSON.stringify(output))
   console.log(`  Written to ${outPath} (${(JSON.stringify(output).length / 1024).toFixed(0)}KB)`)
 
