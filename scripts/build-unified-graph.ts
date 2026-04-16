@@ -1,7 +1,8 @@
 /**
  * Pre-compute a unified knowledge graph combining all entity and collection types.
- * Nodes: species, concepts, protocols, authors, publications
- * Edges: entity co-occurrence, entity↔publication mentions, author↔publication, citations
+ * Nodes: species, concepts, protocols, places, stakeholders, authors, publications, datasets, documents
+ * Edges: entity co-occurrence, entity↔item mentions, author↔item, co-authorship,
+ *        citations (pub↔pub, pub↔dataset, doc↔pub, doc↔doc)
  *
  * Usage:
  *   npx tsx scripts/build-unified-graph.ts [--min-degree=5]
@@ -80,13 +81,13 @@ async function main() {
   }
   console.log(`  ${protocols.length} protocols`)
 
-  // Places (local/site scale only — excludes countries, states, generic regions)
+  // Places (exclude broad scales — countries, states, generic regions)
   const { rows: places } = await db.query(`
     SELECT id, name, place_type, scale, publication_count
     FROM places
     WHERE publication_count >= $1
-      AND scale IN ('site', 'local')
-      AND place_type NOT IN ('country', 'state', 'region')
+      AND (scale IS NULL OR scale IN ('site', 'local'))
+      AND (place_type IS NULL OR place_type NOT IN ('country', 'state', 'region'))
     ORDER BY publication_count DESC
   `, [minDegree])
   for (const p of places) {
@@ -97,6 +98,23 @@ async function main() {
     })
   }
   console.log(`  ${places.length} places`)
+
+  // Stakeholders (agencies, NGOs, orgs with significant mention count)
+  const { rows: stakeholders } = await db.query(`
+    SELECT id, name, stakeholder_type, document_count, publication_count
+    FROM stakeholders
+    WHERE (document_count + publication_count) >= $1
+    ORDER BY (document_count + publication_count) DESC
+  `, [minDegree])
+  for (const s of stakeholders) {
+    const deg = s.document_count + s.publication_count
+    graph.addNode(`stakeholder-${s.id}`, {
+      label: s.name, nodeType: 'stakeholder', stakeholderType: s.stakeholder_type,
+      degree: deg, size: 1.5 + Math.log(deg + 1) * 0.8,
+      x: -150 + Math.random() * 50, y: 0 + Math.random() * 50,
+    })
+  }
+  console.log(`  ${stakeholders.length} stakeholders`)
 
   // Authors (top by work count)
   const { rows: authors } = await db.query(`
@@ -112,22 +130,18 @@ async function main() {
   }
   console.log(`  ${authors.length} authors`)
 
-  // Publications: top by citation count + those linked to datasets
+  // Publications: top by citation count + those linked to datasets + those cited by documents
   const { rows: pubs } = await db.query(`
-    SELECT DISTINCT ON (id) id, title, coalesce(external_citation_count, 0) as cite_count
-    FROM (
-      SELECT id, title, external_citation_count
-      FROM publications WHERE coalesce(external_citation_count, 0) >= $1
-      UNION
-      SELECT p.id, p.title, p.external_citation_count
-      FROM publications p
-      WHERE p.id IN (
-        SELECT source_publication_id FROM references_cited WHERE target_dataset_id IS NOT NULL
-        UNION SELECT publication_id FROM data_repositories WHERE linked_dataset_id IS NOT NULL
-        UNION SELECT publications_id FROM datasets_rels WHERE publications_id IS NOT NULL
-      )
-    ) sub
-    ORDER BY id, cite_count DESC
+    SELECT id, title, coalesce(external_citation_count, 0) as cite_count
+    FROM publications
+    WHERE id IN (
+      SELECT id FROM publications WHERE coalesce(external_citation_count, 0) >= $1
+      UNION SELECT source_publication_id FROM references_cited WHERE target_dataset_id IS NOT NULL
+      UNION SELECT publication_id FROM data_repositories WHERE linked_dataset_id IS NOT NULL
+      UNION SELECT publications_id FROM datasets_rels WHERE publications_id IS NOT NULL
+      UNION SELECT target_publication_id FROM references_cited WHERE source_document_id IS NOT NULL AND target_publication_id IS NOT NULL
+    )
+    ORDER BY cite_count DESC
     LIMIT 800
   `, [minDegree])
   for (const p of pubs) {
@@ -138,6 +152,25 @@ async function main() {
     })
   }
   console.log(`  ${pubs.length} publications`)
+
+  // Documents (those with entity mentions — most policy/community documents)
+  const { rows: documents } = await db.query(`
+    SELECT d.id, d.title, d.document_type, d.date_original,
+      (SELECT count(*) FROM entity_mentions em WHERE em.collection = 'documents' AND em.item_id = d.id) as mention_count
+    FROM documents d
+    WHERE d.id IN (SELECT DISTINCT item_id FROM entity_mentions WHERE collection = 'documents')
+    ORDER BY mention_count DESC
+    LIMIT 800
+  `)
+  for (const d of documents) {
+    graph.addNode(`document-${d.id}`, {
+      label: (d.title || '').slice(0, 50), nodeType: 'document',
+      documentType: d.document_type,
+      degree: parseInt(d.mention_count), size: 1.5 + Math.log(parseInt(d.mention_count) + 1) * 0.6,
+      x: -50 + Math.random() * 50, y: 50 + Math.random() * 50,
+    })
+  }
+  console.log(`  ${documents.length} documents`)
 
   // Datasets (those with entity links)
   const { rows: datasets } = await db.query(`
@@ -270,7 +303,7 @@ async function main() {
   }
   console.log(`  ${aeEdges} author↔entity edges`)
 
-  // Citation edges
+  // Pub↔Pub citation edges
   const { rows: citations } = await db.query(`
     SELECT source_publication_id as src, target_publication_id as tgt
     FROM references_cited
@@ -281,7 +314,83 @@ async function main() {
     addEdge(`pub-${e.src}`, `pub-${e.tgt}`, 2)
     citEdges++
   }
-  console.log(`  ${citEdges} citation edges`)
+  console.log(`  ${citEdges} pub↔pub citation edges`)
+
+  // Document ↔ Entity
+  const docIdSet = new Set(documents.map((d: any) => d.id))
+  const { rows: docEntityLinks } = await db.query(`
+    SELECT em.entity_type, em.entity_id, em.item_id
+    FROM entity_mentions em
+    WHERE em.collection = 'documents' AND em.item_id = ANY($1)
+      AND em.entity_type IN ('species', 'concept', 'protocol', 'place')
+    LIMIT 15000
+  `, [[...docIdSet]])
+  let docEntEdges = 0
+  for (const e of docEntityLinks) {
+    if (entityTypeIds.get(e.entity_type)?.has(e.entity_id) && docIdSet.has(e.item_id)) {
+      addEdge(`document-${e.item_id}`, `${e.entity_type}-${e.entity_id}`, 1)
+      docEntEdges++
+    }
+  }
+  console.log(`  ${docEntEdges} document↔entity edges`)
+
+  // Stakeholder ↔ Document & Publication
+  const stakeholderIdSet = new Set(stakeholders.map((s: any) => s.id))
+  const { rows: stakeholderLinks } = await db.query(`
+    SELECT em.entity_id, em.collection, em.item_id
+    FROM entity_mentions em
+    WHERE em.entity_type = 'stakeholder'
+      AND em.entity_id = ANY($1)
+      AND ((em.collection = 'documents' AND em.item_id = ANY($2))
+        OR (em.collection = 'publications' AND em.item_id = ANY($3)))
+    LIMIT 20000
+  `, [[...stakeholderIdSet], [...docIdSet], [...pubIdSet]])
+  let shEdges = 0
+  for (const e of stakeholderLinks) {
+    const itemNode = e.collection === 'documents' ? `document-${e.item_id}` : `pub-${e.item_id}`
+    addEdge(`stakeholder-${e.entity_id}`, itemNode, 1)
+    shEdges++
+  }
+  console.log(`  ${shEdges} stakeholder↔item edges`)
+
+  // Document ↔ Publication citations
+  const { rows: docPubCitations } = await db.query(`
+    SELECT source_document_id as doc_id, target_publication_id as pub_id
+    FROM references_cited
+    WHERE source_document_id = ANY($1) AND target_publication_id = ANY($2)
+  `, [[...docIdSet], [...pubIdSet]])
+  let dpcEdges = 0
+  for (const e of docPubCitations) {
+    addEdge(`document-${e.doc_id}`, `pub-${e.pub_id}`, 2)
+    dpcEdges++
+  }
+  console.log(`  ${dpcEdges} document→publication citation edges`)
+
+  // Document ↔ Document citations
+  const { rows: docDocCitations } = await db.query(`
+    SELECT source_document_id as src, target_document_id as tgt
+    FROM references_cited
+    WHERE source_document_id = ANY($1) AND target_document_id = ANY($1)
+  `, [[...docIdSet]])
+  let ddcEdges = 0
+  for (const e of docDocCitations) {
+    addEdge(`document-${e.src}`, `document-${e.tgt}`, 2)
+    ddcEdges++
+  }
+  console.log(`  ${ddcEdges} document↔document citation edges`)
+
+  // Author ↔ Document (authors who wrote documents)
+  const { rows: authorDocLinks } = await db.query(`
+    SELECT parent_id as author_id, documents_id as doc_id
+    FROM authors_rels
+    WHERE parent_id = ANY($1) AND documents_id = ANY($2) AND path = 'documents'
+  `, [[...authorIdSet], [...docIdSet]])
+  let adEdges = 0
+  for (const e of authorDocLinks) {
+    addEdge(`author-${e.author_id}`, `document-${e.doc_id}`, 1)
+    adEdges++
+  }
+  console.log(`  ${adEdges} author↔document edges`)
 
   // Dataset ↔ Entity (entities mentioned in datasets)
   const dsIdSet = new Set(datasets.map((d: any) => d.id))

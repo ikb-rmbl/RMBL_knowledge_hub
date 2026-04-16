@@ -62,7 +62,7 @@ const CONFIGS: EntityConfig[] = [
     extraCols: 'place_type, scale, elevation_m, habitat_types, lat, lon',
     colorField: 'place_type',
     outputFile: 'public/graph/places.json',
-    extraWhere: "AND scale IN ('site', 'local') AND place_type NOT IN ('country', 'state', 'region')",
+    extraWhere: "AND (scale IS NULL OR scale IN ('site', 'local')) AND (place_type IS NULL OR place_type NOT IN ('country', 'state', 'region'))",
   },
 ]
 
