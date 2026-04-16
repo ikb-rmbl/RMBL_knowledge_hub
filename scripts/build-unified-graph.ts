@@ -39,15 +39,20 @@ async function main() {
 
   // --- Add nodes ---
 
-  // Species
+  // Species (filter by total mentions across all collections — includes documents)
   const { rows: species } = await db.query(`
-    SELECT id, canonical_name as name, kingdom, family, publication_count
-    FROM species WHERE publication_count >= $1 ORDER BY publication_count DESC
+    SELECT s.id, s.canonical_name as name, s.kingdom, s.family,
+      (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
+       WHERE em.entity_type = 'species' AND em.entity_id = s.id) as total_count
+    FROM species s
+    WHERE (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
+           WHERE em.entity_type = 'species' AND em.entity_id = s.id) >= $1
+    ORDER BY total_count DESC
   `, [minDegree])
   for (const s of species) {
     graph.addNode(`species-${s.id}`, {
       label: s.name, nodeType: 'species', kingdom: s.kingdom, family: s.family,
-      degree: s.publication_count, size: 1.5 + Math.log(s.publication_count + 1) * 0.8,
+      degree: parseInt(s.total_count), size: 1.5 + Math.log(parseInt(s.total_count) + 1) * 0.8,
       x: -100 + Math.random() * 50, y: -100 + Math.random() * 50,
     })
   }
@@ -55,13 +60,18 @@ async function main() {
 
   // Concepts
   const { rows: concepts } = await db.query(`
-    SELECT id, name, scope, concept_type, publication_count
-    FROM concepts WHERE publication_count >= $1 ORDER BY publication_count DESC
+    SELECT c.id, c.name, c.scope, c.concept_type,
+      (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
+       WHERE em.entity_type = 'concept' AND em.entity_id = c.id) as total_count
+    FROM concepts c
+    WHERE (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
+           WHERE em.entity_type = 'concept' AND em.entity_id = c.id) >= $1
+    ORDER BY total_count DESC
   `, [minDegree])
   for (const c of concepts) {
     graph.addNode(`concept-${c.id}`, {
       label: c.name, nodeType: 'concept', scope: c.scope, conceptType: c.concept_type,
-      degree: c.publication_count, size: 1.5 + Math.log(c.publication_count + 1) * 0.8,
+      degree: parseInt(c.total_count), size: 1.5 + Math.log(parseInt(c.total_count) + 1) * 0.8,
       x: 100 + Math.random() * 50, y: -100 + Math.random() * 50,
     })
   }
@@ -69,13 +79,18 @@ async function main() {
 
   // Protocols
   const { rows: protocols } = await db.query(`
-    SELECT id, name, category, publication_count
-    FROM protocols WHERE publication_count >= $1 ORDER BY publication_count DESC
+    SELECT p.id, p.name, p.category,
+      (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
+       WHERE em.entity_type = 'protocol' AND em.entity_id = p.id) as total_count
+    FROM protocols p
+    WHERE (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
+           WHERE em.entity_type = 'protocol' AND em.entity_id = p.id) >= $1
+    ORDER BY total_count DESC
   `, [minDegree])
   for (const p of protocols) {
     graph.addNode(`protocol-${p.id}`, {
       label: p.name, nodeType: 'protocol', category: p.category,
-      degree: p.publication_count, size: 1.5 + Math.log(p.publication_count + 1) * 0.8,
+      degree: parseInt(p.total_count), size: 1.5 + Math.log(parseInt(p.total_count) + 1) * 0.8,
       x: 0 + Math.random() * 50, y: 100 + Math.random() * 50,
     })
   }
@@ -83,17 +98,20 @@ async function main() {
 
   // Places (exclude broad scales — countries, states, generic regions)
   const { rows: places } = await db.query(`
-    SELECT id, name, place_type, scale, publication_count
-    FROM places
-    WHERE publication_count >= $1
-      AND (scale IS NULL OR scale IN ('site', 'local'))
-      AND (place_type IS NULL OR place_type NOT IN ('country', 'state', 'region'))
-    ORDER BY publication_count DESC
+    SELECT pl.id, pl.name, pl.place_type, pl.scale,
+      (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
+       WHERE em.entity_type = 'place' AND em.entity_id = pl.id) as total_count
+    FROM places pl
+    WHERE (pl.scale IS NULL OR pl.scale IN ('site', 'local'))
+      AND (pl.place_type IS NULL OR pl.place_type NOT IN ('country', 'state', 'region'))
+      AND (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
+           WHERE em.entity_type = 'place' AND em.entity_id = pl.id) >= $1
+    ORDER BY total_count DESC
   `, [minDegree])
   for (const p of places) {
     graph.addNode(`place-${p.id}`, {
       label: p.name, nodeType: 'place', placeType: p.place_type, scale: p.scale,
-      degree: p.publication_count, size: 1.5 + Math.log(p.publication_count + 1) * 0.8,
+      degree: parseInt(p.total_count), size: 1.5 + Math.log(parseInt(p.total_count) + 1) * 0.8,
       x: 50 + Math.random() * 50, y: -50 + Math.random() * 50,
     })
   }

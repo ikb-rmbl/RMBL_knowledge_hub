@@ -47,6 +47,14 @@ async function main() {
     )
   `)
 
+  // Remove stale neighborhoods not in the current communities.json
+  const currentIds = communities.map((c: any) => c.id)
+  const { rowCount: deletedCount } = await db.query(
+    'DELETE FROM neighborhoods WHERE community_id NOT IN (SELECT unnest($1::int[]))',
+    [currentIds],
+  )
+  if (deletedCount) console.log(`Removed ${deletedCount} stale neighborhoods`)
+
   let loaded = 0
   for (const c of communities) {
     await db.query(`
