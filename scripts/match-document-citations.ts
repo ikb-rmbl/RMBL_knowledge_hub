@@ -75,7 +75,7 @@ async function main() {
     const remaining = refs.filter((r: any) => !(r.cited_doi && /10\.\d+\//.test(r.cited_doi)))
     console.log(`  ${remaining.length} references to match by title`)
 
-    const TRGM_THRESHOLD = 0.55 // trigram similarity threshold
+    const TRGM_THRESHOLD = 0.80 // trigram similarity threshold (below 0.8 yields many false positives)
     let checked = 0
 
     for (const ref of remaining) {
