@@ -46,7 +46,7 @@ export default async function ExploreMapPage() {
       <LazyMap
         places={mapPlaces}
         center={[38.96, -107.0]}
-        zoom={12}
+        zoom={10}
       />
     </div>
   )
