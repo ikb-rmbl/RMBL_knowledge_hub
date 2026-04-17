@@ -167,7 +167,7 @@ export default async function HomePage() {
             className="search-input"
             type="text"
             name="q"
-            placeholder="Search documents, publications, and datasets..."
+            placeholder="Search publications, datasets, and more..."
           />
           <button className="search-button" type="submit">
             Search
