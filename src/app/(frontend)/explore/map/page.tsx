@@ -34,7 +34,7 @@ export default async function ExploreMapPage() {
     <div style={{ maxWidth: 'var(--max-width)', margin: '0 auto', padding: '0 var(--gutter)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
         <Link href="/places" style={{ fontSize: '13px', color: 'var(--color-accent)' }}>&larr; Places</Link>
-        <h1 style={{ fontSize: '22px', fontWeight: 600, margin: 0 }}>Research Sites Map</h1>
+        <h1 style={{ fontSize: '22px', fontWeight: 600, margin: 0 }}>Explore Places Map</h1>
         <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
           {mapPlaces.length} places with coordinates
         </span>
@@ -45,8 +45,8 @@ export default async function ExploreMapPage() {
       </p>
       <LazyMap
         places={mapPlaces}
-        center={[38.96, -106.99]}
-        zoom={10}
+        center={[38.96, -107.0]}
+        zoom={12}
       />
     </div>
   )
