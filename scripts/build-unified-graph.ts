@@ -1,11 +1,17 @@
 /**
  * Pre-compute a unified knowledge graph combining all entity and collection types.
- * Nodes: species, concepts, protocols, places, stakeholders, authors, publications, datasets, documents
- * Edges: entity co-occurrence, entity↔item mentions, author↔item, co-authorship,
- *        citations (pub↔pub, pub↔dataset, doc↔pub, doc↔doc)
+ *
+ * Strategy: edge-first construction with connectivity pruning.
+ *   1. Load ALL entities, items, and authors as candidate nodes
+ *   2. Build ALL edges (co-occurrence weight ≥2, structural edges with no minimum)
+ *   3. Prune nodes with graph degree < minDegree (removes weakly-connected nodes)
+ *   4. Run ForceAtlas2 layout
+ *
+ * This avoids ad-hoc mention-count thresholds and hard edge caps. The graph
+ * structure itself determines which nodes are included.
  *
  * Usage:
- *   npx tsx scripts/build-unified-graph.ts [--min-degree=5]
+ *   npx tsx scripts/build-unified-graph.ts [--min-degree=2] [--exclude-docs] [--output=unified.json]
  */
 
 import pg from 'pg'
@@ -16,54 +22,52 @@ const Graph = (await import('graphology')).default
 const forceAtlas2 = (await import('graphology-layout-forceatlas2')).default
 
 const args = process.argv.slice(2)
-const minDegree = parseInt(args.find((a) => a.startsWith('--min-degree='))?.split('=')[1] || '5')
+const minDegree = parseInt(args.find((a) => a.startsWith('--min-degree='))?.split('=')[1] || '2')
+const minCooccurrence = parseInt(args.find((a) => a.startsWith('--min-cooccurrence='))?.split('=')[1] || '2')
 const excludeDocs = args.includes('--exclude-docs')
 const outputFile = args.find((a) => a.startsWith('--output='))?.split('=')[1] || 'unified.json'
 
 async function main() {
-  console.log(`Building unified knowledge graph (min degree ${minDegree})${excludeDocs ? ' [research mode — excluding documents/stakeholders]' : ''}...`)
+  console.log(`Building unified knowledge graph`)
+  console.log(`  Strategy: edge-first, prune degree < ${minDegree}, co-occurrence weight ≥ ${minCooccurrence}`)
+  if (excludeDocs) console.log('  Mode: research only (excluding documents/stakeholders)')
 
   const db = new pg.Pool({
     connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/rmbl_knowledge_hub',
-    max: 2,
+    max: 3,
   })
 
   const graph = new Graph()
   const edgeKeys = new Set<string>()
 
-  // Entity mention filter: in research mode, count only publications+datasets
-  // (otherwise entities seen only in documents would appear as ghost nodes)
+  function addEdge(source: string, target: string, weight: number) {
+    if (!graph.hasNode(source) || !graph.hasNode(target)) return
+    if (source === target) return
+    const k1 = `${source}--${target}`, k2 = `${target}--${source}`
+    if (edgeKeys.has(k1) || edgeKeys.has(k2)) return
+    try { graph.addEdge(source, target, { weight }); edgeKeys.add(k1) }
+    catch {}
+  }
+
+  // Collection filter for research mode
   const collectionFilter = excludeDocs
     ? "AND em.collection IN ('publications', 'datasets')"
     : ''
 
-  function addEdge(source: string, target: string, weight: number) {
-    if (!graph.hasNode(source) || !graph.hasNode(target)) return
-    const k1 = `${source}--${target}`, k2 = `${target}--${source}`
-    if (edgeKeys.has(k1) || edgeKeys.has(k2)) return
-    try { graph.addEdge(source, target, { weight, size: Math.max(0.3, Math.log(weight + 1) * 0.3), color: '#e0ddd8' }); edgeKeys.add(k1) }
-    catch {}
-  }
+  // =====================================================================
+  // PHASE 1: Load ALL candidate nodes
+  // =====================================================================
+  console.log('\nPhase 1: Loading candidate nodes...')
 
-  // --- Add nodes ---
-
-  // Species (filter by total mentions across selected collections)
+  // Species (all with at least 1 mention)
   const { rows: species } = await db.query(`
-    SELECT s.id, s.canonical_name as name, s.kingdom, s.family, em_counts.total_count
-    FROM species s
-    JOIN (
-      SELECT entity_id, count(DISTINCT collection || ':' || item_id) as total_count
-      FROM entity_mentions
-      WHERE entity_type = 'species' ${collectionFilter}
-      GROUP BY entity_id
-      HAVING count(DISTINCT collection || ':' || item_id) >= $1
-    ) em_counts ON em_counts.entity_id = s.id
-    ORDER BY em_counts.total_count DESC
-  `, [minDegree])
+    SELECT s.id, s.canonical_name as name, s.kingdom, s.family, s.mention_count
+    FROM species s WHERE s.mention_count > 0
+  `)
   for (const s of species) {
     graph.addNode(`species-${s.id}`, {
       label: s.name, nodeType: 'species', kingdom: s.kingdom, family: s.family,
-      degree: parseInt(s.total_count), size: 1.5 + Math.log(parseInt(s.total_count) + 1) * 0.8,
+      degree: s.mention_count || 0, size: 1.5 + Math.log((s.mention_count || 0) + 1) * 0.8,
       x: -100 + Math.random() * 50, y: -100 + Math.random() * 50,
     })
   }
@@ -71,21 +75,13 @@ async function main() {
 
   // Concepts
   const { rows: concepts } = await db.query(`
-    SELECT c.id, c.name, c.scope, c.concept_type, em_counts.total_count
-    FROM concepts c
-    JOIN (
-      SELECT entity_id, count(DISTINCT collection || ':' || item_id) as total_count
-      FROM entity_mentions
-      WHERE entity_type = 'concept' ${collectionFilter}
-      GROUP BY entity_id
-      HAVING count(DISTINCT collection || ':' || item_id) >= $1
-    ) em_counts ON em_counts.entity_id = c.id
-    ORDER BY em_counts.total_count DESC
-  `, [minDegree])
+    SELECT id, name, scope, concept_type, mention_count
+    FROM concepts WHERE mention_count > 0
+  `)
   for (const c of concepts) {
     graph.addNode(`concept-${c.id}`, {
       label: c.name, nodeType: 'concept', scope: c.scope, conceptType: c.concept_type,
-      degree: parseInt(c.total_count), size: 1.5 + Math.log(parseInt(c.total_count) + 1) * 0.8,
+      degree: c.mention_count || 0, size: 1.5 + Math.log((c.mention_count || 0) + 1) * 0.8,
       x: 100 + Math.random() * 50, y: -100 + Math.random() * 50,
     })
   }
@@ -93,59 +89,42 @@ async function main() {
 
   // Protocols
   const { rows: protocols } = await db.query(`
-    SELECT p.id, p.name, p.category, em_counts.total_count
-    FROM protocols p
-    JOIN (
-      SELECT entity_id, count(DISTINCT collection || ':' || item_id) as total_count
-      FROM entity_mentions
-      WHERE entity_type = 'protocol' ${collectionFilter}
-      GROUP BY entity_id
-      HAVING count(DISTINCT collection || ':' || item_id) >= $1
-    ) em_counts ON em_counts.entity_id = p.id
-    ORDER BY em_counts.total_count DESC
-  `, [minDegree])
+    SELECT id, name, category, mention_count
+    FROM protocols WHERE mention_count > 0
+  `)
   for (const p of protocols) {
     graph.addNode(`protocol-${p.id}`, {
       label: p.name, nodeType: 'protocol', category: p.category,
-      degree: parseInt(p.total_count), size: 1.5 + Math.log(parseInt(p.total_count) + 1) * 0.8,
+      degree: p.mention_count || 0, size: 1.5 + Math.log((p.mention_count || 0) + 1) * 0.8,
       x: 0 + Math.random() * 50, y: 100 + Math.random() * 50,
     })
   }
   console.log(`  ${protocols.length} protocols`)
 
-  // Places (exclude broad scales — countries, states, generic regions)
+  // Places (exclude broad-scale)
   const { rows: places } = await db.query(`
-    SELECT pl.id, pl.name, pl.place_type, pl.scale, em_counts.total_count
-    FROM places pl
-    JOIN (
-      SELECT entity_id, count(DISTINCT collection || ':' || item_id) as total_count
-      FROM entity_mentions
-      WHERE entity_type = 'place' ${collectionFilter}
-      GROUP BY entity_id
-      HAVING count(DISTINCT collection || ':' || item_id) >= $1
-    ) em_counts ON em_counts.entity_id = pl.id
-    WHERE (pl.scale IS NULL OR pl.scale IN ('site', 'local'))
-      AND (pl.place_type IS NULL OR pl.place_type NOT IN ('country', 'state', 'region'))
-    ORDER BY em_counts.total_count DESC
-  `, [minDegree])
+    SELECT id, name, place_type, scale, mention_count
+    FROM places
+    WHERE mention_count > 0
+      AND (scale IS NULL OR scale IN ('site', 'local'))
+      AND (place_type IS NULL OR place_type NOT IN ('country', 'state', 'region'))
+  `)
   for (const p of places) {
     graph.addNode(`place-${p.id}`, {
       label: p.name, nodeType: 'place', placeType: p.place_type, scale: p.scale,
-      degree: parseInt(p.total_count), size: 1.5 + Math.log(parseInt(p.total_count) + 1) * 0.8,
+      degree: p.mention_count || 0, size: 1.5 + Math.log((p.mention_count || 0) + 1) * 0.8,
       x: 50 + Math.random() * 50, y: -50 + Math.random() * 50,
     })
   }
   console.log(`  ${places.length} places`)
 
-  // Stakeholders (agencies, NGOs, orgs with significant mention count) — excluded in research mode
+  // Stakeholders (excluded in research mode)
   let stakeholders: any[] = []
   if (!excludeDocs) {
     const { rows } = await db.query(`
       SELECT id, name, stakeholder_type, document_count, publication_count
-      FROM stakeholders
-      WHERE (document_count + publication_count) >= $1
-      ORDER BY (document_count + publication_count) DESC
-    `, [minDegree])
+      FROM stakeholders WHERE (document_count + publication_count) > 0
+    `)
     stakeholders = rows
     for (const s of stakeholders) {
       const deg = s.document_count + s.publication_count
@@ -158,15 +137,10 @@ async function main() {
   }
   console.log(`  ${stakeholders.length} stakeholders${excludeDocs ? ' (excluded)' : ''}`)
 
-  // Authors: include prolific authors (work_count >= minDegree) plus anyone with
-  // a document link (to surface document-only authors). Cap removed.
+  // Authors (all with work_count > 0)
   const { rows: authors } = await db.query(`
-    SELECT DISTINCT a.id, a.display_name, a.work_count
-    FROM authors a
-    WHERE a.work_count >= $1
-       OR a.id IN (SELECT DISTINCT parent_id FROM authors_rels WHERE documents_id IS NOT NULL)
-    ORDER BY a.work_count DESC
-  `, [minDegree])
+    SELECT id, display_name, work_count FROM authors WHERE work_count > 0 ORDER BY work_count DESC
+  `)
   for (const a of authors) {
     graph.addNode(`author-${a.id}`, {
       label: a.display_name, nodeType: 'author',
@@ -176,19 +150,14 @@ async function main() {
   }
   console.log(`  ${authors.length} authors`)
 
-  // Publications: top by citation count + those linked to datasets + those cited by documents
+  // Publications (all with citation count > 0 or any entity mention)
   const { rows: pubs } = await db.query(`
     SELECT id, title, coalesce(external_citation_count, 0) as cite_count
     FROM publications
-    WHERE id IN (
-      SELECT id FROM publications WHERE coalesce(external_citation_count, 0) >= $1
-      UNION SELECT source_publication_id FROM references_cited WHERE target_dataset_id IS NOT NULL
-      UNION SELECT publication_id FROM data_repositories WHERE linked_dataset_id IS NOT NULL
-      UNION SELECT publications_id FROM datasets_rels WHERE publications_id IS NOT NULL
-      UNION SELECT target_publication_id FROM references_cited WHERE source_document_id IS NOT NULL AND target_publication_id IS NOT NULL
-    )
+    WHERE coalesce(external_citation_count, 0) > 0
+       OR id IN (SELECT DISTINCT item_id FROM entity_mentions WHERE collection = 'publications')
     ORDER BY cite_count DESC
-  `, [minDegree])
+  `)
   for (const p of pubs) {
     graph.addNode(`pub-${p.id}`, {
       label: p.title.slice(0, 50), nodeType: 'publication',
@@ -198,62 +167,49 @@ async function main() {
   }
   console.log(`  ${pubs.length} publications`)
 
-  // Documents (those with entity mentions) — excluded in research mode
+  // Documents (excluded in research mode)
   let documents: any[] = []
   if (!excludeDocs) {
     const { rows } = await db.query(`
-      SELECT d.id, d.title, d.document_type, d.date_original,
-        (SELECT count(*) FROM entity_mentions em WHERE em.collection = 'documents' AND em.item_id = d.id) as mention_count
-      FROM documents d
-      WHERE d.id IN (SELECT DISTINCT item_id FROM entity_mentions WHERE collection = 'documents')
-      ORDER BY mention_count DESC
+      SELECT id, title, document_type
+      FROM documents
+      WHERE id IN (SELECT DISTINCT item_id FROM entity_mentions WHERE collection = 'documents')
     `)
     documents = rows
     for (const d of documents) {
       graph.addNode(`document-${d.id}`, {
         label: (d.title || '').slice(0, 50), nodeType: 'document',
         documentType: d.document_type,
-        degree: parseInt(d.mention_count), size: 1.5 + Math.log(parseInt(d.mention_count) + 1) * 0.6,
+        degree: 0, size: 2,
         x: -50 + Math.random() * 50, y: 50 + Math.random() * 50,
       })
     }
   }
   console.log(`  ${documents.length} documents${excludeDocs ? ' (excluded)' : ''}`)
 
-  // Datasets (those with entity links)
+  // Datasets (all with entity mentions)
   const { rows: datasets } = await db.query(`
-    SELECT d.id, d.title, d.publication_year
-    FROM datasets d
-    WHERE d.id IN (SELECT DISTINCT item_id FROM entity_mentions WHERE collection = 'datasets')
-    ORDER BY d.publication_year DESC NULLS LAST
+    SELECT id, title, publication_year
+    FROM datasets
+    WHERE id IN (SELECT DISTINCT item_id FROM entity_mentions WHERE collection = 'datasets')
   `)
   for (const d of datasets) {
     graph.addNode(`dataset-${d.id}`, {
-      label: d.title.slice(0, 50), nodeType: 'dataset',
-      year: d.publication_year,
+      label: d.title.slice(0, 50), nodeType: 'dataset', year: d.publication_year,
       degree: 0, size: 2,
       x: 0 + Math.random() * 50, y: -50 + Math.random() * 50,
     })
   }
   console.log(`  ${datasets.length} datasets`)
 
-  console.log(`  Total nodes: ${graph.order}`)
+  console.log(`  Total candidate nodes: ${graph.order}`)
 
-  // --- Add edges ---
+  // =====================================================================
+  // PHASE 2: Build ALL edges (no caps)
+  // =====================================================================
+  console.log('\nPhase 2: Building edges...')
 
-  // Entity co-occurrence (species↔concept, species↔protocol, concept↔protocol)
-  const entityIds = [
-    ...species.map((s: any) => ({ type: 'species', id: s.id })),
-    ...places.map((p: any) => ({ type: 'place', id: p.id })),
-    ...concepts.map((c: any) => ({ type: 'concept', id: c.id })),
-    ...protocols.map((p: any) => ({ type: 'protocol', id: p.id })),
-  ]
-  const entityTypeIds = new Map<string, Set<number>>()
-  for (const e of entityIds) {
-    if (!entityTypeIds.has(e.type)) entityTypeIds.set(e.type, new Set())
-    entityTypeIds.get(e.type)!.add(e.id)
-  }
-
+  // Entity co-occurrence (weight ≥ minCooccurrence)
   const { rows: cooccurrences } = await db.query(`
     SELECT em1.entity_type as t1, em1.entity_id as id1, em2.entity_type as t2, em2.entity_id as id2,
       COUNT(DISTINCT (em1.collection || ':' || em1.item_id)) as weight
@@ -262,267 +218,193 @@ async function main() {
       AND (em2.entity_type > em1.entity_type OR (em2.entity_type = em1.entity_type AND em2.entity_id > em1.entity_id))
     WHERE em1.entity_type IN ('species', 'concept', 'protocol', 'place')
       AND em2.entity_type IN ('species', 'concept', 'protocol', 'place')
-      AND em1.entity_type != 'place' AND em2.entity_type != 'place'
+      ${collectionFilter.replace(/em\./g, 'em1.')}
     GROUP BY em1.entity_type, em1.entity_id, em2.entity_type, em2.entity_id
-    HAVING COUNT(DISTINCT (em1.collection || ':' || em1.item_id)) >= 3
-    ORDER BY weight DESC
-    LIMIT 5000
-  `)
+    HAVING COUNT(DISTINCT (em1.collection || ':' || em1.item_id)) >= $1
+  `, [minCooccurrence])
   let entityEdges = 0
   for (const e of cooccurrences) {
-    if (entityTypeIds.get(e.t1)?.has(e.id1) && entityTypeIds.get(e.t2)?.has(e.id2)) {
-      addEdge(`${e.t1}-${e.id1}`, `${e.t2}-${e.id2}`, parseInt(e.weight))
-      entityEdges++
-    }
+    addEdge(`${e.t1}-${e.id1}`, `${e.t2}-${e.id2}`, Math.min(parseInt(e.weight), 5)) // cap co-occurrence
+    entityEdges++
   }
   console.log(`  ${entityEdges} entity co-occurrence edges`)
 
-  // Entity ↔ Publication (top entities mentioned in top publications)
-  const pubIdSet = new Set(pubs.map((p: any) => p.id))
+  // Entity ↔ Publication
   const { rows: entityPubLinks } = await db.query(`
     SELECT em.entity_type, em.entity_id, em.item_id
     FROM entity_mentions em
-    WHERE em.collection = 'publications' AND em.item_id = ANY($1)
+    WHERE em.collection = 'publications'
       AND em.entity_type IN ('species', 'concept', 'protocol', 'place')
-    LIMIT 10000
-  `, [[...pubIdSet]])
+  `)
   let epEdges = 0
-  for (const e of entityPubLinks) {
-    if (entityTypeIds.get(e.entity_type)?.has(e.entity_id) && pubIdSet.has(e.item_id)) {
-      addEdge(`${e.entity_type}-${e.entity_id}`, `pub-${e.item_id}`, 1)
-      epEdges++
-    }
-  }
+  for (const e of entityPubLinks) addEdge(`${e.entity_type}-${e.entity_id}`, `pub-${e.item_id}`, 1), epEdges++
   console.log(`  ${epEdges} entity↔publication edges`)
 
   // Author ↔ Publication
-  const authorIdSet = new Set(authors.map((a: any) => a.id))
   const { rows: authorPubLinks } = await db.query(`
     SELECT parent_id as author_id, publications_id as pub_id
-    FROM authors_rels
-    WHERE parent_id = ANY($1) AND publications_id = ANY($2) AND path = 'publications'
-  `, [[...authorIdSet], [...pubIdSet]])
+    FROM authors_rels WHERE publications_id IS NOT NULL AND path = 'publications'
+  `)
   let apEdges = 0
-  for (const e of authorPubLinks) {
-    addEdge(`author-${e.author_id}`, `pub-${e.pub_id}`, 1)
-    apEdges++
-  }
+  for (const e of authorPubLinks) addEdge(`author-${e.author_id}`, `pub-${e.pub_id}`, 3), apEdges++ // boosted
   console.log(`  ${apEdges} author↔publication edges`)
 
-  // Author co-authorship
+  // Co-authorship (≥2 shared publications)
   const { rows: coauthorEdges } = await db.query(`
     SELECT ar1.parent_id as a1, ar2.parent_id as a2,
       COUNT(DISTINCT ar1.publications_id) as shared
     FROM authors_rels ar1
     JOIN authors_rels ar2 ON ar2.publications_id = ar1.publications_id
       AND ar2.parent_id > ar1.parent_id AND ar2.path = 'publications'
-    WHERE ar1.path = 'publications' AND ar1.parent_id = ANY($1) AND ar2.parent_id = ANY($1)
+    WHERE ar1.path = 'publications'
     GROUP BY ar1.parent_id, ar2.parent_id
-    HAVING COUNT(DISTINCT ar1.publications_id) >= 3
-    LIMIT 3000
-  `, [[...authorIdSet]])
+    HAVING COUNT(DISTINCT ar1.publications_id) >= 2
+  `)
   let caEdges = 0
-  for (const e of coauthorEdges) {
-    addEdge(`author-${e.a1}`, `author-${e.a2}`, parseInt(e.shared))
-    caEdges++
-  }
+  for (const e of coauthorEdges) addEdge(`author-${e.a1}`, `author-${e.a2}`, parseInt(e.shared) * 5), caEdges++ // boosted
   console.log(`  ${caEdges} co-authorship edges`)
 
-  // Author ↔ Entity (authors linked to the entities they study most)
+  // Author ↔ Entity
   const { rows: authorEntityLinks } = await db.query(`
     SELECT ar.parent_id as author_id, em.entity_type, em.entity_id,
       COUNT(DISTINCT em.item_id) as shared
     FROM authors_rels ar
     JOIN entity_mentions em ON em.item_id = ar.publications_id AND em.collection = 'publications'
-    WHERE ar.parent_id = ANY($1) AND ar.path = 'publications'
+    WHERE ar.path = 'publications'
       AND em.entity_type IN ('species', 'concept', 'protocol', 'place')
     GROUP BY ar.parent_id, em.entity_type, em.entity_id
-    HAVING COUNT(DISTINCT em.item_id) >= 3
-    ORDER BY shared DESC
-    LIMIT 5000
-  `, [[...authorIdSet]])
+    HAVING COUNT(DISTINCT em.item_id) >= 2
+  `)
   let aeEdges = 0
-  for (const e of authorEntityLinks) {
-    if (entityTypeIds.get(e.entity_type)?.has(e.entity_id)) {
-      addEdge(`author-${e.author_id}`, `${e.entity_type}-${e.entity_id}`, parseInt(e.shared))
-      aeEdges++
-    }
-  }
+  for (const e of authorEntityLinks) addEdge(`author-${e.author_id}`, `${e.entity_type}-${e.entity_id}`, Math.min(parseInt(e.shared), 5)), aeEdges++ // capped
   console.log(`  ${aeEdges} author↔entity edges`)
 
-  // Pub↔Pub citation edges
+  // Pub↔Pub citations
   const { rows: citations } = await db.query(`
     SELECT source_publication_id as src, target_publication_id as tgt
     FROM references_cited
-    WHERE source_publication_id = ANY($1) AND target_publication_id = ANY($1)
-  `, [[...pubIdSet]])
+    WHERE source_publication_id IS NOT NULL AND target_publication_id IS NOT NULL
+  `)
   let citEdges = 0
-  for (const e of citations) {
-    addEdge(`pub-${e.src}`, `pub-${e.tgt}`, 2)
-    citEdges++
-  }
+  for (const e of citations) addEdge(`pub-${e.src}`, `pub-${e.tgt}`, 6), citEdges++ // boosted
   console.log(`  ${citEdges} pub↔pub citation edges`)
 
-  // Document ↔ Entity
-  const docIdSet = new Set(documents.map((d: any) => d.id))
-  const { rows: docEntityLinks } = await db.query(`
-    SELECT em.entity_type, em.entity_id, em.item_id
-    FROM entity_mentions em
-    WHERE em.collection = 'documents' AND em.item_id = ANY($1)
-      AND em.entity_type IN ('species', 'concept', 'protocol', 'place')
-    LIMIT 15000
-  `, [[...docIdSet]])
-  let docEntEdges = 0
-  for (const e of docEntityLinks) {
-    if (entityTypeIds.get(e.entity_type)?.has(e.entity_id) && docIdSet.has(e.item_id)) {
-      addEdge(`document-${e.item_id}`, `${e.entity_type}-${e.entity_id}`, 1)
-      docEntEdges++
+  // Document edges (excluded in research mode)
+  if (!excludeDocs) {
+    // Document ↔ Entity
+    const { rows: docEntityLinks } = await db.query(`
+      SELECT em.entity_type, em.entity_id, em.item_id
+      FROM entity_mentions em
+      WHERE em.collection = 'documents'
+        AND em.entity_type IN ('species', 'concept', 'protocol', 'place')
+    `)
+    let docEntEdges = 0
+    for (const e of docEntityLinks) addEdge(`document-${e.item_id}`, `${e.entity_type}-${e.entity_id}`, 1), docEntEdges++
+    console.log(`  ${docEntEdges} document↔entity edges`)
+
+    // Stakeholder ↔ Item
+    const { rows: stakeholderLinks } = await db.query(`
+      SELECT em.entity_id, em.collection, em.item_id
+      FROM entity_mentions em
+      WHERE em.entity_type = 'stakeholder'
+    `)
+    let shEdges = 0
+    for (const e of stakeholderLinks) {
+      const itemNode = e.collection === 'documents' ? `document-${e.item_id}` : `pub-${e.item_id}`
+      addEdge(`stakeholder-${e.entity_id}`, itemNode, 1), shEdges++
     }
-  }
-  console.log(`  ${docEntEdges} document↔entity edges`)
+    console.log(`  ${shEdges} stakeholder↔item edges`)
 
-  // Stakeholder ↔ Document & Publication
-  const stakeholderIdSet = new Set(stakeholders.map((s: any) => s.id))
-  const { rows: stakeholderLinks } = await db.query(`
-    SELECT em.entity_id, em.collection, em.item_id
-    FROM entity_mentions em
-    WHERE em.entity_type = 'stakeholder'
-      AND em.entity_id = ANY($1)
-      AND ((em.collection = 'documents' AND em.item_id = ANY($2))
-        OR (em.collection = 'publications' AND em.item_id = ANY($3)))
-    LIMIT 20000
-  `, [[...stakeholderIdSet], [...docIdSet], [...pubIdSet]])
-  let shEdges = 0
-  for (const e of stakeholderLinks) {
-    const itemNode = e.collection === 'documents' ? `document-${e.item_id}` : `pub-${e.item_id}`
-    addEdge(`stakeholder-${e.entity_id}`, itemNode, 1)
-    shEdges++
-  }
-  console.log(`  ${shEdges} stakeholder↔item edges`)
+    // Document citations
+    const { rows: docPubCit } = await db.query(`
+      SELECT source_document_id as doc_id, target_publication_id as pub_id
+      FROM references_cited WHERE source_document_id IS NOT NULL AND target_publication_id IS NOT NULL
+    `)
+    let dpcEdges = 0
+    for (const e of docPubCit) addEdge(`document-${e.doc_id}`, `pub-${e.pub_id}`, 6), dpcEdges++ // boosted
 
-  // Document ↔ Publication citations
-  const { rows: docPubCitations } = await db.query(`
-    SELECT source_document_id as doc_id, target_publication_id as pub_id
-    FROM references_cited
-    WHERE source_document_id = ANY($1) AND target_publication_id = ANY($2)
-  `, [[...docIdSet], [...pubIdSet]])
-  let dpcEdges = 0
-  for (const e of docPubCitations) {
-    addEdge(`document-${e.doc_id}`, `pub-${e.pub_id}`, 2)
-    dpcEdges++
-  }
-  console.log(`  ${dpcEdges} document→publication citation edges`)
+    const { rows: docDocCit } = await db.query(`
+      SELECT source_document_id as src, target_document_id as tgt
+      FROM references_cited WHERE source_document_id IS NOT NULL AND target_document_id IS NOT NULL
+    `)
+    let ddcEdges = 0
+    for (const e of docDocCit) addEdge(`document-${e.src}`, `document-${e.tgt}`, 6), ddcEdges++ // boosted
+    console.log(`  ${dpcEdges} doc→pub + ${ddcEdges} doc↔doc citation edges`)
 
-  // Document ↔ Document citations
-  const { rows: docDocCitations } = await db.query(`
-    SELECT source_document_id as src, target_document_id as tgt
-    FROM references_cited
-    WHERE source_document_id = ANY($1) AND target_document_id = ANY($1)
-  `, [[...docIdSet]])
-  let ddcEdges = 0
-  for (const e of docDocCitations) {
-    addEdge(`document-${e.src}`, `document-${e.tgt}`, 2)
-    ddcEdges++
+    // Author ↔ Document
+    const { rows: authorDocLinks } = await db.query(`
+      SELECT parent_id as author_id, documents_id as doc_id
+      FROM authors_rels WHERE documents_id IS NOT NULL AND path = 'documents'
+    `)
+    let adEdges = 0
+    for (const e of authorDocLinks) addEdge(`author-${e.author_id}`, `document-${e.doc_id}`, 3), adEdges++ // boosted
+    console.log(`  ${adEdges} author↔document edges`)
   }
-  console.log(`  ${ddcEdges} document↔document citation edges`)
 
-  // Author ↔ Document (authors who wrote documents)
-  const { rows: authorDocLinks } = await db.query(`
-    SELECT parent_id as author_id, documents_id as doc_id
-    FROM authors_rels
-    WHERE parent_id = ANY($1) AND documents_id = ANY($2) AND path = 'documents'
-  `, [[...authorIdSet], [...docIdSet]])
-  let adEdges = 0
-  for (const e of authorDocLinks) {
-    addEdge(`author-${e.author_id}`, `document-${e.doc_id}`, 1)
-    adEdges++
-  }
-  console.log(`  ${adEdges} author↔document edges`)
-
-  // Dataset ↔ Entity (entities mentioned in datasets)
-  const dsIdSet = new Set(datasets.map((d: any) => d.id))
+  // Dataset ↔ Entity
   const { rows: datasetEntityLinks } = await db.query(`
     SELECT em.entity_type, em.entity_id, em.item_id
     FROM entity_mentions em
-    WHERE em.collection = 'datasets' AND em.item_id = ANY($1)
+    WHERE em.collection = 'datasets'
       AND em.entity_type IN ('species', 'concept', 'protocol', 'place')
-    LIMIT 10000
-  `, [[...dsIdSet]])
+  `)
   let deEdges = 0
-  for (const e of datasetEntityLinks) {
-    if (entityTypeIds.get(e.entity_type)?.has(e.entity_id)) {
-      addEdge(`dataset-${e.item_id}`, `${e.entity_type}-${e.entity_id}`, 1)
-      deEdges++
-    }
-  }
+  for (const e of datasetEntityLinks) addEdge(`dataset-${e.item_id}`, `${e.entity_type}-${e.entity_id}`, 1), deEdges++
   console.log(`  ${deEdges} dataset↔entity edges`)
 
-  // Dataset ↔ Publication (three sources: data_repositories, references_cited, datasets_rels)
+  // Dataset ↔ Publication
   let dpEdges = 0
-
-  // Via data_repositories (VLM-extracted links)
-  const { rows: dpViaRepos } = await db.query(`
-    SELECT publication_id, linked_dataset_id
-    FROM data_repositories
-    WHERE linked_dataset_id = ANY($1) AND publication_id = ANY($2)
-  `, [[...dsIdSet], [...pubIdSet]])
-  for (const e of dpViaRepos) {
-    addEdge(`dataset-${e.linked_dataset_id}`, `pub-${e.publication_id}`, 2)
-    dpEdges++
-  }
-
-  // Via references_cited (publications citing datasets)
-  const { rows: dpViaCitations } = await db.query(`
-    SELECT source_publication_id as pub_id, target_dataset_id as ds_id
-    FROM references_cited
-    WHERE target_dataset_id = ANY($1) AND source_publication_id = ANY($2)
-  `, [[...dsIdSet], [...pubIdSet]])
-  for (const e of dpViaCitations) {
-    addEdge(`pub-${e.pub_id}`, `dataset-${e.ds_id}`, 2)
-    dpEdges++
-  }
-
-  // Via datasets_rels (Payload relationship field)
-  const { rows: dpViaRels } = await db.query(`
-    SELECT parent_id as ds_id, publications_id as pub_id
-    FROM datasets_rels
-    WHERE publications_id IS NOT NULL AND parent_id = ANY($1) AND publications_id = ANY($2)
-  `, [[...dsIdSet], [...pubIdSet]])
-  for (const e of dpViaRels) {
-    addEdge(`dataset-${e.ds_id}`, `pub-${e.pub_id}`, 2)
-    dpEdges++
-  }
-
+  const { rows: dpViaRepos } = await db.query(`SELECT publication_id, linked_dataset_id FROM data_repositories WHERE linked_dataset_id IS NOT NULL`)
+  for (const e of dpViaRepos) addEdge(`dataset-${e.linked_dataset_id}`, `pub-${e.publication_id}`, 4), dpEdges++ // boosted
+  const { rows: dpViaCit } = await db.query(`SELECT source_publication_id as pub_id, target_dataset_id as ds_id FROM references_cited WHERE target_dataset_id IS NOT NULL AND source_publication_id IS NOT NULL`)
+  for (const e of dpViaCit) addEdge(`pub-${e.pub_id}`, `dataset-${e.ds_id}`, 4), dpEdges++ // boosted
+  const { rows: dpViaRels } = await db.query(`SELECT parent_id as ds_id, publications_id as pub_id FROM datasets_rels WHERE publications_id IS NOT NULL`)
+  for (const e of dpViaRels) addEdge(`dataset-${e.ds_id}`, `pub-${e.pub_id}`, 4), dpEdges++ // boosted
   console.log(`  ${dpEdges} dataset↔publication edges`)
 
-  // Dataset ↔ Author (shared authorship)
-  const { rows: datasetAuthorLinks } = await db.query(`
-    SELECT parent_id as author_id, datasets_id as ds_id
-    FROM authors_rels
-    WHERE parent_id = ANY($1) AND datasets_id = ANY($2) AND path = 'datasets'
-  `, [[...authorIdSet], [...dsIdSet]])
+  // Dataset ↔ Author
+  const { rows: datasetAuthorLinks } = await db.query(`SELECT parent_id as author_id, datasets_id as ds_id FROM authors_rels WHERE datasets_id IS NOT NULL AND path = 'datasets'`)
   let daEdges = 0
-  for (const e of datasetAuthorLinks) {
-    addEdge(`author-${e.author_id}`, `dataset-${e.ds_id}`, 1)
-    daEdges++
-  }
+  for (const e of datasetAuthorLinks) addEdge(`author-${e.author_id}`, `dataset-${e.ds_id}`, 3), daEdges++ // boosted
   console.log(`  ${daEdges} dataset↔author edges`)
 
   console.log(`  Total edges: ${graph.size}`)
 
-  // Remove isolated nodes (no edges)
-  const isolated: string[] = []
-  graph.forEachNode((node: string) => { if (graph.degree(node) === 0) isolated.push(node) })
-  for (const n of isolated) graph.dropNode(n)
-  console.log(`  Removed ${isolated.length} isolated nodes → ${graph.order} nodes remaining`)
+  // =====================================================================
+  // PHASE 3: Prune by connectivity
+  // =====================================================================
+  console.log(`\nPhase 3: Pruning nodes with degree < ${minDegree}...`)
+  let pruned = 0
+  let changed = true
+  while (changed) {
+    changed = false
+    const toPrune: string[] = []
+    graph.forEachNode((node: string) => {
+      if (graph.degree(node) < minDegree) toPrune.push(node)
+    })
+    for (const n of toPrune) { graph.dropNode(n); pruned++ }
+    if (toPrune.length > 0) changed = true // removing nodes may reduce neighbors' degree
+  }
+  console.log(`  Pruned ${pruned} weakly-connected nodes → ${graph.order} nodes, ${graph.size} edges remaining`)
+
+  // Report type breakdown after pruning
+  const typeCounts: Record<string, number> = {}
+  graph.forEachNode((_n: string, attrs: any) => {
+    typeCounts[attrs.nodeType] = (typeCounts[attrs.nodeType] || 0) + 1
+  })
+  for (const [type, count] of Object.entries(typeCounts).sort((a, b) => b[1] - a[1])) {
+    console.log(`    ${type}: ${count}`)
+  }
 
   // Update degree from actual graph edges
   graph.forEachNode((node: string) => {
     graph.setNodeAttribute(node, 'degree', graph.degree(node))
   })
 
-  // Run ForceAtlas2
-  console.log('  Running ForceAtlas2 layout...')
+  // =====================================================================
+  // PHASE 4: Layout + Export
+  // =====================================================================
+  console.log('\nPhase 4: Running ForceAtlas2 layout...')
   forceAtlas2.assign(graph, {
     iterations: 800,
     settings: {
@@ -534,21 +416,16 @@ async function main() {
     },
   })
 
-  // Normalize coordinates to [-500, 500] range so Sigma's auto-fit works well
+  // Normalize coordinates to [-500, 500]
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
   graph.forEachNode((_n: string, attrs: any) => {
-    if (attrs.x < minX) minX = attrs.x
-    if (attrs.x > maxX) maxX = attrs.x
-    if (attrs.y < minY) minY = attrs.y
-    if (attrs.y > maxY) maxY = attrs.y
+    if (attrs.x < minX) minX = attrs.x; if (attrs.x > maxX) maxX = attrs.x
+    if (attrs.y < minY) minY = attrs.y; if (attrs.y > maxY) maxY = attrs.y
   })
-  const rangeX = maxX - minX || 1
-  const rangeY = maxY - minY || 1
+  const rangeX = maxX - minX || 1, rangeY = maxY - minY || 1
   graph.forEachNode((n: string) => {
-    const x = graph.getNodeAttribute(n, 'x')
-    const y = graph.getNodeAttribute(n, 'y')
-    graph.setNodeAttribute(n, 'x', ((x - minX) / rangeX - 0.5) * 1000)
-    graph.setNodeAttribute(n, 'y', ((y - minY) / rangeY - 0.5) * 1000)
+    graph.setNodeAttribute(n, 'x', ((graph.getNodeAttribute(n, 'x') - minX) / rangeX - 0.5) * 1000)
+    graph.setNodeAttribute(n, 'y', ((graph.getNodeAttribute(n, 'y') - minY) / rangeY - 0.5) * 1000)
   })
 
   // Export
@@ -557,7 +434,7 @@ async function main() {
     colorField: 'nodeType',
     nodes: [] as any[],
     edges: [] as any[],
-    meta: { minDegree, nodeCount: graph.order, edgeCount: graph.size, generatedAt: new Date().toISOString() },
+    meta: { minDegree, minCooccurrence, nodeCount: graph.order, edgeCount: graph.size, generatedAt: new Date().toISOString() },
   }
   graph.forEachNode((id: string, attrs: any) => { output.nodes.push({ id, ...attrs }) })
   graph.forEachEdge((_e: string, attrs: any, source: string, target: string) => {
@@ -567,7 +444,7 @@ async function main() {
   mkdirSync('public/graph', { recursive: true })
   const outPath = `public/graph/${outputFile}`
   writeFileSync(outPath, JSON.stringify(output))
-  console.log(`  Written to ${outPath} (${(JSON.stringify(output).length / 1024).toFixed(0)}KB)`)
+  console.log(`\nWritten to ${outPath} (${(JSON.stringify(output).length / 1024).toFixed(0)}KB)`)
 
   await db.end()
 }
