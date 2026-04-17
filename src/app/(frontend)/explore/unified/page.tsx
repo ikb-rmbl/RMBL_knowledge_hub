@@ -26,8 +26,8 @@ export default async function ExploreUnifiedPage({ searchParams }: { searchParam
 
   const modeToggle = (
     <div style={{ display: 'flex', gap: '6px' }}>
-      <Link href="/explore/unified" style={tabStyle(!isResearch)}>All content</Link>
-      <Link href="/explore/unified?mode=research" style={tabStyle(isResearch)}>Research only</Link>
+      <a href="/explore/unified" style={tabStyle(!isResearch)}>All content</a>
+      <a href="/explore/unified?mode=research" style={tabStyle(isResearch)}>Research only</a>
     </div>
   )
 

@@ -49,8 +49,8 @@ export default async function ExploreNeighborhoodsPage({ searchParams }: { searc
 
   const modeToggle = (
     <div style={{ display: 'flex', gap: '6px' }}>
-      <Link href="/explore/neighborhoods" style={tabStyle(!isResearch)}>All content</Link>
-      <Link href="/explore/neighborhoods?mode=research" style={tabStyle(isResearch)}>Research only</Link>
+      <a href="/explore/neighborhoods" style={tabStyle(!isResearch)}>All content</a>
+      <a href="/explore/neighborhoods?mode=research" style={tabStyle(isResearch)}>Research only</a>
     </div>
   )
 
