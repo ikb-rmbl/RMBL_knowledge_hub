@@ -14,18 +14,18 @@ import { getDb } from './db'
  * Use GRAPH_ENTITY_FILTER with `em.` alias, GRAPH_ENTITY_FILTER_BARE without.
  */
 const GRAPH_ENTITY_FILTER = `(
-  em.entity_type IN ('species', 'concept', 'protocol')
+  em.entity_type IN ('species', 'concept', 'protocol', 'stakeholder')
   OR (em.entity_type = 'place' AND em.entity_id IN (
-    SELECT id FROM places WHERE scale IN ('site', 'local')
-      AND place_type NOT IN ('country', 'state', 'region')
+    SELECT id FROM places WHERE (scale IS NULL OR scale IN ('site', 'local'))
+      AND (place_type IS NULL OR place_type NOT IN ('country', 'state', 'region'))
   ))
 )`
 
 const GRAPH_ENTITY_FILTER_BARE = `(
-  entity_type IN ('species', 'concept', 'protocol')
+  entity_type IN ('species', 'concept', 'protocol', 'stakeholder')
   OR (entity_type = 'place' AND entity_id IN (
-    SELECT id FROM places WHERE scale IN ('site', 'local')
-      AND place_type NOT IN ('country', 'state', 'region')
+    SELECT id FROM places WHERE (scale IS NULL OR scale IN ('site', 'local'))
+      AND (place_type IS NULL OR place_type NOT IN ('country', 'state', 'region'))
   ))
 )`
 
@@ -97,12 +97,14 @@ export async function fetchNeighborhood(
         WHEN 'place' THEN (SELECT name FROM places WHERE id = n.entity_id)
         WHEN 'protocol' THEN (SELECT name FROM protocols WHERE id = n.entity_id)
         WHEN 'concept' THEN (SELECT name FROM concepts WHERE id = n.entity_id)
+        WHEN 'stakeholder' THEN (SELECT name FROM stakeholders WHERE id = n.entity_id)
       END as name,
       CASE n.entity_type
         WHEN 'species' THEN (SELECT publication_count FROM species WHERE id = n.entity_id)
         WHEN 'place' THEN (SELECT publication_count FROM places WHERE id = n.entity_id)
         WHEN 'protocol' THEN (SELECT publication_count FROM protocols WHERE id = n.entity_id)
         WHEN 'concept' THEN (SELECT publication_count FROM concepts WHERE id = n.entity_id)
+        WHEN 'stakeholder' THEN (SELECT document_count FROM stakeholders WHERE id = n.entity_id)
       END as degree
     FROM neighbors n
   `, [entityType, entityId, limit])
@@ -186,6 +188,24 @@ export async function fetchNeighborhood(
     addEdge(focalId, nid, 1)
   }
 
+  // Top documents mentioning this entity
+  const { rows: docs } = await db.query(`
+    SELECT d.id, d.title
+    FROM entity_mentions em
+    JOIN documents d ON d.id = em.item_id
+    WHERE em.entity_type = $1 AND em.entity_id = $2 AND em.collection = 'documents'
+    LIMIT 5
+  `, [entityType, entityId])
+
+  for (const d of docs) {
+    const nid = `documents-${d.id}`
+    if (!nodeIds.has(nid)) {
+      nodes.push({ id: nid, label: (d.title || '').slice(0, 50), type: 'document', degree: 0, isFocal: false })
+      nodeIds.add(nid)
+    }
+    addEdge(focalId, nid, 1)
+  }
+
   // Top authors of those publications
   const pubIds = pubs.map((p: any) => p.id)
   if (pubIds.length > 0) {
@@ -221,7 +241,7 @@ export async function fetchNeighborhood(
 
     // Entity neighbor ↔ publication links
     const entityNodeIds = [...nodeIds].filter((nid) =>
-      (nid.startsWith('species-') || nid.startsWith('protocol-') || nid.startsWith('concept-')) && nid !== focalId
+      (nid.startsWith('species-') || nid.startsWith('protocol-') || nid.startsWith('concept-') || nid.startsWith('place-') || nid.startsWith('stakeholder-')) && nid !== focalId
     )
     if (entityNodeIds.length > 0) {
       const { rows: epLinks } = await db.query(`
@@ -253,19 +273,23 @@ export async function fetchItemNetwork(
   const db = getDb()
   const focalId = `${collection}-${itemId}`
 
-  // Get all entities linked to this item (excluding places, deduped)
+  // Get all entities linked to this item (deduped)
   const { rows: entities } = await db.query(`
     SELECT entity_type, entity_id, name, degree FROM (
       SELECT DISTINCT ON (em.entity_type, em.entity_id) em.entity_type, em.entity_id,
         CASE em.entity_type
           WHEN 'species' THEN (SELECT canonical_name FROM species WHERE id = em.entity_id)
+          WHEN 'place' THEN (SELECT name FROM places WHERE id = em.entity_id)
           WHEN 'protocol' THEN (SELECT name FROM protocols WHERE id = em.entity_id)
           WHEN 'concept' THEN (SELECT name FROM concepts WHERE id = em.entity_id)
+          WHEN 'stakeholder' THEN (SELECT name FROM stakeholders WHERE id = em.entity_id)
         END as name,
         CASE em.entity_type
           WHEN 'species' THEN (SELECT publication_count FROM species WHERE id = em.entity_id)
+          WHEN 'place' THEN (SELECT publication_count FROM places WHERE id = em.entity_id)
           WHEN 'protocol' THEN (SELECT publication_count FROM protocols WHERE id = em.entity_id)
           WHEN 'concept' THEN (SELECT publication_count FROM concepts WHERE id = em.entity_id)
+          WHEN 'stakeholder' THEN (SELECT document_count FROM stakeholders WHERE id = em.entity_id)
         END as degree
       FROM entity_mentions em
       WHERE em.collection = $1 AND em.item_id = $2

@@ -22,6 +22,15 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
     ORDER BY p.year DESC NULLS LAST
   `, [id])
 
+  // Documents mentioning this protocol
+  const { rows: docs } = await db.query(`
+    SELECT d.id, d.title, d.document_type
+    FROM entity_mentions em
+    JOIN documents d ON d.id = em.item_id
+    WHERE em.entity_type = 'protocol' AND em.entity_id = $1 AND em.collection = 'documents'
+    ORDER BY d.title
+  `, [id])
+
   // Co-occurring species (studied with this protocol)
   const { rows: coSpecies } = await db.query(`
     SELECT s.id, s.canonical_name, s.family, COUNT(*) as shared
@@ -120,6 +129,40 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
           </div>
         </div>
       )}
+
+      {docs.length > 0 && (() => {
+        const INITIAL = 10
+        return (
+          <div className="detail-section">
+            <h2>Documents ({docs.length})</h2>
+            <div className="result-cards">
+              {docs.slice(0, INITIAL).map((doc: any) => (
+                <Link key={doc.id} href={`/documents/${doc.id}`} className="result-card">
+                  <div className="result-card-header">
+                    <span className="badge badge-document">{doc.document_type ? doc.document_type.replace(/_/g, ' ') : 'Document'}</span>
+                    <h3 className="result-card-title">{doc.title}</h3>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            {docs.length > INITIAL && (
+              <details style={{ marginTop: '8px' }}>
+                <summary style={{ cursor: 'pointer', fontSize: '13px', color: 'var(--color-accent)', fontWeight: 500 }}>Show {docs.length - INITIAL} more documents</summary>
+                <div className="result-cards" style={{ marginTop: '8px' }}>
+                  {docs.slice(INITIAL).map((doc: any) => (
+                    <Link key={doc.id} href={`/documents/${doc.id}`} className="result-card">
+                      <div className="result-card-header">
+                        <span className="badge badge-document">{doc.document_type ? doc.document_type.replace(/_/g, ' ') : 'Document'}</span>
+                        <h3 className="result-card-title">{doc.title}</h3>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
+        )
+      })()}
 
       {coSpecies.length > 0 && (
         <div className="detail-section">

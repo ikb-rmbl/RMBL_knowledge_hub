@@ -22,6 +22,15 @@ export default async function ConceptDetail({ params }: { params: Promise<{ id: 
     ORDER BY p.year DESC NULLS LAST
   `, [id])
 
+  // Documents engaging with this concept
+  const { rows: docs } = await db.query(`
+    SELECT d.id, d.title, d.document_type
+    FROM entity_mentions em
+    JOIN documents d ON d.id = em.item_id
+    WHERE em.entity_type = 'concept' AND em.entity_id = $1 AND em.collection = 'documents'
+    ORDER BY d.title
+  `, [id])
+
   // Co-occurring concepts
   const { rows: coConcepts } = await db.query(`
     SELECT c.id, c.name, c.concept_type, COUNT(*) as shared
@@ -137,6 +146,40 @@ export default async function ConceptDetail({ params }: { params: Promise<{ id: 
                         {pub.year && <span>{pub.year}</span>}
                         {pub.journal && <span>{pub.journal}</span>}
                         {pub.role && <span>{pub.role}</span>}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
+        )
+      })()}
+
+      {docs.length > 0 && (() => {
+        const INITIAL = 10
+        return (
+          <div className="detail-section">
+            <h2>Documents ({docs.length})</h2>
+            <div className="result-cards">
+              {docs.slice(0, INITIAL).map((doc: any) => (
+                <Link key={doc.id} href={`/documents/${doc.id}`} className="result-card">
+                  <div className="result-card-header">
+                    <span className="badge badge-document">{doc.document_type ? doc.document_type.replace(/_/g, ' ') : 'Document'}</span>
+                    <h3 className="result-card-title">{doc.title}</h3>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            {docs.length > INITIAL && (
+              <details style={{ marginTop: '8px' }}>
+                <summary style={{ cursor: 'pointer', fontSize: '13px', color: 'var(--color-accent)', fontWeight: 500 }}>Show {docs.length - INITIAL} more documents</summary>
+                <div className="result-cards" style={{ marginTop: '8px' }}>
+                  {docs.slice(INITIAL).map((doc: any) => (
+                    <Link key={doc.id} href={`/documents/${doc.id}`} className="result-card">
+                      <div className="result-card-header">
+                        <span className="badge badge-document">{doc.document_type ? doc.document_type.replace(/_/g, ' ') : 'Document'}</span>
+                        <h3 className="result-card-title">{doc.title}</h3>
                       </div>
                     </Link>
                   ))}
