@@ -155,13 +155,11 @@ export default async function HomePage() {
   return (
     <>
       <div className="hero">
-        <h1>Explore Western Colorado's Environmental Knowledge</h1>
+        <h1>Explore Environmental Knowledge at Rocky Mountain Biological Laboratory</h1>
         <p>
-          Search across {totalCount.toLocaleString()} documents, publications, and datasets
-          from {authorCount.totalDocs.toLocaleString()} researchers — connected by{' '}
-          {parseInt(entityStats.cross_links).toLocaleString()} entity links,{' '}
-          {parseInt(entityStats.citations).toLocaleString()} citation connections, and{' '}
-          {parseInt(crossStats.shared_entities).toLocaleString()} entities shared across collections.
+          The Knowledge Hub brings together {totalCount.toLocaleString()} scientific publications,
+          datasets, and other documents from one of the best-studied ecosystems in the world,
+          connected in a dense knowledge network.
         </p>
 
         <form className="search-form" action="/search" method="GET">

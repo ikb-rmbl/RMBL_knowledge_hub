@@ -236,7 +236,7 @@
         "dataset": 5
       },
       "title": "Environmental Planning and Land Management in Colorado",
-      "summary": "This research community focuses on environmental impact assessment, land use planning, and natural resource management across Colorado's diverse ecosystems to inform policy decisions and conservation strategies.",
+      "summary": "focuses on environmental impact assessment, land use planning, and natural resource management across Colorado's diverse ecosystems to inform policy decisions and conservation strategies.",
       "themes": [
         "environmental impact assessment",
         "land use planning",
@@ -457,7 +457,7 @@
         "document": 255
       },
       "title": "Colorado River Water Management and Fish Conservation",
-      "summary": "This research community focuses on water resource management and endangered fish conservation in the Colorado River system, addressing the complex balance between human water needs and aquatic ecosystem protection.",
+      "summary": "focuses on water resource management and endangered fish conservation in the Colorado River system, addressing the complex balance between human water needs and aquatic ecosystem protection.",
       "themes": [
         "water resource management",
         "endangered fish species",
@@ -654,7 +654,7 @@
         "dataset": 21
       },
       "title": "Yellow-bellied Marmot Social Behavior and Population Dynamics",
-      "summary": "This research community studies how yellow-bellied marmots form social relationships, respond to predators, and maintain populations over multiple decades, providing insights into mammalian social evolution and conservation.",
+      "summary": "studies how yellow-bellied marmots form social relationships, respond to predators, and maintain populations over multiple decades, providing insights into mammalian social evolution and conservation.",
       "themes": [
         "antipredator behavior",
         "social network analysis",
@@ -909,7 +909,7 @@
         "dataset": 130
       },
       "title": "East River Watershed Hydrology and Environmental Monitoring",
-      "summary": "This research community studies the East River watershed's hydrological processes, water discharge patterns, and environmental changes to understand how mountain ecosystems respond to climate variability and human impacts.",
+      "summary": "studies the East River watershed's hydrological processes, water discharge patterns, and environmental changes to understand how mountain ecosystems respond to climate variability and human impacts.",
       "themes": [
         "watershed hydrology",
         "paleoenvironmental reconstruction",
@@ -1116,7 +1116,7 @@
         "dataset": 29
       },
       "title": "Plant-Pollinator Interactions and Floral Evolution",
-      "summary": "This research community investigates how pollinators shape the evolution of flower traits and plant reproduction, helping us understand how species adapt and diversify in response to ecological pressures.",
+      "summary": "investigates how pollinators shape the evolution of flower traits and plant reproduction, helping us understand how species adapt and diversify in response to ecological pressures.",
       "themes": [
         "pollinator-mediated selection",
         "floral trait evolution",
@@ -1354,7 +1354,7 @@
         "dataset": 69
       },
       "title": "Climate Change Effects on Plant-Pollinator Phenology",
-      "summary": "This research community studies how climate change disrupts the timing of flowering plants and their pollinators, which threatens ecosystem stability and food webs in alpine environments.",
+      "summary": "studies how climate change disrupts the timing of flowering plants and their pollinators, which threatens ecosystem stability and food webs in alpine environments.",
       "themes": [
         "phenological mismatch",
         "climate change impacts",
@@ -1585,7 +1585,7 @@
         "dataset": 9
       },
       "title": "Colorado Regional Planning and Environmental Management",
-      "summary": "This research community studies comprehensive environmental and economic planning for Colorado's development, focusing on spatial modeling and resource management to inform policy decisions for sustainable regional growth.",
+      "summary": "studies comprehensive environmental and economic planning for Colorado's development, focusing on spatial modeling and resource management to inform policy decisions for sustainable regional growth.",
       "themes": [
         "environmental planning",
         "spatial distribution modeling",
@@ -1823,7 +1823,7 @@
         "dataset": 174
       },
       "title": "Mountain Snowpack and Water Cycle Prediction",
-      "summary": "This research community develops predictive models for mountain snowpack, evapotranspiration, and streamflow to understand how climate change affects water availability in western watersheds.",
+      "summary": "develops predictive models for mountain snowpack, evapotranspiration, and streamflow to understand how climate change affects water availability in western watersheds.",
       "themes": [
         "snowpack dynamics",
         "evapotranspiration modeling",
@@ -2057,7 +2057,7 @@
         "dataset": 26
       },
       "title": "Aquatic Species Interactions and Phenotypic Responses",
-      "summary": "This research community studies how aquatic organisms adapt their physical traits and compete with each other in mountain stream and pond environments, helping us understand how species survive and interact in changing freshwater ecosystems.",
+      "summary": "studies how aquatic organisms adapt their physical traits and compete with each other in mountain stream and pond environments, helping us understand how species survive and interact in changing freshwater ecosystems.",
       "themes": [
         "phenotypic plasticity",
         "interspecific competition",
@@ -2278,7 +2278,7 @@
         "dataset": 55
       },
       "title": "Watershed Biogeochemistry and Hydrologic Modeling",
-      "summary": "This research community studies how water movement and biogeochemical processes interact in mountain watersheds to understand nutrient cycling, pollution transport, and ecosystem responses to environmental change.",
+      "summary": "studies how water movement and biogeochemical processes interact in mountain watersheds to understand nutrient cycling, pollution transport, and ecosystem responses to environmental change.",
       "themes": [
         "watershed hydrology",
         "biogeochemical cycling",
@@ -2492,7 +2492,7 @@
         "dataset": 13
       },
       "title": "Renewable Energy Development and Environmental Assessment",
-      "summary": "This research community studies renewable energy technologies, including biofuels and solar power, and their environmental impacts through thermal monitoring and economic analysis to support sustainable energy transitions in mountain regions.",
+      "summary": "studies renewable energy technologies, including biofuels and solar power, and their environmental impacts through thermal monitoring and economic analysis to support sustainable energy transitions in mountain regions.",
       "themes": [
         "renewable energy",
         "environmental monitoring",
@@ -2689,7 +2689,7 @@
         "dataset": 11
       },
       "title": "Butterfly Thermal Performance and Plant Interactions",
-      "summary": "This research community studies how butterflies adapt to changing temperatures and interact with their host plants, which is crucial for understanding how insects will respond to climate change and environmental pressures.",
+      "summary": "studies how butterflies adapt to changing temperatures and interact with their host plants, which is crucial for understanding how insects will respond to climate change and environmental pressures.",
       "themes": [
         "thermal performance",
         "plant-herbivore interactions",
@@ -2886,7 +2886,7 @@
         "dataset": 32
       },
       "title": "Climate Warming Effects on Alpine Plant Communities",
-      "summary": "This research community studies how climate change and warming temperatures affect alpine plant growth, adaptation, and ecosystem processes in high-elevation environments, which is critical for understanding how mountain ecosystems will respond to global environmental change.",
+      "summary": "studies how climate change and warming temperatures affect alpine plant growth, adaptation, and ecosystem processes in high-elevation environments, which is critical for understanding how mountain ecosystems will respond to global environmental change.",
       "themes": [
         "climate warming experiments",
         "alpine plant adaptation",
@@ -3103,7 +3103,7 @@
         "dataset": 83
       },
       "title": "Plant Functional Traits and Environmental Relationships",
-      "summary": "This research community investigates how plant physical and physiological characteristics like leaf area and photosynthesis rates vary across different environmental conditions to understand how plants adapt to their surroundings.",
+      "summary": "investigates how plant physical and physiological characteristics like leaf area and photosynthesis rates vary across different environmental conditions to understand how plants adapt to their surroundings.",
       "themes": [
         "plant functional traits",
         "photosynthetic physiology",
@@ -3348,7 +3348,7 @@
         "dataset": 75
       },
       "title": "Atmospheric Dynamics and Air Quality Research",
-      "summary": "This research community studies how atmospheric conditions like wind patterns, boundary layers, and aerosol particles interact to affect air quality and weather patterns, which is crucial for understanding climate change and pollution impacts on human health and ecosystems.",
+      "summary": "studies how atmospheric conditions like wind patterns, boundary layers, and aerosol particles interact to affect air quality and weather patterns, which is crucial for understanding climate change and pollution impacts on human health and ecosystems.",
       "themes": [
         "atmospheric boundary layer dynamics",
         "wind shear effects",
@@ -3565,7 +3565,7 @@
         "document": 58
       },
       "title": "Livestock Grazing Management and Sustainable Agriculture",
-      "summary": "This research community studies how cattle and sheep grazing practices can be managed sustainably in western rangelands to balance agricultural productivity with ecosystem health.",
+      "summary": "studies how cattle and sheep grazing practices can be managed sustainably in western rangelands to balance agricultural productivity with ecosystem health.",
       "themes": [
         "livestock grazing",
         "sustainable agriculture",
@@ -3786,7 +3786,7 @@
         "dataset": 72
       },
       "title": "Groundwater Biogeochemistry and Dissolved Organic Matter Cycling",
-      "summary": "This research community studies how water moves through soils and sediments and the chemical reactions that occur underground, which is crucial for understanding water quality and ecosystem health.",
+      "summary": "studies how water moves through soils and sediments and the chemical reactions that occur underground, which is crucial for understanding water quality and ecosystem health.",
       "themes": [
         "groundwater chemistry",
         "biogeochemical processes",
@@ -3996,7 +3996,7 @@
         "dataset": 90
       },
       "title": "Climate Change Effects on Plant Water Relations",
-      "summary": "This research community studies how changing air temperatures and climate conditions affect plant water content and soil moisture, using field experiments and remote sensing to understand ecosystem responses to environmental stress.",
+      "summary": "studies how changing air temperatures and climate conditions affect plant water content and soil moisture, using field experiments and remote sensing to understand ecosystem responses to environmental stress.",
       "themes": [
         "climate change impacts",
         "plant water stress",
@@ -4220,7 +4220,7 @@
         "dataset": 72
       },
       "title": "Regional Geology and Geophysical Mapping Colorado Rivers",
-      "summary": "This research community focuses on mapping and understanding the geological structure, magnetic properties, and formation history of Colorado's major river regions including the Upper Arkansas, Rio Grande, and San Juan areas.",
+      "summary": "focuses on mapping and understanding the geological structure, magnetic properties, and formation history of Colorado's major river regions including the Upper Arkansas, Rio Grande, and San Juan areas.",
       "themes": [
         "geological mapping",
         "geophysical surveys",
@@ -4437,7 +4437,7 @@
         "dataset": 15
       },
       "title": "Plant-Insect Interactions and Trophic Level Responses",
-      "summary": "This research community studies how plants and insects interact with each other across different elevations and environmental conditions, helping us understand how climate change affects these crucial ecological relationships.",
+      "summary": "studies how plants and insects interact with each other across different elevations and environmental conditions, helping us understand how climate change affects these crucial ecological relationships.",
       "themes": [
         "plant-insect interactions",
         "trophic ecology",
@@ -4675,7 +4675,7 @@
         "dataset": 2
       },
       "title": "Forest Ecology and Riparian Vegetation Management",
-      "summary": "This research community studies forest and riparian ecosystems in the Colorado Rockies, focusing on vegetation dynamics, wildlife interactions, and management strategies for invasive species and ecological restoration.",
+      "summary": "studies forest and riparian ecosystems in the Colorado Rockies, focusing on vegetation dynamics, wildlife interactions, and management strategies for invasive species and ecological restoration.",
       "themes": [
         "forest vegetation dynamics",
         "riparian ecosystem management",
@@ -4889,7 +4889,7 @@
         "dataset": 31
       },
       "title": "High Elevation Plant Communities and Climate Responses",
-      "summary": "This research community studies how plant communities and their underground fungal partners respond to changing climate conditions along mountain elevation gradients, which is crucial for predicting ecosystem changes in alpine environments.",
+      "summary": "studies how plant communities and their underground fungal partners respond to changing climate conditions along mountain elevation gradients, which is crucial for predicting ecosystem changes in alpine environments.",
       "themes": [
         "elevational gradients",
         "plant-fungal symbiosis",
@@ -5103,7 +5103,7 @@
         "dataset": 26
       },
       "title": "Plant-Pollinator Interactions and Foraging Behavior Research",
-      "summary": "This research community studies how pollinators like bees interact with flowering plants, examining foraging patterns, pollen chemistry, and plant density effects to understand critical ecological relationships that support both plant reproduction and pollinator populations.",
+      "summary": "studies how pollinators like bees interact with flowering plants, examining foraging patterns, pollen chemistry, and plant density effects to understand critical ecological relationships that support both plant reproduction and pollinator populations.",
       "themes": [
         "plant-pollinator mutualism",
         "pollinator foraging behavior",
@@ -5317,7 +5317,7 @@
         "dataset": 56
       },
       "title": "Animal Population Dynamics and Environmental Change",
-      "summary": "This research community studies how animal populations change over time in response to environmental factors, which is crucial for understanding species survival and ecosystem health in a changing climate.",
+      "summary": "studies how animal populations change over time in response to environmental factors, which is crucial for understanding species survival and ecosystem health in a changing climate.",
       "themes": [
         "population dynamics",
         "demography",
@@ -5534,7 +5534,7 @@
         "dataset": 39
       },
       "title": "Wildfire Effects on Vegetation Community Dynamics",
-      "summary": "This research community investigates how wildfires and other disturbances shape plant community composition and recovery patterns, which is crucial for understanding ecosystem resilience and informing land management decisions.",
+      "summary": "investigates how wildfires and other disturbances shape plant community composition and recovery patterns, which is crucial for understanding ecosystem resilience and informing land management decisions.",
       "themes": [
         "fire ecology",
         "vegetation dynamics",
@@ -5748,7 +5748,7 @@
         "dataset": 35
       },
       "title": "Stream Hydrology and Channel Dynamics Research",
-      "summary": "This research community studies how water flows through mountain streams and how stream channels change over time, which is crucial for understanding watershed management and flood prediction in alpine environments.",
+      "summary": "studies how water flows through mountain streams and how stream channels change over time, which is crucial for understanding watershed management and flood prediction in alpine environments.",
       "themes": [
         "streamflow measurement",
         "channel morphology",
@@ -5907,7 +5907,7 @@
         "document": 24
       },
       "title": "Land Use Planning and Urban Growth Management",
-      "summary": "This research community examines how communities manage urban development, property taxation, and land use policies to balance growth with environmental and social considerations.",
+      "summary": "examines how communities manage urban development, property taxation, and land use policies to balance growth with environmental and social considerations.",
       "themes": [
         "land use planning",
         "urbanization",
@@ -6090,7 +6090,7 @@
         "document": 18
       },
       "title": "Beaver Ecosystem Engineering and Wildlife Management",
-      "summary": "This research community studies how beavers modify aquatic ecosystems and influence other wildlife species like elk, deer, and trout, providing crucial insights for wetland conservation and wildlife management strategies.",
+      "summary": "studies how beavers modify aquatic ecosystems and influence other wildlife species like elk, deer, and trout, providing crucial insights for wetland conservation and wildlife management strategies.",
       "themes": [
         "beaver ecology",
         "ecosystem engineering",
@@ -6307,7 +6307,7 @@
         "dataset": 15
       },
       "title": "Stream and Riparian Zone Restoration Management",
-      "summary": "This research community studies how to restore and manage streams and riparian areas, focusing on understanding hillslope connections and cottonwood forest dynamics to inform land use planning and watershed conservation efforts.",
+      "summary": "studies how to restore and manage streams and riparian areas, focusing on understanding hillslope connections and cottonwood forest dynamics to inform land use planning and watershed conservation efforts.",
       "themes": [
         "stream restoration",
         "riparian zone ecology",
@@ -6456,7 +6456,7 @@
         "document": 21
       },
       "title": "Water Allocation and Irrigation Efficiency in Colorado",
-      "summary": "This research community studies how water resources are distributed and used for irrigation in the Colorado River Basin, focusing on economic and policy aspects of water management that are crucial for sustainable agriculture and regional water security.",
+      "summary": "studies how water resources are distributed and used for irrigation in the Colorado River Basin, focusing on economic and policy aspects of water management that are crucial for sustainable agriculture and regional water security.",
       "themes": [
         "water allocation",
         "irrigation efficiency",
@@ -6639,7 +6639,7 @@
         "dataset": 35
       },
       "title": "Groundwater Monitoring and Heavy Metal Contamination Studies",
-      "summary": "This research community investigates groundwater dynamics, water table fluctuations, and heavy metal contamination using advanced monitoring techniques to understand water quality and availability in mountain environments.",
+      "summary": "investigates groundwater dynamics, water table fluctuations, and heavy metal contamination using advanced monitoring techniques to understand water quality and availability in mountain environments.",
       "themes": [
         "groundwater monitoring",
         "heavy metal contamination",
@@ -6797,7 +6797,7 @@
         "dataset": 1
       },
       "title": "Forest Management and Recreation Planning in Gunnison Basin",
-      "summary": "This research community focuses on balancing recreational use, timber harvesting, and habitat protection in the Gunnison National Forest to ensure sustainable land management practices.",
+      "summary": "focuses on balancing recreational use, timber harvesting, and habitat protection in the Gunnison National Forest to ensure sustainable land management practices.",
       "themes": [
         "forest management",
         "recreational planning",
@@ -7004,7 +7004,7 @@
         "dataset": 6
       },
       "title": "Mining Impacts on Mountain Water Chemistry",
-      "summary": "This research community studies how mining activities, particularly molybdenum extraction and acid mine drainage, affect water quality and metal contamination in mountain watersheds, which is critical for understanding environmental impacts of resource extraction in sensitive alpine ecosystems.",
+      "summary": "studies how mining activities, particularly molybdenum extraction and acid mine drainage, affect water quality and metal contamination in mountain watersheds, which is critical for understanding environmental impacts of resource extraction in sensitive alpine ecosystems.",
       "themes": [
         "acid mine drainage",
         "metal contamination",
@@ -7194,7 +7194,7 @@
         "document": 3
       },
       "title": "Alpine Plant and Animal Ecology Research",
-      "summary": "This research community studies how plants and animals survive and adapt in high-altitude alpine environments, helping us understand ecosystem dynamics above treeline and the impacts of environmental pressures like grazing.",
+      "summary": "studies how plants and animals survive and adapt in high-altitude alpine environments, helping us understand ecosystem dynamics above treeline and the impacts of environmental pressures like grazing.",
       "themes": [
         "alpine adaptations",
         "high-altitude ecology",
@@ -7363,7 +7363,7 @@
         "dataset": 17
       },
       "title": "Wildlife Genomics and Reference Genome Assembly",
-      "summary": "This research community develops genomic resources and sequencing techniques for wildlife species, creating reference genomes that enable conservation genetics and evolutionary studies of animals in mountain ecosystems.",
+      "summary": "develops genomic resources and sequencing techniques for wildlife species, creating reference genomes that enable conservation genetics and evolutionary studies of animals in mountain ecosystems.",
       "themes": [
         "genome sequencing",
         "wildlife genomics",
@@ -7525,7 +7525,7 @@
         "document": 1
       },
       "title": "Sagebrush Ecosystem Bird Nesting and Fire Effects",
-      "summary": "This research community studies how fire, habitat changes, and human development affect bird nesting success and breeding behavior in sagebrush ecosystems, which is critical for conserving species like the Gunnison sage-grouse and cavity-nesting birds.",
+      "summary": "studies how fire, habitat changes, and human development affect bird nesting success and breeding behavior in sagebrush ecosystems, which is critical for conserving species like the Gunnison sage-grouse and cavity-nesting birds.",
       "themes": [
         "fire ecology",
         "sagebrush habitats",
@@ -7732,7 +7732,7 @@
         "dataset": 7
       },
       "title": "Wildlife Habitat Restoration and Conservation Management",
-      "summary": "This research community focuses on restoring and managing wildlife habitats to combat biodiversity loss and improve ecosystem quality for threatened species like sage-grouse and other big game animals.",
+      "summary": "focuses on restoring and managing wildlife habitats to combat biodiversity loss and improve ecosystem quality for threatened species like sage-grouse and other big game animals.",
       "themes": [
         "habitat restoration",
         "biodiversity conservation",
@@ -7877,7 +7877,7 @@
         "document": 4
       },
       "title": "Uranium Mill Environmental Remediation and Air Quality",
-      "summary": "This research community focuses on environmental cleanup and monitoring of uranium mining sites, studying how contamination affects air quality and wildlife habitats to guide restoration efforts.",
+      "summary": "focuses on environmental cleanup and monitoring of uranium mining sites, studying how contamination affects air quality and wildlife habitats to guide restoration efforts.",
       "themes": [
         "uranium mill remediation",
         "air quality monitoring",
@@ -8039,7 +8039,7 @@
         "dataset": 10
       },
       "title": "Water Quality Standards and Aquatic Ecosystem Protection",
-      "summary": "This research community focuses on monitoring water quality, pesticide impacts, and protecting aquatic ecosystems including native trout populations in Colorado's mountain watersheds.",
+      "summary": "focuses on monitoring water quality, pesticide impacts, and protecting aquatic ecosystems including native trout populations in Colorado's mountain watersheds.",
       "themes": [
         "water quality monitoring",
         "pesticide contamination",
@@ -8188,7 +8188,7 @@
         "publication": 3
       },
       "title": "Water Resource Management and Sustainability Policy",
-      "summary": "This research community studies water resource allocation, agricultural water use efficiency, and sustainable water management policies across different regions, which matters for ensuring water security and informing policy decisions in water-scarce areas.",
+      "summary": "studies water resource allocation, agricultural water use efficiency, and sustainable water management policies across different regions, which matters for ensuring water security and informing policy decisions in water-scarce areas.",
       "themes": [
         "water resource management",
         "agricultural water footprints",
@@ -8364,7 +8364,7 @@
         "dataset": 8
       },
       "title": "Floodplain Sediment Microbiology and Metal Cycling",
-      "summary": "This research community investigates how microorganisms in floodplain sediments influence the cycling and bioavailability of metals like iron and lead, which is crucial for understanding contamination and ecosystem health in mountain watersheds.",
+      "summary": "investigates how microorganisms in floodplain sediments influence the cycling and bioavailability of metals like iron and lead, which is crucial for understanding contamination and ecosystem health in mountain watersheds.",
       "themes": [
         "sediment microbiology",
         "metal biogeochemistry",
@@ -8509,7 +8509,7 @@
         "document": 4
       },
       "title": "Water Resource Protection and Endangered Fish Conservation",
-      "summary": "This research community focuses on protecting water resources and wellhead areas to safeguard endangered fish species and ensure sustainable water management in the Pueblo region.",
+      "summary": "focuses on protecting water resources and wellhead areas to safeguard endangered fish species and ensure sustainable water management in the Pueblo region.",
       "themes": [
         "water resource management",
         "endangered species protection",
@@ -8688,7 +8688,7 @@
         "dataset": 1
       },
       "title": "Economic and Environmental Impact Assessment of Infrastructure",
-      "summary": "This research community evaluates the economic costs and environmental consequences of human infrastructure like trails and wastewater systems, helping communities make informed decisions about development and conservation.",
+      "summary": "evaluates the economic costs and environmental consequences of human infrastructure like trails and wastewater systems, helping communities make informed decisions about development and conservation.",
       "themes": [
         "economic evaluation",
         "legacy effects",
@@ -8837,7 +8837,7 @@
         "document": 3
       },
       "title": "Freshwater Fish Conservation and Recreational Fishing Management",
-      "summary": "This research community studies the conservation of native and non-native fish species in Colorado rivers while managing the impacts of recreational fishing and boating activities on aquatic ecosystems.",
+      "summary": "studies the conservation of native and non-native fish species in Colorado rivers while managing the impacts of recreational fishing and boating activities on aquatic ecosystems.",
       "themes": [
         "fish conservation",
         "recreational fishing",
@@ -8996,7 +8996,7 @@
         "document": 3
       },
       "title": "Wildlife Conservation and Land Use Planning",
-      "summary": "This research community focuses on balancing wildlife conservation with public land access and mining activities through strategic land use planning and natural resource management.",
+      "summary": "focuses on balancing wildlife conservation with public land access and mining activities through strategic land use planning and natural resource management.",
       "themes": [
         "wildlife conservation",
         "land use planning",
@@ -9131,7 +9131,7 @@
         "document": 6
       },
       "title": "Public Land Management and Environmental Policy",
-      "summary": "This research community examines the ecological consequences and policy frameworks surrounding public land management decisions, focusing on how land use agreements and conservation policies affect natural ecosystems.",
+      "summary": "examines the ecological consequences and policy frameworks surrounding public land management decisions, focusing on how land use agreements and conservation policies affect natural ecosystems.",
       "themes": [
         "land use policy",
         "ecological impacts",
@@ -9290,7 +9290,7 @@
         "dataset": 5
       },
       "title": "Mountain Watershed Hydrology and Water Management",
-      "summary": "This research community studies groundwater systems and water resources in mountainous watersheds, focusing on understanding water availability and developing sustainable management practices for alpine environments.",
+      "summary": "studies groundwater systems and water resources in mountainous watersheds, focusing on understanding water availability and developing sustainable management practices for alpine environments.",
       "themes": [
         "groundwater hydrology",
         "watershed management",
@@ -9408,7 +9408,7 @@
         "publication": 15
       },
       "title": "Geological Evolution and Fungal Taxonomy Studies",
-      "summary": "This research community examines the geological history of the Colorado region and discovers new fungal species, contributing to our understanding of Earth's ancient processes and biodiversity.",
+      "summary": "examines the geological history of the Colorado region and discovers new fungal species, contributing to our understanding of Earth's ancient processes and biodiversity.",
       "themes": [
         "geological petrochronology",
         "fungal taxonomy",
@@ -9567,7 +9567,7 @@
         "document": 4
       },
       "title": "Mountain Slope Stability and Mass Wasting Processes",
-      "summary": "This research community studies how water, avalanches, and human activities like mining affect slope stability and trigger landslides in mountain environments, which is crucial for understanding natural hazards and land management in Colorado's high-elevation areas.",
+      "summary": "studies how water, avalanches, and human activities like mining affect slope stability and trigger landslides in mountain environments, which is crucial for understanding natural hazards and land management in Colorado's high-elevation areas.",
       "themes": [
         "mass wasting",
         "avalanche dynamics",
@@ -9726,7 +9726,7 @@
         "dataset": 4
       },
       "title": "Soil Conservation and Erosion Management Research",
-      "summary": "This research community studies soil properties, erosion processes, and conservation strategies to understand how to protect and manage soil resources in ranch and mountain environments.",
+      "summary": "studies soil properties, erosion processes, and conservation strategies to understand how to protect and manage soil resources in ranch and mountain environments.",
       "themes": [
         "soil erosion",
         "conservation planning",
@@ -9867,7 +9867,7 @@
         "dataset": 7
       },
       "title": "Archaeological and Cultural Heritage Research",
-      "summary": "This research community studies historic and cultural resources through archaeological surveys and inventories to understand human-environment interactions and preserve cultural heritage in mountain regions.",
+      "summary": "studies historic and cultural resources through archaeological surveys and inventories to understand human-environment interactions and preserve cultural heritage in mountain regions.",
       "themes": [
         "archaeological survey",
         "cultural resources",
@@ -9978,7 +9978,7 @@
         "publication": 8
       },
       "title": "Avian and Amphibian Physiological Adaptations Research",
-      "summary": "This research community investigates how birds and amphibians adapt physiologically to environmental challenges, particularly focusing on eggshell properties and body temperature regulation mechanisms that are crucial for survival and reproduction.",
+      "summary": "investigates how birds and amphibians adapt physiologically to environmental challenges, particularly focusing on eggshell properties and body temperature regulation mechanisms that are crucial for survival and reproduction.",
       "themes": [
         "eggshell conductance",
         "thermoregulation",
@@ -10088,7 +10088,7 @@
         "document": 1
       },
       "title": "Water Use and Energy Infrastructure Impacts",
-      "summary": "This research community studies how power plants use water resources and the environmental implications of energy infrastructure on water systems.",
+      "summary": "studies how power plants use water resources and the environmental implications of energy infrastructure on water systems.",
       "themes": [
         "water consumption",
         "power generation",
@@ -10191,7 +10191,7 @@
         "publication": 4
       },
       "title": "Marmot Hibernation Physiology and Seasonal Hormones",
-      "summary": "This research community studies how hormones like melatonin regulate hibernation patterns and seasonal physiological changes in marmots, providing insights into mammalian adaptation to extreme seasonal environments.",
+      "summary": "studies how hormones like melatonin regulate hibernation patterns and seasonal physiological changes in marmots, providing insights into mammalian adaptation to extreme seasonal environments.",
       "themes": [
         "hibernation physiology",
         "seasonal hormones",
@@ -10274,7 +10274,7 @@
         "publication": 1
       },
       "title": "Historical Colorado Mining and Exploration Documentation",
-      "summary": "This research community documents historical exploration and mineral resource surveys in Colorado and the Mountain West, preserving important records of early scientific expeditions and mining activities that shaped regional development.",
+      "summary": "documents historical exploration and mineral resource surveys in Colorado and the Mountain West, preserving important records of early scientific expeditions and mining activities that shaped regional development.",
       "themes": [
         "historical expeditions",
         "mineral exploration",
@@ -10356,7 +10356,7 @@
         "publication": 1
       },
       "title": "Hunter-Gatherer Archaeology in High Alpine Environments",
-      "summary": "This research community studies prehistoric human populations and their cultural adaptations to high-altitude mountain environments in Colorado, providing insights into how ancient peoples survived and thrived in challenging alpine conditions.",
+      "summary": "studies prehistoric human populations and their cultural adaptations to high-altitude mountain environments in Colorado, providing insights into how ancient peoples survived and thrived in challenging alpine conditions.",
       "themes": [
         "hunter-gatherer societies",
         "high-altitude archaeology",
@@ -10429,7 +10429,7 @@
         "publication": 4
       },
       "title": "River Regulation and Riparian Ecosystem Impacts",
-      "summary": "This research community studies how human modifications to river flows affect streamside vegetation and sediment transport, which is crucial for understanding and managing water resources in the Colorado River basin.",
+      "summary": "studies how human modifications to river flows affect streamside vegetation and sediment transport, which is crucial for understanding and managing water resources in the Colorado River basin.",
       "themes": [
         "river regulation",
         "riparian ecology",
@@ -10502,7 +10502,7 @@
         "publication": 4
       },
       "title": "Endangered Colorado River Fish Conservation",
-      "summary": "This research community studies the conservation and habitat requirements of endangered Colorado River fish species, particularly focusing on thermal conditions and population trends to inform species recovery efforts.",
+      "summary": "studies the conservation and habitat requirements of endangered Colorado River fish species, particularly focusing on thermal conditions and population trends to inform species recovery efforts.",
       "themes": [
         "endangered species",
         "thermal habitat",
@@ -10570,7 +10570,7 @@
         "publication": 2
       },
       "title": "Historical Mining Geology and Mineral Localities",
-      "summary": "This research community documents and rediscovers historically significant mining sites and mineral formations in Colorado, preserving geological heritage and advancing understanding of regional mineral deposits.",
+      "summary": "documents and rediscovers historically significant mining sites and mineral formations in Colorado, preserving geological heritage and advancing understanding of regional mineral deposits.",
       "themes": [
         "mining geology",
         "mineral localities",
@@ -10635,7 +10635,7 @@
         "author": 3
       },
       "title": "Alpine Plant Community Ecology Research",
-      "summary": "This research community studies how plant communities in high-altitude alpine environments respond to environmental changes and disturbances, which is important for understanding ecosystem resilience in mountain regions.",
+      "summary": "studies how plant communities in high-altitude alpine environments respond to environmental changes and disturbances, which is important for understanding ecosystem resilience in mountain regions.",
       "themes": [
         "alpine ecology",
         "plant communities",
@@ -10703,7 +10703,7 @@
         "publication": 2
       },
       "title": "Paleozoic Stratigraphy and Geological Correlation Studies",
-      "summary": "This research community examines ancient rock layers from the Pennsylvanian and Permian periods in the Colorado Rockies to understand past geological environments and correlate rock formations across the region.",
+      "summary": "examines ancient rock layers from the Pennsylvanian and Permian periods in the Colorado Rockies to understand past geological environments and correlate rock formations across the region.",
       "themes": [
         "paleozoic geology",
         "stratigraphy",
@@ -10771,7 +10771,7 @@
         "publication": 2
       },
       "title": "Bird Song Dialects and Behavioral Response Patterns",
-      "summary": "This research community studies how early experiences shape birds' responses to different song dialects and examines the relationship between vocal communication patterns and genetic variation in bird populations.",
+      "summary": "studies how early experiences shape birds' responses to different song dialects and examines the relationship between vocal communication patterns and genetic variation in bird populations.",
       "themes": [
         "song dialects",
         "behavioral response",
@@ -10839,7 +10839,7 @@
         "document": 1
       },
       "title": "Community Arts and Cultural Development Initiatives",
-      "summary": "This research community examines local arts organizations and their role in community development and cultural preservation in mountain regions.",
+      "summary": "examines local arts organizations and their role in community development and cultural preservation in mountain regions.",
       "themes": [
         "community development",
         "cultural institutions",
@@ -10904,7 +10904,7 @@
         "publication": 3
       },
       "title": "Quartzite Source Analysis and Characterization Methods",
-      "summary": "This research community develops and applies analytical techniques to identify and distinguish different sources of quartzite rock formations through chemical and petrographic analysis.",
+      "summary": "develops and applies analytical techniques to identify and distinguish different sources of quartzite rock formations through chemical and petrographic analysis.",
       "themes": [
         "quartzite sourcing",
         "LA-ICP-MS analysis",
