@@ -547,7 +547,9 @@ async function syncEntityBulkTables(
   neonDb: pg.Pool,
 ): Promise<void> {
   // Tables in insert order (parents first, then children)
+  // stakeholders before entity_mentions (FK: entity_type='stakeholder' references stakeholder IDs)
   const INSERT_ORDER = [
+    'stakeholders',
     'neighborhoods',
     'neighborhood_members',
     'entity_mentions',
@@ -840,11 +842,18 @@ async function syncReferencesCited(
 // Main
 // ---------------------------------------------------------------------------
 
+function elapsed(startMs: number): string {
+  const s = (Date.now() - startMs) / 1000
+  return s < 60 ? `${s.toFixed(1)}s` : `${(s / 60).toFixed(1)}min`
+}
+
 async function main() {
+  const syncStart = Date.now()
   console.log('Bidirectional Database Sync')
   console.log('==========================')
   console.log(`Direction: ${direction}`)
   console.log(`Collection: ${collectionFilter}`)
+  console.log(`Flags: ${[syncEntities && '--sync-entities', syncReferences && '--sync-references', fullPush && '--full-push', deleteOrphans && '--delete-orphans', dryRun && '--dry-run'].filter(Boolean).join(' ') || '(none)'}`)
   if (dryRun) console.log('(DRY RUN)')
 
   const localDb = new pg.Pool({ connectionString: LOCAL_URL, max: 3 })
@@ -875,7 +884,11 @@ async function main() {
       preflightCounts.set(table, n)
     } catch { /* table may not exist */ }
   }
-  console.log(`Pre-flight: ${preflightCounts.size} tables snapshotted on Neon`)
+  console.log(`\nPre-flight Neon snapshot (${preflightCounts.size} tables):`)
+  for (const [table, n] of [...preflightCounts.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    if (n > 0) console.log(`  ${table.padEnd(22)} ${String(n).padStart(7)}`)
+  }
+  console.log()
 
   const collectionsToSync = collectionFilter === 'all'
     ? Object.keys(COLLECTIONS)
@@ -888,6 +901,7 @@ async function main() {
       continue
     }
 
+    const collStart = Date.now()
     console.log(`\n--- ${collName} ---`)
 
     // Determine since timestamp
@@ -900,14 +914,14 @@ async function main() {
     if (direction === 'pull' || direction === 'both') {
       console.log('  PULL (Neon → Local):')
       const stats = await pullCollection(localDb, neonDb, collName, config, since)
-      console.log(`    ${stats.pulled} pulled, ${stats.skipped} skipped, ${stats.conflicts} conflicts`)
+      console.log(`    ${stats.pulled} pulled, ${stats.skipped} skipped, ${stats.conflicts} conflicts (${elapsed(collStart)})`)
       await recordSync(localDb, 'pull', collName, stats, now)
     }
 
     if (direction === 'push' || direction === 'both') {
       console.log('  PUSH (Local → Neon):')
       const stats = await pushCollection(localDb, neonDb, collName, config, since)
-      console.log(`    ${stats.pushed} pushed, ${stats.skipped} skipped, ${stats.conflicts} conflicts`)
+      console.log(`    ${stats.pushed} pushed, ${stats.skipped} skipped, ${stats.conflicts} conflicts (${elapsed(collStart)})`)
       await recordSync(localDb, 'push', collName, stats, now)
     }
 
@@ -922,12 +936,13 @@ async function main() {
 
   // Sync entity collections if requested (row-by-row upsert for species/places/protocols/concepts)
   if (syncEntities && (direction === 'push' || direction === 'both')) {
-    console.log('\n--- Entity Collections (push) ---')
+    console.log('\n========== Entity Collections (push) ==========')
     for (const [collName, config] of Object.entries(ENTITY_COLLECTIONS)) {
       if (collectionFilter !== 'all' && collectionFilter !== collName) continue
+      const entStart = Date.now()
       console.log(`\n--- ${collName} ---`)
       const stats = await pushCollection(localDb, neonDb, collName, config, null) // always full push for entities
-      console.log(`    ${stats.pushed} pushed, ${stats.skipped} skipped, ${stats.conflicts} conflicts`)
+      console.log(`    ${stats.pushed} pushed, ${stats.skipped} skipped, ${stats.conflicts} conflicts (${elapsed(entStart)})`)
       // Reset sequence to max ID to prevent future PK conflicts
       if (!dryRun && stats.pushed > 0) {
         try {
@@ -944,6 +959,96 @@ async function main() {
   // Sync references_cited if requested (after main collections so target IDs resolve)
   if (syncReferences && (direction === 'push' || direction === 'both')) {
     await syncReferencesCited(localDb, neonDb)
+  }
+
+  // Additive sync for authors_rels document links (don't delete existing pub/dataset rels)
+  if (syncEntities && (direction === 'push' || direction === 'both')) {
+    const addStart = Date.now()
+    console.log('\n========== Additive Syncs ==========')
+    console.log('\n--- authors_rels (additive — document links only) ---')
+    const { rows: localDocRels } = await localDb.query(
+      `SELECT parent_id, documents_id, "order" FROM authors_rels WHERE documents_id IS NOT NULL`,
+    )
+    const { rows: [{ n: neonDocRels }] } = await neonDb.query(
+      `SELECT count(*)::int as n FROM authors_rels WHERE documents_id IS NOT NULL`,
+    )
+    console.log(`  Local: ${localDocRels.length} document-author links, Neon: ${neonDocRels}`)
+    if (!dryRun && localDocRels.length > 0) {
+      let inserted = 0, fkFailed = 0
+      for (const rel of localDocRels) {
+        try {
+          const { rowCount } = await neonDb.query(
+            `INSERT INTO authors_rels (parent_id, path, documents_id, "order")
+             SELECT $1, 'documents', $2, $3
+             WHERE NOT EXISTS (
+               SELECT 1 FROM authors_rels WHERE parent_id = $1 AND documents_id = $2 AND path = 'documents'
+             )`,
+            [rel.parent_id, rel.documents_id, rel.order],
+          )
+          if ((rowCount || 0) > 0) inserted++
+        } catch (err: any) {
+          fkFailed++
+          if (fkFailed <= 3) console.log(`    FK fail: author ${rel.parent_id} → doc ${rel.documents_id}: ${err.message?.slice(0, 80)}`)
+        }
+      }
+      console.log(`  Inserted ${inserted} new links${fkFailed > 0 ? `, ${fkFailed} FK failures (author not on Neon)` : ''} (${elapsed(addStart)})`)
+    }
+
+    // Additive sync for doc-sourced references_cited (source_document_id rows)
+    const refStart = Date.now()
+    console.log('\n--- references_cited (additive — document-sourced refs) ---')
+    const { rows: [{ n: localDocRefs }] } = await localDb.query(
+      `SELECT count(*)::int as n FROM references_cited WHERE source_document_id IS NOT NULL`,
+    )
+    const { rows: [{ n: neonDocRefs }] } = await neonDb.query(
+      `SELECT count(*)::int as n FROM references_cited WHERE source_document_id IS NOT NULL`,
+    )
+    console.log(`  Local: ${localDocRefs}, Neon: ${neonDocRefs}`)
+
+    if (!dryRun && localDocRefs > neonDocRefs) {
+      console.log(`  Clearing ${neonDocRefs} existing doc-sourced refs on Neon...`)
+      await neonDb.query(`DELETE FROM references_cited WHERE source_document_id IS NOT NULL`)
+      const { rows: docRefs } = await localDb.query(
+        `SELECT * FROM references_cited WHERE source_document_id IS NOT NULL ORDER BY id`,
+      )
+
+      // Detect JSONB columns from schema
+      if (docRefs.length > 0) {
+        const columns = Object.keys(docRefs[0])
+        const { rows: colInfo } = await localDb.query(
+          `SELECT column_name FROM information_schema.columns WHERE table_name = 'references_cited' AND udt_name = 'jsonb'`,
+        )
+        const jsonbCols = new Set<string>(colInfo.map((c: any) => c.column_name))
+
+        const BATCH = 500
+        let inserted = 0
+        for (let i = 0; i < docRefs.length; i += BATCH) {
+          const batch = docRefs.slice(i, i + BATCH)
+          const valueSets: string[] = []
+          const allValues: any[] = []
+          for (const row of batch) {
+            const placeholders = columns.map((_, ci) => `$${allValues.length + ci + 1}`).join(', ')
+            valueSets.push(`(${placeholders})`)
+            for (const col of columns) {
+              const v = row[col]
+              allValues.push(jsonbCols.has(col) && v !== null ? JSON.stringify(v) : v)
+            }
+          }
+          try {
+            await neonDb.query(
+              `INSERT INTO references_cited (${columns.join(', ')}) VALUES ${valueSets.join(', ')} ON CONFLICT DO NOTHING`,
+              allValues,
+            )
+            inserted += batch.length
+          } catch (err: any) {
+            console.log(`    Batch error: ${err.message?.slice(0, 100)}`)
+          }
+        }
+        console.log(`  Inserted ${inserted} document-sourced references (${elapsed(refStart)})`)
+      }
+    } else if (!dryRun) {
+      console.log('  Already in sync — skipping')
+    }
   }
 
   // Summary: compare counts
@@ -972,7 +1077,7 @@ async function main() {
       const marker = diff === 0 ? '✓' : '✗'
       console.log(`  ${marker} ${collName.padEnd(18)} local: ${String(local.n).padStart(7)}  neon: ${String(neon.n).padStart(7)}${diff !== 0 ? `  (${diff > 0 ? '+' : ''}${diff})` : ''}`)
     }
-    for (const bulk of ['neighborhoods', 'neighborhood_members', 'entity_mentions', 'entity_candidates', 'code_repositories', 'data_repositories', 'content_chunks']) {
+    for (const bulk of ['stakeholders', 'neighborhoods', 'neighborhood_members', 'entity_mentions', 'entity_candidates', 'code_repositories', 'data_repositories', 'content_chunks', 'authors_rels']) {
       const { rows: [local] } = await localDb.query(`SELECT count(*)::int as n FROM ${bulk}`)
       const { rows: [neon] } = await neonDb.query(`SELECT count(*)::int as n FROM ${bulk}`)
       const diff = local.n - neon.n
@@ -998,6 +1103,8 @@ async function main() {
     if (warnings === 0) console.log('  All tables healthy.')
     else console.log(`  ${warnings} table(s) may need attention.`)
   }
+
+  console.log(`\nSync completed in ${elapsed(syncStart)}`)
 
   await localDb.end()
   await neonDb.end()
