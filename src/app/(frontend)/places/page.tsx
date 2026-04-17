@@ -146,7 +146,8 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
         <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
           <Link href={buildUrl({ show: undefined, page: '1' })} style={chipStyle(!showAll)}>Referenced ({ref_count})</Link>
           <Link href={buildUrl({ show: 'all', page: '1' })} style={chipStyle(showAll)}>All ({all_count})</Link>
-          <Link href="/explore/places" style={{ ...chipStyle(false), marginLeft: 'auto', background: 'var(--color-accent)', color: '#fff' }}>Explore Places Graph</Link>
+          <Link href="/explore/map" style={{ ...chipStyle(false), marginLeft: 'auto', background: 'var(--color-accent)', color: '#fff' }}>Research Sites Map</Link>
+          <Link href="/explore/places" style={{ ...chipStyle(false), background: 'var(--color-accent)', color: '#fff' }}>Explore Places Graph</Link>
         </div>
 
         <p className="results-count">{total.toLocaleString()} places{query ? ` matching "${query}"` : ''}</p>
