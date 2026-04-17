@@ -94,11 +94,8 @@ export default function PlacesMap({ places, center, zoom }: Props) {
         circle.getElement()?.setAttribute('style', (circle.getElement()?.getAttribute('style') || '') + '; cursor: pointer;')
       }
 
-      // Fit bounds if we have points
-      if (places.length > 1) {
-        const bounds = L.latLngBounds(places.map((p) => [p.lat, p.lon] as [number, number]))
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 })
-      }
+      // Don't auto-fit — respect the initial center/zoom so the view
+      // stays focused on the RMBL area. Users can zoom out manually.
     })()
 
     return () => {
