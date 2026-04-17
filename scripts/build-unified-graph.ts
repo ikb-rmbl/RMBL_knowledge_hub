@@ -146,10 +146,14 @@ async function main() {
   }
   console.log(`  ${stakeholders.length} stakeholders${excludeDocs ? ' (excluded)' : ''}`)
 
-  // Authors (top by work count)
+  // Authors: include prolific authors (work_count >= minDegree) plus anyone with
+  // a document link (to surface document-only authors). Cap removed.
   const { rows: authors } = await db.query(`
-    SELECT id, display_name, work_count
-    FROM authors WHERE work_count >= $1 ORDER BY work_count DESC LIMIT 500
+    SELECT DISTINCT a.id, a.display_name, a.work_count
+    FROM authors a
+    WHERE a.work_count >= $1
+       OR a.id IN (SELECT DISTINCT parent_id FROM authors_rels WHERE documents_id IS NOT NULL)
+    ORDER BY a.work_count DESC
   `, [minDegree])
   for (const a of authors) {
     graph.addNode(`author-${a.id}`, {
