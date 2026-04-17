@@ -198,7 +198,7 @@ export default async function HomePage() {
             }}>Browse All</Link>
           </div>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginBottom: '16px' }}>
-            {communities.length} research communities detected by analyzing connections between species, concepts, protocols, places, authors, and publications.
+            {communities.length} groups detected by analyzing connections between publications, datasets, authors, concepts, protocols, and places.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '12px' }}>
             {communities.slice(0, 6).map((c: any) => <CommunityCard key={c.id} c={c} />)}
