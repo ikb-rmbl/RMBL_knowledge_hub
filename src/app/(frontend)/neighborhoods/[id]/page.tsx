@@ -1,15 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
-import { GRAPH_COLORS, ENTITY_TYPE_LABELS } from '../../lib/graph-colors'
+import { GRAPH_COLORS, ENTITY_TYPE_LABELS, ENTITY_SLUG_MAP, STAKEHOLDER_COLORS } from '../../lib/graph-colors'
 
 export const dynamic = 'force-dynamic'
-
-const SLUG_MAP: Record<string, string> = {
-  species: 'species', place: 'places', protocol: 'protocols', concept: 'concepts',
-  author: 'authors', publication: 'publications', dataset: 'datasets',
-  document: 'documents', stakeholder: 'stakeholders',
-}
 
 const BROWSE_MAP: Record<string, string> = {
   species: '/species', place: '/places', protocol: '/protocols', concept: '/concepts',
@@ -18,12 +12,6 @@ const BROWSE_MAP: Record<string, string> = {
 }
 
 const TYPE_ORDER = ['species', 'concept', 'protocol', 'place', 'stakeholder', 'author', 'publication', 'document', 'dataset']
-
-const STAKEHOLDER_COLORS: Record<string, string> = {
-  federal_agency: '#1565c0', state_agency: '#2e7d32', local_gov: '#6d4c41',
-  academic: '#7b1fa2', ngo: '#c62828', industry: '#e65100',
-  tribal: '#558b2f', other: '#999',
-}
 const INITIAL_SHOW = 10
 
 function renderMeta(m: any, type: string): React.ReactNode {
@@ -317,7 +305,7 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
       {TYPE_ORDER.map((type) => {
         const members = membersByType[type]
         if (!members || members.length === 0) return null
-        const slug = SLUG_MAP[type] || type
+        const slug = ENTITY_SLUG_MAP[type] || type
         return (
           <div key={type} className="detail-section">
             <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

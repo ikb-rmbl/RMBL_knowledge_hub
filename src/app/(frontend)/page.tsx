@@ -104,26 +104,23 @@ export default async function HomePage() {
   const { rows: connectedPubs } = await db.query(`
     SELECT p.id, p.title, p.year, p.publication_type, p.journal,
       coalesce(p.external_citation_count, 0) as citations,
-      (SELECT count(*) FROM entity_mentions em WHERE em.item_id = p.id AND em.collection = 'publications') as entity_links,
-      (SELECT count(*) FROM references_cited r WHERE r.source_publication_id = p.id OR r.target_publication_id = p.id) as citation_links,
-      (SELECT count(*) FROM publications_rels pr WHERE pr.parent_id = p.id AND pr.path = 'authors') as author_count
+      em_cnt.cnt as entity_links,
+      ref_cnt.cnt as citation_links
     FROM publications p
+    LEFT JOIN LATERAL (SELECT count(*)::int as cnt FROM entity_mentions em WHERE em.item_id = p.id AND em.collection = 'publications') em_cnt ON true
+    LEFT JOIN LATERAL (SELECT count(*)::int as cnt FROM references_cited r WHERE r.source_publication_id = p.id OR r.target_publication_id = p.id) ref_cnt ON true
     WHERE p.year >= 2020
-    ORDER BY (
-      coalesce(p.external_citation_count, 0) * 2
-      + (SELECT count(*) FROM entity_mentions em WHERE em.item_id = p.id AND em.collection = 'publications')
-      + (SELECT count(*) FROM references_cited r WHERE r.source_publication_id = p.id OR r.target_publication_id = p.id) * 3
-    ) DESC
+    ORDER BY (coalesce(p.external_citation_count, 0) * 2 + em_cnt.cnt + ref_cnt.cnt * 3) DESC
     LIMIT 5
   `)
 
   const { rows: connectedDatasets } = await db.query(`
     SELECT DISTINCT ON (d.title) d.id, d.title, d.publication_year, d.resource_type,
-      (SELECT count(*) FROM entity_mentions em WHERE em.item_id = d.id AND em.collection = 'datasets') as entity_links,
-      (SELECT count(*) FROM datasets_rels dr WHERE dr.parent_id = d.id AND dr.path = 'creators') as author_count,
-      (SELECT count(*) FROM entity_mentions em WHERE em.item_id = d.id AND em.collection = 'datasets') * 2
-        + (SELECT count(*) FROM datasets_rels dr WHERE dr.parent_id = d.id AND dr.path = 'creators') as score
+      em_cnt.cnt as entity_links,
+      em_cnt.cnt * 2 + cr_cnt.cnt as score
     FROM datasets d
+    LEFT JOIN LATERAL (SELECT count(*)::int as cnt FROM entity_mentions em WHERE em.item_id = d.id AND em.collection = 'datasets') em_cnt ON true
+    LEFT JOIN LATERAL (SELECT count(*)::int as cnt FROM datasets_rels dr WHERE dr.parent_id = d.id AND dr.path = 'creators') cr_cnt ON true
     WHERE d.publication_year >= 2020
     ORDER BY d.title, score DESC
   `)

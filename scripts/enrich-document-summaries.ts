@@ -95,7 +95,7 @@ async function main() {
   const docs = JSON.parse(readFileSync('scripts/output/document-entity-extraction.json', 'utf-8')) as any[]
   console.log(`${docs.length} document extractions to process`)
 
-  let updated = 0, preserved = 0, skipped = 0, missing = 0
+  let updated = 0, preserved = 0, skipped = 0, missing = 0, typesSet = 0
 
   try {
     for (const item of docs) {
@@ -105,6 +105,16 @@ async function main() {
 
       const extraction = item.strategy3?.extraction
       if (!extraction) { skipped++; continue }
+
+      // Set document_type if available and not already set
+      const docType = extraction.documentType
+      if (docType && !dryRun) {
+        const { rowCount } = await db.query(
+          'UPDATE documents SET document_type = $1, updated_at = NOW() WHERE id = $2 AND document_type IS NULL',
+          [docType, itemId],
+        )
+        if ((rowCount || 0) > 0) typesSet++
+      }
 
       const newSummary = buildSummary(extraction)
       if (!newSummary) { skipped++; continue }
@@ -139,7 +149,8 @@ async function main() {
     }
 
     console.log('\n========== Summary ==========')
-    console.log(`Updated: ${updated}`)
+    console.log(`Summaries updated: ${updated}`)
+    console.log(`Document types set: ${typesSet}`)
     console.log(`Preserved (existing >${MIN_EXISTING_LENGTH} chars): ${preserved}`)
     console.log(`Skipped (no extraction): ${skipped}`)
     console.log(`Missing (doc not in DB): ${missing}`)

@@ -49,13 +49,16 @@ async function main() {
 
   // Species (filter by total mentions across selected collections)
   const { rows: species } = await db.query(`
-    SELECT s.id, s.canonical_name as name, s.kingdom, s.family,
-      (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-       WHERE em.entity_type = 'species' AND em.entity_id = s.id ${collectionFilter}) as total_count
+    SELECT s.id, s.canonical_name as name, s.kingdom, s.family, em_counts.total_count
     FROM species s
-    WHERE (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-           WHERE em.entity_type = 'species' AND em.entity_id = s.id ${collectionFilter}) >= $1
-    ORDER BY total_count DESC
+    JOIN (
+      SELECT entity_id, count(DISTINCT collection || ':' || item_id) as total_count
+      FROM entity_mentions
+      WHERE entity_type = 'species' ${collectionFilter}
+      GROUP BY entity_id
+      HAVING count(DISTINCT collection || ':' || item_id) >= $1
+    ) em_counts ON em_counts.entity_id = s.id
+    ORDER BY em_counts.total_count DESC
   `, [minDegree])
   for (const s of species) {
     graph.addNode(`species-${s.id}`, {
@@ -68,13 +71,16 @@ async function main() {
 
   // Concepts
   const { rows: concepts } = await db.query(`
-    SELECT c.id, c.name, c.scope, c.concept_type,
-      (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-       WHERE em.entity_type = 'concept' AND em.entity_id = c.id ${collectionFilter}) as total_count
+    SELECT c.id, c.name, c.scope, c.concept_type, em_counts.total_count
     FROM concepts c
-    WHERE (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-           WHERE em.entity_type = 'concept' AND em.entity_id = c.id ${collectionFilter}) >= $1
-    ORDER BY total_count DESC
+    JOIN (
+      SELECT entity_id, count(DISTINCT collection || ':' || item_id) as total_count
+      FROM entity_mentions
+      WHERE entity_type = 'concept' ${collectionFilter}
+      GROUP BY entity_id
+      HAVING count(DISTINCT collection || ':' || item_id) >= $1
+    ) em_counts ON em_counts.entity_id = c.id
+    ORDER BY em_counts.total_count DESC
   `, [minDegree])
   for (const c of concepts) {
     graph.addNode(`concept-${c.id}`, {
@@ -87,13 +93,16 @@ async function main() {
 
   // Protocols
   const { rows: protocols } = await db.query(`
-    SELECT p.id, p.name, p.category,
-      (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-       WHERE em.entity_type = 'protocol' AND em.entity_id = p.id ${collectionFilter}) as total_count
+    SELECT p.id, p.name, p.category, em_counts.total_count
     FROM protocols p
-    WHERE (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-           WHERE em.entity_type = 'protocol' AND em.entity_id = p.id ${collectionFilter}) >= $1
-    ORDER BY total_count DESC
+    JOIN (
+      SELECT entity_id, count(DISTINCT collection || ':' || item_id) as total_count
+      FROM entity_mentions
+      WHERE entity_type = 'protocol' ${collectionFilter}
+      GROUP BY entity_id
+      HAVING count(DISTINCT collection || ':' || item_id) >= $1
+    ) em_counts ON em_counts.entity_id = p.id
+    ORDER BY em_counts.total_count DESC
   `, [minDegree])
   for (const p of protocols) {
     graph.addNode(`protocol-${p.id}`, {
@@ -106,15 +115,18 @@ async function main() {
 
   // Places (exclude broad scales — countries, states, generic regions)
   const { rows: places } = await db.query(`
-    SELECT pl.id, pl.name, pl.place_type, pl.scale,
-      (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-       WHERE em.entity_type = 'place' AND em.entity_id = pl.id ${collectionFilter}) as total_count
+    SELECT pl.id, pl.name, pl.place_type, pl.scale, em_counts.total_count
     FROM places pl
+    JOIN (
+      SELECT entity_id, count(DISTINCT collection || ':' || item_id) as total_count
+      FROM entity_mentions
+      WHERE entity_type = 'place' ${collectionFilter}
+      GROUP BY entity_id
+      HAVING count(DISTINCT collection || ':' || item_id) >= $1
+    ) em_counts ON em_counts.entity_id = pl.id
     WHERE (pl.scale IS NULL OR pl.scale IN ('site', 'local'))
       AND (pl.place_type IS NULL OR pl.place_type NOT IN ('country', 'state', 'region'))
-      AND (SELECT count(DISTINCT collection || ':' || item_id) FROM entity_mentions em
-           WHERE em.entity_type = 'place' AND em.entity_id = pl.id ${collectionFilter}) >= $1
-    ORDER BY total_count DESC
+    ORDER BY em_counts.total_count DESC
   `, [minDegree])
   for (const p of places) {
     graph.addNode(`place-${p.id}`, {

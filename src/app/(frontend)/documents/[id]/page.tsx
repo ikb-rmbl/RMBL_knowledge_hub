@@ -5,6 +5,7 @@ import config from '@/payload.config'
 import { renderRelatedWorks } from '../../lib/related-works'
 import { isHttpUrl } from '../../lib/url-validation'
 import { getDb } from '../../lib/db'
+import { STAKEHOLDER_COLORS } from '../../lib/graph-colors'
 import { fetchItemNetwork } from '../../lib/graph-data'
 import LazyGraph from '../../components/LazyGraph'
 
@@ -24,17 +25,6 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   wildlife_survey: 'Wildlife Survey',
   mining_permit: 'Mining Permit',
   other: 'Document',
-}
-
-const STAKEHOLDER_COLORS: Record<string, string> = {
-  federal_agency: '#1565c0',
-  state_agency: '#2e7d32',
-  local_gov: '#6d4c41',
-  academic: '#7b1fa2',
-  ngo: '#c62828',
-  industry: '#e65100',
-  tribal: '#558b2f',
-  other: '#999',
 }
 
 const INITIAL_SHOW = 8

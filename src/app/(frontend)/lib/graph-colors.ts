@@ -11,6 +11,23 @@ export const GRAPH_COLORS: Record<string, string> = {
   stakeholder: '#546e7a',
 }
 
+export const STAKEHOLDER_COLORS: Record<string, string> = {
+  federal_agency: '#1565c0',
+  state_agency: '#2e7d32',
+  local_gov: '#6d4c41',
+  academic: '#7b1fa2',
+  ngo: '#c62828',
+  industry: '#e65100',
+  tribal: '#558b2f',
+  other: '#999',
+}
+
+export const ENTITY_SLUG_MAP: Record<string, string> = {
+  species: 'species', place: 'places', protocol: 'protocols', concept: 'concepts',
+  author: 'authors', publication: 'publications', dataset: 'datasets',
+  document: 'documents', stakeholder: 'stakeholders',
+}
+
 export const ENTITY_TYPE_LABELS: Record<string, string> = {
   species: 'Species',
   place: 'Place',

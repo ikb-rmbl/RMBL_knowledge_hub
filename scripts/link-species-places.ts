@@ -139,6 +139,10 @@ async function linkSpecies(db: pg.Pool): Promise<void> {
         if (resolved % 25 === 0) {
           process.stdout.write(`\r    ${resolved}/${uncachedKeys.length} resolved`)
         }
+        // Persist cache every 100 resolutions so progress isn't lost if killed
+        if (resolved % 100 === 0) {
+          saveItisCache(itisCache)
+        }
       },
       'ITIS resolution',
     )
