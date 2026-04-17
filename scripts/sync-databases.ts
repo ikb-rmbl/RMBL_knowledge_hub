@@ -359,6 +359,18 @@ async function pushCollection(
   const { rows: neonRecords } = await neonDb.query(`SELECT * FROM ${config.table}`)
   const neonIndex = buildMatchIndex(neonRecords)
 
+  // Detect JSONB columns so we can JSON.stringify values before INSERT/UPDATE
+  // (pg returns parsed JS objects for JSONB, but requires JSON strings on write)
+  const { rows: jsonbColInfo } = await localDb.query(
+    `SELECT column_name FROM information_schema.columns WHERE table_name = $1 AND udt_name = 'jsonb'`,
+    [config.table],
+  )
+  const jsonbCols = new Set<string>(jsonbColInfo.map((c: any) => c.column_name))
+  function prepValue(field: string, val: any): any {
+    if (jsonbCols.has(field) && val !== null && val !== undefined) return JSON.stringify(val)
+    return val
+  }
+
   let pushed = 0
   let skipped = 0
   let conflicts = 0
@@ -380,7 +392,7 @@ async function pushCollection(
         if (fields.length > 0) {
           if (!dryRun) {
             const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ')
-            const values = fields.map((f) => merged[f])
+            const values = fields.map((f) => prepValue(f, merged[f]))
             try {
               await neonDb.query(
                 `UPDATE ${config.table} SET ${setClause}, updated_at = NOW() WHERE id = $1`,
@@ -406,7 +418,7 @@ async function pushCollection(
       if (!dryRun) {
         const fields = ['id', ...config.curatedFields, ...config.pipelineFields].filter((f) => localRec[f] !== undefined)
         const placeholders = fields.map((_, i) => `$${i + 1}`).join(', ')
-        const values = fields.map((f) => localRec[f])
+        const values = fields.map((f) => prepValue(f, localRec[f]))
         try {
           await neonDb.query(
             `INSERT INTO ${config.table} (${fields.join(', ')}) VALUES (${placeholders})
@@ -439,14 +451,14 @@ async function pushCollection(
           )
           if (fields.length > 0 && !dryRun) {
             const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ')
-            const values = fields.map((f) => merged[f])
+            const values = fields.map((f) => prepValue(f, merged[f]))
             await neonDb.query(`UPDATE ${config.table} SET ${setClause}, updated_at = NOW() WHERE id = $1`, [match.id, ...values])
           }
           pushed++
         } else {
           const fields = ['id', ...config.curatedFields, ...config.pipelineFields].filter((f) => localRec[f] !== undefined)
           const placeholders = fields.map((_, i) => `$${i + 1}`).join(', ')
-          const values = fields.map((f) => localRec[f])
+          const values = fields.map((f) => prepValue(f, localRec[f]))
           if (!dryRun) {
             await neonDb.query(`INSERT INTO ${config.table} (${fields.join(', ')}) VALUES (${placeholders}) ON CONFLICT (id) DO NOTHING`, values)
           }
