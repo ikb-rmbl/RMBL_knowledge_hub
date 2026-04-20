@@ -142,34 +142,6 @@
   --color-header-text: var(--fg-1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #1A1A10;
-    --bg-surface: #232318;
-    --bg-elevated: #2E2E20;
-    --bg-inset: #0E0E08;
-    --fg-1: #F4EEE4;
-    --fg-2: #C8C0A8;
-    --fg-3: #8A8268;
-    --fg-muted: #5F5A45;
-    --border: rgba(244, 238, 228, 0.10);
-    --border-strong: rgba(244, 238, 228, 0.22);
-    --divider: rgba(244, 238, 228, 0.06);
-    --accent-weak: rgba(240, 80, 40, 0.15);
-    --focus-ring: rgba(240, 80, 40, 0.45);
-    --shadow-1: 0 1px 0 rgba(0,0,0,0.4), 0 0 0 1px rgba(244,238,228,0.04);
-    --shadow-2: 0 4px 14px rgba(0,0,0,0.35), 0 0 0 1px rgba(244,238,228,0.06);
-    --color-bg: var(--bg);
-    --color-surface: var(--bg-surface);
-    --color-text: var(--fg-1);
-    --color-text-secondary: var(--fg-2);
-    --color-text-muted: var(--fg-3);
-    --color-border: var(--border-strong);
-    --color-accent-light: var(--accent-weak);
-    --color-header-bg: #0E0E08;
-    --color-header-text: #F4EEE4;
-  }
-}
 
 /* ===== Base ===== */
 

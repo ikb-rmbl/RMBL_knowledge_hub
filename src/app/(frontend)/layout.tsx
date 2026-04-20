@@ -1,5 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
+import ThemeToggle from './components/ThemeToggle'
 import './styles.css'
 
 export const metadata = {
@@ -10,7 +11,7 @@ export const metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="light">
       <body>
         <header className="site-header">
           <div className="site-header-inner">
@@ -31,6 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Link href="/places">Places</Link>
               <Link href="/projects">Projects</Link>
             </nav>
+            <ThemeToggle />
           </div>
         </header>
         <main>{children}</main>
