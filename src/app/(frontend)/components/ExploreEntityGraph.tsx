@@ -155,6 +155,18 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
   const [search, setSearch] = useState('')
   const [selectedNode, setSelectedNode] = useState<any>(null)
   const [minDegree, setMinDegree] = useState(2)
+  const [theme, setTheme] = useState('light')
+
+  // Watch for theme changes so graph re-renders with correct edge/label colors
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const t = document.documentElement.getAttribute('data-theme') || 'light'
+      setTheme(t)
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    setTheme(document.documentElement.getAttribute('data-theme') || 'light')
+    return () => observer.disconnect()
+  }, [])
 
   const colorField = data.colorField
 
@@ -218,21 +230,67 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
         color: resolveColor(colorField, node[colorField]),
       })
     }
+    // Theme-aware edge colors — use pre-mixed solid hex (Sigma WebGL ignores rgba alpha)
+    const isDark = theme === 'dark'
+    // Background RGB to blend toward
+    const bgR = isDark ? 26 : 244, bgG = isDark ? 26 : 238, bgB = isDark ? 16 : 228
+    // Edge target RGB (what strong edges approach)
+    const edgeR = isDark ? 200 : 40, edgeG = isDark ? 195 : 38, edgeB = isDark ? 180 : 30
+
+    // Compute edge weight range for normalization
+    let maxWeight = 1
+    for (const edge of data.edges) if (edge.weight > maxWeight) maxWeight = edge.weight
+    const logMax = Math.log(maxWeight + 1)
+
+    // Sort edges by weight ascending so heavy edges render on top
+    const sortedEdges = [...data.edges].sort((a, b) => a.weight - b.weight)
+
     const seen = new Set<string>()
-    for (const edge of data.edges) {
+    for (const edge of sortedEdges) {
       if (!graph.hasNode(edge.source) || !graph.hasNode(edge.target)) continue
       const k = `${edge.source}--${edge.target}`
       if (seen.has(k) || seen.has(`${edge.target}--${edge.source}`)) continue
       seen.add(k)
-      try { graph.addEdge(edge.source, edge.target, { weight: edge.weight, size: Math.max(0.3, Math.log(edge.weight + 1) * 0.3), color: '#e0ddd8' }) }
+      // Scale size (0.15–2px) and mix edge color from background→foreground by weight
+      const logW = Math.log(edge.weight + 1)
+      const ratio = logMax > 0 ? logW / logMax : 0
+      const size = 0.15 + ratio * 1.85
+      // Mix: weak edges = nearly background color, strong = darker/lighter
+      const t = 0.03 + ratio * 0.62 // blend factor: 3%–65% toward edge target color
+      const r = Math.round(bgR + (edgeR - bgR) * t)
+      const g = Math.round(bgG + (edgeG - bgG) * t)
+      const b = Math.round(bgB + (edgeB - bgB) * t)
+      const color = `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`
+      try { graph.addEdge(edge.source, edge.target, { weight: edge.weight, size, color }) }
       catch {}
+    }
+
+    // Custom label renderer: draws a background pill behind each label
+    function drawLabel(ctx: CanvasRenderingContext2D, data: any, settings: any) {
+      if (!data.label) return
+      const size = settings.labelSize
+      const font = settings.labelFont
+      const weight = settings.labelWeight
+      ctx.font = `${weight} ${size}px ${font}`
+      const textWidth = ctx.measureText(data.label).width
+      const bgX = data.x + data.size + 2
+      const bgY = data.y - size / 2 - 1
+      const bgW = textWidth + 4
+      const bgH = size + 3
+      ctx.fillStyle = isDark ? 'rgba(26, 26, 16, 0.88)' : 'rgba(244, 238, 228, 0.88)'
+      ctx.beginPath()
+      ctx.roundRect(bgX - 2, bgY - 1, bgW, bgH, 2)
+      ctx.fill()
+      ctx.fillStyle = isDark ? '#F4EEE4' : '#32321E'
+      ctx.fillText(data.label, bgX, data.y + size / 3)
     }
 
     if (sigmaRef.current) sigmaRef.current.kill()
     const renderer = new Sigma(graph, containerRef.current, {
       renderEdgeLabels: false, labelRenderedSizeThreshold: 5, defaultEdgeType: 'line',
-      labelFont: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      labelFont: 'Jost, "Futura PT", Futura, "Helvetica Neue", Arial, sans-serif',
       labelSize: 11, labelWeight: '500', labelGridCellSize: 150, labelDensity: 0.5,
+      defaultDrawNodeLabel: drawLabel,
     } as any)
 
     sigmaRef.current = renderer
@@ -273,7 +331,7 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
     applyFilters(renderer, graph, filtersRef.current)
 
     setLoaded(true)
-  }, [data, colorField, resolveColor])
+  }, [data, colorField, resolveColor, theme])
 
   useEffect(() => {
     initGraph()
