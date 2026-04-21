@@ -186,7 +186,10 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 56px;
+  min-height: 56px;
+  padding: var(--s-2) 0;
+  flex-wrap: wrap;
+  gap: var(--s-2);
 }
 .site-logo {
   display: flex;
@@ -211,9 +214,10 @@ a:hover {
 }
 .site-nav {
   display: flex;
-  gap: var(--s-4);
-  font-size: var(--fs-small);
+  gap: var(--s-1) var(--s-4);
+  font-size: 14px;
   font-weight: 500;
+  flex-wrap: wrap;
 }
 .site-nav a {
   color: var(--color-header-text);
@@ -222,6 +226,7 @@ a:hover {
   border-bottom: 2px solid transparent;
   transition: all 0.15s;
   text-decoration: none;
+  white-space: nowrap;
 }
 .site-nav a:hover {
   opacity: 1;
