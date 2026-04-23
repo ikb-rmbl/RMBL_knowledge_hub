@@ -458,7 +458,10 @@ function renderInlineLinks(text: string): React.ReactNode {
   return parts.map((part, i) => {
     const match = part.match(/^\[([^\]]+)\]\((\/(?:publications|documents)\/\d+)\)$/)
     if (match) {
-      return <a key={i} href={match[2]} style={{ color: 'var(--accent)', textDecoration: 'none' }}>{match[1]}</a>
+      const linkText = match[1]
+      // Wrap author-year citations in parentheses: "Blumstein et al., 2025" → "(Blumstein et al., 2025)"
+      const isCitation = /\d{4}$/.test(linkText)
+      return <a key={i} href={match[2]} style={{ color: 'var(--accent)', textDecoration: 'none' }}>{isCitation ? `(${linkText})` : linkText}</a>
     }
     return part
   })
