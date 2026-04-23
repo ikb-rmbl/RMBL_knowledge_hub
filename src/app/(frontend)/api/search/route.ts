@@ -1,9 +1,8 @@
 /**
- * Full-text search API endpoint using PostgreSQL tsvector.
+ * Full-text search API endpoint.
  *
- * Searches across documents, publications, and datasets with weighted
- * ranking (title=A, abstract=B, fullText=C). Returns unified results
- * sorted by relevance with highlighted snippets.
+ * Delegates to the search service for tsvector-based search across
+ * documents, publications, and datasets.
  *
  * Query params:
  *   q       - search query (required)
@@ -13,29 +12,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
-import config from '@/payload.config'
 import { getDb } from '../../lib/db'
+import { search } from '@/services/search'
 
 export const dynamic = 'force-dynamic'
 
-export interface SearchResult {
-  id: number
-  type: 'document' | 'publication' | 'dataset'
-  title: string
-  snippet: string
-  rank: number
-  year: number | null
-  subtype: string | null
-  meta: string[]
-}
+// Re-export the type for consumers
+export type { SearchResult } from '@/services/search'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const query = searchParams.get('q')?.trim()
   const typeFilter = searchParams.get('type') || ''
-  const limitParam = Math.min(Math.max(1, parseInt(searchParams.get('limit') || '20', 10) || 20), 100)
-  const offset = Math.max(0, parseInt(searchParams.get('offset') || '0', 10) || 0)
 
   if (!query || query.length > 1000) {
     return NextResponse.json({ results: [], total: 0 })
@@ -46,117 +34,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results: [], total: 0, error: 'Invalid type filter' }, { status: 400 })
   }
 
-  const db = getDb()
-  const results: SearchResult[] = []
-
-  const searchDocs = !typeFilter || typeFilter === 'documents'
-  const searchPubs = !typeFilter || typeFilter === 'publications'
-  const searchData = !typeFilter || typeFilter === 'datasets'
-
   try {
-    if (searchDocs) {
-      const { rows } = await db.query(
-        `SELECT id, title,
-                ts_headline('english', coalesce(full_text, title, ''), plainto_tsquery('english', $1),
-                  'MaxFragments=1,MaxWords=30,MinWords=15,StartSel=<mark>,StopSel=</mark>') as snippet,
-                ts_rank(search_vector, plainto_tsquery('english', $1)) as rank,
-                date_original
-         FROM documents
-         WHERE search_vector @@ plainto_tsquery('english', $1)
-         ORDER BY rank DESC
-         LIMIT $2 OFFSET $3`,
-        [query, limitParam, offset],
-      )
-      for (const row of rows) {
-        const yearStr = row.date_original ? String(row.date_original).slice(0, 4) : null
-        results.push({
-          id: row.id,
-          type: 'document',
-          title: row.title,
-          snippet: row.snippet || '',
-          rank: parseFloat(row.rank),
-          year: yearStr ? parseInt(yearStr) : null,
-          subtype: null,
-          meta: [yearStr].filter(Boolean) as string[],
-        })
-      }
-    }
-
-    if (searchPubs) {
-      const { rows } = await db.query(
-        `SELECT id, title, year, journal, doi, publication_type,
-                ts_headline('english', coalesce(abstract, full_text, title, ''), plainto_tsquery('english', $1),
-                  'MaxFragments=1,MaxWords=30,MinWords=15,StartSel=<mark>,StopSel=</mark>') as snippet,
-                ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
-         FROM publications
-         WHERE search_vector @@ plainto_tsquery('english', $1)
-         ORDER BY rank DESC
-         LIMIT $2 OFFSET $3`,
-        [query, limitParam, offset],
-      )
-      for (const row of rows) {
-        results.push({
-          id: row.id,
-          type: 'publication',
-          title: row.title,
-          snippet: row.snippet || '',
-          rank: parseFloat(row.rank),
-          year: row.year || null,
-          subtype: row.publication_type || null,
-          meta: [row.journal, row.year ? String(row.year) : '', row.doi ? `DOI: ${row.doi}` : ''].filter(Boolean),
-        })
-      }
-    }
-
-    if (searchData) {
-      const { rows } = await db.query(
-        `SELECT id, title, publication_year, resource_type,
-                ts_headline('english', coalesce(full_text, title, ''), plainto_tsquery('english', $1),
-                  'MaxFragments=1,MaxWords=30,MinWords=15,StartSel=<mark>,StopSel=</mark>') as snippet,
-                ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
-         FROM datasets
-         WHERE search_vector @@ plainto_tsquery('english', $1)
-         ORDER BY rank DESC
-         LIMIT $2 OFFSET $3`,
-        [query, limitParam, offset],
-      )
-      for (const row of rows) {
-        results.push({
-          id: row.id,
-          type: 'dataset',
-          title: row.title,
-          snippet: row.snippet || '',
-          rank: parseFloat(row.rank),
-          year: row.publication_year || null,
-          subtype: row.resource_type || null,
-          meta: [row.publication_year ? String(row.publication_year) : ''].filter(Boolean),
-        })
-      }
-    }
-
-    // Sort merged results by rank
-    results.sort((a, b) => b.rank - a.rank)
-
-    // Count totals
-    let total = 0
-    if (searchDocs) {
-      const { rows } = await db.query('SELECT count(*) FROM documents WHERE search_vector @@ plainto_tsquery(\'english\', $1)', [query])
-      total += parseInt(rows[0].count)
-    }
-    if (searchPubs) {
-      const { rows } = await db.query('SELECT count(*) FROM publications WHERE search_vector @@ plainto_tsquery(\'english\', $1)', [query])
-      total += parseInt(rows[0].count)
-    }
-    if (searchData) {
-      const { rows } = await db.query('SELECT count(*) FROM datasets WHERE search_vector @@ plainto_tsquery(\'english\', $1)', [query])
-      total += parseInt(rows[0].count)
-    }
-
-    return NextResponse.json({
-      results: results.slice(0, limitParam),
-      total,
+    const result = await search(getDb(), {
       query,
+      type: typeFilter as '' | 'documents' | 'publications' | 'datasets',
+      limit: parseInt(searchParams.get('limit') || '20', 10) || 20,
+      offset: parseInt(searchParams.get('offset') || '0', 10) || 0,
     })
+
+    return NextResponse.json(result)
   } catch (err: any) {
     console.error('Search error:', err)
     return NextResponse.json(
