@@ -28,7 +28,7 @@ export async function callClaude(options: {
   maxTokens?: number
   messages: { role: string; content: any }[]
 }): Promise<ClaudeResponse> {
-  const model = options.model || 'claude-sonnet-4-20250514'
+  const model = options.model || 'claude-sonnet-4-6'
   const maxTokens = options.maxTokens || 4096
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {

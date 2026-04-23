@@ -26,7 +26,12 @@ const dryRun = args.includes('--dry-run')
 const limitArg = args.find((a) => a.startsWith('--limit='))?.split('=')[1]
 const limit = limitArg ? parseInt(limitArg) : 25
 const singleId = args.find((a) => a.startsWith('--id='))?.split('=')[1]
-const modelArg = args.find((a) => a.startsWith('--model='))?.split('=')[1]
+const MODEL_ALIASES: Record<string, string> = {
+  opus: 'claude-opus-4-7',
+  sonnet: 'claude-sonnet-4-6',
+}
+const rawModel = args.find((a) => a.startsWith('--model='))?.split('=')[1]
+const modelArg = rawModel ? (MODEL_ALIASES[rawModel] || rawModel) : undefined
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || ''
 
@@ -510,7 +515,7 @@ async function main() {
           apiKey: ANTHROPIC_API_KEY,
           prompt,
           content: context,
-          maxTokens: 4096,
+          maxTokens: 8192,
           model: modelArg,
         })
 

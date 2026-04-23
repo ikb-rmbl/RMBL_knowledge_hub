@@ -20,7 +20,7 @@ const Graph = (await import('graphology')).default
 const louvain = (await import('graphology-communities-louvain')).default
 
 const args = process.argv.slice(2)
-const resolution = parseFloat(args.find((a) => a.startsWith('--resolution='))?.split('=')[1] || '1.0')
+const resolution = parseFloat(args.find((a) => a.startsWith('--resolution='))?.split('=')[1] || '6')
 
 async function main() {
   console.log('Detect Knowledge Neighborhoods')
