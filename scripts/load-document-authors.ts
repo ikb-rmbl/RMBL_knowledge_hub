@@ -84,7 +84,8 @@ async function main() {
 
     for (const r of results) {
       if (!r.authors || r.authors.length === 0) continue
-      for (const cand of r.authors) {
+      for (let authorIdx = 0; authorIdx < r.authors.length; authorIdx++) {
+        const cand = r.authors[authorIdx]
         // Derive family name from fullName if missing (last whitespace-separated token)
         let familyName = cand.familyName
         if (!familyName && cand.fullName) {
@@ -143,12 +144,12 @@ async function main() {
             // authors_rels has implicit uniqueness via path + ids
             const { rowCount } = await db.query(
               `INSERT INTO authors_rels (parent_id, path, documents_id, "order")
-               SELECT $1, 'documents', $2, 1
+               SELECT $1, 'documents', $2, $3
                WHERE NOT EXISTS (
                  SELECT 1 FROM authors_rels
                  WHERE parent_id = $1 AND documents_id = $2 AND path = 'documents'
                )`,
-              [authorId, r.docId],
+              [authorId, r.docId, authorIdx + 1],
             )
             if ((rowCount || 0) > 0) linked++
           } catch (err: any) {
