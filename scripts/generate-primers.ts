@@ -26,6 +26,7 @@ const dryRun = args.includes('--dry-run')
 const limitArg = args.find((a) => a.startsWith('--limit='))?.split('=')[1]
 const limit = limitArg ? parseInt(limitArg) : 25
 const singleId = args.find((a) => a.startsWith('--id='))?.split('=')[1]
+const modelArg = args.find((a) => a.startsWith('--model='))?.split('=')[1]
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || ''
 
@@ -35,9 +36,9 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || ''
 
 const RESEARCH_PROMPT = `You are writing a research primer for a knowledge neighborhood in the RMBL Knowledge Hub — a platform connecting scientific research, community documents, and environmental datasets from the Rocky Mountain Biological Laboratory in Gothic, Colorado.
 
-Write a 500-1000 word primer covering these sections:
+Write a 600-1200 word primer covering these sections:
 
-1. **Background** (1-2 paragraphs): What is this area of research about? Why does it matter for mountain ecosystems, the Gunnison Basin, or broader ecology? Write for an educated non-specialist — define technical terms, use concrete examples.
+1. **Background** (2-3 paragraphs): Introduce the reader to this area of research. Explain what it is about, why it matters for mountain ecosystems and the Gunnison Basin, and what key concepts a reader needs to understand the findings that follow. Use the KEY CONCEPTS section below as a reference — you don't need to define every concept listed, but introduce the ones that are essential for understanding the key findings and current frontier. Define these in plain language with concrete examples. Avoid specialized jargon in later sections that wasn't introduced here.
 
 2. **Foundational work** (1-2 paragraphs): Summarize the landmark early findings that established this research area. Cite specific publications using [Author, Year] format. Draw from the "LANDMARK PAPERS" section below.
 
@@ -51,7 +52,8 @@ RULES:
 - Every factual claim MUST be traceable to a provided abstract or key finding
 - Use [Author, Year] citations ONLY for papers listed below — never fabricate citations
 - Write for community members, land managers, and undergraduate students — not specialists
-- Define technical terms on first use
+- The Background section should introduce the key concepts needed to understand the findings — not necessarily every concept listed, but those essential for comprehension
+- After the Background, avoid specialized terms that weren't introduced there
 - Do not begin any section with "This neighborhood" or "This community"
 - Frame temporal trajectory explicitly
 
@@ -179,16 +181,16 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
     `, [pubIds])
     parts.push(`\nPUBLICATION TIMELINE: ${yearDist.map((r: any) => `${r.period}: ${r.n}`).join(', ')}`)
 
-    // Tier 1: Landmark papers (top 10 by citations)
+    // Tier 1: Landmark papers (top 15 by citations)
     const { rows: landmarks } = await db.query(`
       SELECT p.id, p.title, p.year, p.journal, p.doi,
         coalesce(p.external_citation_count, 0) as cites,
         left(p.abstract, 1500) as abstract,
-        left(p.full_text, 500) as full_text_excerpt
+        left(p.full_text, 800) as full_text_excerpt
       FROM publications p
       WHERE p.id = ANY($1)
       ORDER BY coalesce(p.external_citation_count, 0) DESC
-      LIMIT 10
+      LIMIT 15
     `, [pubIds])
 
     // Get first authors for landmarks
@@ -225,7 +227,7 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
       const author = firstAuthors.get(p.id) || 'Unknown'
       parts.push(`\n[${i + 1}] "${p.title}" — ${author} et al., ${p.year || '?'} (${p.journal || 'unknown journal'}) [${p.cites} citations] [pub_id:${p.id}]`)
       if (p.abstract) parts.push(`  Abstract: ${p.abstract}`)
-      if (i < 3 && p.full_text_excerpt) parts.push(`  Excerpt: ${p.full_text_excerpt}`)
+      if (i < 5 && p.full_text_excerpt) parts.push(`  Excerpt: ${p.full_text_excerpt}`)
       const findings = findingsByPub.get(p.id)
       if (findings && findings.length > 0) {
         for (const f of findings) {
@@ -238,11 +240,12 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
     const landmarkIdSet = new Set(landmarkIds)
     const { rows: frontier } = await db.query(`
       SELECT p.id, p.title, p.year, p.journal,
-        coalesce(p.external_citation_count, 0) as cites
+        coalesce(p.external_citation_count, 0) as cites,
+        left(p.abstract, 800) as abstract
       FROM publications p
       WHERE p.id = ANY($1) AND p.year >= 2020 AND p.id != ALL($2)
       ORDER BY p.year DESC, p.external_citation_count DESC NULLS LAST
-      LIMIT 10
+      LIMIT 15
     `, [pubIds, landmarkIds])
 
     const frontierIds = frontier.map((f: any) => f.id)
@@ -273,6 +276,7 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
       for (const p of frontier) {
         const author = firstAuthors.get(p.id) || 'Unknown'
         parts.push(`\n"${p.title}" — ${author} et al., ${p.year} (${p.journal || '?'}) [pub_id:${p.id}]`)
+        if (p.abstract) parts.push(`  Abstract: ${p.abstract}`)
         const findings = frontierFindingsByPub.get(p.id)
         if (findings) for (const f of findings) parts.push(`  Finding [${f.confidence}]: ${f.finding}`)
       }
@@ -291,7 +295,7 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
         WHERE cc.item_id = ANY($1) AND cc.chunk_method = 'vlm_extract' AND cc.collection = 'publications'
           AND jsonb_array_length(cc.metadata->'keyFindings') > 0
         ORDER BY p.external_citation_count DESC NULLS LAST
-        LIMIT 25
+        LIMIT 60
       `, [remainingIds])
 
       if (breadthFindings.length > 0) {
@@ -304,12 +308,12 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
   }
 
   // Tier 4: Entity context
-  // Species
+  // Species (all in neighborhood)
   const { rows: speciesRows } = await db.query(`
     SELECT s.canonical_name, s.common_names, s.family, s.kingdom
     FROM neighborhood_members nm JOIN species s ON s.id = nm.entity_id
     WHERE nm.neighborhood_id = $1 AND nm.entity_type = 'species'
-    ORDER BY nm.degree DESC LIMIT 5
+    ORDER BY nm.degree DESC LIMIT 15
   `, [nbr.id])
   if (speciesRows.length > 0) {
     parts.push('\n--- KEY SPECIES ---')
@@ -319,27 +323,27 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
     }
   }
 
-  // Concepts
+  // Concepts (all in neighborhood — these ground the Background section)
   const { rows: conceptRows } = await db.query(`
     SELECT c.name, c.definition, c.scope
     FROM neighborhood_members nm JOIN concepts c ON c.id = nm.entity_id
     WHERE nm.neighborhood_id = $1 AND nm.entity_type = 'concept'
-    ORDER BY nm.degree DESC LIMIT 5
+    ORDER BY nm.degree DESC
   `, [nbr.id])
   if (conceptRows.length > 0) {
-    parts.push('\n--- KEY CONCEPTS ---')
+    parts.push('\n--- KEY CONCEPTS (introduce all of these in the Background section) ---')
     for (const c of conceptRows) {
-      const def = c.definition ? `: ${c.definition.slice(0, 120)}` : ''
+      const def = c.definition ? `: ${c.definition.slice(0, 200)}` : ''
       parts.push(`${c.name} [${c.scope || '?'}]${def}`)
     }
   }
 
-  // Protocols
+  // Protocols (up to 10)
   const { rows: protoRows } = await db.query(`
     SELECT p.name, p.description, p.category
     FROM neighborhood_members nm JOIN protocols p ON p.id = nm.entity_id
     WHERE nm.neighborhood_id = $1 AND nm.entity_type = 'protocol'
-    ORDER BY nm.degree DESC LIMIT 5
+    ORDER BY nm.degree DESC LIMIT 10
   `, [nbr.id])
   if (protoRows.length > 0) {
     parts.push('\n--- KEY METHODS ---')
@@ -472,8 +476,33 @@ async function main() {
           prompt,
           content: context,
           maxTokens: 2048,
+          model: modelArg,
         })
 
+        if (!data) {
+          console.log(`  ${i + 1}. "${nbr.title}" — JSON parse failed (response cost: $${response.cost.toFixed(3)})`)
+          console.log(`    Raw response (first 300 chars): ${response.text.slice(0, 300)}`)
+          // Try manual extraction: find primer_text value between quotes
+          const match = response.text.match(/"primer_text"\s*:\s*"([\s\S]*?)"\s*,\s*"citations_used"/)
+          if (match) {
+            console.log(`    Recovered primer_text via regex (${match[1].length} chars)`)
+            const primerText = match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"')
+            // Try to extract citations_used too
+            let citationsUsed: any[] = []
+            const citMatch = response.text.match(/"citations_used"\s*:\s*(\[[\s\S]*?\])\s*,?\s*"key_findings"/)
+            if (citMatch) try { citationsUsed = JSON.parse(citMatch[1]) } catch {}
+
+            await db.query(`
+              UPDATE neighborhoods SET primer = $1, primer_type = $2, primer_generated_at = NOW(), primer_citations = $3
+              WHERE id = $4
+            `, [primerText, nbr.primerType, JSON.stringify(citationsUsed), nbr.id])
+            generated++
+            totalCost += response.cost
+            console.log(`  ${i + 1}. "${nbr.title}" — ${primerText.length} chars (recovered), ${citationsUsed.length} citations`)
+          }
+        } else if (!data.primer_text) {
+          console.log(`  ${i + 1}. "${nbr.title}" — JSON parsed but no primer_text field. Keys: ${Object.keys(data).join(', ')}`)
+        }
         if (data?.primer_text) {
           // Verify citations
           const { rows: contextPubs } = await db.query(
