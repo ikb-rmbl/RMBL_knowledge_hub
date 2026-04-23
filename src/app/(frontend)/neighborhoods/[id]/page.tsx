@@ -302,6 +302,13 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
         </div>
       )}
 
+      {neighborhood.primer && (
+        <div className="detail-section">
+          <h2>Research Primer</h2>
+          <PrimerRenderer text={neighborhood.primer} />
+        </div>
+      )}
+
       {TYPE_ORDER.map((type) => {
         const members = membersByType[type]
         if (!members || members.length === 0) return null
@@ -339,4 +346,72 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
       })}
     </div>
   )
+}
+
+const PRIMER_HEADERS = new Set(['Background', 'Foundational work', 'Key findings', 'Current frontier', 'Open questions', 'References'])
+
+function PrimerRenderer({ text }: { text: string }) {
+  const lines = text.split('\n')
+  const elements: React.ReactNode[] = []
+  let currentParagraph: string[] = []
+  let inReferences = false
+
+  function flushParagraph() {
+    if (currentParagraph.length === 0) return
+    const content = currentParagraph.join(' ')
+    elements.push(
+      <p key={elements.length} style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', margin: '0 0 12px', maxWidth: '68ch' }}>
+        {renderInlineLinks(content)}
+      </p>,
+    )
+    currentParagraph = []
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed) {
+      flushParagraph()
+      continue
+    }
+    if (PRIMER_HEADERS.has(trimmed)) {
+      flushParagraph()
+      inReferences = trimmed === 'References'
+      elements.push(
+        <h3 key={elements.length} style={{
+          fontFamily: 'var(--font-sans)', fontSize: '15px', fontWeight: 600,
+          margin: '20px 0 8px', color: 'var(--fg-1)',
+          ...(inReferences ? { borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '24px' } : {}),
+        }}>
+          {trimmed}
+        </h3>,
+      )
+      continue
+    }
+    if (inReferences) {
+      flushParagraph()
+      elements.push(
+        <p key={elements.length} style={{ fontSize: '13px', lineHeight: 1.5, color: 'var(--fg-3)', margin: '0 0 6px', maxWidth: '68ch' }}>
+          {renderInlineLinks(trimmed)}
+        </p>,
+      )
+    } else {
+      currentParagraph.push(trimmed)
+    }
+  }
+  flushParagraph()
+
+  return <>{elements}</>
+}
+
+/** Convert [text](/publications/N) markdown links to <a> tags */
+function renderInlineLinks(text: string): React.ReactNode {
+  const parts = text.split(/(\[[^\]]+\]\(\/publications\/\d+\))/g)
+  if (parts.length === 1) return text
+  return parts.map((part, i) => {
+    const match = part.match(/^\[([^\]]+)\]\((\/publications\/\d+)\)$/)
+    if (match) {
+      return <a key={i} href={match[2]} style={{ color: 'var(--accent)', textDecoration: 'none' }}>{match[1]}</a>
+    }
+    return part
+  })
 }

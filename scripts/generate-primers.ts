@@ -50,22 +50,31 @@ Write a 600-1200 word primer covering these sections:
 
 RULES:
 - Every factual claim MUST be traceable to a provided abstract or key finding
-- Use [Author, Year] citations ONLY for papers listed below — never fabricate citations
+- Use parenthetical citations ONLY for papers listed below — never fabricate
+- Citation format: (Author1 & Author2, Year) for two-author papers, (Author1 et al., Year) for three or more. Follow each citation with {pub_id:N} using the pub_id from the paper listing. Example: (Campbell & Powers, 2015){pub_id:391}
 - Write for community members, land managers, and undergraduate students — not specialists
 - The Background section should introduce the key concepts needed to understand the findings — not necessarily every concept listed, but those essential for comprehension
 - After the Background, avoid specialized terms that weren't introduced there
 - Do not begin any section with "This neighborhood" or "This community"
 - Frame temporal trajectory explicitly
 
-Return a JSON object:
+At the end of the primer, include a REFERENCES section listing all cited publications in the format:
+  Author1, Author2 (Year). Title. Journal. {pub_id:N}
+
+Return a JSON object with these fields:
 {
-  "primer_text": "The full primer text with [Author, Year] citations",
-  "citations_used": [{"pub_id": 123, "author": "Smith", "year": 2020}],
+  "primer_text": "the full primer text including references section",
   "key_findings": ["finding 1", "finding 2", "finding 3"],
-  "open_questions": ["question 1", "question 2", "question 3"]
+  "open_questions": ["question 1", "question 2"]
 }
 
-Return valid JSON only.`
+CRITICAL JSON RULES:
+- The primer_text value must be a valid JSON string
+- Use \\n for newlines, NOT actual line breaks inside the string
+- Do NOT use markdown formatting (no ## headers, no **bold**, no *italic*)
+- Use plain section labels like "Background" followed by \\n\\n
+- Do NOT use backticks, quotes within quotes must be escaped as \\"
+- Return valid JSON only, no code fences`
 
 const POLICY_PROMPT = `You are writing a primer for a policy and management knowledge neighborhood in the RMBL Knowledge Hub — a platform connecting scientific research, community documents, and environmental datasets from the Rocky Mountain Biological Laboratory and the Gunnison Basin of western Colorado.
 
@@ -193,20 +202,32 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
       LIMIT 15
     `, [pubIds])
 
-    // Get first authors for landmarks
+    // Build citation labels for all pubs we might reference
+    // Returns "(Author1 & Author2, Year)" or "(Author1 et al., Year)" format
     const landmarkIds = landmarks.map((l: any) => l.id)
+    const allContextPubIds = [...pubIds]
     const { rows: authorRows } = await db.query(`
-      SELECT ar.publications_id as pub_id, a.family_name, a.given_name
+      SELECT ar.publications_id as pub_id, a.family_name, ar."order"
       FROM authors_rels ar
       JOIN authors a ON a.id = ar.parent_id
       WHERE ar.publications_id = ANY($1) AND ar.path = 'publications'
       ORDER BY ar.publications_id, ar."order" NULLS LAST
-    `, [landmarkIds])
-    const firstAuthors = new Map<number, string>()
+    `, [allContextPubIds])
+
+    // Group authors by pub: [{family, order}]
+    const authorsByPub = new Map<number, { family: string; order: number }[]>()
     for (const a of authorRows) {
-      if (!firstAuthors.has(a.pub_id)) {
-        firstAuthors.set(a.pub_id, `${a.family_name}${a.given_name ? ' ' + a.given_name[0] + '.' : ''}`)
-      }
+      if (!authorsByPub.has(a.pub_id)) authorsByPub.set(a.pub_id, [])
+      authorsByPub.get(a.pub_id)!.push({ family: a.family_name, order: a.order || 999 })
+    }
+
+    function citationLabel(pubId: number): string {
+      const authors = authorsByPub.get(pubId) || []
+      authors.sort((a, b) => a.order - b.order)
+      if (authors.length === 0) return 'Unknown'
+      if (authors.length === 1) return authors[0].family
+      if (authors.length === 2) return `${authors[0].family} & ${authors[1].family}`
+      return `${authors[0].family} et al.`
     }
 
     // Get keyFindings for landmarks
@@ -222,10 +243,12 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
     }
 
     parts.push('\n--- LANDMARK PAPERS (most cited) ---')
+    parts.push('Citation format: use (Author1 & Author2, Year) for 2 authors, (Author1 et al., Year) for 3+. Include {pub_id:N} after each citation for linking.')
     for (let i = 0; i < landmarks.length; i++) {
       const p = landmarks[i]
-      const author = firstAuthors.get(p.id) || 'Unknown'
-      parts.push(`\n[${i + 1}] "${p.title}" — ${author} et al., ${p.year || '?'} (${p.journal || 'unknown journal'}) [${p.cites} citations] [pub_id:${p.id}]`)
+      const label = citationLabel(p.id)
+      const nAuthors = (authorsByPub.get(p.id) || []).length
+      parts.push(`\n[${i + 1}] "${p.title}" — ${label}, ${p.year || '?'} (${p.journal || 'unknown journal'}) [${p.cites} citations] [${nAuthors} authors] [pub_id:${p.id}]`)
       if (p.abstract) parts.push(`  Abstract: ${p.abstract}`)
       if (i < 5 && p.full_text_excerpt) parts.push(`  Excerpt: ${p.full_text_excerpt}`)
       const findings = findingsByPub.get(p.id)
@@ -258,24 +281,11 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
     const frontierFindingsByPub = new Map<number, any[]>()
     for (const f of frontierFindings) frontierFindingsByPub.set(f.pub_id, f.findings || [])
 
-    // Get first authors for frontier
-    const { rows: frontierAuthors } = await db.query(`
-      SELECT ar.publications_id as pub_id, a.family_name, a.given_name
-      FROM authors_rels ar JOIN authors a ON a.id = ar.parent_id
-      WHERE ar.publications_id = ANY($1) AND ar.path = 'publications'
-      ORDER BY ar.publications_id, ar."order" NULLS LAST
-    `, [frontierIds])
-    for (const a of frontierAuthors) {
-      if (!firstAuthors.has(a.pub_id)) {
-        firstAuthors.set(a.pub_id, `${a.family_name}${a.given_name ? ' ' + a.given_name[0] + '.' : ''}`)
-      }
-    }
-
     if (frontier.length > 0) {
       parts.push('\n--- FRONTIER PAPERS (2020+, most recent) ---')
       for (const p of frontier) {
-        const author = firstAuthors.get(p.id) || 'Unknown'
-        parts.push(`\n"${p.title}" — ${author} et al., ${p.year} (${p.journal || '?'}) [pub_id:${p.id}]`)
+        const label = citationLabel(p.id)
+        parts.push(`\n"${p.title}" — ${label}, ${p.year} (${p.journal || '?'}) [pub_id:${p.id}]`)
         if (p.abstract) parts.push(`  Abstract: ${p.abstract}`)
         const findings = frontierFindingsByPub.get(p.id)
         if (findings) for (const f of findings) parts.push(`  Finding [${f.confidence}]: ${f.finding}`)
@@ -398,6 +408,31 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
 // Citation verification
 // ---------------------------------------------------------------------------
 
+/**
+ * Post-process primer text:
+ * - Convert inline (Author et al., Year){pub_id:N} → [(Author et al., Year)](/publications/N)
+ * - Convert reference list entries ending with {pub_id:N} → link the title
+ * - Clean up any stray {pub_id:N} tags
+ */
+function linkCitations(text: string): string {
+  // Inline citations: (citation text){pub_id:N} → [(citation text)](/publications/N)
+  let linked = text.replace(
+    /\(([^)]+)\)\s*\{pub_id:(\d+)\}/g,
+    '[$1](/publications/$2)',
+  )
+  // Reference list: "Title" ... {pub_id:N} → ["Title" ...](/publications/N)
+  linked = linked.replace(
+    /"([^"]+)"\.\s*\*([^*]+)\*\.?\s*\{pub_id:(\d+)\}/g,
+    '["$1."](/publications/$3) *$2*.',
+  )
+  // Fallback: any remaining {pub_id:N} at end of a line → append link
+  linked = linked.replace(
+    /([^\n]+)\s*\{pub_id:(\d+)\}/g,
+    (match, prefix, id) => `${prefix.trim()} [→](/publications/${id})`,
+  )
+  return linked
+}
+
 function verifyCitations(citationsUsed: any[], pubIdsInContext: Set<number>): { valid: number; invalid: number; details: string[] } {
   let valid = 0, invalid = 0
   const details: string[] = []
@@ -475,60 +510,46 @@ async function main() {
           apiKey: ANTHROPIC_API_KEY,
           prompt,
           content: context,
-          maxTokens: 2048,
+          maxTokens: 4096,
           model: modelArg,
         })
 
-        if (!data) {
-          console.log(`  ${i + 1}. "${nbr.title}" — JSON parse failed (response cost: $${response.cost.toFixed(3)})`)
-          console.log(`    Raw response (first 300 chars): ${response.text.slice(0, 300)}`)
-          // Try manual extraction: find primer_text value between quotes
-          const match = response.text.match(/"primer_text"\s*:\s*"([\s\S]*?)"\s*,\s*"citations_used"/)
-          if (match) {
-            console.log(`    Recovered primer_text via regex (${match[1].length} chars)`)
-            const primerText = match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"')
-            // Try to extract citations_used too
-            let citationsUsed: any[] = []
-            const citMatch = response.text.match(/"citations_used"\s*:\s*(\[[\s\S]*?\])\s*,?\s*"key_findings"/)
-            if (citMatch) try { citationsUsed = JSON.parse(citMatch[1]) } catch {}
-
-            await db.query(`
-              UPDATE neighborhoods SET primer = $1, primer_type = $2, primer_generated_at = NOW(), primer_citations = $3
-              WHERE id = $4
-            `, [primerText, nbr.primerType, JSON.stringify(citationsUsed), nbr.id])
-            generated++
-            totalCost += response.cost
-            console.log(`  ${i + 1}. "${nbr.title}" — ${primerText.length} chars (recovered), ${citationsUsed.length} citations`)
-          }
-        } else if (!data.primer_text) {
-          console.log(`  ${i + 1}. "${nbr.title}" — JSON parsed but no primer_text field. Keys: ${Object.keys(data).join(', ')}`)
+        if (!data?.primer_text) {
+          console.log(`  ${i + 1}. "${nbr.title}" — no primer_text in response (cost: $${response.cost.toFixed(3)})`)
+          console.log(`    Response start: ${response.text.slice(0, 200)}`)
+          continue
         }
-        if (data?.primer_text) {
-          // Verify citations
-          const { rows: contextPubs } = await db.query(
-            `SELECT entity_id FROM neighborhood_members WHERE neighborhood_id = $1 AND entity_type = 'publication'`,
-            [nbr.id],
-          )
-          const pubIdSet = new Set(contextPubs.map((r: any) => r.entity_id))
-          const verification = verifyCitations(data.citations_used || [], pubIdSet)
 
-          // Write to DB
-          await db.query(`
-            UPDATE neighborhoods SET
-              primer = $1, primer_type = $2, primer_generated_at = NOW(),
-              primer_citations = $3
-            WHERE id = $4
-          `, [data.primer_text, nbr.primerType, JSON.stringify(data.citations_used || []), nbr.id])
+        // Post-process: convert {pub_id:N} tags to markdown links
+        const linkedPrimer = linkCitations(data.primer_text)
 
-          generated++
-          totalCost += response.cost
-          if (verification.invalid > 0) {
-            citationWarnings++
-            console.log(`  ${i + 1}. "${nbr.title}" — ${data.primer_text.length} chars, ${verification.valid} citations OK, ${verification.invalid} UNGROUNDED`)
-            for (const d of verification.details.slice(0, 3)) console.log(`    ⚠ ${d}`)
-          } else {
-            console.log(`  ${i + 1}. "${nbr.title}" — ${data.primer_text.length} chars, ${verification.valid} citations OK`)
-          }
+        // Extract pub_ids from linked citations for tracking
+        const linkedPubIds = [...linkedPrimer.matchAll(/\/publications\/(\d+)/g)].map(m => parseInt(m[1]))
+        const citationsUsed = [...new Set(linkedPubIds)].map(id => ({ pub_id: id }))
+
+        // Verify citations against neighborhood members
+        const { rows: contextPubs } = await db.query(
+          `SELECT entity_id FROM neighborhood_members WHERE neighborhood_id = $1 AND entity_type = 'publication'`,
+          [nbr.id],
+        )
+        const pubIdSet = new Set(contextPubs.map((r: any) => r.entity_id))
+        const verification = verifyCitations(citationsUsed, pubIdSet)
+
+        // Write to DB
+        await db.query(`
+          UPDATE neighborhoods SET
+            primer = $1, primer_type = $2, primer_generated_at = NOW(),
+            primer_citations = $3
+          WHERE id = $4
+        `, [linkedPrimer, nbr.primerType, JSON.stringify(citationsUsed), nbr.id])
+
+        generated++
+        totalCost += response.cost
+        if (verification.invalid > 0) {
+          citationWarnings++
+          console.log(`  ${i + 1}. "${nbr.title}" — ${linkedPrimer.length} chars, ${linkedPubIds.length} links, ${verification.invalid} ungrounded`)
+        } else {
+          console.log(`  ${i + 1}. "${nbr.title}" — ${linkedPrimer.length} chars, ${linkedPubIds.length} linked citations`)
         }
       } catch (err: any) {
         console.log(`  ${i + 1}. Error: ${err.message?.slice(0, 100)}`)
