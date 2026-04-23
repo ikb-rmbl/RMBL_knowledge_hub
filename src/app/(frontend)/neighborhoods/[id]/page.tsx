@@ -1,7 +1,10 @@
 import Link from 'next/link'
+import { readFileSync, existsSync } from 'fs'
+import { join } from 'path'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import { GRAPH_COLORS, ENTITY_TYPE_LABELS, ENTITY_SLUG_MAP, STAKEHOLDER_COLORS } from '../../lib/graph-colors'
+import ExploreEntityGraph from '../../components/ExploreEntityGraph'
 
 export const dynamic = 'force-dynamic'
 
@@ -301,6 +304,81 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
           ))}
         </div>
       )}
+
+      {/* Local neighborhood graph — subgraph from unified.json with fresh layout */}
+      {await (async () => {
+        try {
+          const filePath = join(process.cwd(), 'public/graph/unified.json')
+          if (!existsSync(filePath)) return null
+          const unified = JSON.parse(readFileSync(filePath, 'utf-8'))
+
+          const communityId = neighborhood.community_id
+          const communityNodes = unified.nodes.filter((n: any) => n.community === communityId)
+          if (communityNodes.length < 3) return null
+
+          // Start with all community members
+          const nodeIds = new Set(communityNodes.map((n: any) => n.id))
+
+          // Also include authors/pubs connected to community members via edges
+          // (catches prolific cross-community authors like lab PIs)
+          const communityEdges = unified.edges.filter((e: any) => nodeIds.has(e.source) || nodeIds.has(e.target))
+          for (const e of communityEdges) {
+            const other = nodeIds.has(e.source) ? e.target : e.source
+            const otherNode = unified.nodes.find((n: any) => n.id === other)
+            if (otherNode && (otherNode.nodeType === 'author' || otherNode.nodeType === 'publication')) {
+              // Count edges to community — only add if well-connected (2+ edges)
+              const edgesToCommunity = unified.edges.filter((e2: any) =>
+                (e2.source === other && nodeIds.has(e2.target)) || (e2.target === other && nodeIds.has(e2.source)),
+              ).length
+              if (edgesToCommunity >= 2) nodeIds.add(other)
+            }
+          }
+
+          const subNodes = unified.nodes.filter((n: any) => nodeIds.has(n.id))
+          const subEdges = unified.edges.filter((e: any) => nodeIds.has(e.source) && nodeIds.has(e.target))
+
+          // Run ForceAtlas2 on the subgraph for a fresh layout
+          const Graph = (await import('graphology')).default
+          const forceAtlas2 = (await import('graphology-layout-forceatlas2')).default
+          const g = new Graph()
+          for (const n of subNodes) {
+            g.addNode(n.id, { ...n, x: Math.random() * 100 - 50, y: Math.random() * 100 - 50 })
+          }
+          const seen = new Set<string>()
+          for (const e of subEdges) {
+            const k = `${e.source}--${e.target}`
+            if (seen.has(k) || seen.has(`${e.target}--${e.source}`)) continue
+            if (!g.hasNode(e.source) || !g.hasNode(e.target)) continue
+            seen.add(k)
+            try { g.addEdge(e.source, e.target, { weight: e.weight || 1 }) } catch {}
+          }
+          forceAtlas2.assign(g, {
+            iterations: 300,
+            settings: { gravity: 1, scalingRatio: 10, strongGravityMode: true, barnesHutOptimize: true },
+          })
+
+          // Extract laid-out positions
+          const laidOutNodes = subNodes.map((n: any) => {
+            const attrs = g.getNodeAttributes(n.id)
+            return { ...n, x: attrs.x, y: attrs.y }
+          })
+
+          const graphData = {
+            entityType: 'unified',
+            colorField: 'nodeType',
+            nodes: laidOutNodes,
+            edges: subEdges,
+            meta: { nodeCount: subNodes.length, edgeCount: subEdges.length },
+          }
+
+          return (
+            <div className="detail-section">
+              <h2>Knowledge Graph ({subNodes.length} nodes, {subEdges.length} connections)</h2>
+              <ExploreEntityGraph data={graphData} detailSlug="" />
+            </div>
+          )
+        } catch { return null }
+      })()}
 
       {neighborhood.primer && (
         <div className="detail-section">
