@@ -286,24 +286,30 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
         {Object.entries(typeCounts)
           .sort((a, b) => (b[1] as number) - (a[1] as number))
           .map(([type, count]) => (
-            <span key={type} style={{ marginRight: '12px' }}>
+            <a key={type} href={`#section-${type}`} style={{ marginRight: '12px', textDecoration: 'none', color: 'inherit' }}>
               <strong style={{ color: GRAPH_COLORS[type] || 'inherit' }}>{ENTITY_TYPE_LABELS[type] || type}:</strong> {String(count)}
-            </span>
+            </a>
           ))}
       </div>
 
-      {themes.length > 0 && (
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', margin: '16px 0' }}>
-          {themes.map((t) => (
-            <span key={t} style={{
-              padding: '4px 12px', borderRadius: '12px', fontSize: '12px',
-              background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-            }}>
-              {t}
-            </span>
-          ))}
-        </div>
-      )}
+      {(() => {
+        const topByType = neighborhood.top_by_type || {}
+        const topEntities = Object.values(topByType).flat() as any[]
+        if (topEntities.length === 0 && themes.length === 0) return null
+        return (
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', margin: '16px 0' }}>
+            {topEntities.filter((e: any) => e.slug).map((e: any) => (
+              <Link key={e.id} href={e.slug} style={{
+                padding: '4px 12px', borderRadius: '12px', fontSize: '12px', textDecoration: 'none',
+                background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: GRAPH_COLORS[e.type] || 'inherit',
+                fontStyle: e.type === 'species' ? 'italic' : undefined,
+              }}>
+                {e.name}
+              </Link>
+            ))}
+          </div>
+        )
+      })()}
 
       {/* Local neighborhood graph — pre-computed by layout-neighborhoods.ts */}
       {(() => {
@@ -334,7 +340,7 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
         if (!members || members.length === 0) return null
         const slug = ENTITY_SLUG_MAP[type] || type
         return (
-          <div key={type} className="detail-section">
+          <div key={type} id={`section-${type}`} className="detail-section">
             <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{
                 width: 10, height: 10, borderRadius: '50%',
@@ -368,13 +374,18 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
   )
 }
 
-const PRIMER_HEADERS = new Set(['Background', 'Foundational work', 'Key findings', 'Current frontier', 'Open questions', 'References'])
+const PRIMER_HEADERS = new Set([
+  'background', 'foundational work', 'key findings', 'current frontier', 'open questions', 'references',
+  'historical context', 'management actions and stakeholder roles', 'current challenges and future directions',
+  'connections to research',
+])
 
 function PrimerRenderer({ text }: { text: string }) {
   const lines = text.split('\n')
   const elements: React.ReactNode[] = []
   let currentParagraph: string[] = []
   let inReferences = false
+  const referenceLines: string[] = []
 
   function flushParagraph() {
     if (currentParagraph.length === 0) return
@@ -393,45 +404,93 @@ function PrimerRenderer({ text }: { text: string }) {
       flushParagraph()
       continue
     }
-    if (PRIMER_HEADERS.has(trimmed)) {
+    // Strip markdown header prefixes (## Background → Background)
+    const headerText = trimmed.replace(/^#{1,3}\s+/, '')
+    if (PRIMER_HEADERS.has(headerText.toLowerCase())) {
       flushParagraph()
-      inReferences = trimmed === 'References'
+      inReferences = headerText.toLowerCase() === 'references'
       elements.push(
         <h3 key={elements.length} style={{
           fontFamily: 'var(--font-sans)', fontSize: '15px', fontWeight: 600,
           margin: '20px 0 8px', color: 'var(--fg-1)',
           ...(inReferences ? { borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '24px' } : {}),
         }}>
-          {trimmed}
+          {headerText}
         </h3>,
       )
       continue
     }
+    // Skip standalone title lines (# Title at top of policy primers)
+    if (/^#\s+/.test(trimmed) && elements.length === 0) continue
     if (inReferences) {
       flushParagraph()
-      elements.push(
-        <p key={elements.length} style={{ fontSize: '13px', lineHeight: 1.5, color: 'var(--fg-3)', margin: '0 0 6px', maxWidth: '68ch' }}>
-          {renderInlineLinks(trimmed)}
-        </p>,
-      )
+      referenceLines.push(trimmed)
     } else {
       currentParagraph.push(trimmed)
     }
   }
   flushParagraph()
 
+  // Sort references alphabetically by the visible text (author last name)
+  if (referenceLines.length > 0) {
+    const sortKey = (line: string) => {
+      // Strip leading parens like "(2021)." to get to author name
+      const cleaned = line.replace(/^\(\d{4}\)\.\s*/, '')
+      return cleaned.toLowerCase()
+    }
+    referenceLines.sort((a, b) => sortKey(a).localeCompare(sortKey(b)))
+    for (const ref of referenceLines) {
+      elements.push(
+        <p key={elements.length} style={{ fontSize: '13px', lineHeight: 1.5, color: 'var(--fg-3)', margin: '0 0 6px', maxWidth: '68ch' }}>
+          {renderReferenceEntry(ref)}
+        </p>,
+      )
+    }
+  }
+
   return <>{elements}</>
 }
 
-/** Convert [text](/publications/N) markdown links to <a> tags */
+/** Convert [text](/publications/N) and [text](/documents/N) markdown links to <a> tags */
 function renderInlineLinks(text: string): React.ReactNode {
-  const parts = text.split(/(\[[^\]]+\]\(\/publications\/\d+\))/g)
+  const parts = text.split(/(\[[^\]]+\]\(\/(?:publications|documents)\/\d+\))/g)
   if (parts.length === 1) return text
   return parts.map((part, i) => {
-    const match = part.match(/^\[([^\]]+)\]\((\/publications\/\d+)\)$/)
+    const match = part.match(/^\[([^\]]+)\]\((\/(?:publications|documents)\/\d+)\)$/)
     if (match) {
       return <a key={i} href={match[2]} style={{ color: 'var(--accent)', textDecoration: 'none' }}>{match[1]}</a>
     }
     return part
   })
+}
+
+/** Render a reference entry: strip the trailing citation link and replace with arrow */
+function renderReferenceEntry(text: string): React.ReactNode {
+  // Match trailing [Author et al., Year](/publications/N) or [title](/documents/N)
+  const linkMatch = text.match(/\[([^\]]+)\]\((\/(?:publications|documents)\/\d+)\)\s*$/)
+  if (!linkMatch) return text
+
+  // Strip the link from the text to get the reference body
+  let body = text.slice(0, linkMatch.index).trim()
+  const href = linkMatch[2]
+
+  // Extract author from link text for repairs: "Author et al., Year" → "Author et al."
+  const authorYear = linkMatch[1]
+  const authorOnly = authorYear.replace(/,\s*\d{4}$/, '').trim()
+
+  // Fix lines starting with (Year). — prepend author from link
+  if (/^\(\d{4}\)\./.test(body)) {
+    body = body.replace(/^\(\d{4}\)/, `${authorOnly} ${body.match(/^\(\d{4}\)/)?.[0]}`)
+  }
+  // Fix lines starting with "Anonymous" — replace with author from link
+  if (/^Anonymous\b/i.test(body) && authorOnly && authorOnly !== 'Unknown') {
+    body = body.replace(/^Anonymous/i, authorOnly)
+  }
+
+  return (
+    <>
+      {body}{' '}
+      <a href={href} style={{ color: 'var(--accent)', textDecoration: 'none' }}>→</a>
+    </>
+  )
 }

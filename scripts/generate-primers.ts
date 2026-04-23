@@ -10,13 +10,12 @@
  *   Tier 4: Entity + temporal context
  *
  * Usage:
- *   npx tsx scripts/generate-primers.ts [--dry-run] [--limit=N] [--id=NEIGHBORHOOD_ID]
+ *   npx tsx scripts/generate-primers.ts [--dry-run] [--limit=N] [--id=NEIGHBORHOOD_ID] [--skip-existing] [--model=opus|sonnet]
  *
  * Requires: ANTHROPIC_API_KEY
  */
 
 import pg from 'pg'
-import { readFileSync, writeFileSync } from 'fs'
 import './lib/config.js'
 import { callClaudeJson } from './lib/claude-api.js'
 import { sleep } from './lib/concurrency.js'
@@ -26,6 +25,7 @@ const dryRun = args.includes('--dry-run')
 const limitArg = args.find((a) => a.startsWith('--limit='))?.split('=')[1]
 const limit = limitArg ? parseInt(limitArg) : 25
 const singleId = args.find((a) => a.startsWith('--id='))?.split('=')[1]
+const skipExisting = args.includes('--skip-existing')
 const MODEL_ALIASES: Record<string, string> = {
   opus: 'claude-opus-4-7',
   sonnet: 'claude-sonnet-4-6',
@@ -95,16 +95,33 @@ Write a 500-1000 word primer covering these sections:
 
 5. **Connections to research** (1 paragraph): How does this policy/management area connect to scientific research at RMBL and in the Gunnison Basin?
 
+6. **References**: List every document and publication cited in the primer, one per line, in the format:
+   Short Title or Author Description. {doc_id:N} or {pub_id:N}
+
+CITATION FORMAT:
+- When referencing a document from the context below, include a {doc_id:N} tag immediately after the reference, where N is the document's ID number.
+- When referencing a publication, include a {pub_id:N} tag immediately after.
+- Inline citations should use the document's short title or description in parentheses followed by the tag, e.g.: (Gunnison Basin Water Quality Report){doc_id:42}
+- Cite as many specific documents and publications as you can ground in the context.
+
 RULES:
 - Ground all claims in the provided document titles, stakeholder names, and research context
 - Write for community members, land managers, and students
 - Define technical terms and acronyms on first use
 - Do not begin any section with "This neighborhood" or "This community"
+- Do NOT use markdown formatting (no ## headers, no **bold**, no *italic*)
+- Use plain section labels like "Background" followed by a blank line
+- Use \\n for newlines, NOT actual line breaks inside the JSON string
+
+CRITICAL JSON RULES:
+- The primer_text value must be a valid JSON string
+- Do NOT use backticks or code fences
+- Escape double quotes inside strings with \\"
 
 Return a JSON object:
 {
-  "primer_text": "The full primer text",
-  "citations_used": [],
+  "primer_text": "the full primer text including references section",
+  "citations_used": [{"doc_id": 42, "title": "short title"}, {"pub_id": 13, "author": "Author", "year": 2025}],
   "key_findings": ["key point 1", "key point 2"],
   "open_questions": ["challenge 1", "challenge 2"]
 }
@@ -114,6 +131,13 @@ Return valid JSON only.`
 // ---------------------------------------------------------------------------
 // Neighborhood selection
 // ---------------------------------------------------------------------------
+
+interface AssembledContext {
+  context: string
+  citationLabels: Map<number, { label: string; year: string | number }>
+  docLabels: Map<number, string>
+  pubIds: number[]
+}
 
 interface ScoredNeighborhood {
   id: number
@@ -131,6 +155,7 @@ async function selectNeighborhoods(db: pg.Pool): Promise<ScoredNeighborhood[]> {
   const { rows } = await db.query(`
     SELECT n.id, n.title, n.size, n.type_counts
     FROM neighborhoods n
+    ${skipExisting ? 'WHERE n.primer IS NULL' : ''}
     ORDER BY n.size DESC
   `)
 
@@ -143,9 +168,10 @@ async function selectNeighborhoods(db: pg.Pool): Promise<ScoredNeighborhood[]> {
     const conceptCount = tc.concept || 0
 
     if (r.size < 30) continue
-    if (pubCount < 10 && docCount < 10) continue
-
     const score = pubCount * 3 + docCount * 2 + speciesCount + conceptCount * 0.5
+    // Require enough content for a meaningful primer: publications, documents, or entity richness
+    if (pubCount < 3 && docCount < 3 && !(speciesCount >= 10 && conceptCount >= 5)) continue
+    if (score < 15) continue
     const pubRatio = pubCount / (pubCount + docCount + 1)
     const primerType: 'research' | 'policy' | 'mixed' =
       pubRatio > 0.7 ? 'research' : pubRatio < 0.3 ? 'policy' : 'mixed'
@@ -165,7 +191,7 @@ async function selectNeighborhoods(db: pg.Pool): Promise<ScoredNeighborhood[]> {
 // Context assembly
 // ---------------------------------------------------------------------------
 
-async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<string> {
+async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<AssembledContext> {
   const parts: string[] = []
   parts.push(`NEIGHBORHOOD: "${nbr.title}" (${nbr.size} nodes)`)
   parts.push(`Type: ${nbr.primerType} | ${nbr.pubCount} publications, ${nbr.docCount} documents, ${nbr.speciesCount} species, ${nbr.conceptCount} concepts`)
@@ -176,6 +202,8 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
     WHERE nm.neighborhood_id = $1 AND nm.entity_type = 'publication'
   `, [nbr.id])
   const pubIds = pubMembers.map((r: any) => r.pub_id)
+  const citationLabels = new Map<number, { label: string; year: string | number }>()
+  const docLabels = new Map<number, string>()
 
   if (pubIds.length > 0) {
     // Year distribution
@@ -233,6 +261,16 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
       if (authors.length === 1) return authors[0].family
       if (authors.length === 2) return `${authors[0].family} & ${authors[1].family}`
       return `${authors[0].family} et al.`
+    }
+
+    // Build citationLabels map (used by linkCitations for post-processing)
+    const { rows: pubYearRows } = await db.query(
+      'SELECT id, year FROM publications WHERE id = ANY($1)', [pubIds],
+    )
+    const pubYears = new Map<number, string | number>()
+    for (const r of pubYearRows) if (r.year) pubYears.set(r.id, r.year)
+    for (const [pubId] of authorsByPub) {
+      citationLabels.set(pubId, { label: citationLabel(pubId), year: pubYears.get(pubId) || '?' })
     }
 
     // Get keyFindings for landmarks
@@ -393,20 +431,25 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
       for (const s of shRows) parts.push(`${s.name} [${(s.stakeholder_type || 'other').replace(/_/g, ' ')}]`)
     }
 
-    // Documents (for policy/mixed)
+    // Documents (for policy/mixed) — include IDs for citation linking
     const { rows: docRows } = await db.query(`
-      SELECT d.title, d.document_type
+      SELECT d.id, d.title, d.document_type, left(d.summary::text, 300) as summary
       FROM neighborhood_members nm JOIN documents d ON d.id = nm.entity_id
       WHERE nm.neighborhood_id = $1 AND nm.entity_type = 'document'
-      ORDER BY nm.degree DESC LIMIT 8
+      ORDER BY nm.degree DESC LIMIT 20
     `, [nbr.id])
     if (docRows.length > 0) {
-      parts.push('\n--- KEY DOCUMENTS ---')
-      for (const d of docRows) parts.push(`"${d.title?.slice(0, 80)}" [${(d.document_type || 'document').replace(/_/g, ' ')}]`)
+      parts.push('\n--- KEY DOCUMENTS (cite using {doc_id:N} tags) ---')
+      for (const d of docRows) {
+        const shortTitle = (d.title as string).length > 60 ? (d.title as string).slice(0, 57) + '...' : d.title
+        docLabels.set(d.id, shortTitle)
+        const summary = d.summary ? ` — ${d.summary}` : ''
+        parts.push(`[doc_id:${d.id}] "${d.title?.slice(0, 120)}" [${(d.document_type || 'document').replace(/_/g, ' ')}]${summary}`)
+      }
     }
   }
 
-  return parts.join('\n')
+  return { context: parts.join('\n'), citationLabels, docLabels, pubIds }
 }
 
 // ---------------------------------------------------------------------------
@@ -419,10 +462,15 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<st
  * - Convert reference list entries ending with {pub_id:N} → link the title
  * - Clean up any stray {pub_id:N} tags
  */
-function linkCitations(text: string): string {
+function linkCitations(text: string, citationLabels: Map<number, { label: string; year: string | number }>, docLabels?: Map<number, string>): string {
   // Inline citations: (citation text){pub_id:N} → [(citation text)](/publications/N)
   let linked = text.replace(
     /\(([^)]+)\)\s*\{pub_id:(\d+)\}/g,
+    '[$1](/publications/$2)',
+  )
+  // Without parens: Author et al., Year {pub_id:N} → [Author et al., Year](/publications/N)
+  linked = linked.replace(
+    /([A-Z][a-z]+(?:\s+(?:&\s+[A-Z][a-z]+|et al\.))?,\s*\d{4})\s*\{pub_id:(\d+)\}/g,
     '[$1](/publications/$2)',
   )
   // Reference list: "Title" ... {pub_id:N} → ["Title" ...](/publications/N)
@@ -430,23 +478,80 @@ function linkCitations(text: string): string {
     /"([^"]+)"\.\s*\*([^*]+)\*\.?\s*\{pub_id:(\d+)\}/g,
     '["$1."](/publications/$3) *$2*.',
   )
-  // Fallback: any remaining {pub_id:N} at end of a line → append link
+  // Fallback: any remaining {pub_id:N} — look up the citation label
   linked = linked.replace(
-    /([^\n]+)\s*\{pub_id:(\d+)\}/g,
-    (match, prefix, id) => `${prefix.trim()} [→](/publications/${id})`,
+    /([^\n]*?)\s*\{pub_id:(\d+)\}/g,
+    (match, prefix, id) => {
+      const pubId = parseInt(id)
+      const info = citationLabels.get(pubId)
+      if (info) {
+        return `${prefix.trim()} [${info.label}, ${info.year}](/publications/${id})`
+      }
+      return `${prefix.trim()} [→](/publications/${id})`
+    },
+  )
+
+  // Document citations: (title text){doc_id:N} → [(title text)](/documents/N)
+  linked = linked.replace(
+    /\(([^)]+)\)\s*\{doc_id:(\d+)\}/g,
+    '[$1](/documents/$2)',
+  )
+  // Fallback: any remaining {doc_id:N} — look up the document title
+  linked = linked.replace(
+    /([^\n]*?)\s*\{doc_id:(\d+)\}/g,
+    (match, prefix, id) => {
+      const docId = parseInt(id)
+      const title = docLabels?.get(docId)
+      if (title) {
+        return `${prefix.trim()} [${title}](/documents/${id})`
+      }
+      return `${prefix.trim()} [→](/documents/${id})`
+    },
+  )
+
+  // Final cleanup: fix year-only citations [YYYY](/publications/N)
+  linked = linked.replace(
+    /\[(\d{4})\]\(\/publications\/(\d+)\)/g,
+    (match, year, id) => {
+      const info = citationLabels.get(parseInt(id))
+      return info ? `[${info.label}, ${year}](/publications/${id})` : match
+    },
+  )
+  // Final cleanup: fix arrow-only pub citations [→](/publications/N)
+  linked = linked.replace(
+    /\[→\]\(\/publications\/(\d+)\)/g,
+    (match, id) => {
+      const info = citationLabels.get(parseInt(id))
+      return info ? `[${info.label}, ${info.year}](/publications/${id})` : match
+    },
+  )
+  // Final cleanup: "Author, Year [→](/publications/N)" → "[Author, Year](/publications/N)"
+  linked = linked.replace(
+    /([A-Z][a-z]+(?:\s+(?:&\s+[A-Z][a-z]+|et al\.))?,\s*\d{4})\s*\[→\]\(\/publications\/(\d+)\)/g,
+    (_match, citation, id) => `[${citation}](/publications/${id})`,
+  )
+  // Final cleanup: fix arrow-only doc citations [→](/documents/N)
+  linked = linked.replace(
+    /\[→\]\(\/documents\/(\d+)\)/g,
+    (match, id) => {
+      const title = docLabels?.get(parseInt(id))
+      return title ? `[${title}](/documents/${id})` : match
+    },
   )
   return linked
 }
 
-function verifyCitations(citationsUsed: any[], pubIdsInContext: Set<number>): { valid: number; invalid: number; details: string[] } {
+function verifyCitations(citationsUsed: any[], pubIdsInContext: Set<number>, docIdsInContext: Set<number>): { valid: number; invalid: number; details: string[] } {
   let valid = 0, invalid = 0
   const details: string[] = []
   for (const c of citationsUsed) {
     if (c.pub_id && pubIdsInContext.has(c.pub_id)) {
       valid++
+    } else if (c.doc_id && docIdsInContext.has(c.doc_id)) {
+      valid++
     } else {
       invalid++
-      details.push(`Ungrounded: [${c.author || '?'}, ${c.year || '?'}] (pub_id ${c.pub_id || 'missing'})`)
+      details.push(`Ungrounded: ${c.pub_id ? `pub_id ${c.pub_id}` : `doc_id ${c.doc_id || 'missing'}`}`)
     }
   }
   return { valid, invalid, details }
@@ -494,15 +599,15 @@ async function main() {
 
     for (let i = 0; i < selected.length; i++) {
       const nbr = selected[i]
-      const context = await assembleContext(db, nbr)
+      const assembled = await assembleContext(db, nbr)
 
       if (dryRun) {
-        const wordCount = context.split(/\s+/).length
+        const wordCount = assembled.context.split(/\s+/).length
         const tokenEst = Math.round(wordCount * 1.3)
         console.log(`\n  ${i + 1}. "${nbr.title}" [${nbr.primerType}] ~${tokenEst} tokens context`)
         if (i < 2) {
           console.log('  --- Context preview (first 2000 chars) ---')
-          console.log(context.slice(0, 2000).split('\n').map((l: string) => '    ' + l).join('\n'))
+          console.log(assembled.context.slice(0, 2000).split('\n').map((l: string) => '    ' + l).join('\n'))
           console.log('    ...')
         }
         continue
@@ -514,7 +619,7 @@ async function main() {
         const { data, response } = await callClaudeJson({
           apiKey: ANTHROPIC_API_KEY,
           prompt,
-          content: context,
+          content: assembled.context,
           maxTokens: 8192,
           model: modelArg,
         })
@@ -525,20 +630,21 @@ async function main() {
           continue
         }
 
-        // Post-process: convert {pub_id:N} tags to markdown links
-        const linkedPrimer = linkCitations(data.primer_text)
+        // Post-process: convert {pub_id:N} and {doc_id:N} tags to markdown links
+        const linkedPrimer = linkCitations(data.primer_text, assembled.citationLabels, assembled.docLabels)
 
-        // Extract pub_ids from linked citations for tracking
+        // Extract linked citation IDs for tracking
         const linkedPubIds = [...linkedPrimer.matchAll(/\/publications\/(\d+)/g)].map(m => parseInt(m[1]))
-        const citationsUsed = [...new Set(linkedPubIds)].map(id => ({ pub_id: id }))
+        const linkedDocIds = [...linkedPrimer.matchAll(/\/documents\/(\d+)/g)].map(m => parseInt(m[1]))
+        const citationsUsed = [
+          ...[...new Set(linkedPubIds)].map(id => ({ pub_id: id })),
+          ...[...new Set(linkedDocIds)].map(id => ({ doc_id: id })),
+        ]
 
         // Verify citations against neighborhood members
-        const { rows: contextPubs } = await db.query(
-          `SELECT entity_id FROM neighborhood_members WHERE neighborhood_id = $1 AND entity_type = 'publication'`,
-          [nbr.id],
-        )
-        const pubIdSet = new Set(contextPubs.map((r: any) => r.entity_id))
-        const verification = verifyCitations(citationsUsed, pubIdSet)
+        const pubIdSet = new Set(assembled.pubIds)
+        const docIdSet = new Set(assembled.docLabels.keys())
+        const verification = verifyCitations(citationsUsed, pubIdSet, docIdSet)
 
         // Write to DB
         await db.query(`
@@ -550,11 +656,12 @@ async function main() {
 
         generated++
         totalCost += response.cost
+        const linkSummary = `${new Set(linkedPubIds).size} pub links` + (linkedDocIds.length > 0 ? `, ${new Set(linkedDocIds).size} doc links` : '')
         if (verification.invalid > 0) {
           citationWarnings++
-          console.log(`  ${i + 1}. "${nbr.title}" — ${linkedPrimer.length} chars, ${linkedPubIds.length} links, ${verification.invalid} ungrounded`)
+          console.log(`  ${i + 1}. "${nbr.title}" — ${linkedPrimer.length} chars, ${linkSummary}, ${verification.invalid} ungrounded`)
         } else {
-          console.log(`  ${i + 1}. "${nbr.title}" — ${linkedPrimer.length} chars, ${linkedPubIds.length} linked citations`)
+          console.log(`  ${i + 1}. "${nbr.title}" — ${linkedPrimer.length} chars, ${linkSummary}`)
         }
       } catch (err: any) {
         console.log(`  ${i + 1}. Error: ${err.message?.slice(0, 100)}`)
