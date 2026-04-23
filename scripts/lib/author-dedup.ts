@@ -27,10 +27,17 @@ function initialsMatch(a: string, b: string): boolean {
   if (ai.length === 0 || bi.length === 0) return false
   if (ai[0] !== bi[0]) return false
 
-  const minLen = Math.min(ai.length, bi.length)
-  for (let i = 0; i < minLen; i++) {
-    if (ai[i] !== bi[i]) return false
+  // If both have 2+ initials, ALL shared positions must match.
+  // This prevents merging "R. J. Smith" with "R. A. Smith" — different
+  // middle initials are a strong signal of different people.
+  if (ai.length >= 2 && bi.length >= 2) {
+    const minLen = Math.min(ai.length, bi.length)
+    for (let i = 0; i < minLen; i++) {
+      if (ai[i] !== bi[i]) return false
+    }
   }
+  // If only one has a middle initial, we allow the match but it's weaker.
+  // The caller (deduplicateAuthors) applies additional checks.
   return true
 }
 
