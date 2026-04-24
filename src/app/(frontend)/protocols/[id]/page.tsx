@@ -1,10 +1,23 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import { fetchNeighborhood } from '../../lib/graph-data'
 import LazyGraph from '../../components/LazyGraph'
 
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const { rows: [p] } = await getDb().query('SELECT name, description, category FROM protocols WHERE id = $1', [id])
+  if (!p) return { title: 'Protocol — RMBL Knowledge Hub' }
+  const desc = p.description ? String(p.description).slice(0, 200) : `${(p.category || 'Research protocol').replace(/_/g, ' ')} in the RMBL Knowledge Hub`
+  return {
+    title: `${p.name} — RMBL Knowledge Hub`,
+    description: desc,
+    openGraph: { title: p.name, description: desc, url: `https://rmblknowledgehub.org/protocols/${id}` },
+  }
+}
 
 export default async function ProtocolDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { getPayload } from 'payload'
 import { notFound } from 'next/navigation'
 import config from '@/payload.config'
@@ -9,6 +10,18 @@ import { fetchAuthorNetwork } from '../../lib/graph-data'
 import LazyGraph from '../../components/LazyGraph'
 
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const { rows: [a] } = await getDb().query('SELECT display_name, affiliation, work_count FROM authors WHERE id = $1', [id])
+  if (!a) return { title: 'Author — RMBL Knowledge Hub' }
+  const desc = [a.affiliation, a.work_count ? `${a.work_count} works` : null].filter(Boolean).join(' · ') || 'Author in the RMBL Knowledge Hub'
+  return {
+    title: `${a.display_name} — RMBL Knowledge Hub`,
+    description: desc,
+    openGraph: { title: a.display_name, description: desc, url: `https://rmblknowledgehub.org/authors/${id}` },
+  }
+}
 
 interface AuthorParams {
   id: string
