@@ -1,0 +1,42 @@
+# RMBL Knowledge Hub
+
+> Unified search platform for environmental research at the Rocky Mountain Biological Laboratory (RMBL) and Gunnison Basin, Colorado.
+
+## About
+
+The RMBL Knowledge Hub connects scientific publications, community documents, research datasets, and a knowledge graph of species, concepts, protocols, and places studied at one of the longest-running field biology stations in North America. The platform supports researchers, land managers, and community members working on environmental issues in the Upper Gunnison Basin.
+
+## API (add ?format=text for LLM-friendly plain text)
+
+- [Search](/api/v1/search?q=YOUR_QUERY&format=text): Full-text search across all collections
+- [Publications](/api/v1/publications/{id}?format=text): Publication detail with authors, abstract, entities, citations
+- [Datasets](/api/v1/datasets/{id}?format=text): Dataset detail with creators and entities
+- [Documents](/api/v1/documents/{id}?format=text): Document detail with entities and stakeholders
+- [Authors](/api/v1/authors/{id}?format=text): Author profile with works and co-authors
+- [Entities](/api/v1/entities/{type}/{id}?format=text): Species, concepts, protocols, places, stakeholders
+- [Entity Browse](/api/v1/entities/{type}?format=text): List entities by type (species, concept, protocol, place, stakeholder)
+- [Related Works](/api/v1/related/{collection}/{id}?format=text): Find related items via semantic similarity, shared entities, co-authorship, and citations
+- [Neighborhoods](/api/v1/neighborhoods?format=text): Browse 154 research communities
+- [Neighborhood Detail](/api/v1/neighborhoods/{id}?format=text): Community detail with research primer
+
+## Collections
+
+- 5,267 publications (peer-reviewed articles, theses, student papers from 1928-2025)
+- 1,381 documents (community/policy documents from the Sustainable Living Library)
+- 1,216 datasets (research datasets from 8 discovery sources)
+- 6,586 authors with ORCID enrichment and deduplication
+- 402 species with ITIS taxonomic validation
+- 331 scientific concepts with definitions
+- 196 research protocols with descriptions
+- 246 geographic places with coordinates
+- 154 research neighborhoods with AI-generated research primers
+- 106,209 citation references with 10,045 internal links
+
+## MCP Server
+
+An MCP (Model Context Protocol) server is available for Claude Desktop and other MCP-compatible AI assistants. See the project repository for setup instructions.
+
+## Source
+
+- Website: https://rmblknowledgehub.org
+- Repository: https://github.com/ikb-rmbl/RMBL_knowledge_hub

@@ -1,12 +1,26 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import { GRAPH_COLORS, ENTITY_TYPE_LABELS, ENTITY_SLUG_MAP, STAKEHOLDER_COLORS } from '../../lib/graph-colors'
+import { JsonLd, neighborhoodJsonLd } from '../../lib/json-ld'
 import ExploreEntityGraph from '../../components/ExploreEntityGraph'
 
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const { rows: [n] } = await getDb().query('SELECT title, summary FROM neighborhoods WHERE id = $1', [id])
+  if (!n) return { title: 'Neighborhood — RMBL Knowledge Hub' }
+  const desc = n.summary ? String(n.summary).slice(0, 200) : `Research neighborhood in the RMBL Knowledge Hub`
+  return {
+    title: `${n.title} — RMBL Knowledge Hub`,
+    description: desc,
+    openGraph: { title: n.title, description: desc, url: `https://rmblknowledgehub.org/neighborhoods/${id}` },
+  }
+}
 
 const BROWSE_MAP: Record<string, string> = {
   species: '/species', place: '/places', protocol: '/protocols', concept: '/concepts',
@@ -271,6 +285,7 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
 
   return (
     <div className="detail">
+      <JsonLd data={neighborhoodJsonLd(neighborhood)} />
       <Link href="/neighborhoods" className="detail-back">&larr; Back to Neighborhoods</Link>
 
       <span className="badge" style={{ background: 'var(--color-accent)', color: '#fff' }}>{neighborhood.size} items</span>

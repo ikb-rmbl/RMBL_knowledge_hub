@@ -1,10 +1,24 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import { fetchNeighborhood } from '../../lib/graph-data'
+import { JsonLd, speciesJsonLd } from '../../lib/json-ld'
 import LazyGraph from '../../components/LazyGraph'
 
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const { rows: [s] } = await getDb().query('SELECT canonical_name, common_names, rank FROM species WHERE id = $1', [id])
+  if (!s) return { title: 'Species — RMBL Knowledge Hub' }
+  const common = s.common_names?.length ? ` (${s.common_names[0]})` : ''
+  return {
+    title: `${s.canonical_name}${common} — RMBL Knowledge Hub`,
+    description: `${s.rank || 'Species'}: ${s.canonical_name}${common}. Research publications and knowledge graph from RMBL.`,
+    openGraph: { title: `${s.canonical_name}${common}`, url: `https://rmblknowledgehub.org/species/${id}` },
+  }
+}
 
 export default async function SpeciesDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -115,6 +129,7 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
 
   return (
     <div className="detail">
+      <JsonLd data={speciesJsonLd(species)} />
       <Link href="/species" className="detail-back">&larr; Back to Species</Link>
 
       <span className="badge badge-species">{species.rank}</span>

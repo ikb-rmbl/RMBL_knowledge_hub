@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { getPayload } from 'payload'
 import { notFound } from 'next/navigation'
 import config from '@/payload.config'
@@ -6,9 +7,26 @@ import { renderRelatedWorks } from '../../lib/related-works'
 import { getDb } from '../../lib/db'
 import { isHttpUrl, isValidOrcid, isValidDoi } from '../../lib/url-validation'
 import { fetchItemNetwork } from '../../lib/graph-data'
+import { JsonLd, datasetJsonLd } from '../../lib/json-ld'
 import LazyGraph from '../../components/LazyGraph'
 
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const payload = await getPayload({ config })
+  try {
+    const ds = await payload.findByID({ collection: 'datasets', id, depth: 0 })
+    const desc = ds.description ? String(ds.description).slice(0, 200) : 'Research dataset from the RMBL Knowledge Hub'
+    return {
+      title: `${ds.title} — RMBL Knowledge Hub`,
+      description: desc,
+      openGraph: { title: String(ds.title), description: desc, url: `https://rmblknowledgehub.org/datasets/${id}` },
+    }
+  } catch {
+    return { title: 'Dataset — RMBL Knowledge Hub' }
+  }
+}
 
 export default async function DatasetDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

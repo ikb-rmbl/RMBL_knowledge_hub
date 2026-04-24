@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { getPayload } from 'payload'
 import { notFound } from 'next/navigation'
 import config from '@/payload.config'
@@ -6,9 +7,26 @@ import { renderRelatedWorks } from '../../lib/related-works'
 import { getDb } from '../../lib/db'
 import { isHttpUrl, isValidOrcid, isValidDoi } from '../../lib/url-validation'
 import { fetchItemNetwork } from '../../lib/graph-data'
+import { JsonLd, publicationJsonLd } from '../../lib/json-ld'
 import LazyGraph from '../../components/LazyGraph'
 
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const payload = await getPayload({ config })
+  try {
+    const pub = await payload.findByID({ collection: 'publications', id, depth: 0 })
+    const desc = pub.abstract ? String(pub.abstract).slice(0, 200) : `Publication from the RMBL Knowledge Hub`
+    return {
+      title: `${pub.title} — RMBL Knowledge Hub`,
+      description: desc,
+      openGraph: { title: String(pub.title), description: desc, url: `https://rmblknowledgehub.org/publications/${id}` },
+    }
+  } catch {
+    return { title: 'Publication — RMBL Knowledge Hub' }
+  }
+}
 
 export default async function PublicationDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -89,6 +107,7 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
 
   return (
     <div className="detail">
+      <JsonLd data={publicationJsonLd(pub, authorLinks.map(a => ({ display_name: a.name, orcid: a.orcid })))} />
       <Link href="/search?type=publications" className="detail-back">
         &larr; Back to Publications
       </Link>

@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# AI crawlers
+User-agent: GPTBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+
+# API is rate-limited, allow crawling
+User-agent: *
+Allow: /api/v1/
+
+# Payload admin panel
+User-agent: *
+Disallow: /admin/
+
+Sitemap: https://rmblknowledgehub.org/sitemap.xml
