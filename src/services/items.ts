@@ -18,7 +18,8 @@ export interface PublicationDetail {
   pages: string | null
   data_source: string | null
   external_citation_count: number | null
-  pdf_url: string | null
+  pdf_link: string | null
+  external_url: string | null
   authors: { id: number; display_name: string; family_name: string; given_name: string; orcid: string | null; order: number }[]
   keywords: string[]
   entities: { entity_type: string; entity_id: number; name: string; role: string | null }[]
@@ -27,7 +28,7 @@ export interface PublicationDetail {
 export async function getPublication(pool: pg.Pool, id: number): Promise<PublicationDetail | null> {
   const { rows: [pub] } = await pool.query(
     `SELECT id, title, year, journal, doi, abstract, publication_type,
-            volume, issue, pages, data_source, external_citation_count, pdf_url
+            volume, issue, pages, data_source, external_citation_count, pdf_link, external_url
      FROM publications WHERE id = $1`,
     [id],
   )
@@ -75,8 +76,8 @@ export interface DatasetDetail {
   repository: string | null
   publication_year: number | null
   resource_type: string | null
-  temporal_start: string | null
-  temporal_end: string | null
+  temporal_extent_start: string | null
+  temporal_extent_end: string | null
   external_citation_count: number | null
   creators: { id: number; display_name: string }[]
   entities: { entity_type: string; entity_id: number; name: string }[]
@@ -85,7 +86,7 @@ export interface DatasetDetail {
 export async function getDataset(pool: pg.Pool, id: number): Promise<DatasetDetail | null> {
   const { rows: [ds] } = await pool.query(
     `SELECT id, title, doi, description, repository, publication_year, resource_type,
-            temporal_start, temporal_end, external_citation_count
+            temporal_extent_start, temporal_extent_end, external_citation_count
      FROM datasets WHERE id = $1`,
     [id],
   )
@@ -126,14 +127,13 @@ export interface DocumentDetail {
   summary: string | null
   document_type: string | null
   date_original: string | null
-  pdf_url: string | null
   entities: { entity_type: string; entity_id: number; name: string }[]
   stakeholders: { id: number; name: string; stakeholder_type: string | null }[]
 }
 
 export async function getDocument(pool: pg.Pool, id: number): Promise<DocumentDetail | null> {
   const { rows: [doc] } = await pool.query(
-    `SELECT id, title, summary::text as summary, document_type, date_original, pdf_url
+    `SELECT id, title, summary::text as summary, document_type, date_original
      FROM documents WHERE id = $1`,
     [id],
   )
