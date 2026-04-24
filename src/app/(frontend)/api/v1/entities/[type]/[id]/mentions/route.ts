@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDb } from '../../../../../../lib/db'
 import { getPublicationMentions, getDocumentMentions, getCoOccurring, type EntityType } from '@/services/entities'
+import { checkRateLimit } from '../../../../lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
 const VALID_TYPES = new Set(['species', 'concept', 'protocol', 'place', 'stakeholder'])
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ type: string; id: string }> }) {
+  const rl = checkRateLimit(request, { expensive: true })
+  if (rl) return rl
   const { type, id } = await params
   if (!VALID_TYPES.has(type)) {
     return NextResponse.json({ error: `Invalid entity type: ${type}` }, { status: 400 })

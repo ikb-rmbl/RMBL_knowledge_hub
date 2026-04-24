@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDb } from '../../../../../lib/db'
 import { getRelatedWorks } from '@/services/related'
+import { checkRateLimit } from '../../../lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
 const VALID_COLLECTIONS = new Set(['publications', 'datasets', 'documents'])
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ collection: string; id: string }> }) {
+  const rl = checkRateLimit(request, { expensive: true })
+  if (rl) return rl
   const { collection, id } = await params
   if (!VALID_COLLECTIONS.has(collection)) {
     return NextResponse.json({ error: `Invalid collection: ${collection}. Valid: publications, datasets, documents` }, { status: 400 })

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDb } from '../../../../../lib/db'
 import { getEntityWithMentions, type EntityType } from '@/services/entities'
+import { checkRateLimit } from '../../../lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,6 +11,8 @@ const NAME_COL: Record<string, string> = {
 }
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ type: string; id: string }> }) {
+  const rl = checkRateLimit(request)
+  if (rl) return rl
   const { type, id } = await params
   if (!VALID_TYPES.has(type)) {
     return NextResponse.json({ error: `Invalid entity type: ${type}` }, { status: 400 })

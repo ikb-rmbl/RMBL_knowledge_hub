@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDb } from '../../../../lib/db'
 import { getPublication, getCitations } from '@/services/items'
 import { publicationToText } from '../../lib/text-format'
+import { checkRateLimit } from '../../lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const rl = checkRateLimit(request)
+  if (rl) return rl
   const { id } = await params
   const format = request.nextUrl.searchParams.get('format') || 'json'
   const pool = getDb()

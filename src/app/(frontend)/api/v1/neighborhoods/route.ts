@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDb } from '../../../lib/db'
 import { listNeighborhoods } from '@/services/neighborhoods'
 import { neighborhoodListToText } from '../lib/text-format'
+import { checkRateLimit } from '../lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
+  const rl = checkRateLimit(request)
+  if (rl) return rl
+
   const { searchParams } = request.nextUrl
   const format = searchParams.get('format') || 'json'
 
