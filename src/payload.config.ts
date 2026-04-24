@@ -18,6 +18,7 @@ import { Species } from './collections/Species'
 import { Places } from './collections/Places'
 import { Protocols } from './collections/Protocols'
 import { Concepts } from './collections/Concepts'
+import { Stories } from './collections/Stories'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -67,7 +68,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Documents, Publications, Datasets, Topics, Authors, Projects, Species, Places, Protocols, Concepts],
+  collections: [Users, Media, Documents, Publications, Datasets, Topics, Authors, Projects, Species, Places, Protocols, Concepts, Stories],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET,
   typescript: {
