@@ -146,7 +146,7 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
         )}
         <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 16px' }}>Concepts</h1>
         <form className="search-form" action="/concepts" method="GET">
-          <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search concepts..." />
+          <input className="search-input" type="text" name="q" aria-label="Search concepts" defaultValue={query} placeholder="Search concepts..." />
           <button className="search-button" type="submit">Search</button>
         </form>
 

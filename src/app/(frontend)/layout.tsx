@@ -13,6 +13,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" data-theme="light">
       <body>
+        <a href="#main-content" className="skip-link">Skip to main content</a>
         <header className="site-header">
           <div className="site-header-inner">
             <Link href="/" className="site-logo">
@@ -35,7 +36,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <ThemeToggle />
           </div>
         </header>
-        <main>{children}</main>
+        <main id="main-content">{children}</main>
         <footer className="site-footer">
           <p className="footer-address">
             <strong>Rocky Mountain Biological Laboratory</strong> &bull; P.O. Box 519 Crested Butte, CO 81224 &bull; (970) 349-7231

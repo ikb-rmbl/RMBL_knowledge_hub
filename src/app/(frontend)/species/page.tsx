@@ -130,7 +130,7 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
         )}
         <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 16px' }}>Species &amp; Taxa</h1>
         <form className="search-form" action="/species" method="GET">
-          <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search species by name..." />
+          <input className="search-input" type="text" name="q" aria-label="Search species" defaultValue={query} placeholder="Search species by name..." />
           <button className="search-button" type="submit">Search</button>
         </form>
 

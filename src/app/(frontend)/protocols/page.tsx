@@ -139,7 +139,7 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
         })()}
         <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 16px' }}>Protocols</h1>
         <form className="search-form" action="/protocols" method="GET">
-          <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search protocols..." />
+          <input className="search-input" type="text" name="q" aria-label="Search protocols" defaultValue={query} placeholder="Search protocols..." />
           <button className="search-button" type="submit">Search</button>
         </form>
 

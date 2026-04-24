@@ -579,7 +579,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           )
         })()}
         <form className="search-form" action="/search" method="GET">
-          <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search..." />
+          <label htmlFor="search-q" className="sr-only">Search publications, datasets, and documents</label>
+          <input id="search-q" className="search-input" type="text" name="q" defaultValue={query} placeholder="Search..." />
           {typeFilter && <input type="hidden" name="type" value={typeFilter} />}
           {topicFilter && <input type="hidden" name="topic" value={topicFilter} />}
           {pubTypeFilter && <input type="hidden" name="pubType" value={pubTypeFilter} />}
@@ -604,7 +605,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p className="results-count">
+          <p className="results-count" aria-live="polite">
             {totalResults.toLocaleString()} result{totalResults !== 1 ? 's' : ''}
             {activeFilters.length > 0 ? ` — ${activeFilters.join(', ')}` : ''}
           </p>
@@ -671,23 +672,29 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               {pubTypeFilter && <input type="hidden" name="pubType" value={pubTypeFilter} />}
               {sortParam !== defaultSort && <input type="hidden" name="sort" value={sortParam} />}
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <label htmlFor="yearFrom" className="sr-only">From year</label>
                 <input
+                  id="yearFrom"
                   type="number"
                   name="yearFrom"
                   placeholder="From"
                   defaultValue={yearFrom || ''}
                   min={1900}
                   max={2030}
+                  aria-label="From year"
                   style={{ width: '70px', padding: '4px 6px', fontSize: '13px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}
                 />
-                <span style={{ color: 'var(--color-text-muted)' }}>-</span>
+                <span style={{ color: 'var(--color-text-muted)' }} aria-hidden="true">-</span>
+                <label htmlFor="yearTo" className="sr-only">To year</label>
                 <input
+                  id="yearTo"
                   type="number"
                   name="yearTo"
                   placeholder="To"
                   defaultValue={yearTo || ''}
                   min={1900}
                   max={2030}
+                  aria-label="To year"
                   style={{ width: '70px', padding: '4px 6px', fontSize: '13px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}
                 />
                 <button

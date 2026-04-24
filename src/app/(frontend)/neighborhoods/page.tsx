@@ -91,7 +91,7 @@ export default async function NeighborhoodsPage({ searchParams }: { searchParams
           Research communities detected by analyzing connections between species, concepts, protocols, places, authors, and publications in the RMBL knowledge graph.
         </p>
         <form className="search-form" action="/neighborhoods" method="GET">
-          <input className="search-input" type="text" name="q" defaultValue={query} placeholder="Search neighborhoods..." />
+          <input className="search-input" type="text" name="q" aria-label="Search neighborhoods" defaultValue={query} placeholder="Search neighborhoods..." />
           <button className="search-button" type="submit">Search</button>
         </form>
 

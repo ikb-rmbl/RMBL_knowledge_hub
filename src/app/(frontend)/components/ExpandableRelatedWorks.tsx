@@ -81,6 +81,7 @@ export default function ExpandableRelatedWorks({
         <button
           className="expand-toggle"
           onClick={() => setShowAll(!showAll)}
+          aria-expanded={showAll}
         >
           {showAll ? 'Show fewer' : `Show all ${expandedItems.length} related works`}
         </button>

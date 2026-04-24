@@ -33,6 +33,7 @@ export default function ExpandableTopics({ topics }: { topics: TopicItem[] }) {
         <button
           className="expand-toggle"
           onClick={() => setExpanded(!expanded)}
+          aria-expanded={expanded}
         >
           {expanded ? 'Show fewer topics' : `Show all ${topics.length} topics`}
         </button>

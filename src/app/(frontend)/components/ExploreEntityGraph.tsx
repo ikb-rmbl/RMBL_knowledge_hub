@@ -353,7 +353,12 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
         {extraControls}
       </div>
 
-      <div ref={containerRef} style={{ aspectRatio: '4/3', maxHeight: '80vh', width: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }} />
+      <div
+        ref={containerRef}
+        role="img"
+        aria-label={`Knowledge graph visualization with ${data.nodes?.length || 0} nodes and ${data.edges?.length || 0} connections`}
+        style={{ aspectRatio: '4/3', maxHeight: '80vh', width: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}
+      />
 
       {selectedNode && (
         <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(255,255,255,0.97)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', padding: '14px 18px', fontSize: '13px', maxWidth: '300px', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}>
