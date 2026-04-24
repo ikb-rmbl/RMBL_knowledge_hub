@@ -66,18 +66,18 @@ export async function getRelatedWorks(
       (SELECT 'publication' as type, id, title, year, publication_type::text as subtype, journal,
               round((1 - (embedding <=> $1::vector))::numeric, 3) as similarity
        FROM publications WHERE embedding IS NOT NULL AND NOT (id = $2 AND 'publications' = $3)
-       ORDER BY embedding <=> $1::vector LIMIT ${MAX_PER_SIGNAL})
+       ORDER BY embedding <=> $1::vector LIMIT $4)
       UNION ALL
       (SELECT 'dataset', id, title, publication_year, resource_type::text, NULL,
               round((1 - (embedding <=> $1::vector))::numeric, 3)
        FROM datasets WHERE embedding IS NOT NULL AND NOT (id = $2 AND 'datasets' = $3)
-       ORDER BY embedding <=> $1::vector LIMIT ${MAX_PER_SIGNAL})
+       ORDER BY embedding <=> $1::vector LIMIT $4)
       UNION ALL
       (SELECT 'document', id, title, NULL::int, NULL::text, NULL,
               round((1 - (embedding <=> $1::vector))::numeric, 3)
        FROM documents WHERE embedding IS NOT NULL AND NOT (id = $2 AND 'documents' = $3)
-       ORDER BY embedding <=> $1::vector LIMIT ${MAX_PER_SIGNAL})
-    `, [item.embedding, itemId, collection])
+       ORDER BY embedding <=> $1::vector LIMIT $4)
+    `, [item.embedding, itemId, collection, MAX_PER_SIGNAL])
 
     for (const r of semantic) {
       const sim = parseFloat(r.similarity)
@@ -101,9 +101,9 @@ export async function getRelatedWorks(
     JOIN my_entities me ON me.entity_type = em.entity_type AND me.entity_id = em.entity_id
     WHERE NOT (em.collection = $1 AND em.item_id = $2)
     GROUP BY em.collection, em.item_id
-    HAVING count(*) >= ${SHARED_ENTITY_MIN}
-    ORDER BY shared DESC LIMIT ${MAX_PER_SIGNAL * 3}
-  `, [collection, itemId])
+    HAVING count(*) >= $3
+    ORDER BY shared DESC LIMIT $4
+  `, [collection, itemId, SHARED_ENTITY_MIN, MAX_PER_SIGNAL * 3])
 
   if (sharedRows.length > 0) {
     const pubIds = sharedRows.filter((r: any) => r.type === 'publications').map((r: any) => r.id)
@@ -164,8 +164,8 @@ export async function getRelatedWorks(
         WHERE ar.parent_id = ANY($1::int[]) AND NOT (doc.id = $2 AND 'documents' = $3)
       ) sub
       GROUP BY type, id, title, year, subtype, journal
-      ORDER BY shared_authors DESC LIMIT ${MAX_PER_SIGNAL}
-    `, [authorIds, itemId, collection])
+      ORDER BY shared_authors DESC LIMIT $4
+    `, [authorIds, itemId, collection, MAX_PER_SIGNAL])
 
     for (const r of coauthored) {
       const simProxy = Math.min(1, 0.5 + r.shared_authors * 0.15)
@@ -185,8 +185,8 @@ export async function getRelatedWorks(
       FROM references_cited r
       JOIN publications p ON p.id = r.target_publication_id
       WHERE r.${sourceCol} = $1 AND r.target_publication_id IS NOT NULL
-      LIMIT ${MAX_PER_SIGNAL}
-    `, [itemId])
+      LIMIT $2
+    `, [itemId, MAX_PER_SIGNAL])
     for (const r of cited) {
       merge(`publication-${r.id}`, {
         type: 'publication', id: r.id, title: r.title, year: r.year,

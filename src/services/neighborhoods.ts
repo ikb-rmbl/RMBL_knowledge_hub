@@ -51,13 +51,21 @@ export async function listNeighborhoods(pool: pg.Pool, opts: ListOptions = {}): 
 
   const whereStr = where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''
   const orderBy = sort === 'title' ? 'n.title ASC' : 'n.size DESC'
+  const safeLimit = Math.min(opts.limit || 200, 500)
+  const safeOffset = Math.max(opts.offset || 0, 0)
 
-  const { rows } = await pool.query(
-    `SELECT n.* FROM neighborhoods n ${whereStr} ORDER BY ${orderBy}`,
-    values,
-  )
+  const [{ rows }, { rows: [{ n: total }] }] = await Promise.all([
+    pool.query(
+      `SELECT n.* FROM neighborhoods n ${whereStr} ORDER BY ${orderBy} LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+      [...values, safeLimit, safeOffset],
+    ),
+    pool.query(
+      `SELECT count(*)::int as n FROM neighborhoods n ${whereStr}`,
+      values,
+    ),
+  ])
 
-  return { rows, total: rows.length }
+  return { rows, total }
 }
 
 export async function getNeighborhood(pool: pg.Pool, id: number): Promise<NeighborhoodDetail | null> {

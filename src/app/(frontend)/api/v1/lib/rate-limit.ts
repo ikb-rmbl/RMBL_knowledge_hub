@@ -19,6 +19,8 @@ interface RateEntry {
   timestamps: number[]
 }
 
+const MAX_STORE_SIZE = 10_000
+
 const store = new Map<string, RateEntry>()
 let lastCleanup = Date.now()
 
@@ -29,6 +31,13 @@ function cleanup() {
   for (const [key, entry] of store) {
     entry.timestamps = entry.timestamps.filter((t) => now - t < WINDOW_MS)
     if (entry.timestamps.length === 0) store.delete(key)
+  }
+  // Evict oldest entries if store is too large
+  if (store.size > MAX_STORE_SIZE) {
+    const entries = [...store.entries()]
+    entries.sort((a, b) => (a[1].timestamps[0] || 0) - (b[1].timestamps[0] || 0))
+    const toRemove = entries.slice(0, store.size - MAX_STORE_SIZE)
+    for (const [key] of toRemove) store.delete(key)
   }
 }
 

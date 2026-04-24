@@ -26,10 +26,19 @@ const NAME_COL: Record<EntityType, string> = {
   stakeholder: 'name',
 }
 
+const VALID_ENTITY_TYPES = new Set<string>(Object.keys(TABLE_MAP))
+
+function validateEntityType(entityType: string): asserts entityType is EntityType {
+  if (!VALID_ENTITY_TYPES.has(entityType)) {
+    throw new Error(`Invalid entity type: ${entityType}`)
+  }
+}
+
 /**
  * Fetch a single entity by type and ID.
  */
 export async function getEntity(pool: pg.Pool, entityType: EntityType, id: number): Promise<any | null> {
+  validateEntityType(entityType)
   const table = TABLE_MAP[entityType]
   if (!table) return null
   const { rows: [row] } = await pool.query(`SELECT * FROM ${table} WHERE id = $1`, [id])
@@ -42,6 +51,7 @@ export async function getEntity(pool: pg.Pool, entityType: EntityType, id: numbe
 export async function getPublicationMentions(
   pool: pg.Pool, entityType: EntityType, entityId: number, opts: { limit?: number } = {},
 ): Promise<any[]> {
+  validateEntityType(entityType)
   const { limit = 200 } = opts
   const { rows } = await pool.query(`
     SELECT p.id, p.title, p.year, p.journal, p.publication_type, p.doi, em.role
@@ -60,6 +70,7 @@ export async function getPublicationMentions(
 export async function getDocumentMentions(
   pool: pg.Pool, entityType: EntityType, entityId: number, opts: { limit?: number } = {},
 ): Promise<any[]> {
+  validateEntityType(entityType)
   const { limit = 200 } = opts
   const { rows } = await pool.query(`
     SELECT d.id, d.title, d.document_type
@@ -82,6 +93,8 @@ export async function getCoOccurring(
   targetType: EntityType,
   opts: { limit?: number } = {},
 ): Promise<any[]> {
+  validateEntityType(entityType)
+  validateEntityType(targetType)
   const { limit = 10 } = opts
   const targetTable = TABLE_MAP[targetType]
   const nameCol = NAME_COL[targetType]
