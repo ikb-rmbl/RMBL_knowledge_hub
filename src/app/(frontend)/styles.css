@@ -57,6 +57,7 @@
   --color-badge-doc: #6B7A4A;
   --color-badge-pub: #3a6b7b;
   --color-badge-data: #7b5a3a;
+  --color-badge-story: #7a4a6b;
 
   /* Typography */
   --font-sans: 'Jost', 'Futura PT', Futura, 'Helvetica Neue', Arial, sans-serif;
@@ -562,6 +563,7 @@ a:hover {
 .badge-document { background: var(--color-badge-doc); }
 .badge-publication { background: var(--color-badge-pub); }
 .badge-dataset { background: var(--color-badge-data); }
+.badge-story { background: var(--color-badge-story); }
 .badge-species { background: #558b2f; }
 .badge-place { background: #6d4c41; }
 .badge-protocol { background: #1565c0; }

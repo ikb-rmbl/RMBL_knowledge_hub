@@ -28,6 +28,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <Link href="/search?type=publications">Publications</Link>
                   <Link href="/search?type=datasets">Datasets</Link>
                   <Link href="/search?type=documents">Documents</Link>
+                  <Link href="/stories">Stories</Link>
                 </div>
               </div>
               <div className="nav-dropdown">

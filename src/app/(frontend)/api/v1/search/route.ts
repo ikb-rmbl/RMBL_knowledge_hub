@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       : NextResponse.json({ data: { results: [], total: 0 }, meta: {} })
   }
 
-  const validTypes = ['', 'documents', 'publications', 'datasets']
+  const validTypes = ['', 'documents', 'publications', 'datasets', 'stories']
   const typeFilter = searchParams.get('type') || ''
   if (!validTypes.includes(typeFilter)) {
     return NextResponse.json({ error: 'Invalid type filter' }, { status: 400 })

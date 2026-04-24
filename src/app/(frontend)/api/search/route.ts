@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results: [], total: 0 })
   }
 
-  const validTypes = ['', 'documents', 'publications', 'datasets']
+  const validTypes = ['', 'documents', 'publications', 'datasets', 'stories']
   if (!validTypes.includes(typeFilter)) {
     return NextResponse.json({ results: [], total: 0, error: 'Invalid type filter' }, { status: 400 })
   }

@@ -9,7 +9,7 @@ import type pg from 'pg'
 
 export interface SearchResult {
   id: number
-  type: 'document' | 'publication' | 'dataset'
+  type: 'document' | 'publication' | 'dataset' | 'story'
   title: string
   snippet: string
   rank: number
@@ -20,7 +20,7 @@ export interface SearchResult {
 
 export interface SearchOptions {
   query: string
-  type?: '' | 'documents' | 'publications' | 'datasets'
+  type?: '' | 'documents' | 'publications' | 'datasets' | 'stories'
   limit?: number
   offset?: number
 }
@@ -41,6 +41,7 @@ export async function search(pool: pg.Pool, opts: SearchOptions): Promise<Search
   const searchDocs = !type || type === 'documents'
   const searchPubs = !type || type === 'publications'
   const searchData = !type || type === 'datasets'
+  const searchStories = !type || type === 'stories'
 
   const results: SearchResult[] = []
 
@@ -112,6 +113,29 @@ export async function search(pool: pg.Pool, opts: SearchOptions): Promise<Search
     }
   }
 
+  if (searchStories) {
+    const { rows } = await pool.query(
+      `SELECT id, title, story_type, author, date,
+              ts_headline('english', coalesce(full_text, summary, title, ''), plainto_tsquery('english', $1),
+                ${HEADLINE_OPTS}) as snippet,
+              ts_rank(search_vector, plainto_tsquery('english', $1)) as rank
+       FROM stories
+       WHERE search_vector @@ plainto_tsquery('english', $1)
+       ORDER BY rank DESC
+       LIMIT $2 OFFSET $3`,
+      [query, safeLimit, safeOffset],
+    )
+    for (const row of rows) {
+      const yearStr = row.date ? new Date(row.date).getFullYear() : null
+      results.push({
+        id: row.id, type: 'story', title: row.title,
+        snippet: row.snippet || '', rank: parseFloat(row.rank),
+        year: yearStr, subtype: row.story_type || null,
+        meta: [row.author, yearStr ? String(yearStr) : ''].filter(Boolean) as string[],
+      })
+    }
+  }
+
   results.sort((a, b) => b.rank - a.rank)
 
   // Count totals
@@ -120,6 +144,7 @@ export async function search(pool: pg.Pool, opts: SearchOptions): Promise<Search
   if (searchDocs) countQueries.push(pool.query("SELECT count(*)::int as n FROM documents WHERE search_vector @@ plainto_tsquery('english', $1)", [query]))
   if (searchPubs) countQueries.push(pool.query("SELECT count(*)::int as n FROM publications WHERE search_vector @@ plainto_tsquery('english', $1)", [query]))
   if (searchData) countQueries.push(pool.query("SELECT count(*)::int as n FROM datasets WHERE search_vector @@ plainto_tsquery('english', $1)", [query]))
+  if (searchStories) countQueries.push(pool.query("SELECT count(*)::int as n FROM stories WHERE search_vector @@ plainto_tsquery('english', $1)", [query]))
   const counts = await Promise.all(countQueries)
   for (const c of counts) total += c.rows[0].n
 

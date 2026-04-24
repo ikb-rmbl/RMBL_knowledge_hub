@@ -5,6 +5,18 @@
  * Text encodes the specific subtype for scannability.
  */
 
+const STORY_TYPE_LABELS: Record<string, string> = {
+  oral_history: 'Oral History',
+  interview: 'Interview',
+  press_release: 'Press Release',
+  memoir: 'Memoir',
+  field_notes: 'Field Notes',
+  blog_post: 'Blog Post',
+  event_summary: 'Event',
+  news_article: 'News',
+  other: 'Story',
+}
+
 const PUB_TYPE_LABELS: Record<string, string> = {
   article: 'Article',
   thesis: 'Thesis',
@@ -23,7 +35,7 @@ const DATASET_TYPE_LABELS: Record<string, string> = {
 }
 
 export function getBadgeLabel(
-  collection: 'document' | 'publication' | 'dataset',
+  collection: 'document' | 'publication' | 'dataset' | 'story',
   subtype?: string | null,
 ): string {
   switch (collection) {
@@ -33,6 +45,8 @@ export function getBadgeLabel(
       return DATASET_TYPE_LABELS[subtype || ''] || 'Dataset'
     case 'document':
       return 'Document'
+    case 'story':
+      return STORY_TYPE_LABELS[subtype || ''] || 'Story'
   }
 }
 
@@ -42,6 +56,6 @@ export function getBadgeLabel(
  *   publication → blue (badge-publication)
  *   dataset → amber (badge-dataset)
  */
-export function getBadgeClass(collection: 'document' | 'publication' | 'dataset'): string {
+export function getBadgeClass(collection: 'document' | 'publication' | 'dataset' | 'story'): string {
   return `badge badge-${collection}`
 }
