@@ -22,16 +22,27 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </Link>
             <nav className="site-nav">
               <Link href="/search">Search</Link>
-              <Link href="/search?type=documents">Documents</Link>
-              <Link href="/search?type=publications">Publications</Link>
-              <Link href="/search?type=datasets">Datasets</Link>
-              <Link href="/authors">Authors</Link>
-              <Link href="/species">Species</Link>
-              <Link href="/protocols">Protocols</Link>
-              <Link href="/concepts">Concepts</Link>
-              <Link href="/neighborhoods">Neighborhoods</Link>
-              <Link href="/places">Places</Link>
-              <Link href="/projects">Projects</Link>
+              <div className="nav-dropdown">
+                <button className="nav-dropdown-trigger" aria-haspopup="true">Sources</button>
+                <div className="nav-dropdown-menu">
+                  <Link href="/search?type=publications">Publications</Link>
+                  <Link href="/search?type=datasets">Datasets</Link>
+                  <Link href="/search?type=documents">Documents</Link>
+                </div>
+              </div>
+              <div className="nav-dropdown">
+                <button className="nav-dropdown-trigger" aria-haspopup="true">Explore</button>
+                <div className="nav-dropdown-menu">
+                  <Link href="/neighborhoods">Neighborhoods</Link>
+                  <Link href="/authors">Authors</Link>
+                  <Link href="/species">Species</Link>
+                  <Link href="/concepts">Concepts</Link>
+                  <Link href="/protocols">Protocols</Link>
+                  <Link href="/places">Places</Link>
+                  <Link href="/projects">Projects</Link>
+                </div>
+              </div>
+              <Link href="/about">About</Link>
             </nav>
             <ThemeToggle />
           </div>

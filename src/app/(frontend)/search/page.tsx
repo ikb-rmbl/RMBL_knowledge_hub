@@ -604,12 +604,25 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           )}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p className="results-count" aria-live="polite">
-            {totalResults.toLocaleString()} result{totalResults !== 1 ? 's' : ''}
-            {activeFilters.length > 0 ? ` — ${activeFilters.join(', ')}` : ''}
-          </p>
-        </div>
+        <p className="results-count" aria-live="polite">
+          {totalResults.toLocaleString()} result{totalResults !== 1 ? 's' : ''}
+          {activeFilters.length > 0 ? ` — ${activeFilters.join(', ')}` : ''}
+          {totalResults > 0 && (() => {
+            const exportParams = new URLSearchParams({ format: 'ris', ...(query ? { q: query } : {}), ...(typeFilter ? { type: typeFilter } : {}) })
+            const risUrl = `/api/v1/export-search?${exportParams.toString()}`
+            exportParams.set('format', 'bibtex')
+            const bibUrl = `/api/v1/export-search?${exportParams.toString()}`
+            return (
+              <span className="export-dropdown">
+                {' · '}<button className="export-dropdown-trigger">export &#8595;</button>
+                <span className="export-dropdown-menu">
+                  <a href={risUrl} download="rmbl-export.ris">RIS (.ris)<small>Zotero, Mendeley, EndNote</small></a>
+                  <a href={bibUrl} download="rmbl-export.bib">BibTeX (.bib)<small>LaTeX, Overleaf</small></a>
+                </span>
+              </span>
+            )
+          })()}
+        </p>
       </div>
 
       <div className="search-layout">
