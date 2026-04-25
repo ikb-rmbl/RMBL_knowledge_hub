@@ -133,15 +133,13 @@ export default async function StoryDetail({ params }: { params: Promise<{ id: st
         </div>
       )}
 
-      {/* Full text */}
-      {story.full_text && (
+      {/* Link to original source instead of reproducing full text */}
+      {isHttpUrl(story.source_url) && (
         <div className="detail-section">
-          <h2>Full Text</h2>
-          <div style={{ fontSize: '14px', lineHeight: 1.8, color: 'var(--fg-2)', maxWidth: '68ch' }}>
-            {story.full_text.split(/\n\n+/).map((para: string, i: number) => (
-              <p key={i} style={{ marginBottom: '12px' }}>{para}</p>
-            ))}
-          </div>
+          <a href={story.source_url} target="_blank" rel="noopener noreferrer"
+             style={{ fontSize: '14px', color: 'var(--accent)' }}>
+            Read full article at {new URL(story.source_url).hostname} &rarr;
+          </a>
         </div>
       )}
 

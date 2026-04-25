@@ -86,35 +86,58 @@ function hasNextPage(html: string, currentPage: number): boolean {
 }
 
 function extractArticleContent(html: string): { fullText: string; author: string | null } {
-  // Extract main content - CB News typically uses .entry-content or article content
-  const contentMatch = html.match(/<div[^>]*class="[^"]*entry-content[^"]*"[^>]*>([\s\S]*?)<\/div>\s*(?:<\/div>|<div[^>]*class="[^"]*(?:post-tags|share|related|comments))/i)
-    || html.match(/<div[^>]*class="[^"]*entry-content[^"]*"[^>]*>([\s\S]*?)<\/div>/i)
+  // Prefer JSON-LD articleBody (CB News includes it on every article)
+  const jsonLdMatch = html.match(/<script[^>]*class="tie-schema-graph"[^>]*>([\s\S]*?)<\/script>/i)
+    || html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/i)
 
   let fullText = ''
+  let author: string | null = null
+
+  // Parse HTML from <div class="entry"> — preserves paragraph structure via <p> tags
+  const contentMatch = html.match(/<div[^>]*class="entry"[^>]*>([\s\S]*?)(?:<div[^>]*class="[^"]*post-tags|<\/article)/i)
   if (contentMatch) {
     fullText = contentMatch[1]
       .replace(/<script[\s\S]*?<\/script>/gi, '')
       .replace(/<style[\s\S]*?<\/style>/gi, '')
       .replace(/<figure[\s\S]*?<\/figure>/gi, '')
+      .replace(/<div[^>]*class="crest-kiley[^>]*>[\s\S]*?<\/div>/gi, '') // ads
       .replace(/<img[^>]*>/gi, '')
-      .replace(/<\/?(?:div|span|strong|em|b|i|a|p|br|h[1-6]|ul|ol|li|blockquote)[^>]*>/gi, '\n')
+      // Paragraph breaks: <p> and <br> become newlines
+      .replace(/<\/p>\s*<p[^>]*>/gi, '\n\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/(?:h[1-6]|blockquote|li)>/gi, '\n\n')
+      .replace(/<\/?(?:div|span|strong|em|b|i|a|p|ul|ol|li|h[1-6]|blockquote)[^>]*>/gi, '')
       .replace(/<[^>]+>/g, '')
       .replace(/&nbsp;/g, ' ')
-      .replace(/&#8217;/g, "'")
-      .replace(/&#8220;|&#8221;/g, '"')
-      .replace(/&#8211;/g, '–')
-      .replace(/&#8212;/g, '—')
+      .replace(/&#8217;|&#x2019;|\u2019/g, "'")
+      .replace(/&#8220;|&#8221;|&#x201c;|&#x201d;|\u201c|\u201d/g, '"')
+      .replace(/&#8211;|\u2013/g, '–')
+      .replace(/&#8212;|\u2014/g, '—')
       .replace(/&amp;/g, '&')
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
+      .replace(/ {2,}/g, ' ')
       .replace(/\n{3,}/g, '\n\n')
       .trim()
   }
 
-  // Extract author
-  const authorMatch = html.match(/<span[^>]*class="[^"]*author[^"]*"[^>]*>(?:<a[^>]*>)?([^<]+)/)
-    || html.match(/by\s+([A-Z][a-z]+ [A-Z][a-z]+)/i)
-  const author = authorMatch ? authorMatch[1].trim() : null
+  // Fallback to JSON-LD articleBody if HTML extraction failed
+  if (!fullText && jsonLdMatch) {
+    try {
+      const ld = JSON.parse(jsonLdMatch[1])
+      if (ld.articleBody) {
+        fullText = ld.articleBody
+          .replace(/\r\n/g, '\n')
+          .replace(/\u00a0/g, ' ')
+          .trim()
+      }
+    } catch { /* ignore */ }
+  }
+
+  // Extract author from "By Name" or "[ By Name ]" pattern in article text
+  const bylineSearch = fullText.slice(0, 500).replace(/\r/g, '\n')
+  const byMatch = bylineSearch.match(/(?:^|\n)\s*\[?\s*[Bb][Yy]\s+([A-Z][a-z]+(?:\s+[A-Z]\.?)?\s+[A-Z][a-z]+)\s*\]?/m)
+  if (byMatch) author = byMatch[1].trim()
 
   return { fullText, author }
 }
