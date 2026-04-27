@@ -6,12 +6,25 @@
  */
 
 import pg from 'pg'
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
 import './lib/config.js'
 
 async function main() {
   const db = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 2 })
-  const articles = JSON.parse(readFileSync('scripts/output/news-articles.json', 'utf-8'))
+
+  // Load from all available scraped article files
+  const articleFiles = [
+    'scripts/output/news-articles.json',
+    'scripts/output/gunnison-times-articles.json',
+  ]
+  const articles: any[] = []
+  for (const f of articleFiles) {
+    if (existsSync(f)) {
+      const data = JSON.parse(readFileSync(f, 'utf-8'))
+      articles.push(...data)
+      console.log(`  ${f}: ${data.length} articles`)
+    }
+  }
 
   console.log(`Loading ${articles.length} articles into stories table...`)
 
