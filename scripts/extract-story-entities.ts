@@ -71,6 +71,21 @@ Return a JSON object:
     }
   ],
   "agencies": ["list of organizations, agencies, or institutions mentioned"],
+  "publicationsReferenced": [
+    {
+      "title": "title of the study or paper as described in the article",
+      "journal": "journal or publication venue if mentioned, or null",
+      "year": "publication year if mentioned, or null",
+      "authors": "author names associated with the study, or null",
+      "doi": "DOI if mentioned, or null"
+    }
+  ],
+  "projects": [
+    {
+      "name": "project name as mentioned or clearly referenced in the article",
+      "role": "primary_subject|mentioned|context"
+    }
+  ],
   "storyTopics": ["1-3 word topic tags summarizing what the story is about, max 5"]
 }
 
@@ -79,6 +94,8 @@ Important:
 - Species: include both scientific names and common names (marmots, wildflowers, butterflies, etc.)
 - Places: include RMBL, Gothic, specific research sites, and broader geographic references (Gunnison Basin, East River Valley, etc.)
 - Concepts: focus on the research topics being discussed, not generic journalism terms
+- publicationsReferenced: extract any specific studies, papers, or reports mentioned in the article. News articles often describe research findings — capture the study title (or a descriptive title if not explicitly named), the journal, year, and authors when stated. Examples: "a study published in Science", "research published in Proceedings of the Royal Society", "a paper in the journal Ecology".
+- projects: extract named research projects, programs, or initiatives. Common RMBL projects include: SAIL (Surface Atmosphere Integrated Laboratory), SPLASH (Study of Precipitation, the Lower Atmosphere and Surface for Hydrometeorology), Warming Meadow / WaRM (Warming and Removal in Mountains), Marmot Project, Underwood-Inouye Long-term Phenology, East River Watershed Function SFA, Spatial Data Platform, RMBL 365. Also capture any other named projects, grants, or research programs mentioned.
 - storyTopics: brief tags like "marmot research", "snowpack forecasting", "RMBL expansion", "wildflower phenology"
 - Return valid JSON only — no markdown, no commentary`
 
@@ -188,6 +205,8 @@ function mergeExtractions(parts: any[]): any {
   const researchersByName = new Map<string, any>()
   const allAgencies = new Set<string>()
   const allTopics = new Set<string>()
+  const pubsByTitle = new Map<string, any>()
+  const projectsByName = new Map<string, any>()
 
   for (const p of parts) {
     for (const s of p.species || []) {
@@ -208,6 +227,14 @@ function mergeExtractions(parts: any[]): any {
     }
     for (const a of p.agencies || []) allAgencies.add(a)
     for (const t of p.storyTopics || []) allTopics.add(t)
+    for (const pub of p.publicationsReferenced || []) {
+      const key = (pub.title || '').toLowerCase().slice(0, 60)
+      if (key && !pubsByTitle.has(key)) pubsByTitle.set(key, pub)
+    }
+    for (const proj of p.projects || []) {
+      const key = (proj.name || '').toLowerCase()
+      if (key && !projectsByName.has(key)) projectsByName.set(key, proj)
+    }
   }
 
   return {
@@ -216,6 +243,8 @@ function mergeExtractions(parts: any[]): any {
     concepts: [...conceptsByName.values()],
     researchers: [...researchersByName.values()],
     agencies: [...allAgencies],
+    publicationsReferenced: [...pubsByTitle.values()],
+    projects: [...projectsByName.values()],
     storyTopics: [...allTopics].slice(0, 5),
   }
 }
@@ -296,6 +325,8 @@ async function main() {
         const nPlaces = merged.places?.length || 0
         const nConcepts = merged.concepts?.length || 0
         const nResearchers = merged.researchers?.length || 0
+        const nPubs = merged.publicationsReferenced?.length || 0
+        const nProjects = merged.projects?.length || 0
 
         results.push({
           id: story.id,
@@ -303,7 +334,7 @@ async function main() {
           ...merged,
         })
 
-        console.log(`  ${i + 1}/${remaining.length}: ${story.title.slice(0, 55)} — ${nSpecies}sp ${nPlaces}pl ${nConcepts}co ${nResearchers}res`)
+        console.log(`  ${i + 1}/${remaining.length}: ${story.title.slice(0, 50)} — ${nSpecies}sp ${nPlaces}pl ${nConcepts}co ${nResearchers}res ${nPubs}pub ${nProjects}prj`)
       } else {
         console.log(`  ${i + 1}/${remaining.length}: ${story.title.slice(0, 55)} — FAILED`)
       }

@@ -21,7 +21,7 @@ const dryRun = process.argv.includes('--dry-run')
 const EXCLUDE_TITLES = [
   'people & happenings',
   'crested butte legals',
-  'meet the candidates',
+  'gunnison legals',
   'summer activities',
   'summer activities guide',
 ]
@@ -31,7 +31,6 @@ const EXCLUDE_PATTERNS = [
   '%calendar of events%',
   '%kids calendar%',
   "kid's calendar%",
-  'letters to%',
   'briefs%',
 ]
 
@@ -39,10 +38,9 @@ const EXCLUDE_PATTERNS = [
 const IRRELEVANT_PATTERNS = [
   '%fetal%neonatal%',
   '%crested butte town council issues agenda%',
-  '%running events on%fast track%',
-  '%fourth of july%high country%',
   '%research and markets%offers%',
   '%research and markets%adds%',
+  '%water cooler %/%/%',
 ]
 
 async function main() {
@@ -110,6 +108,25 @@ async function main() {
     }
     for (const r of pass3.slice(0, 10)) console.log(`  - [${r.sim}] "${r.title}" → kept "${r.kept_title}"`)
     if (pass3.length > 10) console.log(`  ... and ${pass3.length - 10} more`)
+
+    // Pass 4: Remove false-positive matches with no RMBL relevance
+    // An article is relevant if it mentions RMBL, Rocky Mountain Biological, or Gothic (the town)
+    const { rows: pass4 } = await db.query(`
+      SELECT id, title, length(full_text) as text_len
+      FROM stories
+      WHERE full_text IS NOT NULL
+        AND (length(full_text) - length(replace(lower(full_text), 'rmbl', ''))) / 4 = 0
+        AND (length(full_text) - length(replace(lower(full_text), 'rocky mountain biological', ''))) / 25 = 0
+        AND (length(full_text) - length(replace(lower(full_text), 'gothic', ''))) / 6 = 0
+        AND lower(full_text) NOT LIKE '%biological laboratory%'
+    `)
+    console.log(`\nPass 4 — Likely research papers or tangential long texts: ${pass4.length} articles`)
+    if (pass4.length > 0 && !dryRun) {
+      const ids = pass4.map((r: any) => r.id)
+      await db.query('DELETE FROM stories WHERE id = ANY($1)', [ids])
+    }
+    for (const r of pass4.slice(0, 10)) console.log(`  - [${r.text_len} chars] ${r.title}`)
+    if (pass4.length > 10) console.log(`  ... and ${pass4.length - 10} more`)
 
     // Update search vectors for any remaining entries missing them
     if (!dryRun) {
