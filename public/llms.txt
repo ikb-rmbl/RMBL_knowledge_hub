@@ -24,6 +24,7 @@ The RMBL Knowledge Hub connects scientific publications, community documents, re
 - 5,267 publications (peer-reviewed articles, theses, student papers from 1928-2025)
 - 1,381 documents (community/policy documents from the Sustainable Living Library)
 - 1,216 datasets (research datasets from 8 discovery sources)
+- ~800 stories (news articles from local and national outlets, 1981-2026)
 - 6,586 authors with ORCID enrichment and deduplication
 - 402 species with ITIS taxonomic validation
 - 331 scientific concepts with definitions

@@ -75,7 +75,7 @@ function extractArticleContent(html: string): { fullText: string; author: string
   const bodyStart = html.search(/class=['"][^'"]*main-body[^'"]*['"]/)
   const bodyEnd = html.search(/class=['"][^'"]*below-story[^'"]*['"]/)
   const contentMatch = bodyStart >= 0 && bodyEnd > bodyStart
-    ? [null, html.slice(bodyStart, bodyEnd)] as RegExpMatchArray
+    ? ['', html.slice(bodyStart, bodyEnd)] as unknown as RegExpMatchArray
     : null
   if (contentMatch) {
     fullText = contentMatch[1]

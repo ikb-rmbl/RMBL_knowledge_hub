@@ -18,6 +18,7 @@ export default async function AboutPage() {
       (SELECT count(*) FROM publications)::int as publications,
       (SELECT count(*) FROM datasets)::int as datasets,
       (SELECT count(*) FROM documents)::int as documents,
+      (SELECT count(*) FROM stories)::int as stories,
       (SELECT count(*) FROM authors WHERE work_count > 0)::int as authors,
       (SELECT count(*) FROM species WHERE publication_count > 0)::int as species,
       (SELECT count(*) FROM concepts)::int as concepts,
@@ -37,8 +38,8 @@ export default async function AboutPage() {
       <p style={{ fontSize: '15px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '24px' }}>
         The RMBL Knowledge Hub is a unified search and discovery platform for environmental research at the{' '}
         <a href="https://www.rmbl.org" target="_blank" rel="noopener noreferrer">Rocky Mountain Biological Laboratory</a>{' '}
-        in Gothic, Colorado. It connects scientific publications, community documents, research datasets, and a knowledge
-        graph of species, concepts, protocols, and places studied at one of the longest-running field biology stations in North America.
+        in Gothic, Colorado. It connects scientific publications, community documents, research datasets, news stories,
+        and a knowledge graph of species, concepts, protocols, and places studied at one of the longest-running field biology stations in North America.
       </p>
 
       {/* ===== At a Glance ===== */}
@@ -49,6 +50,7 @@ export default async function AboutPage() {
             { label: 'Publications', value: c.publications.toLocaleString(), href: '/search?type=publications' },
             { label: 'Datasets', value: c.datasets.toLocaleString(), href: '/search?type=datasets' },
             { label: 'Documents', value: c.documents.toLocaleString(), href: '/search?type=documents' },
+            { label: 'Stories', value: c.stories.toLocaleString(), href: '/stories' },
             { label: 'Authors', value: c.authors.toLocaleString(), href: '/authors' },
             { label: 'Species', value: c.species.toLocaleString(), href: '/species' },
             { label: 'Concepts', value: c.concepts.toLocaleString(), href: '/concepts' },
@@ -268,6 +270,11 @@ npm run build`}
             <p style={{ marginTop: '12px' }}><strong>Documents</strong> come from the Sustainable Living Library, a
             collection of community and policy documents relevant to the Gunnison Basin. These include management plans,
             environmental impact statements, water quality reports, and local planning documents.</p>
+
+            <p style={{ marginTop: '12px' }}><strong>Stories</strong> are news articles about RMBL and the Gunnison Basin
+            from local newspapers (Crested Butte News, Gunnison Country Times) and national/international outlets via
+            LexisNexis. Full text is stored for search indexing and entity extraction but is not displayed on detail pages
+            to respect copyright. Each story links to its original source when available.</p>
           </div>
         </details>
 

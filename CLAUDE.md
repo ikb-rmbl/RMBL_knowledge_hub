@@ -6,6 +6,7 @@ Unified search platform for environmental knowledge from the Rocky Mountain Biol
 - **Documents** (1,381) — community/policy documents from the Sustainable Living Library
 - **Publications** (5,267) — peer-reviewed articles, theses, student papers (3,988 RMBL + 1,279 discovered)
 - **Datasets** (1,216) — research datasets from 8 discovery sources
+- **Stories** (~800) — news articles from CB News, Gunnison Times, LexisNexis (full text stored for search, not displayed)
 - **Authors** (6,586) — deduplicated cross-collection author registry with ORCID enrichment
 - **Projects** (118) — research plans and programs with auto-discovered item assignments
 - **Species** (402) — taxonomic entities with ITIS validation and external links
@@ -160,10 +161,17 @@ scripts/
   detect-communities.ts      — Louvain community detection on unified graph (43 neighborhoods)
   describe-communities.ts    — LLM-generated titles, summaries, and themes for neighborhoods
   load-neighborhoods.ts      — Load community data + members into neighborhoods tables
+  scrape-news.ts             — Crested Butte News scraper (search results + article text)
+  scrape-gunnison-times.ts   — Gunnison Country Times scraper (current + archive search)
+  parse-lexis-pdf.ts         — LexisNexis index PDF parser (metadata + embedded links)
+  parse-lexis-fulltext.ts    — LexisNexis full-text PDF parser (Body/End of Document markers)
+  load-stories.ts            — Load stories from all sources (CB News, Gunnison Times, Lexis)
+  dedup-stories.ts           — Deduplicate stories (non-relevant, exact, syndication, relevance)
+  extract-story-entities.ts  — LLM entity extraction for stories (species, places, researchers, projects)
   setup-local.sh             — Automated local development environment setup
   export-database.sh         — Database export for sharing (excludes sensitive tables)
   lib/                       — 17 shared utility modules (includes itis-client.ts)
-  sql/                       — 7 SQL migration files (provenance, citations, embeddings, projects, entities, sync_log, neighborhoods)
+  sql/                       — 8 SQL migration files (provenance, citations, embeddings, projects, entities, sync_log, neighborhoods, stories)
   __tests__/                 — 12 test files (214 tests)
 
 public/
@@ -219,6 +227,12 @@ specification/               — Project specs (functionality + implementation v
 - `sync-databases.ts` requires `NEON_DIRECT_URL` environment variable
 - `load-to-payload.ts` has incremental dedup (DOI + title+year for publications, DOI + title for datasets) — safe to re-run
 - Pipeline scripts auto-load `.env` via `config.ts` import — no need for manual `source .env`
+- Stories collection created manually via SQL (`scripts/sql/add-stories.sql`), not via Payload push
+- Stories full text is stored for search indexing but NOT displayed on detail pages (copyright)
+- `load-stories.ts` loads from 4 JSON sources in `scripts/output/` — run scrapers/parsers first
+- `dedup-stories.ts` should be run after every story load to remove syndication duplicates
+- LexisNexis articles require institutional auth — links are Lexis API URLs, not publicly accessible
+- Story ingestion pipeline: scrape/parse → load → dedup → extract entities
 
 ## Environment Variables
 
