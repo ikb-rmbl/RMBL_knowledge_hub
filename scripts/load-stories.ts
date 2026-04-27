@@ -26,11 +26,49 @@ async function main() {
     }
   }
 
+  // Load Lexis articles (index PDF — summary only, no full text)
+  const lexisFile = 'scripts/output/lexis-articles.json'
+  if (existsSync(lexisFile)) {
+    const lexis = JSON.parse(readFileSync(lexisFile, 'utf-8'))
+    for (const a of lexis) {
+      articles.push({
+        title: a.title,
+        fullText: null,
+        summary: a.summary || null,
+        date: a.date || null,
+        author: a.author || null,
+        url: null,
+        source: a.publication || a.source || 'LexisNexis',
+        storyType: 'news_article',
+      })
+    }
+    console.log(`  ${lexisFile}: ${lexis.length} articles`)
+  }
+
+  // Load Lexis full-text articles (overrides index-only entries with same title)
+  const lexisFullFile = 'scripts/output/lexis-fulltext-articles.json'
+  if (existsSync(lexisFullFile)) {
+    const lexisFull = JSON.parse(readFileSync(lexisFullFile, 'utf-8'))
+    for (const a of lexisFull) {
+      articles.push({
+        title: a.title,
+        fullText: a.fullText || null,
+        summary: a.summary || null,
+        date: a.date || null,
+        author: a.author || null,
+        url: null,
+        source: a.publication || 'LexisNexis',
+        storyType: 'news_article',
+      })
+    }
+    console.log(`  ${lexisFullFile}: ${lexisFull.length} articles`)
+  }
+
   console.log(`Loading ${articles.length} articles into stories table...`)
 
   let loaded = 0, skipped = 0
   for (const a of articles) {
-    if (!a.fullText || a.fullText.length < 50) { skipped++; continue }
+    if ((!a.fullText || a.fullText.length < 50) && (!a.summary || a.summary.length < 20)) { skipped++; continue }
     // Skip calendar/event listings
     const titleLower = a.title.toLowerCase()
     if (titleLower.includes('community calendar') || titleLower.includes('calendar of events')
@@ -39,18 +77,31 @@ async function main() {
 
     // Prefer byline from article text over CMS author
     let author = a.author
-    const bySearch = a.fullText.slice(0, 500).replace(/\r/g, '\n')
+    const bySearch = (a.fullText || '').slice(0, 500).replace(/\r/g, '\n')
     const byMatch = bySearch.match(/\[?\s*[Bb][Yy]\s+([A-Z][a-z]+(?:\s+[A-Z]\.?)?\s+[A-Z][a-z]+)\s*\]?/m)
     if (byMatch) author = byMatch[1].trim()
     if (author === 'Michelle') author = null
 
     const dateStr = a.date ? new Date(a.date).toISOString() : null
 
+    const sourceUrl = a.url || null
+    const summary = a.summary || a.excerpt?.slice(0, 300) || null
+
+    // Dedup: check source_url if available, otherwise title match
+    let exists = false
+    if (sourceUrl) {
+      const { rows } = await db.query('SELECT 1 FROM stories WHERE source_url = $1 LIMIT 1', [sourceUrl])
+      exists = rows.length > 0
+    } else {
+      const { rows } = await db.query('SELECT 1 FROM stories WHERE lower(title) = lower($1) LIMIT 1', [a.title])
+      exists = rows.length > 0
+    }
+    if (exists) { skipped++; continue }
+
     const { rowCount } = await db.query(
       `INSERT INTO stories (title, story_type, author, date, summary, full_text, source_url, created_at, updated_at)
-       SELECT $1::text, 'news_article', $2::text, $3::timestamptz, $4::text, $5::text, $6::text, NOW(), NOW()
-       WHERE NOT EXISTS (SELECT 1 FROM stories WHERE source_url = $6::text)`,
-      [a.title, author, dateStr, a.excerpt?.slice(0, 300) || null, a.fullText, a.url],
+       VALUES ($1, $2, $3, $4::timestamptz, $5, $6, $7, NOW(), NOW())`,
+      [a.title, a.storyType || 'news_article', author, dateStr, summary, a.fullText || null, sourceUrl],
     )
     if ((rowCount || 0) > 0) loaded++
     else skipped++

@@ -19,6 +19,7 @@ const ARTICLES_FILE = `${OUTPUT_DIR}/gunnison-times-articles.json`
 const DELAY_MS = 2000
 const BASE_URL = 'https://www.gunnisontimes.com'
 const SEARCH_URL = `${BASE_URL}/browse.html?search_filter=RMBL`
+const ARCHIVE_URL = `${BASE_URL}/browse.html?content_source=archive&search_filter=RMBL&page_size=20&search_filter_mode=and&sub_type=stories%2Cvideos%2Ceeditions%2Cspecialsections`
 const USER_AGENT = 'RMBLKnowledgeHub/1.0 (research; ikb@rmbl.org)'
 
 interface Article {
@@ -113,11 +114,29 @@ async function main() {
   console.log('==============================================')
   if (dryRun) console.log('(DRY RUN)')
 
-  // Fetch search results page
-  console.log(`Fetching: ${SEARCH_URL}`)
+  // Fetch current search results
+  console.log(`Fetching current: ${SEARCH_URL}`)
   const searchHtml = await fetchPage(SEARCH_URL)
   const urls = extractArticleUrls(searchHtml)
-  console.log(`Found ${urls.length} article links`)
+  console.log(`  Current: ${urls.length} articles`)
+
+  // Fetch archive search (paginated)
+  for (let page = 1; page <= 5; page++) {
+    const archiveUrl = page === 1 ? ARCHIVE_URL : `${ARCHIVE_URL}&page=${page}`
+    console.log(`Fetching archive page ${page}: ${archiveUrl}`)
+    await sleep(DELAY_MS)
+    try {
+      const archiveHtml = await fetchPage(archiveUrl)
+      const archiveUrls = extractArticleUrls(archiveHtml)
+      if (archiveUrls.length === 0) { console.log('  No more results.'); break }
+      const newUrls = archiveUrls.filter(u => !urls.some(existing => existing.url === u.url))
+      urls.push(...newUrls)
+      console.log(`  Found ${archiveUrls.length} (${newUrls.length} new, total: ${urls.length})`)
+    } catch (err: any) {
+      console.log(`  Error: ${err.message}`)
+      break
+    }
+  }
 
   // Filter out letters to the editor and non-articles
   const filtered = urls.filter(u =>
