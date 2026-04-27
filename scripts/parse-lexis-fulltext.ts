@@ -6,15 +6,17 @@
  *
  * Usage:
  *   pdftotext "Files (300).PDF" /tmp/lexis-fulltext.txt
- *   npx tsx scripts/parse-lexis-fulltext.ts /tmp/lexis-fulltext.txt
+ *   npx tsx scripts/parse-lexis-fulltext.ts /tmp/lexis-fulltext.txt [original-pdf-for-links]
  */
 
 import { readFileSync, writeFileSync } from 'fs'
+import { execSync } from 'child_process'
 import './lib/config.js'
 
 const inputFile = process.argv[2]
+const pdfFile = process.argv[3] // optional: original PDF for link extraction
 if (!inputFile) {
-  console.error('Usage: npx tsx scripts/parse-lexis-fulltext.ts <text-file>')
+  console.error('Usage: npx tsx scripts/parse-lexis-fulltext.ts <text-file> [original-pdf-for-links]')
   process.exit(1)
 }
 
@@ -27,6 +29,7 @@ interface LexisArticle {
   date: string | null
   author: string | null
   publication: string | null
+  sourceUrl: string | null
   source: string
 }
 
@@ -183,11 +186,53 @@ function main() {
       date,
       author,
       publication: publication || null,
+      sourceUrl: null,
       source: 'LexisNexis',
     })
   }
 
   console.log(`Parsed ${articles.length} articles with full text`)
+
+  // Extract links from the original PDF if provided
+  if (pdfFile) {
+    console.log(`\nExtracting links from PDF: ${pdfFile}`)
+    try {
+      const xmlOutput = execSync(
+        `pdftohtml -xml -stdout "${pdfFile}"`,
+        { maxBuffer: 100 * 1024 * 1024, encoding: 'utf-8' },
+      )
+
+      // Extract all non-boilerplate links, deduplicate consecutive
+      const allLinks: string[] = []
+      let lastUrl = ''
+      const linkPattern = /<a href="([^"]+)">/g
+      let lm
+      while ((lm = linkPattern.exec(xmlOutput)) !== null) {
+        const url = lm[1].replace(/&amp;/g, '&')
+        if (url.includes('lexisnexis.com/about') || url.includes('privacy-policy') ||
+            url.includes('terms/general') || url.includes('terms/copyright')) continue
+        if (url !== lastUrl) {
+          allLinks.push(url)
+          lastUrl = url
+        }
+      }
+
+      // Filter to Lexis API links (one per article, in order)
+      const lexisLinks = allLinks.filter(u => u.includes('advance.lexis.com'))
+      console.log(`  ${allLinks.length} total links, ${lexisLinks.length} Lexis API links`)
+
+      // Articles are in the same order as the PDF — assign Lexis links 1:1
+      // (articles list here is pre-dedup, so count should match)
+      for (let li = 0; li < Math.min(articles.length, lexisLinks.length); li++) {
+        articles[li].sourceUrl = lexisLinks[li]
+      }
+
+      const withUrl = articles.filter(a => a.sourceUrl).length
+      console.log(`  Assigned URLs to ${withUrl}/${articles.length} articles`)
+    } catch (err: any) {
+      console.log(`  Link extraction failed: ${err.message?.slice(0, 100)}`)
+    }
+  }
 
   // Deduplicate by title
   const seen = new Map<string, LexisArticle>()
