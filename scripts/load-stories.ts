@@ -93,7 +93,12 @@ async function main() {
       const { rows } = await db.query('SELECT 1 FROM stories WHERE source_url = $1 LIMIT 1', [sourceUrl])
       exists = rows.length > 0
     } else {
-      const { rows } = await db.query('SELECT 1 FROM stories WHERE lower(title) = lower($1) LIMIT 1', [a.title])
+      // Normalize title for comparison: collapse whitespace, strip spaces before punctuation
+      const normTitle = a.title.replace(/\s+/g, ' ').replace(/\s+(['''])/g, '$1').trim()
+      const { rows } = await db.query(
+        "SELECT 1 FROM stories WHERE lower(regexp_replace(title, '\\s+', ' ', 'g')) = lower($1) LIMIT 1",
+        [normTitle],
+      )
       exists = rows.length > 0
     }
     if (exists) { skipped++; continue }

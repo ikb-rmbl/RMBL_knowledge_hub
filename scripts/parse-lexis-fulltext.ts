@@ -92,28 +92,48 @@ function main() {
       if (line.startsWith('Copyright')) continue
     }
 
-    // Title: look for the first non-empty, non-metadata line after a "Page X of Y" line
-    for (let j = Math.max(0, bodyLine - 25); j < bodyLine; j++) {
+    // Title and publication: find the "Page X of Y" line, then collect text lines.
+    // Lexis repeats the title twice — first occurrence is the title, then publication, then date.
+    for (let j = Math.max(0, bodyLine - 30); j < bodyLine; j++) {
       const line = lines[j].trim()
       if (line.match(/^Page \d+ of \d+$/)) {
-        // Next non-empty line is the title
+        // Collect all non-empty, non-metadata lines between Page marker and Body
+        const textLines: string[] = []
         for (let k = j + 1; k < bodyLine; k++) {
           const tl = lines[k].trim()
-          if (tl && !tl.startsWith('Copyright') && !tl.startsWith('Length') &&
-              !tl.startsWith('Byline') && !tl.startsWith('Highlight') &&
-              !tl.startsWith('Body') && !tl.match(/^\d{4}/) &&
-              !tl.match(/^[A-Z][a-z]+ \d{1,2},?\s*\d{4}/)) {
-            title = tl
-            // Check if publication is on the next line
-            if (k + 1 < bodyLine) {
-              const nextLine = lines[k + 1].trim()
-              // Publication is typically a short line that's not a date
-              if (nextLine && !nextLine.match(/^[A-Z][a-z]+ \d{1,2}/) && !nextLine.startsWith('Copyright') && nextLine.length < 100) {
-                publication = nextLine
-              }
+          if (!tl) continue
+          if (tl.startsWith('Copyright') || tl.startsWith('Length') ||
+              tl.startsWith('Byline') || tl.startsWith('Highlight') ||
+              tl === 'Body' || tl.startsWith('All Rights')) continue
+          textLines.push(tl)
+        }
+        // First occurrence = title (may wrap across lines). Look for where title repeats.
+        if (textLines.length >= 2) {
+          // Find the repeated title — it starts the same as textLines[0]
+          let titleEndIdx = 1
+          for (let t = 1; t < textLines.length; t++) {
+            if (textLines[t].startsWith(textLines[0].slice(0, 20))) {
+              titleEndIdx = t
+              break
             }
-            break
           }
+          title = textLines.slice(0, titleEndIdx).join(' ').trim()
+
+          // After the repeated title, look for publication (short line before date)
+          for (let t = titleEndIdx; t < textLines.length; t++) {
+            const tl = textLines[t]
+            // Skip lines that look like the title repeated
+            if (tl.startsWith(textLines[0].slice(0, 15))) continue
+            // Date line
+            if (tl.match(/^[A-Z][a-z]+ \d{1,2},?\s*\d{4}/)) break
+            // Publication: short non-date line
+            if (tl.length < 100 && !tl.match(/^\d{4}/)) {
+              publication = tl
+              break
+            }
+          }
+        } else if (textLines.length === 1) {
+          title = textLines[0]
         }
         break
       }
