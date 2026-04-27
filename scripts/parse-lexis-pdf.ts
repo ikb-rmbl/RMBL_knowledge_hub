@@ -18,16 +18,20 @@ import { readFileSync, writeFileSync } from 'fs'
 import './lib/config.js'
 
 const inputFile = process.argv[2]
+const pdfFile = process.argv[3] // optional: original PDF for link extraction
 if (!inputFile) {
-  console.error('Usage: npx tsx scripts/parse-lexis-pdf.ts <text-file>')
+  console.error('Usage: npx tsx scripts/parse-lexis-pdf.ts <text-file> [original-pdf-for-links]')
   process.exit(1)
 }
 
 const OUTPUT_FILE = 'scripts/output/lexis-articles.json'
 
+import { execSync } from 'child_process'
+
 interface LexisArticle {
   title: string
   summary: string
+  sourceUrl: string | null
   date: string | null
   author: string | null
   publication: string | null
@@ -121,7 +125,7 @@ function main() {
     const jurisMatch = metaText.match(/Jurisdiction:\s*([^|]+)/)
     if (jurisMatch) jurisdiction = jurisMatch[1].trim()
 
-    articles.push({ title, summary, date, author, publication, source, jurisdiction })
+    articles.push({ title, summary, sourceUrl: null, date, author, publication, source, jurisdiction })
   }
 
   console.log(`Parsed ${articles.length} total entries`)
@@ -153,6 +157,64 @@ function main() {
   }
   console.log('\nYear distribution:')
   for (const [year, count] of [...years.entries()].sort()) console.log(`  ${year}: ${count}`)
+
+  // Extract source URLs from the original PDF if provided
+  if (pdfFile) {
+    console.log(`\nExtracting links from PDF: ${pdfFile}`)
+    try {
+      const xmlOutput = execSync(
+        `pdftohtml -xml -stdout "${pdfFile}"`,
+        { maxBuffer: 50 * 1024 * 1024, encoding: 'utf-8' },
+      )
+      // Extract all href URLs with their surrounding text context
+      const linkPattern = /<a href="([^"]+)">/g
+      const textPattern = /<text[^>]*>([^<]*)<\/text>/g
+      const allLinks: string[] = []
+      let m
+      while ((m = linkPattern.exec(xmlOutput)) !== null) {
+        const url = m[1].replace(/&amp;/g, '&')
+        if (!url.includes('lexisnexis.com/about') && !url.includes('privacy-policy') &&
+            !url.includes('terms/general') && !url.includes('terms/copyright')) {
+          allLinks.push(url)
+        }
+      }
+      console.log(`  Found ${allLinks.length} non-boilerplate links`)
+
+      // Deduplicate consecutive links (title line wraps cause repeats)
+      const dedupedLinks: string[] = []
+      let lastUrl = ''
+      for (const url of allLinks) {
+        if (url !== lastUrl) {
+          dedupedLinks.push(url)
+          lastUrl = url
+        }
+      }
+      console.log(`  ${dedupedLinks.length} unique consecutive links (1 per article)`)
+
+      // Links appear in the same order as articles in the PDF.
+      // The original (pre-dedup) article list maps 1:1 to links.
+      // Assign links to original articles, then propagate to deduped set.
+      const linksByTitle = new Map<string, string>()
+      for (let li = 0; li < Math.min(articles.length, dedupedLinks.length); li++) {
+        const key = articles[li].title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+        if (!linksByTitle.has(key)) {
+          linksByTitle.set(key, dedupedLinks[li])
+        }
+      }
+
+      // Assign to deduped articles — prefer non-Lexis source URLs
+      for (const article of unique) {
+        const key = article.title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+        const url = linksByTitle.get(key)
+        if (url) article.sourceUrl = url
+      }
+
+      const withUrl = unique.filter(a => a.sourceUrl).length
+      console.log(`  Assigned URLs to ${withUrl}/${unique.length} articles`)
+    } catch (err: any) {
+      console.log(`  Link extraction failed: ${err.message?.slice(0, 100)}`)
+    }
+  }
 
   writeFileSync(OUTPUT_FILE, JSON.stringify(unique, null, 2))
   console.log(`\nSaved ${unique.length} unique articles to ${OUTPUT_FILE}`)

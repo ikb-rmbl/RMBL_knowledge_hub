@@ -37,7 +37,7 @@ async function main() {
         summary: a.summary || null,
         date: a.date || null,
         author: a.author || null,
-        url: null,
+        url: a.sourceUrl || null,
         source: a.publication || a.source || 'LexisNexis',
         storyType: 'news_article',
       })
@@ -56,7 +56,7 @@ async function main() {
         summary: a.summary || null,
         date: a.date || null,
         author: a.author || null,
-        url: null,
+        url: a.sourceUrl || null,
         source: a.publication || 'LexisNexis',
         storyType: 'news_article',
       })
@@ -84,24 +84,48 @@ async function main() {
 
     const dateStr = a.date ? new Date(a.date).toISOString() : null
 
-    const sourceUrl = a.url || null
+    const sourceUrl = a.url || a.sourceUrl || null
     const summary = a.summary || a.excerpt?.slice(0, 300) || null
 
-    // Dedup: check source_url if available, otherwise title match
-    let exists = false
+    // Dedup: check by source_url or normalized title
+    const normTitle = a.title.replace(/\s+/g, ' ').replace(/\s+(['''])/g, '$1').trim()
+    let existingId: number | null = null
+    let existingTextLen = 0
+
     if (sourceUrl) {
-      const { rows } = await db.query('SELECT 1 FROM stories WHERE source_url = $1 LIMIT 1', [sourceUrl])
-      exists = rows.length > 0
-    } else {
-      // Normalize title for comparison: collapse whitespace, strip spaces before punctuation
-      const normTitle = a.title.replace(/\s+/g, ' ').replace(/\s+(['''])/g, '$1').trim()
+      const { rows } = await db.query('SELECT id, length(coalesce(full_text, summary, \'\')) as tlen FROM stories WHERE source_url = $1 LIMIT 1', [sourceUrl])
+      if (rows.length > 0) { existingId = rows[0].id; existingTextLen = rows[0].tlen }
+    }
+    if (!existingId) {
       const { rows } = await db.query(
-        "SELECT 1 FROM stories WHERE lower(regexp_replace(title, '\\s+', ' ', 'g')) = lower($1) LIMIT 1",
+        "SELECT id, length(coalesce(full_text, summary, '')) as tlen FROM stories WHERE lower(regexp_replace(title, '\\s+', ' ', 'g')) = lower($1) LIMIT 1",
         [normTitle],
       )
-      exists = rows.length > 0
+      if (rows.length > 0) { existingId = rows[0].id; existingTextLen = rows[0].tlen }
     }
-    if (exists) { skipped++; continue }
+
+    // If a match exists, update it if we have more content
+    const newTextLen = (a.fullText || '').length + (summary || '').length
+    if (existingId) {
+      if (newTextLen > existingTextLen) {
+        await db.query(
+          `UPDATE stories SET full_text = COALESCE($1, full_text), summary = COALESCE($2, summary),
+           author = COALESCE($3, author), source_url = COALESCE($4, source_url),
+           updated_at = NOW() WHERE id = $5`,
+          [a.fullText || null, summary, author, sourceUrl, existingId],
+        )
+        loaded++
+      } else {
+        // Still update missing fields (author, source_url) even if text isn't longer
+        await db.query(
+          `UPDATE stories SET author = COALESCE(author, $1), source_url = COALESCE(source_url, $2),
+           updated_at = NOW() WHERE id = $3`,
+          [author, sourceUrl, existingId],
+        )
+        skipped++
+      }
+      continue
+    }
 
     const { rowCount } = await db.query(
       `INSERT INTO stories (title, story_type, author, date, summary, full_text, source_url, created_at, updated_at)
