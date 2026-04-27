@@ -86,6 +86,7 @@ Return a JSON object:
       "role": "primary_subject|mentioned|context"
     }
   ],
+  "storyType": "news_article|research_summary|opinion_editorial|press_release|profile|obituary|event_coverage|legislative|field_notes|interview|feature|scientific_paper|other",
   "storyTopics": ["1-3 word topic tags summarizing what the story is about, max 5"]
 }
 
@@ -96,6 +97,7 @@ Important:
 - Concepts: focus on the research topics being discussed, not generic journalism terms
 - publicationsReferenced: extract any specific studies, papers, or reports mentioned in the article. News articles often describe research findings — capture the study title (or a descriptive title if not explicitly named), the journal, year, and authors when stated. Examples: "a study published in Science", "research published in Proceedings of the Royal Society", "a paper in the journal Ecology".
 - projects: extract named research projects, programs, or initiatives. Common RMBL projects include: SAIL (Surface Atmosphere Integrated Laboratory), SPLASH (Study of Precipitation, the Lower Atmosphere and Surface for Hydrometeorology), Warming Meadow / WaRM (Warming and Removal in Mountains), Marmot Project, Underwood-Inouye Long-term Phenology, East River Watershed Function SFA, Spatial Data Platform, RMBL 365. Also capture any other named projects, grants, or research programs mentioned.
+- storyType: classify the article into one category. Use: "news_article" (standard reporting), "research_summary" (coverage of a specific study's findings), "opinion_editorial" (op-ed, commentary, or opinion piece), "press_release" (official release from an institution), "profile" (biographical piece about a person), "obituary" (death notice or memorial), "event_coverage" (festival, ceremony, meeting coverage), "legislative" (bill, law, government action), "field_notes" (observational notes from the field), "interview" (Q&A or interview format), "feature" (long-form narrative or magazine-style article), "scientific_paper" (appears to be a research paper rather than journalism), "other"
 - storyTopics: brief tags like "marmot research", "snowpack forecasting", "RMBL expansion", "wildflower phenology"
 - Return valid JSON only — no markdown, no commentary`
 
@@ -114,8 +116,8 @@ async function callClaude(text: string, title: string): Promise<any | null> {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 4096,
+        model: 'claude-opus-4-7',
+        max_tokens: 8192,
         messages: [{
           role: 'user',
           content: `${PROMPT}\n\nArticle title: "${title}"\n\nArticle text:\n${text}`,
@@ -207,6 +209,7 @@ function mergeExtractions(parts: any[]): any {
   const allTopics = new Set<string>()
   const pubsByTitle = new Map<string, any>()
   const projectsByName = new Map<string, any>()
+  let storyType: string | null = null
 
   for (const p of parts) {
     for (const s of p.species || []) {
@@ -235,6 +238,7 @@ function mergeExtractions(parts: any[]): any {
       const key = (proj.name || '').toLowerCase()
       if (key && !projectsByName.has(key)) projectsByName.set(key, proj)
     }
+    if (p.storyType && !storyType) storyType = p.storyType
   }
 
   return {
@@ -245,6 +249,7 @@ function mergeExtractions(parts: any[]): any {
     agencies: [...allAgencies],
     publicationsReferenced: [...pubsByTitle.values()],
     projects: [...projectsByName.values()],
+    storyType,
     storyTopics: [...allTopics].slice(0, 5),
   }
 }
@@ -268,13 +273,14 @@ async function main() {
   })
 
   try {
-    // Prefer stories with full text, but also extract from summaries
+    // Extract from stories with 1K-50K chars of full text
+    // Skips: summary-only (<1K), very short articles, and extremely long items (>50K, likely full research papers)
     const { rows: stories } = await db.query(`
-      SELECT id, title, coalesce(full_text, summary) as text, length(coalesce(full_text, summary)) as text_len
+      SELECT id, title, full_text as text, length(full_text) as text_len
       FROM stories
-      WHERE coalesce(full_text, summary) IS NOT NULL
-        AND length(coalesce(full_text, summary)) >= 100
-      ORDER BY length(coalesce(full_text, '')) DESC, id
+      WHERE full_text IS NOT NULL
+        AND length(full_text) BETWEEN 1000 AND 50000
+      ORDER BY length(full_text) DESC, id
     `)
     console.log(`\n${stories.length} stories with extractable text`)
 
@@ -327,6 +333,7 @@ async function main() {
         const nResearchers = merged.researchers?.length || 0
         const nPubs = merged.publicationsReferenced?.length || 0
         const nProjects = merged.projects?.length || 0
+        const sType = merged.storyType || '?'
 
         results.push({
           id: story.id,
@@ -334,7 +341,7 @@ async function main() {
           ...merged,
         })
 
-        console.log(`  ${i + 1}/${remaining.length}: ${story.title.slice(0, 50)} — ${nSpecies}sp ${nPlaces}pl ${nConcepts}co ${nResearchers}res ${nPubs}pub ${nProjects}prj`)
+        console.log(`  ${i + 1}/${remaining.length}: [${sType}] ${story.title.slice(0, 45)} — ${nSpecies}sp ${nPlaces}pl ${nConcepts}co ${nResearchers}res ${nPubs}pub ${nProjects}prj`)
       } else {
         console.log(`  ${i + 1}/${remaining.length}: ${story.title.slice(0, 55)} — FAILED`)
       }
