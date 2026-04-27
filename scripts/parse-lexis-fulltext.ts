@@ -48,129 +48,109 @@ function main() {
 
   const articles: LexisArticle[] = []
   let i = 0
+  let skippedMismatch = 0
 
-  // Skip the table of contents — find first "Body" marker
-  while (i < lines.length && lines[i].trim() !== 'Body') i++
-
+  // Find all "Page 1 of N" markers — each starts a new article
+  // Structure: Page 1 of N → title → title(repeated) → publication → date → ... → Body → text → End of Document
   while (i < lines.length) {
-    // Find next "Body" marker
-    while (i < lines.length && lines[i].trim() !== 'Body') i++
+    // Find next "Page 1 of" marker
+    while (i < lines.length && !lines[i].trim().match(/^Page 1 of \d+$/)) i++
     if (i >= lines.length) break
 
-    // Walk backwards from "Body" to extract metadata
+    i++ // skip the Page line
+
+    // Collect all lines until "End of Document"
+    const articleLines: string[] = []
+    while (i < lines.length && lines[i].trim() !== 'End of Document') {
+      articleLines.push(lines[i])
+      i++
+    }
+    i++ // skip End of Document
+
+    if (articleLines.length < 5) continue
+
+    // Parse the article header: title is the first non-empty line(s)
     let title = ''
     let publication = ''
     let date: string | null = null
     let author: string | null = null
     let highlight: string | null = null
+    let bodyStartIdx = -1
 
-    // Search backwards for metadata (within 30 lines before "Body")
-    const bodyLine = i
-    for (let j = Math.max(0, bodyLine - 30); j < bodyLine; j++) {
-      const line = lines[j].trim()
+    // Find "Body" marker
+    for (let j = 0; j < articleLines.length; j++) {
+      if (articleLines[j].trim() === 'Body') { bodyStartIdx = j; break }
+    }
+    if (bodyStartIdx < 0) continue
 
-      // Byline
-      if (line.startsWith('Byline:')) {
-        author = line.replace('Byline:', '').trim()
-        // May continue to next line
-        if (j + 1 < bodyLine && !lines[j + 1].trim().startsWith('Highlight:') && !lines[j + 1].trim().startsWith('Body') && !lines[j + 1].trim().startsWith('Length:')) {
-          author += ' ' + lines[j + 1].trim()
-        }
-        author = author.slice(0, 150)
-      }
-
-      // Highlight (used as summary)
-      if (line.startsWith('Highlight:')) {
-        highlight = line.replace('Highlight:', '').trim()
-      }
-
-      // Date line — looks like "April 8, 2026 Wednesday 12:19 PM EST"
-      const dateMatch = line.match(/^([A-Z][a-z]+ \d{1,2},?\s*\d{4})\b/)
-      if (dateMatch && !line.startsWith('Copyright') && !line.startsWith('Length')) {
-        date = parseDate(dateMatch[1])
-      }
-
-      // Length line
-      if (line.startsWith('Length:')) continue
-      if (line.startsWith('Copyright')) continue
+    // Title: first non-empty line after "Page 1 of N"
+    const headerLines: string[] = []
+    for (let j = 0; j < bodyStartIdx; j++) {
+      const line = articleLines[j].trim()
+      if (!line) continue
+      if (line.startsWith('Copyright') || line.startsWith('Length') ||
+          line.startsWith('Byline') || line.startsWith('Highlight') ||
+          line.startsWith('All Rights') || line.startsWith('Load-Date') ||
+          line.match(/^Page \d+ of \d+$/)) continue
+      headerLines.push(line)
     }
 
-    // Title and publication: find the "Page X of Y" line, then collect text lines.
-    // Lexis repeats the title twice — first occurrence is the title, then publication, then date.
-    for (let j = Math.max(0, bodyLine - 30); j < bodyLine; j++) {
-      const line = lines[j].trim()
-      if (line.match(/^Page \d+ of \d+$/)) {
-        // Collect all non-empty, non-metadata lines between Page marker and Body
-        const textLines: string[] = []
-        for (let k = j + 1; k < bodyLine; k++) {
-          const tl = lines[k].trim()
-          if (!tl) continue
-          if (tl.startsWith('Copyright') || tl.startsWith('Length') ||
-              tl.startsWith('Byline') || tl.startsWith('Highlight') ||
-              tl === 'Body' || tl.startsWith('All Rights')) continue
-          textLines.push(tl)
+    // First line = title. If the title wraps, the second occurrence starts the same way.
+    if (headerLines.length >= 1) {
+      title = headerLines[0]
+      // Check if title wraps to next line (next line starts with continuation, not a repeat)
+      if (headerLines.length >= 2 && !headerLines[1].startsWith(headerLines[0].slice(0, 15))) {
+        // Second line might be continuation or publication
+        const isDate = headerLines[1].match(/^[A-Z][a-z]+ \d{1,2},?\s*\d{4}/)
+        const isShort = headerLines[1].length < 80
+        if (!isDate && !isShort) {
+          // Likely title continuation
+          title = headerLines[0] + ' ' + headerLines[1]
         }
-        // First occurrence = title (may wrap across lines). Look for where title repeats.
-        if (textLines.length >= 2) {
-          // Find the repeated title — it starts the same as textLines[0]
-          let titleEndIdx = 1
-          for (let t = 1; t < textLines.length; t++) {
-            if (textLines[t].startsWith(textLines[0].slice(0, 20))) {
-              titleEndIdx = t
-              break
-            }
-          }
-          title = textLines.slice(0, titleEndIdx).join(' ').trim()
+      }
+    }
 
-          // After the repeated title, look for publication (short line before date)
-          for (let t = titleEndIdx; t < textLines.length; t++) {
-            const tl = textLines[t]
-            // Skip lines that look like the title repeated
-            if (tl.startsWith(textLines[0].slice(0, 15))) continue
-            // Date line
-            if (tl.match(/^[A-Z][a-z]+ \d{1,2},?\s*\d{4}/)) break
-            // Publication: short non-date line
-            if (tl.length < 100 && !tl.match(/^\d{4}/)) {
-              publication = tl
-              break
-            }
-          }
-        } else if (textLines.length === 1) {
-          title = textLines[0]
-        }
+    // Find publication (short line after the repeated title, before date)
+    for (let j = 0; j < headerLines.length; j++) {
+      const line = headerLines[j]
+      if (line === title || line.startsWith(title.slice(0, 15))) continue
+      if (line.match(/^[A-Z][a-z]+ \d{1,2},?\s*\d{4}/)) break
+      if (line.length < 100 && !line.startsWith('Copyright') && !line.startsWith('Length')) {
+        publication = line
         break
       }
     }
 
-    // If no title found via Page marker, use the line before publication/date
-    if (!title) {
-      for (let j = bodyLine - 1; j >= Math.max(0, bodyLine - 15); j--) {
-        const line = lines[j].trim()
-        if (line && !line.startsWith('Body') && !line.startsWith('Byline') &&
-            !line.startsWith('Highlight') && !line.startsWith('Length') &&
-            !line.startsWith('Copyright') && !line.match(/^Page \d+/) &&
-            !line.match(/^[A-Z][a-z]+ \d{1,2},?\s*\d{4}/)) {
-          title = line
-          break
+    // Extract metadata from header
+    for (let j = 0; j < bodyStartIdx; j++) {
+      const line = articleLines[j].trim()
+      if (line.startsWith('Byline:')) {
+        author = line.replace('Byline:', '').trim()
+        if (j + 1 < bodyStartIdx) {
+          const next = articleLines[j + 1].trim()
+          if (next && !next.startsWith('Highlight') && !next.startsWith('Body') && !next.startsWith('Length')) {
+            author += ' ' + next
+          }
         }
+        author = author.slice(0, 150)
       }
+      if (line.startsWith('Highlight:')) highlight = line.replace('Highlight:', '').trim()
+      const dateMatch = line.match(/^([A-Z][a-z]+ \d{1,2},?\s*\d{4})\b/)
+      if (dateMatch && !line.startsWith('Copyright')) date = parseDate(dateMatch[1])
     }
 
-    i++ // move past "Body"
+    // Skip past "Body" marker for text extraction
+    const bodyIdx = bodyStartIdx + 1
 
-    // Collect full text until "End of Document"
+    // Collect body text from articleLines starting after "Body"
     const bodyLines: string[] = []
-    while (i < lines.length && lines[i].trim() !== 'End of Document') {
-      const line = lines[i].trim()
-      // Skip page headers (repeated title + page number)
-      if (line.match(/^Page \d+ of \d+$/)) { i++; continue }
-      if (line === title) { i++; continue } // skip repeated title at page tops
-      // Skip Load-Date line
-      if (line.startsWith('Load-Date:')) { i++; continue }
-      bodyLines.push(lines[i]) // preserve original whitespace for paragraphs
-      i++
+    for (let j = bodyIdx; j < articleLines.length; j++) {
+      const line = articleLines[j].trim()
+      if (line.match(/^Page \d+ of \d+$/)) continue
+      if (line === title) continue // skip repeated title at page tops
+      if (line.startsWith('Load-Date:')) continue
+      bodyLines.push(articleLines[j])
     }
-    i++ // skip "End of Document"
 
     const fullText = bodyLines.join('\n')
       .replace(/\n{3,}/g, '\n\n')
@@ -191,7 +171,7 @@ function main() {
     })
   }
 
-  console.log(`Parsed ${articles.length} articles with full text`)
+  console.log(`Parsed ${articles.length} articles with full text (${skippedMismatch} skipped: title/text mismatch)`)
 
   // Extract links from the original PDF if provided
   if (pdfFile) {
