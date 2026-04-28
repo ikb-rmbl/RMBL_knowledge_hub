@@ -18,6 +18,7 @@ export default async function HomePage() {
     payload.count({ collection: 'datasets' }),
     payload.count({ collection: 'authors' }),
   ])
+  const { rows: [{ story_count: storyCount }] } = await db.query('SELECT count(*)::int as story_count FROM stories')
 
   // Fetch entity + cross-link counts from custom tables
   const { rows: [entityStats] } = await db.query(`
@@ -150,7 +151,7 @@ export default async function HomePage() {
   }
   recentItems.sort((a, b) => b.connectivity - a.connectivity)
 
-  const totalCount = docCount.totalDocs + pubCount.totalDocs + dataCount.totalDocs
+  const totalCount = docCount.totalDocs + pubCount.totalDocs + dataCount.totalDocs + storyCount
 
   return (
     <>
@@ -179,6 +180,7 @@ export default async function HomePage() {
           <Link className="type-chip" href="/search?type=documents">Documents ({docCount.totalDocs.toLocaleString()})</Link>
           <Link className="type-chip" href="/search?type=publications">Publications ({pubCount.totalDocs.toLocaleString()})</Link>
           <Link className="type-chip" href="/search?type=datasets">Datasets ({dataCount.totalDocs.toLocaleString()})</Link>
+          <Link className="type-chip" href="/stories">Stories ({storyCount.toLocaleString()})</Link>
           <Link className="type-chip" href="/species">Species ({parseInt(entityStats.species).toLocaleString()})</Link>
           <Link className="type-chip" href="/places">Places ({parseInt(entityStats.places).toLocaleString()})</Link>
           <Link className="type-chip" href="/protocols">Protocols ({parseInt(entityStats.protocols).toLocaleString()})</Link>
