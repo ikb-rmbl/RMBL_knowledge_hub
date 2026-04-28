@@ -10,14 +10,21 @@ export const metadata: Metadata = {
 }
 
 const STORY_TYPE_LABELS: Record<string, string> = {
-  oral_history: 'Oral History',
-  interview: 'Interview',
+  news_article: 'News',
+  research_summary: 'Research',
   press_release: 'Press Release',
+  profile: 'Profile',
+  feature: 'Feature',
+  opinion_editorial: 'Opinion',
+  event_coverage: 'Event',
+  legislative: 'Legislative',
+  obituary: 'Obituary',
+  interview: 'Interview',
+  oral_history: 'Oral History',
   memoir: 'Memoir',
   field_notes: 'Field Notes',
   blog_post: 'Blog Post',
-  event_summary: 'Event',
-  news_article: 'News',
+  scientific_paper: 'Scientific Paper',
   other: 'Other',
 }
 
