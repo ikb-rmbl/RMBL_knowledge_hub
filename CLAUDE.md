@@ -233,6 +233,44 @@ specification/               — Project specs (functionality + implementation v
 - `dedup-stories.ts` should be run after every story load to remove syndication duplicates
 - LexisNexis articles require institutional auth — links are Lexis API URLs, not publicly accessible
 - Story ingestion pipeline: scrape/parse → load → dedup → extract entities
+- Run `npx tsx scripts/check-staleness.ts` after data changes to see what needs rebuilding
+
+## Rebuild Strategy
+
+When to do a **full rebuild** (graph + communities + primers):
+- Adding a new collection type (e.g., stories) — changes graph structure fundamentally
+- Major entity extraction run (>1K new entity mentions) — shifts co-occurrence patterns
+- Changing edge weights or graph construction logic
+- Community re-detection invalidates ALL existing primers (community IDs are non-deterministic)
+
+When **incremental** is sufficient:
+- Adding <100 new items to an existing collection
+- Fixing metadata (authors, dates, summaries)
+- UI/API changes, frontend-only work
+
+Full rebuild order:
+```bash
+# 1. Entity graphs (species, concepts, protocols, places, authors, publications, datasets)
+npx tsx scripts/build-explore-graph.ts
+npx tsx scripts/build-collection-graph.ts
+
+# 2. Unified graph + research-only variant
+npx tsx scripts/build-unified-graph.ts
+npx tsx scripts/build-unified-graph.ts --exclude-docs --output=unified-research.json
+
+# 3. Community detection (invalidates all primers!)
+npx tsx scripts/detect-communities.ts
+
+# 4. Community descriptions + neighborhoods + layouts
+npx tsx scripts/describe-communities.ts
+npx tsx scripts/load-neighborhoods.ts
+npx tsx scripts/layout-neighborhoods.ts
+
+# 5. Primers (most expensive step — ~$4 with Opus for 75 neighborhoods)
+npx tsx scripts/generate-primers.ts --limit=100 --model=opus
+```
+
+**IMPORTANT**: Community detection (step 3) assigns new community IDs each run. All existing primers become invalid because they're attached to neighborhood rows by ID. Always regenerate primers after re-detecting communities.
 
 ## Environment Variables
 
