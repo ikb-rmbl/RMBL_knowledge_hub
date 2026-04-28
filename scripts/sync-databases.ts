@@ -886,6 +886,7 @@ async function main() {
   const allTables = [
     ...Object.values(COLLECTIONS).map((c) => c.table),
     ...Object.values(ENTITY_COLLECTIONS).map((c) => c.table),
+    'stories', 'stories_participants', 'stories_rels',
     'neighborhoods', 'neighborhood_members',
     'entity_mentions', 'entity_candidates', 'code_repositories', 'data_repositories', 'content_chunks', 'references_cited',
     'authors_rels', 'datasets_rels', 'projects_rels', 'datasets_creators',
@@ -1089,7 +1090,7 @@ async function main() {
       const marker = diff === 0 ? '✓' : '✗'
       console.log(`  ${marker} ${collName.padEnd(18)} local: ${String(local.n).padStart(7)}  neon: ${String(neon.n).padStart(7)}${diff !== 0 ? `  (${diff > 0 ? '+' : ''}${diff})` : ''}`)
     }
-    for (const bulk of ['stakeholders', 'neighborhoods', 'neighborhood_members', 'entity_mentions', 'entity_candidates', 'code_repositories', 'data_repositories', 'content_chunks', 'authors_rels']) {
+    for (const bulk of ['stories', 'stories_participants', 'stakeholders', 'neighborhoods', 'neighborhood_members', 'entity_mentions', 'entity_candidates', 'code_repositories', 'data_repositories', 'content_chunks', 'authors_rels']) {
       const { rows: [local] } = await localDb.query(`SELECT count(*)::int as n FROM ${bulk}`)
       const { rows: [neon] } = await neonDb.query(`SELECT count(*)::int as n FROM ${bulk}`)
       const diff = local.n - neon.n

@@ -42,6 +42,7 @@ if (!NEON_URL) {
 
 const TABLES_TRUNCATE_ORDER = [
   'projects_rels', 'projects',
+  'stories_participants', 'stories_rels', 'stories',
   'authors_rels', 'authors',
   'publications_rels', 'publications_keywords', 'publications_authors', 'publications_editors', 'publications_mentors',
   'references_cited', 'content_chunks',
@@ -56,7 +57,7 @@ const TABLES_TRUNCATE_ORDER = [
 ]
 
 const COUNT_TABLES = [
-  'publications', 'datasets', 'documents', 'authors', 'topics',
+  'publications', 'datasets', 'documents', 'stories', 'authors', 'topics',
   'projects', 'references_cited', 'content_chunks', 'users',
 ]
 
