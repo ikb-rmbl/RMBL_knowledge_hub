@@ -9,7 +9,7 @@
  * Requires: VOYAGE_API_KEY environment variable
  *
  * Usage:
- *   npx tsx scripts/generate-embeddings.ts [--collection=publications|datasets|documents|all] [--level=summary] [--dry-run] [--limit=N] [--force]
+ *   npx tsx scripts/generate-embeddings.ts [--collection=publications|datasets|documents|stories|all] [--level=summary] [--dry-run] [--limit=N] [--force]
  */
 
 import pg from 'pg'
@@ -66,6 +66,16 @@ function prepareDocumentText(row: any): string {
   return parts.join('. ').slice(0, 32000)
 }
 
+function prepareStoryText(row: any): string {
+  const parts = [row.title || '']
+  if (row.summary && row.summary.length > 20) parts.push(row.summary)
+  if (row.full_text && row.full_text.length > 100) {
+    parts.push(row.full_text.split(/\s+/).slice(0, 500).join(' '))
+  }
+  if (row.author) parts.push(`By: ${row.author}`)
+  return parts.join('. ').slice(0, 32000)
+}
+
 // ---------------------------------------------------------------------------
 // Embedding generation via Voyage AI REST API
 // ---------------------------------------------------------------------------
@@ -104,7 +114,7 @@ async function generateEmbeddings(
 
 async function embedCollection(
   db: pg.Pool,
-  collection: 'publications' | 'datasets' | 'documents',
+  collection: 'publications' | 'datasets' | 'documents' | 'stories',
   textPreparer: (row: any) => string,
 ): Promise<{ embedded: number; skipped: number; errors: number }> {
   const table = collection
@@ -213,6 +223,7 @@ async function main() {
   const runPubs = collectionArg === 'publications' || collectionArg === 'all'
   const runDatasets = collectionArg === 'datasets' || collectionArg === 'all'
   const runDocs = collectionArg === 'documents' || collectionArg === 'all'
+  const runStories = collectionArg === 'stories' || collectionArg === 'all'
 
   let totalEmbedded = 0
 
@@ -234,6 +245,12 @@ async function main() {
     totalEmbedded += r.embedded
   }
 
+  if (runStories) {
+    console.log('\n--- Stories ---')
+    const r = await embedCollection(db, 'stories', prepareStoryText)
+    totalEmbedded += r.embedded
+  }
+
   // Summary
   const { rows: stats } = await db.query(`
     SELECT 'publications' as collection, count(*) as total,
@@ -243,6 +260,8 @@ async function main() {
     SELECT 'datasets', count(*), count(*) FILTER (WHERE embedding IS NOT NULL) FROM datasets
     UNION ALL
     SELECT 'documents', count(*), count(*) FILTER (WHERE embedding IS NOT NULL) FROM documents
+    UNION ALL
+    SELECT 'stories', count(*), count(*) FILTER (WHERE embedding IS NOT NULL) FROM stories
   `)
 
   const { rows: chunkStats } = await db.query(
