@@ -220,7 +220,16 @@
         "publication": 391,
         "dataset": 27,
         "story": 39
-      }
+      },
+      "title": "Yellow-Bellied Marmot Ecology, Behavior, and Population Dynamics",
+      "summary": "Explores long-term population ecology of yellow-bellied marmots through decades of mark-recapture and behavioral observation, examining how social structure, winter survival, and antipredator behavior shape individual fitness and population dynamics.",
+      "themes": [
+        "marmot population ecology",
+        "social behavior and networks",
+        "hibernation and winter survival",
+        "long-term longitudinal fieldwork",
+        "antipredator behavior"
+      ]
     },
     {
       "id": 22,
@@ -459,7 +468,16 @@
         "publication": 193,
         "dataset": 53,
         "story": 1
-      }
+      },
+      "title": "Plant-Pollinator Phenology and Adaptive Evolution in Alpine Wildflowers",
+      "summary": "Explores how alpine Brassicaceae — particularly Cardamine cordifolia — respond to shifting climate conditions through phenotypic plasticity, phenological timing, and balancing selection, integrating field census protocols with evolutionary genetics to understand plant fitness across elevational gradients.",
+      "themes": [
+        "phenological mismatch and climate change",
+        "balancing selection and local adaptation",
+        "plant-pollinator interactions",
+        "phenotypic plasticity",
+        "elevational gradients"
+      ]
     },
     {
       "id": 68,
@@ -719,7 +737,16 @@
         "publication": 8,
         "document": 174,
         "story": 21
-      }
+      },
+      "title": "Federal Water Policy and Western Land Management Networks",
+      "summary": "Connects federal agencies, community planning documents, and natural resource stakeholders across western U.S. water and land management issues, with particular focus on arid lands, river systems, and wildlife in policy and governance contexts.",
+      "themes": [
+        "federal water policy",
+        "western arid lands",
+        "wildlife management",
+        "community planning",
+        "interagency coordination"
+      ]
     },
     {
       "id": 111,
@@ -927,7 +954,16 @@
         "publication": 1,
         "document": 195,
         "story": 26
-      }
+      },
+      "title": "Public Lands Stewardship and Community Identity in the Gunnison Basin",
+      "summary": "Connects federal land and water management agencies with local community identity, recreation, and the cultural meaning of landscapes in the Colorado River headwaters region.",
+      "themes": [
+        "federal land management",
+        "sense of place",
+        "water governance",
+        "recreation and access",
+        "community planning"
+      ]
     },
     {
       "id": 92,
@@ -1156,7 +1192,16 @@
         "publication": 368,
         "dataset": 18,
         "story": 6
-      }
+      },
+      "title": "Floral Traits, Pollination, and Plant-Pollinator Evolution in Subalpine Meadows",
+      "summary": "Explores how floral traits, scent chemistry, and genetic variation in subalpine wildflowers — especially Ipomopsis and related Polemoniaceae — shape pollination interactions, niche overlap, and evolutionary dynamics under changing climate and environmental conditions.",
+      "themes": [
+        "plant-pollinator interactions",
+        "floral trait evolution",
+        "scent chemistry and enantiomer selectivity",
+        "subalpine wildflowers",
+        "climate and environmental effects on pollination"
+      ]
     },
     {
       "id": 21,
@@ -1412,7 +1457,16 @@
         "document": 1,
         "dataset": 152,
         "story": 2
-      }
+      },
+      "title": "Mountain Snowpack, Water Flux, and Watershed Monitoring",
+      "summary": "Integrates intensive field campaigns, remote sensing, and sensor networks to understand snowpack dynamics, evapotranspiration, and surface energy fluxes across high-elevation Upper Colorado River Basin watersheds.",
+      "themes": [
+        "snowpack persistence",
+        "evapotranspiration",
+        "surface energy balance",
+        "watershed hydrology",
+        "SPLASH/SAIL field campaigns"
+      ]
     },
     {
       "id": 9,
@@ -1682,7 +1736,16 @@
         "document": 1,
         "dataset": 11,
         "story": 8
-      }
+      },
+      "title": "Alpine Plant-Pollinator Networks and Wildflower Ecology",
+      "summary": "Explores how bees, hummingbirds, and other pollinators interact with Rocky Mountain wildflowers through field sampling, pollen analysis, and behavioral observation across subalpine meadows near Gothic, Colorado.",
+      "themes": [
+        "plant-pollinator mutualisms",
+        "pollinator foraging behavior",
+        "alpine phenology",
+        "pollen ecology",
+        "subalpine wildflower communities"
+      ]
     },
     {
       "id": 87,
@@ -1894,7 +1957,16 @@
         "publication": 281,
         "dataset": 38,
         "story": 7
-      }
+      },
+      "title": "Solitary Bee Ecology and Climate-Driven Phenological Change",
+      "summary": "Investigates how climate change alters the timing of flowering and bee activity, with consequences for pollen-specialist solitary bees, plant-pollinator interactions, and brood success in high-elevation communities.",
+      "themes": [
+        "pollinator phenology",
+        "solitary bees",
+        "climate change",
+        "plant-pollinator interactions",
+        "diet specialization"
+      ]
     },
     {
       "id": 54,
@@ -2116,7 +2188,16 @@
         "author": 2,
         "publication": 8,
         "dataset": 88
-      }
+      },
+      "title": "Watershed Biogeochemistry and Uranium Reactive Transport",
+      "summary": "Integrates hydrological modeling, groundwater sampling, and geochemical analysis to understand subsurface reactive transport, carbon and weathering cycles, and uranium contamination dynamics across the East River Watershed and legacy uranium mill sites in western Colorado.",
+      "themes": [
+        "biogeochemistry and carbon cycling",
+        "groundwater and hydrological modeling",
+        "uranium reactive transport",
+        "subsurface sampling protocols",
+        "watershed-scale water quality"
+      ]
     },
     {
       "id": 71,
@@ -2362,7 +2443,16 @@
         "publication": 147,
         "dataset": 124,
         "story": 9
-      }
+      },
+      "title": "Watershed Hydrology, Geomorphology, and Remote Sensing in Mountain Basins",
+      "summary": "Integrates high-resolution remote sensing, geophysical surveys, and biogeochemical modeling to understand how mountain watershed structure, fluvial dynamics, and elemental cycling interact across elevation gradients in the East River basin and beyond.",
+      "themes": [
+        "mountain watershed hydrology",
+        "remote sensing and hyperspectral imaging",
+        "river geomorphology and channel dynamics",
+        "biogeochemical cycling",
+        "community observatory data"
+      ]
     },
     {
       "id": 119,
@@ -2536,7 +2626,16 @@
         "author": 6,
         "document": 159,
         "story": 49
-      }
+      },
+      "title": "Gunnison Basin Land Use Planning and Regional Governance",
+      "summary": "Connects local government planning, federal land management, and regional demographic projections to land use decisions across the Gunnison Basin and surrounding public lands.",
+      "themes": [
+        "land use planning",
+        "local governance",
+        "federal land management",
+        "regional development",
+        "floodplain compliance"
+      ]
     },
     {
       "id": 2,
@@ -2758,7 +2857,16 @@
         "stakeholder": 18,
         "document": 7,
         "dataset": 2
-      }
+      },
+      "title": "Chaffee County Land Use and Watershed Planning",
+      "summary": "Connects local government comprehensive planning in Chaffee County towns with wildlife habitat, riparian ecology, and watershed protection across the upper Arkansas River region.",
+      "themes": [
+        "comprehensive land use planning",
+        "riparian and floodplain ecology",
+        "wildlife habitat",
+        "local government",
+        "watershed protection"
+      ]
     },
     {
       "id": 41,
@@ -2993,7 +3101,16 @@
         "publication": 2,
         "document": 46,
         "dataset": 1
-      }
+      },
+      "title": "Energy, Atmosphere, and Environmental Policy Crossroads",
+      "summary": "Connects energy development, atmospheric deposition monitoring, and air quality concerns across a broad network of federal agencies, utilities, and environmental documents spanning western Colorado and beyond.",
+      "themes": [
+        "energy development",
+        "air quality monitoring",
+        "atmospheric deposition",
+        "environmental policy",
+        "land and resource management"
+      ]
     },
     {
       "id": 40,
@@ -3239,7 +3356,16 @@
         "publication": 146,
         "dataset": 13,
         "story": 4
-      }
+      },
+      "title": "Butterfly Physiology, Flight Ecology, and Climate Adaptation",
+      "summary": "Investigates how Rocky Mountain butterflies — particularly Colias and related Pieridae — respond to climate change through physiological traits like flight metabolic rate, dispersal capacity, and nutritional ecology, using respirometry and transplant experiments to understand evolutionary and population-level consequences.",
+      "themes": [
+        "butterfly flight physiology",
+        "climate adaptation",
+        "metabolic ecology",
+        "dispersal capacity",
+        "evolutionary constraints"
+      ]
     },
     {
       "id": 77,
@@ -3437,7 +3563,16 @@
         "author": 144,
         "publication": 16,
         "dataset": 73
-      }
+      },
+      "title": "Snowmelt, Subsurface Water Flow, and Mountain Watershed Hydrology",
+      "summary": "Integrates stable isotope tracing, snowpack sampling, and model-data approaches to understand how snowmelt, subsurface heterogeneity, and topography control water routing and nutrient dynamics in mountainous headwater catchments.",
+      "themes": [
+        "snowmelt hydrology",
+        "stable isotope mixing analysis",
+        "subsurface flow and heterogeneity",
+        "headwater catchments",
+        "plant water and nutrient uptake"
+      ]
     },
     {
       "id": 83,
@@ -3642,7 +3777,16 @@
         "publication": 45,
         "dataset": 86,
         "story": 2
-      }
+      },
+      "title": "Aspen Genomics, Leaf Traits, and Cytotype Ecology",
+      "summary": "Integrates genomic, spectral, and trait-based methods to understand how chromosome variation, leaf economics, and climate shape aspen population dynamics and decline across western landscapes.",
+      "themes": [
+        "cytotype variation",
+        "aspen ecology",
+        "plant functional traits",
+        "remote sensing",
+        "genomics and flow cytometry"
+      ]
     },
     {
       "id": 75,
@@ -3881,7 +4025,16 @@
         "document": 1,
         "dataset": 5,
         "story": 10
-      }
+      },
+      "title": "Alpine Pond Food Webs, Caddisflies, and Hydroperiod Gradients",
+      "summary": "Investigates how aquatic invertebrates — especially caddisfly larvae — shape nutrient cycling, decomposition, and food web dynamics across subalpine ponds that vary in water permanence, from temporary snowmelt pools to permanent wetlands.",
+      "themes": [
+        "caddisfly ecology and life history",
+        "hydroperiod and pond permanence",
+        "nutrient cycling and stoichiometry",
+        "subalpine wetland food webs",
+        "leaf litter decomposition"
+      ]
     },
     {
       "id": 1,
@@ -4045,7 +4198,16 @@
         "concept": 18,
         "place": 14,
         "document": 6
-      }
+      },
+      "title": "Forest Vegetation Mapping via Hyperspectral Remote Sensing",
+      "summary": "Combines imaging spectroscopy and field-based vegetation surveys to characterize tree species composition across subalpine and montane forests of the Gunnison Basin, including aspen, lodgepole pine, and Engelmann spruce communities.",
+      "themes": [
+        "imaging spectroscopy",
+        "vegetation community composition",
+        "subalpine forest species",
+        "remote sensing",
+        "plant biodiversity mapping"
+      ]
     },
     {
       "id": 84,
@@ -4267,7 +4429,16 @@
         "publication": 130,
         "document": 1,
         "story": 3
-      }
+      },
+      "title": "Stream Ecology: Nutrients, Predation, and Aquatic Communities",
+      "summary": "Investigates how nutrient limitation, predator-prey dynamics, and chemical cues shape invertebrate communities and algal growth in high-altitude streams and freshwater systems.",
+      "themes": [
+        "nutrient cycling",
+        "predator-prey interactions",
+        "aquatic invertebrates",
+        "stream ecology",
+        "kairomone-mediated behavior"
+      ]
     },
     {
       "id": 117,
@@ -4468,7 +4639,16 @@
         "publication": 2,
         "document": 74,
         "story": 24
-      }
+      },
+      "title": "Colorado River Water Rights and Reservoir Development Debates",
+      "summary": "Connects Colorado state and local water agencies, community stakeholders, and planning documents around contested reservoir development proposals and water allocation decisions in the upper Colorado River basin.",
+      "themes": [
+        "water rights",
+        "reservoir development",
+        "Union Park",
+        "Colorado River management",
+        "water conservancy districts"
+      ]
     },
     {
       "id": 0,
@@ -4686,7 +4866,16 @@
         "author": 1,
         "document": 28,
         "story": 1
-      }
+      },
+      "title": "Rangeland Agriculture, Livestock, and Crop Production Management",
+      "summary": "Connects livestock grazing practices, native forage species, and crop production data across Colorado's agricultural landscapes, drawing on extension resources and agricultural statistics to support ranch and rangeland management decisions.",
+      "themes": [
+        "livestock grazing",
+        "rangeland management",
+        "crop production",
+        "agricultural extension",
+        "native grasses"
+      ]
     },
     {
       "id": 23,
@@ -4932,7 +5121,16 @@
         "publication": 8,
         "document": 1,
         "dataset": 36
-      }
+      },
+      "title": "Climate Change Feedbacks Across Alpine Landscape Scales",
+      "summary": "Integrates field measurements, remote sensing, and GIS protocols to investigate how alpine and subalpine ecosystems — from fescue meadows to aspen stands — respond to and feed back on climate change across elevation gradients near Gothic, Colorado.",
+      "themes": [
+        "climate feedbacks",
+        "ecosystem function",
+        "remote sensing and GIS methods",
+        "elevation gradients",
+        "carbon and nutrient cycling"
+      ]
     },
     {
       "id": 102,
@@ -5126,7 +5324,16 @@
         "document": 1,
         "dataset": 1,
         "story": 181
-      }
+      },
+      "title": "Avian Sensory Ecology and Alpine Wildlife Biology",
+      "summary": "Combines studies of bird color vision, insect abundance, and avian disease ecology in alpine environments, linking experimental sensory biology methods with field-based population research.",
+      "themes": [
+        "avian color perception",
+        "tetrachromatic vision modeling",
+        "alpine wildlife ecology",
+        "insect biomass",
+        "hummingbird sensory biology"
+      ]
     },
     {
       "id": 72,
@@ -5399,7 +5606,16 @@
         "document": 2,
         "dataset": 10,
         "story": 10
-      }
+      },
+      "title": "Macroecological Theory and Mountain Ecosystem Biodiversity Patterns",
+      "summary": "Develops and applies maximum entropy theory (METE) and species-area relationships to predict biodiversity patterns, abundance, and productivity across elevation gradients in subalpine and montane ecosystems under climate change.",
+      "themes": [
+        "maximum entropy theory of ecology",
+        "species-area relationships",
+        "elevation gradients",
+        "montane productivity",
+        "macroecology"
+      ]
     },
     {
       "id": 128,
@@ -5535,7 +5751,16 @@
         "publication": 1,
         "document": 2,
         "story": 178
-      }
+      },
+      "title": "Crested Butte Community Planning and Local Affairs",
+      "summary": "Captures local news stories and community documents centered on Crested Butte's planning decisions, housing challenges, and neighborhood development concerns.",
+      "themes": [
+        "affordable housing",
+        "community planning",
+        "local governance",
+        "subdivision development",
+        "Crested Butte"
+      ]
     },
     {
       "id": 32,
@@ -5699,7 +5924,16 @@
         "concept": 69,
         "place": 95,
         "document": 5
-      }
+      },
+      "title": "Gunnison Basin Reservoirs, Diversions, and Water Operations",
+      "summary": "Connects federal water storage infrastructure, transmountain diversions, and Colorado River management to reservoir and river systems in the Gunnison Basin, with implications for endangered fish and downstream aquatic habitat.",
+      "themes": [
+        "transmountain diversions",
+        "reservoir operations",
+        "Colorado River Storage Project",
+        "endangered fish",
+        "Gunnison Basin water management"
+      ]
     },
     {
       "id": 97,
@@ -5887,7 +6121,16 @@
         "author": 9,
         "publication": 5,
         "dataset": 125
-      }
+      },
+      "title": "Mountain Snowpack, Climate Metrics, and Conifer Forest Monitoring",
+      "summary": "Integrates satellite remote sensing, LiDAR, and machine learning downscaling to track snowmelt timing, growing degree days, and conifer forest responses to climate variability in subalpine Colorado.",
+      "themes": [
+        "snow-free season tracking",
+        "climate downscaling",
+        "conifer forest structure",
+        "LiDAR and remote sensing",
+        "growing degree days"
+      ]
     },
     {
       "id": 95,
@@ -6109,7 +6352,16 @@
         "publication": 54,
         "dataset": 16,
         "story": 8
-      }
+      },
+      "title": "Plant-Fungal Symbiosis and Alpine Soil Ecology",
+      "summary": "Investigates how mycorrhizal and dark septate fungal symbionts shape plant performance, soil nutrient dynamics, and community diversity across alpine gradients and under climate change.",
+      "themes": [
+        "mycorrhizal fungi",
+        "plant-fungal symbiosis",
+        "alpine soils",
+        "climate change",
+        "distributed network experiments"
+      ]
     },
     {
       "id": 34,
@@ -6283,7 +6535,16 @@
         "place": 63,
         "stakeholder": 1,
         "document": 6
-      }
+      },
+      "title": "Uranium Remediation and Wildlife in Western Colorado Watersheds",
+      "summary": "Connects federal uranium mill tailings cleanup efforts (UMTRA) with ecological concerns for sensitive fish, wildlife, and waterways across the Colorado Plateau and Gunnison Basin.",
+      "themes": [
+        "uranium mill tailings remediation",
+        "nonpoint source pollution",
+        "endangered aquatic species",
+        "UMTRA Project",
+        "watershed contamination"
+      ]
     },
     {
       "id": 37,
@@ -6477,7 +6738,16 @@
         "author": 1,
         "publication": 1,
         "document": 4
-      }
+      },
+      "title": "Colorado County Population and Workforce Estimation Methods",
+      "summary": "Centers on technical methods for estimating county-level population and labor force participation across Colorado, drawing on simulation models and employment forecasting approaches from the 1970s–80s.",
+      "themes": [
+        "county population estimation",
+        "labor force forecasting",
+        "demographic modeling",
+        "Colorado counties",
+        "community planning methods"
+      ]
     },
     {
       "id": 101,
@@ -6665,7 +6935,16 @@
         "author": 72,
         "publication": 8,
         "dataset": 52
-      }
+      },
+      "title": "Alpine Invertebrate Ecology: Thermal Environments and Forager Behavior",
+      "summary": "Combines thermal imaging of alpine patterned ground, bumblebee and ant behavioral experiments, and long-term pollinator monitoring to understand how physical microenvironments and chemical cues shape invertebrate foraging strategies in mountain ecosystems.",
+      "themes": [
+        "thermal microhabitats",
+        "bumblebee and ant foraging behavior",
+        "alpine patterned ground",
+        "pollinator monitoring",
+        "floral alkaloids"
+      ]
     },
     {
       "id": 48,
@@ -6849,7 +7128,16 @@
         "stakeholder": 14,
         "author": 1,
         "document": 14
-      }
+      },
+      "title": "White River Forest Plan Revision and Wildlife Habitat",
+      "summary": "Connects federal forest planning on the White River National Forest with wildlife habitat protection, off-road vehicle management, and conservation advocacy across the Colorado mountain west.",
+      "themes": [
+        "national forest planning",
+        "Colorado River cutthroat trout",
+        "priority habitat management",
+        "off-road vehicle use",
+        "conservation advocacy"
+      ]
     },
     {
       "id": 61,
@@ -7081,7 +7369,16 @@
         "publication": 2,
         "document": 2,
         "dataset": 1
-      }
+      },
+      "title": "Colorado River Basin Water Allocation and Flow Stress",
+      "summary": "Connects interstate water law, snowpack trends, and drought projections to the ecological and regulatory pressures facing the Colorado River Basin and its tributaries.",
+      "themes": [
+        "Colorado River Compact",
+        "water allocation",
+        "drought and streamflow",
+        "interstate water policy",
+        "basin hydrology"
+      ]
     },
     {
       "id": 20,
@@ -7351,7 +7648,16 @@
         "document": 9,
         "dataset": 35,
         "story": 1
-      }
+      },
+      "title": "Riparian Hydrology, Nitrogen Cycling, and Floodplain Assessment",
+      "summary": "Integrates field sampling protocols, geospatial datasets, and biogeochemical concepts to characterize riparian vegetation, soil conditions, and nitrogen dynamics in western stream corridors.",
+      "themes": [
+        "riparian zone ecology",
+        "nitrogen cycling",
+        "stream channel assessment",
+        "floodplain hydrology",
+        "willow and wetland vegetation"
+      ]
     },
     {
       "id": 79,
@@ -7597,7 +7903,16 @@
         "publication": 62,
         "dataset": 8,
         "story": 3
-      }
+      },
+      "title": "Aphid Population Dynamics Under Phenological and Climate Shifts",
+      "summary": "Investigates how snowmelt timing, host plant phenology, and top-down predation pressure shape aphid colony dynamics in alpine meadows, linking climate-driven phenological change to cascading effects across trophic levels.",
+      "themes": [
+        "aphid-plant interactions",
+        "phenological mismatch",
+        "trophic cascades",
+        "snowmelt timing",
+        "top-down vs. bottom-up control"
+      ]
     },
     {
       "id": 80,
@@ -7850,7 +8165,16 @@
         "publication": 6,
         "document": 2,
         "dataset": 39
-      }
+      },
+      "title": "Gunnison Basin Geology, Stratigraphy, and Groundwater Systems",
+      "summary": "Integrates regional geologic mapping, geochronology, and floodplain hydrostratigraphy to characterize the sedimentary, volcanic, and groundwater systems of the Gunnison Basin and surrounding southern Colorado ranges.",
+      "themes": [
+        "regional geology and stratigraphy",
+        "floodplain hydrostratigraphy",
+        "geochronology and dating methods",
+        "Paleozoic fusulinid biostratigraphy",
+        "groundwater resources"
+      ]
     },
     {
       "id": 12,
@@ -8000,7 +8324,16 @@
         "concept": 16,
         "place": 61,
         "document": 1
-      }
+      },
+      "title": "Taylor Loop Recreation Development and Wildlife Habitat Assessment",
+      "summary": "Centers on an environmental assessment of the Taylor Loop Recreation Project, examining how trail and road development near Taylor Reservoir and the Gunnison Valley may affect wildlife including waterfowl, big game, and the Colorado Squawfish.",
+      "themes": [
+        "recreation infrastructure",
+        "wildlife habitat",
+        "environmental assessment",
+        "Taylor Reservoir",
+        "road and trail impacts"
+      ]
     },
     {
       "id": 81,
@@ -8181,7 +8514,16 @@
         "stakeholder": 26,
         "document": 16,
         "dataset": 2
-      }
+      },
+      "title": "Rural County Planning, Finance, and Infrastructure Management",
+      "summary": "Connects federal grant programs, property tax structures, and infrastructure costs to guide comprehensive economic development and public works planning in rural western counties and water districts.",
+      "themes": [
+        "rural economic development",
+        "community planning",
+        "infrastructure finance",
+        "federal grants",
+        "county governance"
+      ]
     },
     {
       "id": 90,
@@ -8345,7 +8687,16 @@
         "place": 59,
         "stakeholder": 31,
         "document": 5
-      }
+      },
+      "title": "Colorado Water Law, Rights, and Municipal Supply Policy",
+      "summary": "Connects Colorado water law doctrine — including beneficial use and prior appropriation — with municipal water suppliers, state agencies, and interstate water policy conflicts across the Front Range and beyond.",
+      "themes": [
+        "Colorado water law",
+        "beneficial use doctrine",
+        "municipal water supply",
+        "water rights policy",
+        "interstate water conflict"
+      ]
     },
     {
       "id": 6,
@@ -8526,7 +8877,16 @@
         "place": 70,
         "stakeholder": 2,
         "document": 10
-      }
+      },
+      "title": "Water Quality, Contamination, and Aquatic Life in Colorado Watersheds",
+      "summary": "Connects Clean Water Act policy, Superfund contamination concerns, and watershed management across the San Luis Valley, Upper Arkansas, and South Platte River systems with impacts on native fish and migratory birds.",
+      "themes": [
+        "water quality regulation",
+        "greenback cutthroat trout conservation",
+        "Superfund and contamination",
+        "San Luis Valley water rights",
+        "watershed policy and management"
+      ]
     },
     {
       "id": 18,
@@ -8744,7 +9104,16 @@
         "publication": 1,
         "document": 9,
         "story": 1
-      }
+      },
+      "title": "Mining Reclamation, Land Use, and Ecological Recovery",
+      "summary": "Connects mining permitting, mined land reclamation regulations, and ecological monitoring across western landscapes, tracing how regulatory frameworks and corporate activity relate to habitat and species recovery near mine sites.",
+      "themes": [
+        "mined land reclamation",
+        "mining permits and regulation",
+        "ecological recovery",
+        "trace element contamination",
+        "big game and non-game habitat"
+      ]
     },
     {
       "id": 86,
@@ -8914,7 +9283,16 @@
         "publication": 1,
         "document": 13,
         "story": 1
-      }
+      },
+      "title": "Mountain Land Use Planning and Growth Management",
+      "summary": "Connects regional land use planning, urban growth pressures, and mountain terrain hazards across Gunnison County and the Colorado high country, linking county planning documents with landscape-scale concepts like long-range transport and avalanche risk.",
+      "themes": [
+        "land use planning",
+        "mountain community growth",
+        "avalanche hazard",
+        "rural development policy",
+        "terrain and landscape"
+      ]
     },
     {
       "id": 10,
@@ -9105,7 +9483,16 @@
         "place": 42,
         "author": 1,
         "publication": 5
-      }
+      },
+      "title": "Alpine Landscape Ecology Across Elevation and Climate",
+      "summary": "Integrates vegetation monitoring, LiDAR-based canopy analysis, and climate data across a wide elevational range in the Gunnison Basin to understand how mountain plant communities and forest structure respond to warming and disturbance.",
+      "themes": [
+        "elevation gradients",
+        "climate-driven plant community change",
+        "forest canopy structure",
+        "subalpine vegetation monitoring",
+        "multiple-use landscape management"
+      ]
     },
     {
       "id": 11,
@@ -9293,7 +9680,16 @@
         "place": 28,
         "stakeholder": 5,
         "document": 3
-      }
+      },
+      "title": "Stream Modification, Trout Habitat, and Mountain Watershed Management",
+      "summary": "Connects technical fisheries assessments of trout populations and aquatic ecosystems in Snowmass Creek and surrounding mountain streams to water management decisions involving ski industry and sanitation stakeholders.",
+      "themes": [
+        "stream modification",
+        "trout habitat",
+        "aquatic entomology",
+        "mountain watersheds",
+        "water management"
+      ]
     },
     {
       "id": 100,
@@ -9491,7 +9887,16 @@
         "publication": 32,
         "document": 2,
         "dataset": 18
-      }
+      },
+      "title": "Gunnison Sage-Grouse Habitat, Fire History, and Landscape Ecology",
+      "summary": "Combines radio telemetry studies of Gunnison Sage-Grouse nesting success and seasonal habitat suitability with tree-ring and land-survey methods for reconstructing historical fire regimes across sagebrush and forest landscapes.",
+      "themes": [
+        "Gunnison Sage-Grouse nesting ecology",
+        "spatial fire-scar reconstruction",
+        "historical fire regimes",
+        "threatened species habitat modeling",
+        "radio telemetry monitoring"
+      ]
     },
     {
       "id": 45,
@@ -9692,7 +10097,16 @@
         "author": 1,
         "publication": 1,
         "dataset": 38
-      }
+      },
+      "title": "Stream Invertebrate and Trout Population Ecology Datasets",
+      "summary": "Integrates population dynamics datasets, genomic protocols, and demographic sampling methods to study brook trout, mayflies, and parasitic nematodes in Rocky Mountain streams.",
+      "themes": [
+        "population dynamics",
+        "stream ecology",
+        "brook trout",
+        "aquatic invertebrates",
+        "demographic monitoring"
+      ]
     },
     {
       "id": 42,
@@ -9948,7 +10362,16 @@
         "publication": 3,
         "document": 7,
         "dataset": 1
-      }
+      },
+      "title": "Wetland Plants, Heavy Metals, and Water Quality Management",
+      "summary": "Connects research on heavy-metal contamination, nutrient cycling, and wetland plant chemistry with practical applications in wastewater treatment, ethanol production from cattails, and water quality concerns near mining areas in western Colorado.",
+      "themes": [
+        "heavy metal contamination",
+        "wetland phytoremediation",
+        "water quality",
+        "nutrient biogeochemistry",
+        "wastewater reuse"
+      ]
     },
     {
       "id": 66,
@@ -10166,7 +10589,16 @@
         "author": 1,
         "document": 5,
         "dataset": 3
-      }
+      },
+      "title": "Energy Development, Rural Communities, and Western Colorado Landscapes",
+      "summary": "Connects fossil fuel resource assessment — coal, oil shale, and oil and gas — with rural community identity and socioeconomic change across western Colorado towns and landscapes.",
+      "themes": [
+        "energy resource development",
+        "rural community character",
+        "oil shale and coal",
+        "western Colorado towns",
+        "land use and regional economy"
+      ]
     },
     {
       "id": 17,
@@ -10364,7 +10796,16 @@
         "stakeholder": 16,
         "author": 1,
         "document": 6
-      }
+      },
+      "title": "Mount Emmons Mining, Reclamation, and Alpine Vegetation",
+      "summary": "Connects industrial mining permit applications and company-sponsored environmental research at Mount Emmons with alpine and subalpine vegetation ecology, including reclamation plantings and tundra biodiversity assessments.",
+      "themes": [
+        "mining reclamation",
+        "alpine vegetation",
+        "industrial environmental compliance",
+        "Mount Emmons",
+        "tundra biodiversity"
+      ]
     },
     {
       "id": 3,
@@ -10562,7 +11003,16 @@
         "stakeholder": 21,
         "author": 1,
         "document": 11
-      }
+      },
+      "title": "Colorado Wetlands Conservation and Stream Restoration Programs",
+      "summary": "Connects Colorado Division of Wildlife wetland protection initiatives with stream restoration efforts, conservation easements, and multi-agency partnerships to restore aquatic and riparian habitats for birds, amphibians, and reptiles.",
+      "themes": [
+        "wetlands protection",
+        "stream restoration",
+        "conservation easements",
+        "wildlife habitat",
+        "state conservation programs"
+      ]
     },
     {
       "id": 78,
@@ -10783,7 +11233,16 @@
         "document": 1,
         "dataset": 20,
         "story": 1
-      }
+      },
+      "title": "Iron Cycling, Redox Chemistry, and Soil Carbon Dynamics",
+      "summary": "Investigates how iron speciation, redox conditions, and colloidal transport shape soil organic carbon cycling in subalpine and floodplain environments, using advanced analytical methods including X-ray imaging and electron microscopy.",
+      "themes": [
+        "iron biogeochemistry",
+        "soil organic carbon",
+        "redox dynamics",
+        "colloidal transport",
+        "subalpine hydrology"
+      ]
     },
     {
       "id": 122,
@@ -10957,7 +11416,16 @@
         "publication": 1,
         "document": 12,
         "story": 13
-      }
+      },
+      "title": "Gunnison Basin Growth, Housing, and Community Planning",
+      "summary": "Connects regional land use planning, housing development, and sensitive area management in the Gunnison Basin, linking local government, resort development, and state housing finance to questions of responsible growth and environmental stewardship.",
+      "themes": [
+        "community planning",
+        "land development",
+        "sensitive areas",
+        "housing policy",
+        "Gunnison Basin growth"
+      ]
     },
     {
       "id": 28,
@@ -11100,7 +11568,16 @@
         "concept": 22,
         "place": 48,
         "document": 1
-      }
+      },
+      "title": "Mount Emmons Mining Legacy and Watershed Geography",
+      "summary": "Connects the geographic and hydrological landscape around Mount Emmons to concerns about acid mine drainage, molybdenum mineralization, and downstream water quality in the Gunnison Basin.",
+      "themes": [
+        "acid mine drainage",
+        "molybdenum mineralization",
+        "watershed geography",
+        "mining impacts",
+        "Gunnison Basin water quality"
+      ]
     },
     {
       "id": 13,
@@ -11281,7 +11758,16 @@
         "place": 35,
         "stakeholder": 2,
         "document": 7
-      }
+      },
+      "title": "Gunnison Forest Wilderness and Multiple-Use Land Planning",
+      "summary": "Connects federal wilderness designation and timber management planning in the Gunnison National Forest, drawing on RARE II assessments and multiple-use frameworks to balance conservation of undeveloped areas with sustained-yield forestry across high-elevation habitats.",
+      "themes": [
+        "wilderness designation",
+        "multiple-use forestry",
+        "RARE II environmental assessment",
+        "Gunnison National Forest",
+        "sustained yield management"
+      ]
     },
     {
       "id": 33,
@@ -11455,7 +11941,16 @@
         "place": 13,
         "stakeholder": 7,
         "document": 7
-      }
+      },
+      "title": "Energy Development Review and Federal Environmental Compliance Colorado",
+      "summary": "Connects federal and state environmental review processes—including NEPA assessments and energy corridor designations—with oil, gas, and coal bed methane development decisions across Colorado landscapes.",
+      "themes": [
+        "oil and gas development",
+        "NEPA environmental review",
+        "energy corridors",
+        "special use permitting",
+        "Colorado regulatory agencies"
+      ]
     },
     {
       "id": 105,
@@ -11605,7 +12100,16 @@
         "author": 47,
         "publication": 9,
         "story": 1
-      }
+      },
+      "title": "Undergraduate Field and Remote Research Education in STEM",
+      "summary": "Examines how undergraduate research experiences — both in-person field settings and remote formats developed during COVID-19 — support student learning, computational skill development, and retention in STEM fields.",
+      "themes": [
+        "undergraduate research experiences",
+        "STEM retention",
+        "remote learning",
+        "field education",
+        "COVID-19 adaptations"
+      ]
     },
     {
       "id": 25,
@@ -11796,7 +12300,16 @@
         "stakeholder": 26,
         "document": 21,
         "story": 2
-      }
+      },
+      "title": "Beaver and Wildlife Management in Gunnison National Forest",
+      "summary": "Connects federal and state agency management of beaver, riparian habitats, and wildlife fencing within the Gunnison National Forest, drawing on ecological research to inform land-use planning and properly functioning stream conditions.",
+      "themes": [
+        "beaver management",
+        "riparian habitat",
+        "Gunnison National Forest land-use planning",
+        "wildlife fencing standards",
+        "federal-state agency coordination"
+      ]
     },
     {
       "id": 93,
@@ -12011,7 +12524,16 @@
         "publication": 24,
         "dataset": 2,
         "story": 22
-      }
+      },
+      "title": "Sagebrush Ecosystems: Structure, Arthropods, and Spatial Ecology",
+      "summary": "Combines LiDAR-based vegetation mapping, arthropod surveys, and foundational sagebrush ecology to understand how big sagebrush structures communities of insects and parasitoid wasps in western landscapes.",
+      "themes": [
+        "sagebrush as foundation species",
+        "LiDAR vegetation mapping",
+        "arthropod and parasitoid ecology",
+        "spatially explicit field methods",
+        "undergraduate research training"
+      ]
     },
     {
       "id": 91,
@@ -12229,7 +12751,16 @@
         "publication": 1,
         "document": 1,
         "dataset": 22
-      }
+      },
+      "title": "Mountain Watershed Hydrology: Modeling, Isotopes, and Groundwater",
+      "summary": "Integrates computational hydrological modeling, stable isotope analysis, and multi-site watershed datasets to understand groundwater storage dynamics and water budgets across elevation-stratified mountain catchments.",
+      "themes": [
+        "groundwater storage",
+        "hydrological modeling",
+        "stable isotope hydrology",
+        "mountain watersheds",
+        "water budget analysis"
+      ]
     },
     {
       "id": 109,
@@ -12427,7 +12958,16 @@
         "author": 2,
         "publication": 2,
         "document": 3
-      }
+      },
+      "title": "Cloud Seeding and Streamflow Augmentation in the Upper Gunnison Basin",
+      "summary": "Connects operational winter cloud seeding programs over the Upper Gunnison River Basin with streamflow projection methods, federal water resource agencies, and hydropower stakeholders evaluating precipitation enhancement as a water supply strategy.",
+      "themes": [
+        "cloud seeding",
+        "streamflow augmentation",
+        "water supply management",
+        "hydropower",
+        "climate and hydrology"
+      ]
     },
     {
       "id": 65,
@@ -12560,7 +13100,16 @@
         "species": 2,
         "concept": 4,
         "place": 49
-      }
+      },
+      "title": "Energy Development and Recreation in Western Colorado Places",
+      "summary": "Maps the geographic landscape of western Colorado communities and landscapes where energy extraction activities, including coal leasing and in-situ processing, intersect with recreational use and wildlife presence.",
+      "themes": [
+        "energy development",
+        "coal leasing",
+        "western Colorado geography",
+        "recreation",
+        "land use"
+      ]
     },
     {
       "id": 49,
@@ -12782,7 +13331,16 @@
         "author": 2,
         "document": 9,
         "dataset": 3
-      }
+      },
+      "title": "Ranch Hydrology, Grazing Management, and Rangeland Conservation",
+      "summary": "Connects hydrological classification of hillslopes with sustainable grazing practices and ranch-scale conservation planning across pasture landscapes in the Gunnison Basin region.",
+      "themes": [
+        "sustainable grazing",
+        "ranch conservation planning",
+        "hillslope hydrology",
+        "rangeland monitoring",
+        "pasture management"
+      ]
     },
     {
       "id": 26,
@@ -12956,7 +13514,16 @@
         "place": 28,
         "stakeholder": 7,
         "document": 4
-      }
+      },
+      "title": "Rural Subdivision Regulation and Wildlife Habitat Planning",
+      "summary": "Connects county-level land subdivision ordinances and development standards with wildlife habitat and natural resource concerns across mountain communities in the Gunnison Basin and beyond.",
+      "themes": [
+        "subdivision regulation",
+        "land use planning",
+        "wildlife habitat",
+        "local government",
+        "rural development"
+      ]
     },
     {
       "id": 51,
@@ -13150,7 +13717,16 @@
         "publication": 1,
         "document": 5,
         "story": 1
-      }
+      },
+      "title": "Public Lands Review, Recreation Safety, and Riparian Vegetation",
+      "summary": "Connects federal environmental review processes and wilderness area evaluation with recreation safety, invasive riparian species, and local land management concerns in western Colorado.",
+      "themes": [
+        "wilderness and RARE II evaluation",
+        "winter recreation safety",
+        "invasive species (Russian olive)",
+        "environmental impact review",
+        "public lands advocacy"
+      ]
     },
     {
       "id": 113,
@@ -13341,7 +13917,16 @@
         "publication": 2,
         "dataset": 37,
         "story": 1
-      }
+      },
+      "title": "Coastal and Marine Observational Data: Vessels, Salinity, and Oceanography",
+      "summary": "Aggregates oceanographic monitoring datasets—including vessel traffic, sea surface conditions, and salinity—collected through automated and underway sampling systems in coastal and marine environments.",
+      "themes": [
+        "vessel traffic monitoring",
+        "oceanographic data collection",
+        "coastal zone management",
+        "salinity and sea surface conditions",
+        "marine data quality control"
+      ]
     },
     {
       "id": 14,
@@ -13505,7 +14090,16 @@
         "place": 43,
         "stakeholder": 3,
         "document": 3
-      }
+      },
+      "title": "Western Slope Regional Land and Resource Planning",
+      "summary": "Connects county-level natural resource planning, energy development oversight, and water supply protection across the western Colorado plateau region, with wildlife context including lynx and conifer habitat.",
+      "themes": [
+        "regional land use planning",
+        "water supply protection",
+        "energy and surface mining",
+        "western Colorado counties",
+        "wildlife and habitat management"
+      ]
     },
     {
       "id": 67,
@@ -13693,7 +14287,16 @@
         "place": 26,
         "stakeholder": 3,
         "document": 5
-      }
+      },
+      "title": "Federal Land Use Decisions and Conservation Advocacy in Colorado",
+      "summary": "Connects federal environmental review processes — including mining, recreation, and wildlife management decisions — with conservation advocacy and public participation across Colorado's national forests and recreation areas.",
+      "themes": [
+        "environmental impact assessment",
+        "public hearings",
+        "federal land management",
+        "conservation advocacy",
+        "mining and recreation policy"
+      ]
     },
     {
       "id": 4,
@@ -13857,7 +14460,16 @@
         "concept": 13,
         "place": 30,
         "document": 3
-      }
+      },
+      "title": "Wetland Habitats, Water Infrastructure, and Conservation Planning",
+      "summary": "Connects place-based conservation planning with water infrastructure, wetland species, and environmental concerns across western Colorado landscapes.",
+      "themes": [
+        "wetland species",
+        "water infrastructure",
+        "conservation planning",
+        "development disturbances",
+        "place-based environmental review"
+      ]
     },
     {
       "id": 27,
@@ -14048,7 +14660,16 @@
         "place": 1,
         "author": 2,
         "dataset": 9
-      }
+      },
+      "title": "Sagebrush Habitat Quality and Sage-Grouse Conservation Modeling",
+      "summary": "Integrates species distribution modeling, field validation, and habitat quality assessment to understand what drives Gunnison and greater sage-grouse persistence across sagebrush ecosystems.",
+      "themes": [
+        "sage-grouse habitat modeling",
+        "sagebrush ecosystem conservation",
+        "species distribution models",
+        "habitat quality assessment",
+        "biodiversity loss"
+      ]
     },
     {
       "id": 52,
@@ -14232,7 +14853,16 @@
         "author": 1,
         "document": 4,
         "dataset": 31
-      }
+      },
+      "title": "Groundwater Resources and Subsurface Characterization in Western Colorado",
+      "summary": "Integrates geophysical survey data, groundwater mapping, and environmental assessments to characterize subsurface hydrology and evaluate potential impacts of energy extraction on water resources in the Gunnison Basin region.",
+      "themes": [
+        "groundwater hydrology",
+        "aeromagnetic surveying",
+        "hydraulic fracturing impacts",
+        "potentiometric surface mapping",
+        "water resource protection"
+      ]
     },
     {
       "id": 55,
@@ -14416,7 +15046,16 @@
         "author": 8,
         "publication": 27,
         "document": 2
-      }
+      },
+      "title": "Alpine Physiology, Biogeochemistry, and Wildlife of Gothic",
+      "summary": "Connects foundational ecological research on hummingbird energetics, salamander bioaccumulation, and grasshopper population genetics to the broader significance of the Gothic, Colorado field station as a site for alpine wildlife and ecosystem science.",
+      "themes": [
+        "hummingbird torpor and thermoregulation",
+        "bioaccumulation in subalpine ecosystems",
+        "Rocky Mountain Biological Laboratory",
+        "alpine vertebrate physiology",
+        "population genetics and hybrid zones"
+      ]
     },
     {
       "id": 82,
@@ -14590,7 +15229,16 @@
         "stakeholder": 14,
         "document": 8,
         "story": 1
-      }
+      },
+      "title": "Land Use Planning and Community Development Frameworks",
+      "summary": "Connects planning commissions, zoning guidance, and comprehensive land use documents to support community development decision-making in the Gunnison-Crested Butte region.",
+      "themes": [
+        "land use planning",
+        "zoning",
+        "comprehensive planning",
+        "community development",
+        "landscape management"
+      ]
     },
     {
       "id": 63,
@@ -14764,7 +15412,16 @@
         "place": 25,
         "document": 2,
         "story": 2
-      }
+      },
+      "title": "Wetland Dragonflies and High-Elevation Peatlands of the Gunnison Basin",
+      "summary": "Connects rare dragonfly species and Sphagnum-dominated peatlands in the high-elevation wetlands near Crested Butte with natural areas documentation and local land-use context.",
+      "themes": [
+        "high-elevation wetlands",
+        "dragonfly diversity",
+        "peatland ecology",
+        "Sphagnum mosses",
+        "Crested Butte natural areas"
+      ]
     },
     {
       "id": 47,
@@ -14955,7 +15612,16 @@
         "stakeholder": 2,
         "author": 1,
         "document": 8
-      }
+      },
+      "title": "Arkansas River Water Rights and Front Range Urban Growth",
+      "summary": "Connects Front Range municipal water demand and interstate water conflict along the Arkansas River corridor with wildlife and land management pressures in southeastern Colorado.",
+      "themes": [
+        "Arkansas River water rights",
+        "Front Range municipal water supply",
+        "Colorado-Kansas water conflict",
+        "urban growth and resource competition",
+        "wildlife and land management"
+      ]
     },
     {
       "id": 57,
@@ -15153,7 +15819,16 @@
         "stakeholder": 6,
         "author": 1,
         "document": 3
-      }
+      },
+      "title": "Environmental Valuation, Land Use, and Ecological Legacy",
+      "summary": "Connects economic and policy frameworks for environmental valuation with ecological legacy effects, land use conflict, and natural resource management across diverse geographic contexts.",
+      "themes": [
+        "environmental valuation",
+        "legacy effects",
+        "land use conflict",
+        "natural resource policy",
+        "ecological economics"
+      ]
     },
     {
       "id": 96,
@@ -15351,7 +16026,16 @@
         "publication": 7,
         "document": 6,
         "story": 24
-      }
+      },
+      "title": "Forest, Riparian, and Wildlife Ecology in the Gunnison Basin",
+      "summary": "Connects historical and contemporary ecological research on conifer forests, riparian vegetation, beaver, and watershed dynamics with land management assessments and resource policy in the Gunnison Basin.",
+      "themes": [
+        "riparian vegetation classification",
+        "conifer forest ecology",
+        "watershed management",
+        "wildlife history",
+        "land and mineral use assessment"
+      ]
     },
     {
       "id": 98,
@@ -15515,7 +16199,16 @@
         "protocol": 7,
         "author": 12,
         "publication": 14
-      }
+      },
+      "title": "Wildlife Responses to Recreational Disturbance in Mountain Habitats",
+      "summary": "Investigates how mammals ranging from small rodents to large ungulates respond behaviorally and spatially to human recreational trail use in Rocky Mountain ecosystems, using camera traps, live-trapping, and acoustic localization methods.",
+      "themes": [
+        "recreational disturbance",
+        "wildlife monitoring",
+        "camera trapping",
+        "mammal community ecology",
+        "acoustic localization"
+      ]
     },
     {
       "id": 19,
@@ -15703,7 +16396,16 @@
         "place": 20,
         "stakeholder": 7,
         "document": 4
-      }
+      },
+      "title": "Forest Planning and Land Use Analysis in Western Range",
+      "summary": "Connects timber species ecology and forest planning tools like FORPLAN with land use development scenarios, infrastructure proposals, and county-level resource databases across Wyoming and Colorado public lands.",
+      "themes": [
+        "forest land use planning",
+        "timber and boreal species",
+        "oil and gas development",
+        "infrastructure and transportation",
+        "FORPLAN optimization"
+      ]
     },
     {
       "id": 132,
@@ -15853,7 +16555,16 @@
         "publication": 25,
         "dataset": 1,
         "story": 3
-      }
+      },
+      "title": "Rocky Mountain Geology, Birds, and Natural History Research",
+      "summary": "Spans Proterozoic geology of the Black Canyon and Uncompahgre region alongside ecological studies of montane wildlife, reflecting a broad natural history research tradition at RMBL.",
+      "themes": [
+        "Proterozoic tectonics",
+        "Black Canyon geology",
+        "montane birds",
+        "natural history",
+        "geochronology"
+      ]
     },
     {
       "id": 70,
@@ -15979,7 +16690,16 @@
         "species": 1,
         "concept": 7,
         "place": 32
-      }
+      },
+      "title": "Water Rights, Hydropower, and Reservoir Geography in Colorado",
+      "summary": "Connects Colorado water law proceedings, hydropower generation, and conservation payment mechanisms across a dense network of named streams, reservoirs, and municipalities in the Gunnison Basin region.",
+      "themes": [
+        "water rights and water court",
+        "hydropower generation",
+        "water conservation payments",
+        "reservoir and stream geography",
+        "Colorado water policy"
+      ]
     },
     {
       "id": 69,
@@ -16200,7 +16920,16 @@
         "publication": 2,
         "document": 1,
         "dataset": 16
-      }
+      },
+      "title": "Selenium, Salinity, and Water Quality Standards in Colorado Streams",
+      "summary": "Integrates water quality datasets, statistical load modeling, and regulatory standards to assess selenium and salinity conditions in Colorado watersheds, with connections to ecological restoration of mine-affected stream systems.",
+      "themes": [
+        "selenium and salinity loads",
+        "water quality standards",
+        "multiple linear regression modeling",
+        "ecological restoration",
+        "surface mine reclamation"
+      ]
     },
     {
       "id": 104,
@@ -16589,7 +17318,16 @@
         "stakeholder": 6,
         "author": 2,
         "document": 11
-      }
+      },
+      "title": "Regional Energy and Land Use Planning in Colorado",
+      "summary": "Connects early energy research proposals, transmission infrastructure planning, and land use restrictions across Colorado's federal lands, drawing together academic institutes, federal agencies, and regional policy documents.",
+      "themes": [
+        "energy planning",
+        "land use policy",
+        "federal land management",
+        "transmission infrastructure",
+        "Rocky Mountain region"
+      ]
     },
     {
       "id": 31,
@@ -16770,7 +17508,16 @@
         "place": 15,
         "stakeholder": 2,
         "document": 6
-      }
+      },
+      "title": "Sagebrush Lands, Recreation, and Community Planning",
+      "summary": "Connects local land-use planning, off-road recreation management, and wildlife habitat concerns in the Gunnison Basin, particularly around sagebrush landscapes shared by sage grouse and working animals.",
+      "themes": [
+        "land use planning",
+        "Gunnison Sage Grouse habitat",
+        "off-road recreation",
+        "sagebrush ecosystem",
+        "community ordinances"
+      ]
     },
     {
       "id": 16,
@@ -16975,7 +17722,16 @@
         "stakeholder": 4,
         "document": 6,
         "dataset": 2
-      }
+      },
+      "title": "Beaver Wetlands, Wildlife Habitat, and Multi-Use Land Management",
+      "summary": "Connects beaver pond ecology and riparian habitat restoration with multi-use natural resource planning across parks, forests, and rural landscapes of the Colorado Plateau and intermountain West.",
+      "themes": [
+        "beaver pond ecosystems",
+        "habitat restoration",
+        "multi-use land management",
+        "riparian wildlife",
+        "resource planning"
+      ]
     },
     {
       "id": 30,
@@ -17148,7 +17904,16 @@
         "document": 1,
         "dataset": 1,
         "story": 1
-      }
+      },
+      "title": "Cultural Heritage and Historic Places in the Gunnison Highlands",
+      "summary": "Connects Indigenous Ute history, historic site documentation, and cultural landscape preservation across the valleys and peaks of the Crested Butte area, drawing on archaeology, GNSS mapping, and National Register frameworks.",
+      "themes": [
+        "cultural heritage",
+        "historic preservation",
+        "Indigenous history",
+        "archaeological mapping",
+        "Gunnison Basin landscapes"
+      ]
     },
     {
       "id": 64,
@@ -17380,7 +18145,16 @@
         "author": 1,
         "document": 10,
         "dataset": 4
-      }
+      },
+      "title": "Soil Chemistry, Grassland Species, and Environmental Impact Assessment",
+      "summary": "Connects laboratory soil analysis methods and grassland plant communities with environmental review documents assessing land and resource impacts in mountain and arid-west contexts.",
+      "themes": [
+        "soil geochemistry",
+        "environmental impact assessment",
+        "grassland vegetation",
+        "land use planning",
+        "laboratory soil protocols"
+      ]
     },
     {
       "id": 85,
@@ -17537,7 +18311,16 @@
         "protocol": 2,
         "author": 10,
         "dataset": 15
-      }
+      },
+      "title": "Sage-Grouse Sex Chromosome and Genome Evolution",
+      "summary": "Investigates the evolutionary history of sex chromosomes and genome-wide variation in Greater and Gunnison Sage-grouse through whole genome sequencing, SNP genotyping, and computational genome annotation.",
+      "themes": [
+        "sex chromosome evolution",
+        "genome assembly and annotation",
+        "sage-grouse genomics",
+        "SNP genotyping",
+        "comparative genomics"
+      ]
     },
     {
       "id": 50,
@@ -17748,7 +18531,16 @@
         "publication": 4,
         "document": 1,
         "dataset": 8
-      }
+      },
+      "title": "Colorado River Water Rights, Aridity, and Climate Risk",
+      "summary": "Connects legal and policy debates over Colorado River Compact curtailment risks with climate science on aridity, drought, and long-term water availability in the American West.",
+      "themes": [
+        "Colorado River Compact",
+        "water rights and curtailment",
+        "aridity and drought risk",
+        "adaptive water policy",
+        "climate variability"
+      ]
     },
     {
       "id": 103,
@@ -17915,7 +18707,16 @@
         "author": 19,
         "publication": 3,
         "dataset": 1
-      }
+      },
+      "title": "Mammalian Aging Clocks and Epigenetic Life Span Variation",
+      "summary": "Investigates how DNA methylation patterns across mammalian species serve as molecular clocks for biological aging, revealing epigenetic mechanisms underlying the vast diversity in mammalian life spans.",
+      "themes": [
+        "epigenetic clocks",
+        "DNA methylation",
+        "mammalian aging",
+        "life span variation",
+        "comparative epigenomics"
+      ]
     },
     {
       "id": 112,
@@ -18089,7 +18890,16 @@
         "stakeholder": 3,
         "author": 2,
         "document": 9
-      }
+      },
+      "title": "Arkansas Valley Water Transfer and Agricultural Stress",
+      "summary": "Connects contested water transfer proposals and agricultural hardship in the Arkansas Valley, where canal company diversions, reservoir management, and land quality issues pressure farming communities around Rocky Ford and Pueblo.",
+      "themes": [
+        "water transfers",
+        "agricultural water rights",
+        "Arkansas Valley",
+        "irrigation infrastructure",
+        "rural land and water quality"
+      ]
     },
     {
       "id": 43,
@@ -18239,7 +19049,16 @@
         "concept": 4,
         "place": 10,
         "document": 1
-      }
+      },
+      "title": "Endangered Native Fish Recovery in the Upper Colorado River",
+      "summary": "Focuses on conservation and population recovery of federally endangered Colorado River native fish species — including the Colorado squawfish, bonytail chub, and humpback sucker — within the context of water infrastructure, fish passage, and the Upper Colorado River Basin Recovery Implementation Program.",
+      "themes": [
+        "endangered native fish",
+        "Upper Colorado River Basin",
+        "fish passage and habitat",
+        "Recovery Implementation Program",
+        "water infrastructure impacts"
+      ]
     },
     {
       "id": 89,
@@ -18413,7 +19232,16 @@
         "stakeholder": 3,
         "author": 1,
         "document": 6
-      }
+      },
+      "title": "Stream Access Rights and Recreational Fishing Law",
+      "summary": "Connects legal debates over public stream access, navigability, and land ownership to recreational fishing rights across western river systems, drawing on legislative correspondence and technical policy analysis.",
+      "themes": [
+        "stream access law",
+        "navigability rights",
+        "recreational fishing",
+        "land ownership",
+        "public lands policy"
+      ]
     },
     {
       "id": 108,
@@ -18556,7 +19384,16 @@
         "protocol": 1,
         "author": 10,
         "publication": 14
-      }
+      },
+      "title": "Late Cretaceous Paleontology and Geochemistry of Williams Fork Formation",
+      "summary": "Investigates the fossil record, paleoenvironments, and geochemical signatures of Late Cretaceous deposits in the Williams Fork Formation of northwestern Colorado, combining microvertebrate paleontology with strontium isotope analysis to reconstruct ancient marine-estuarine conditions.",
+      "themes": [
+        "Late Cretaceous paleontology",
+        "Williams Fork Formation",
+        "strontium isotope tracing",
+        "marine-estuarine paleoenvironments",
+        "microvertebrate assemblages"
+      ]
     },
     {
       "id": 8,
@@ -18713,7 +19550,16 @@
         "concept": 8,
         "place": 11,
         "document": 2
-      }
+      },
+      "title": "Bird Communities and Recreation in Remote Mountain Wilderness",
+      "summary": "Connects wildlife habitat concerns for raptors and open-country birds with land use planning in remote wilderness and BLM areas of the Gunnison Basin, where seasonal inaccessibility shapes both ecological conditions and recreational management.",
+      "themes": [
+        "wilderness bird habitat",
+        "recreation and wildlife conflict",
+        "BLM land management",
+        "seasonal isolation",
+        "peregrine falcon and grassland birds"
+      ]
     },
     {
       "id": 15,
@@ -18880,7 +19726,16 @@
         "place": 11,
         "document": 2,
         "story": 1
-      }
+      },
+      "title": "Land Use Planning and Wildlife in Gunnison County",
+      "summary": "Connects subdivision development planning in Gunnison County with wildlife habitat concerns, deed restrictions, and community land use policy dating to the 1970s.",
+      "themes": [
+        "subdivision development",
+        "land use planning",
+        "wildlife habitat",
+        "deed restrictions",
+        "Gunnison County"
+      ]
     },
     {
       "id": 60,
@@ -19057,7 +19912,16 @@
         "stakeholder": 1,
         "publication": 1,
         "document": 3
-      }
+      },
+      "title": "Water Rights, Agricultural Use, and Basin-Scale Resource Governance",
+      "summary": "Connects legal and policy frameworks for water rights adjudication with hydrological research on agricultural water footprints and collective resource management across the Colorado River Basin and adjacent western jurisdictions.",
+      "themes": [
+        "water rights and adjudication",
+        "agricultural water use",
+        "Colorado River Basin hydrology",
+        "collective resource governance",
+        "federal and state water policy"
+      ]
     },
     {
       "id": 53,
@@ -19241,7 +20105,16 @@
         "place": 2,
         "document": 1,
         "dataset": 10
-      }
+      },
+      "title": "Streamflow Quantification and Minimum Flows for River Systems",
+      "summary": "Integrates hydrological modeling, sediment transport analysis, and climate forcing methods to quantify streamflow and characterize minimum flow conditions in western river systems, with relevance to fish habitat and water resource management.",
+      "themes": [
+        "streamflow quantification",
+        "minimum flows",
+        "hydrological modeling",
+        "sediment transport",
+        "river ecology"
+      ]
     },
     {
       "id": 99,
@@ -19391,7 +20264,16 @@
         "protocol": 2,
         "author": 12,
         "publication": 7
-      }
+      },
+      "title": "Drosophila Courtship Evolution and Population Divergence",
+      "summary": "Examines how courtship song, morphology, and genomic variation diverge across isolated populations of Drosophila montana and related virilis-group flies, combining field sampling with laboratory behavioral and genetic methods.",
+      "themes": [
+        "courtship song evolution",
+        "population divergence",
+        "Drosophila virilis group",
+        "phylogeography",
+        "sexual selection"
+      ]
     },
     {
       "id": 24,
@@ -19541,7 +20423,16 @@
         "concept": 11,
         "place": 5,
         "publication": 1
-      }
+      },
+      "title": "Watershed Hydrology and Microbial Community Succession in Alpine Terrain",
+      "summary": "Explores how surface runoff dynamics and hydrological mixing processes shape microbial and algal community succession across high-elevation watersheds in the Gunnison Basin.",
+      "themes": [
+        "alpine hydrology",
+        "surface runoff and mixing models",
+        "microbial succession",
+        "high-elevation watersheds",
+        "fungi and algae ecology"
+      ]
     },
     {
       "id": 46,
@@ -19725,7 +20616,16 @@
         "place": 6,
         "document": 1,
         "dataset": 4
-      }
+      },
+      "title": "Mineral Resource Assessment and Wilderness Ecosystem Review",
+      "summary": "Connects mineral survey protocols — including fire assay, atomic absorption, and spectrographic analysis — with environmental review of resource extraction impacts across Gunnison-area national forests and wilderness lands.",
+      "themes": [
+        "mineral resource assessment",
+        "wilderness and forest management",
+        "environmental review",
+        "geochemical analysis protocols",
+        "ecosystem rehabilitation"
+      ]
     },
     {
       "id": 59,
@@ -19909,7 +20809,16 @@
         "stakeholder": 3,
         "author": 1,
         "document": 1
-      }
+      },
+      "title": "Colorado River Water Resources, Native Fish, and Drought",
+      "summary": "Connects Colorado River water management challenges — including snow drought, salinity, and recycling technologies — with conservation concerns for endangered native fish species across the watershed.",
+      "themes": [
+        "Colorado River water management",
+        "endangered native fish",
+        "snow drought and hydrology",
+        "water recycling and treatment",
+        "interstate water governance"
+      ]
     },
     {
       "id": 88,
@@ -20076,7 +20985,16 @@
         "stakeholder": 3,
         "publication": 1,
         "document": 2
-      }
+      },
+      "title": "Colorado River Water Rights, Power, and Federal Claims",
+      "summary": "Connects federal water rights negotiations, hydropower development conflicts, and instream flow protections across Colorado's river systems, linking biogeochemical and hydrological concepts to utility, forest, and regulatory stakeholders.",
+      "themes": [
+        "water allocation and instream flow",
+        "federal water rights",
+        "hydropower development",
+        "Colorado River governance",
+        "hydrology and biogeochemistry"
+      ]
     },
     {
       "id": 106,
@@ -20233,7 +21151,16 @@
         "protocol": 2,
         "author": 5,
         "publication": 9
-      }
+      },
+      "title": "Thermochronology and Exhumation History of Colorado Rocky Mountains",
+      "summary": "Reconstructs the long-term erosion and uplift history of the Elk Mountains and upper Colorado River basin using apatite (U-Th)/He thermochronology to determine when and how fast rocks were exhumed to the surface.",
+      "themes": [
+        "low-temperature thermochronology",
+        "rock exhumation and uplift",
+        "Colorado River incision history",
+        "Elk Mountains geology",
+        "apatite (U-Th)/He dating"
+      ]
     },
     {
       "id": 107,
@@ -20410,7 +21337,16 @@
         "author": 4,
         "publication": 9,
         "dataset": 1
-      }
+      },
+      "title": "Plant Succession and Soil Change on Alpine Earthflows",
+      "summary": "Examines how plant communities and soils develop over time on high-elevation landslide and earthflow disturbances in the Gunnison Basin, tracing successional stages from pioneer species through mature vegetation.",
+      "themes": [
+        "ecological succession",
+        "earthflow disturbance",
+        "pioneer species",
+        "subalpine plant communities",
+        "chronosequence soil sampling"
+      ]
     },
     {
       "id": 29,
@@ -20584,7 +21520,16 @@
         "place": 3,
         "stakeholder": 1,
         "document": 4
-      }
+      },
+      "title": "Rare Species Inventory and Conservation Planning in Colorado",
+      "summary": "Connects natural heritage inventories and conservation planning frameworks to the protection of rare and imperiled species — including Boreal Toads and peregrine falcons — across Colorado counties, sensitive fens, and southwestern reservation lands.",
+      "themes": [
+        "rare and imperiled species",
+        "natural heritage inventory",
+        "conservation planning",
+        "rarity and conservation status",
+        "Colorado and Southwest biodiversity"
+      ]
     },
     {
       "id": 44,
@@ -20710,7 +21655,16 @@
         "species": 5,
         "concept": 1,
         "place": 12
-      }
+      },
+      "title": "Cold-Water Species and Climate Inversions Across Gunnison Basin Sites",
+      "summary": "Maps the geographic distribution of cold-adapted species — including salmonids and wolverine — across Gunnison Basin localities in relation to climate inversion patterns.",
+      "themes": [
+        "cold-adapted species",
+        "temperature inversions",
+        "salmonid distribution",
+        "wolverine habitat",
+        "Gunnison Basin geography"
+      ]
     },
     {
       "id": 123,
@@ -20819,7 +21773,16 @@
       "typeCounts": {
         "stakeholder": 16,
         "document": 2
-      }
+      },
+      "title": "Mining Impact Assessment and Regional Regulatory Stakeholders",
+      "summary": "Connects federal and state regulatory agencies with environmental impact assessments for the proposed Mount Emmons mining project near the Gunnison Basin.",
+      "themes": [
+        "environmental impact assessment",
+        "Mount Emmons mine",
+        "regulatory oversight",
+        "air and land use policy",
+        "rural infrastructure"
+      ]
     },
     {
       "id": 38,
@@ -20928,7 +21891,16 @@
       "typeCounts": {
         "species": 2,
         "place": 13
-      }
+      },
+      "title": "High-Elevation Lakes and Streams of the East River Watershed",
+      "summary": "Maps the geographic distribution of two regionally notable species — a rare saxifrage and the longnose dace — across a network of alpine lakes and stream sites spanning 2800–3453m elevation in the East River watershed.",
+      "themes": [
+        "alpine aquatic habitats",
+        "rare plant distribution",
+        "stream fish occurrence",
+        "East River watershed",
+        "elevation gradient"
+      ]
     },
     {
       "id": 62,
@@ -21088,7 +22060,16 @@
         "place": 3,
         "stakeholder": 2,
         "document": 1
-      }
+      },
+      "title": "Water Infrastructure, Hazard Response, and Mountain Community Planning",
+      "summary": "Connects emergency preparedness and engineering consultation with water management decisions involving mass wasting hazards, re-inundation risks, and the economic concerns of mountain communities.",
+      "themes": [
+        "water infrastructure",
+        "mass wasting and landslide hazards",
+        "emergency preparedness",
+        "mountain community planning",
+        "re-inundation hydrology"
+      ]
     },
     {
       "id": 116,
@@ -21190,7 +22171,16 @@
       "typeCounts": {
         "concept": 1,
         "place": 14
-      }
+      },
+      "title": "Whirling Disease Across Colorado River Watersheds",
+      "summary": "Connects the spread and ecological impact of whirling disease across key western Colorado watersheds, including the Gunnison and Yampa river basins.",
+      "themes": [
+        "whirling disease",
+        "watershed geography",
+        "fish disease distribution",
+        "Gunnison Basin",
+        "Colorado river systems"
+      ]
     },
     {
       "id": 94,
@@ -21350,7 +22340,16 @@
         "author": 4,
         "publication": 2,
         "dataset": 1
-      }
+      },
+      "title": "Chemical Signals and Social Structure in Sweat Bees",
+      "summary": "Investigates how cuticular hydrocarbons vary across castes, life stages, and geographic populations in the facultatively eusocial sweat bee Halictus rubicundus, linking chemical communication to the regulation of reproductive division of labor.",
+      "themes": [
+        "cuticular hydrocarbons",
+        "eusociality and caste differentiation",
+        "queen signaling",
+        "Halictidae chemical ecology",
+        "population-level chemical variation"
+      ]
     },
     {
       "id": 129,
@@ -21466,7 +22465,16 @@
       "typeCounts": {
         "author": 9,
         "publication": 5
-      }
+      },
+      "title": "Marmot Hibernation Physiology: Hormones, Metabolism, and Seasonal Fat",
+      "summary": "Investigates the neuroendocrine and metabolic mechanisms controlling seasonal fattening, food intake, and hibernation in yellow-bellied marmots, with a focus on insulin signaling, melatonin rhythms, and lipid-processing gene expression in white adipose tissue.",
+      "themes": [
+        "hibernation physiology",
+        "neuroendocrine regulation",
+        "seasonal adiposity",
+        "lipid metabolism",
+        "marmot biology"
+      ]
     },
     {
       "id": 36,
@@ -21592,7 +22600,16 @@
         "species": 1,
         "concept": 3,
         "place": 9
-      }
+      },
+      "title": "Western Colorado Communities, Transport, and Resource Landscapes",
+      "summary": "Connects towns, protected lands, and operational concepts across western Colorado's plateau region, touching on water management, extractive industry logistics, and transportation practices.",
+      "themes": [
+        "western Colorado geography",
+        "resource extraction and transport",
+        "water flow management",
+        "land and community connectivity",
+        "high desert landscapes"
+      ]
     },
     {
       "id": 39,
@@ -21718,7 +22735,16 @@
         "species": 6,
         "document": 6,
         "story": 1
-      }
+      },
+      "title": "Colorado Rare Plant Conservation and Natural Areas",
+      "summary": "Connects rare Colorado plant species — including imperiled endemics like Phacelia formosula and Sclerocactus glaucus — to state natural area designations, environmental assessments, and land management planning documents.",
+      "themes": [
+        "rare plant conservation",
+        "Colorado Natural Areas",
+        "environmental impact assessment",
+        "endemic species",
+        "land management planning"
+      ]
     },
     {
       "id": 58,
@@ -21888,7 +22914,16 @@
         "stakeholder": 1,
         "author": 1,
         "document": 2
-      }
+      },
+      "title": "Wilderness Designation, Wildlife, and Recreation in Colorado",
+      "summary": "Connects BLM wilderness proposal discussions for Colorado landscapes — including the Big Blue Wilderness and Cross Mountain — with questions about wildlife presence, recreational use, and community planning.",
+      "themes": [
+        "wilderness designation",
+        "BLM land management",
+        "wildlife and recreation compatibility",
+        "Colorado public lands",
+        "community planning"
+      ]
     },
     {
       "id": 115,
@@ -22058,7 +23093,16 @@
         "stakeholder": 2,
         "document": 1,
         "dataset": 2
-      }
+      },
+      "title": "Water Rights, Drought Stress, and Basin-Scale Hydrology",
+      "summary": "Connects interstate water law and basin hydrology with field-based assessments of drought-induced tree mortality and biomass, bridging environmental review processes with ecological consequences of water scarcity.",
+      "themes": [
+        "water availability and rights",
+        "drought-induced tree mortality",
+        "environmental review",
+        "basin hydrology",
+        "interstate water policy"
+      ]
     },
     {
       "id": 126,
@@ -22177,7 +23221,16 @@
         "stakeholder": 10,
         "author": 1,
         "document": 2
-      }
+      },
+      "title": "Mining Project Environmental Review and Historic Oversight",
+      "summary": "Connects federal and local regulatory stakeholders with environmental impact assessments for hard-rock mining proposals in the Gunnison Basin region.",
+      "themes": [
+        "mining permitting",
+        "environmental impact assessment",
+        "historic preservation",
+        "local government oversight",
+        "extractive industry regulation"
+      ]
     },
     {
       "id": 56,
@@ -22303,7 +23356,16 @@
         "species": 2,
         "concept": 2,
         "place": 8
-      }
+      },
+      "title": "Hummingbird Habitat and Agricultural Reseeding Across Gunnison Landscapes",
+      "summary": "Connects broad-tailed hummingbird occurrence and conservation priorities with agricultural reseeding practices across streams, peaks, and county lands in the Gunnison Basin region.",
+      "themes": [
+        "broad-tailed hummingbirds",
+        "range reseeding",
+        "conservation occurrence ranking",
+        "Gunnison Basin landscapes",
+        "wildlife-agriculture interface"
+      ]
     },
     {
       "id": 121,
@@ -22422,7 +23484,16 @@
         "place": 1,
         "stakeholder": 9,
         "document": 2
-      }
+      },
+      "title": "Gunnison Regional Planning and Community Design",
+      "summary": "Connects regional urban design assistance efforts with local civic, academic, and business stakeholders engaged in shaping the built environment and community planning of Gunnison and surrounding areas.",
+      "themes": [
+        "urban design",
+        "community planning",
+        "regional development",
+        "civic engagement",
+        "Gunnison Basin"
+      ]
     },
     {
       "id": 35,
@@ -22565,7 +23636,16 @@
         "concept": 2,
         "place": 5,
         "document": 1
-      }
+      },
+      "title": "Livestock, Wildlife, and Rural Land Use Tensions",
+      "summary": "Connects ranching heritage and cattle drives along the Dolores corridor with pressures from endangered species concerns and rural community planning in southwestern Colorado.",
+      "themes": [
+        "livestock and ranching",
+        "endangered species",
+        "rural land use",
+        "community planning",
+        "Dolores region"
+      ]
     },
     {
       "id": 120,
@@ -22704,7 +23784,16 @@
         "author": 1,
         "document": 2,
         "dataset": 1
-      }
+      },
+      "title": "Fossil Ridge Wilderness Designation and Recreation Management",
+      "summary": "Connects federal land management planning with stakeholder interests around the proposed Fossil Ridge Wilderness Area in the Taylor Valley, including recreational access debates involving outfitters, motorcyclists, and the US Forest Service.",
+      "themes": [
+        "wilderness designation",
+        "recreation management",
+        "public lands policy",
+        "stakeholder engagement",
+        "Taylor Valley"
+      ]
     },
     {
       "id": 130,
@@ -22813,7 +23902,16 @@
       "typeCounts": {
         "author": 2,
         "publication": 8
-      }
+      },
+      "title": "Pika Behavior, Reproduction, and Predator Response",
+      "summary": "Examines the ecology and behavioral strategies of the American pika (Ochotona princeps), including how slope orientation and temperature shape activity patterns, responses to terrestrial predators, and the adaptive logic behind two-litter reproductive tactics.",
+      "themes": [
+        "Ochotona princeps",
+        "behavioral ecology",
+        "thermal environment",
+        "predator avoidance",
+        "reproductive strategy"
+      ]
     },
     {
       "id": 74,
@@ -22956,7 +24054,16 @@
         "stakeholder": 3,
         "document": 2,
         "story": 3
-      }
+      },
+      "title": "Wetland Plant Communities in Mining Impact Assessment",
+      "summary": "Connects federal and industry review of wetland habitats — including silver cinquefoil occurrences — to environmental permitting and impact analysis for the Mount Emmons mining project near Crested Butte.",
+      "themes": [
+        "wetland assessment",
+        "mining environmental review",
+        "Potentilla anserina",
+        "federal permitting",
+        "Crested Butte region"
+      ]
     },
     {
       "id": 131,
@@ -23072,7 +24179,16 @@
       "typeCounts": {
         "author": 6,
         "publication": 3
-      }
+      },
+      "title": "Folsom Archaeology and Paleoenvironmental Context in Colorado",
+      "summary": "Examines late Pleistocene and early Holocene human occupation of Colorado through Folsom projectile point assemblages and their environmental setting.",
+      "themes": [
+        "Folsom culture",
+        "paleoarchaeology",
+        "projectile points",
+        "late Pleistocene environment",
+        "Colorado prehistory"
+      ]
     },
     {
       "id": 5,
@@ -23184,7 +24300,16 @@
         "species": 1,
         "concept": 6,
         "place": 1
-      }
+      },
+      "title": "Water Transfer, Irrigation, and Agricultural Land Use",
+      "summary": "Connects water resource projects like the Collegiate Range Aurora Project to irrigation, pasture land management, and broader watershed systems including the Sacramento-San Joaquin Delta.",
+      "themes": [
+        "water transfers",
+        "irrigation and agriculture",
+        "water resource management",
+        "watershed connectivity",
+        "pasture land use"
+      ]
     },
     {
       "id": 127,
@@ -23313,7 +24438,16 @@
         "author": 1,
         "document": 4,
         "story": 1
-      }
+      },
+      "title": "Mining, Land Use, and Property Rights in Crested Butte",
+      "summary": "Connects property rights advocacy, industrial mining legacy, and trail land use planning around the Mt. Emmons molybdenum project near Crested Butte.",
+      "themes": [
+        "mining remediation",
+        "land use planning",
+        "property rights",
+        "Mt. Emmons",
+        "trail access"
+      ]
     },
     {
       "id": 141,
@@ -23429,7 +24563,16 @@
       "typeCounts": {
         "author": 4,
         "publication": 4
-      }
+      },
+      "title": "Paleoindian Archaeology and Quartzite Sourcing in the Gunnison Basin",
+      "summary": "Investigates early human occupation of the Upper Gunnison Basin through geochemical sourcing of quartzite stone tools, using LA-ICP-MS and pilot experiments to trace raw material origins across the Colorado Rocky Mountains.",
+      "themes": [
+        "Paleoindian archaeology",
+        "lithic sourcing",
+        "quartzite geochemistry",
+        "LA-ICP-MS analysis",
+        "Upper Gunnison Basin"
+      ]
     },
     {
       "id": 114,
@@ -23551,7 +24694,16 @@
         "place": 1,
         "stakeholder": 2,
         "document": 1
-      }
+      },
+      "title": "Air Quality Capacity and Climate in Gunnison Valley",
+      "summary": "Connects atmospheric science concepts like surface inversions and mixing height to regional air quality planning in the Gunnison Valley, with state agency involvement in housing and land use context.",
+      "themes": [
+        "atmospheric carrying capacity",
+        "surface inversions",
+        "air quality planning",
+        "Gunnison Valley",
+        "state land use policy"
+      ]
     },
     {
       "id": 124,
@@ -23653,7 +24805,16 @@
       "typeCounts": {
         "stakeholder": 5,
         "document": 2
-      }
+      },
+      "title": "Federal Energy and Land Use Regulatory Review",
+      "summary": "Connects federal regulatory oversight — spanning energy, insurance, and land management — through environmental impact assessment and public comment processes affecting regional planning decisions.",
+      "themes": [
+        "environmental impact assessment",
+        "federal agency coordination",
+        "land and resource management",
+        "public comment",
+        "regulatory review"
+      ]
     },
     {
       "id": 144,
@@ -23762,7 +24923,16 @@
       "typeCounts": {
         "author": 4,
         "publication": 3
-      }
+      },
+      "title": "Bee Gut Microbiome Diversity and Symbiont Ecology",
+      "summary": "Explores the diversity, host specificity, and competitive dynamics of specialized bacterial symbionts in honeybee and bumblebee gut microbiomes, including how these microbes metabolize toxic compounds and antagonize one another.",
+      "themes": [
+        "bee gut microbiome",
+        "host-symbiont specificity",
+        "microbial competition",
+        "pollinator health",
+        "Type VI secretion systems"
+      ]
     },
     {
       "id": 147,
@@ -23871,7 +25041,16 @@
       "typeCounts": {
         "author": 4,
         "publication": 3
-      }
+      },
+      "title": "Selenium and Nutrient Mobilization from Mancos Shale Soils",
+      "summary": "Investigates how irrigation and soil biogeochemical processes mobilize selenium, nitrogen, and carbon from Mancos Shale into groundwater and surface water in the Uncompahgre River Basin of western Colorado.",
+      "themes": [
+        "selenium mobilization",
+        "Mancos Shale",
+        "soil biogeochemistry",
+        "groundwater contamination",
+        "irrigated agriculture"
+      ]
     },
     {
       "id": 73,
@@ -23969,7 +25148,16 @@
         "species": 1,
         "concept": 1,
         "place": 4
-      }
+      },
+      "title": "Willow Flycatcher Habitat Across Tribal and Federal Lands",
+      "summary": "Connects the southwestern willow flycatcher's presence across western Colorado wetlands and national forests with land-use considerations tied to Indian Trust Asset obligations.",
+      "themes": [
+        "southwestern willow flycatcher",
+        "Indian Trust Assets",
+        "federal land management",
+        "riparian habitat",
+        "San Juan National Forest"
+      ]
     },
     {
       "id": 110,
@@ -24077,7 +25265,16 @@
         "protocol": 1,
         "author": 1,
         "dataset": 3
-      }
+      },
+      "title": "Mule Deer Migration Tracking and Movement Ecology",
+      "summary": "Combines GPS collar telemetry datasets with population ecology concepts to map mule deer migration rates, stopover sites, and seasonal movement corridors.",
+      "themes": [
+        "mule deer migration",
+        "GPS collar tracking",
+        "movement ecology",
+        "population monitoring",
+        "wildlife telemetry"
+      ]
     },
     {
       "id": 125,
@@ -24165,7 +25362,16 @@
       "typeCounts": {
         "stakeholder": 5,
         "document": 1
-      }
+      },
+      "title": "Colorado Environmental Planning and Infrastructure Stakeholders",
+      "summary": "Connects state regulatory bodies, historical preservation interests, and agricultural water infrastructure through early environmental priority-setting documents in Colorado.",
+      "themes": [
+        "environmental planning",
+        "state regulation",
+        "water infrastructure",
+        "Colorado land use",
+        "stakeholder coordination"
+      ]
     },
     {
       "id": 145,
@@ -24267,7 +25473,16 @@
       "typeCounts": {
         "author": 3,
         "publication": 3
-      }
+      },
+      "title": "Standard Mine Superfund Passive Water Treatment Research",
+      "summary": "Documents the design, construction, and multi-year performance of biochemical reactor systems for passively treating metal-contaminated mine drainage at the Standard Mine Superfund Site near Crested Butte, Colorado.",
+      "themes": [
+        "mine drainage treatment",
+        "biochemical reactors",
+        "Superfund remediation",
+        "passive treatment systems",
+        "Standard Mine"
+      ]
     },
     {
       "id": 150,
@@ -24362,7 +25577,15 @@
       "typeCounts": {
         "author": 4,
         "dataset": 2
-      }
+      },
+      "title": "Aerosol Particle Characterization and Chemical Imaging Research",
+      "summary": "Applies advanced chemical imaging techniques to analyze individual aerosol particles, likely investigating atmospheric composition and pollution sources in high-altitude or remote environments.",
+      "themes": [
+        "aerosol chemistry",
+        "single-particle analysis",
+        "chemical imaging",
+        "atmospheric science"
+      ]
     },
     {
       "id": 118,
@@ -24453,7 +25676,16 @@
         "concept": 1,
         "stakeholder": 3,
         "document": 1
-      }
+      },
+      "title": "Recreation Project Environmental Review on Taylor River",
+      "summary": "Connects federal land management and local water and conservation stakeholders through an environmental assessment of a recreation development project on the Taylor River corridor.",
+      "themes": [
+        "environmental assessment",
+        "recreation planning",
+        "Taylor River",
+        "interagency coordination",
+        "land use review"
+      ]
     },
     {
       "id": 149,
@@ -24541,7 +25773,16 @@
       "typeCounts": {
         "author": 3,
         "publication": 2
-      }
+      },
+      "title": "Rare Mineral Discoveries in Colorado and Utah Mines",
+      "summary": "Characterizes newly identified polyoxometalate and uranyl sulfate minerals from historic mines in the Colorado Plateau region, expanding the known mineralogy of vanadium, arsenic, and uranium deposits.",
+      "themes": [
+        "new mineral species",
+        "polyoxometalate minerals",
+        "uranyl sulfates",
+        "Colorado Plateau mining",
+        "mineralogy"
+      ]
     },
     {
       "id": 133,
@@ -24615,7 +25856,16 @@
       "typeCounts": {
         "author": 1,
         "publication": 3
-      }
+      },
+      "title": "Mineral Occurrences and Mining History, Ouray County",
+      "summary": "Documents rare and notable mineral occurrences across historic mining districts in Ouray County, Colorado, including the Leadville Limestone, the Ohio Mine, and the Red Mountain District.",
+      "themes": [
+        "mineralogy",
+        "historic mining districts",
+        "Ouray County geology",
+        "mineral collecting",
+        "Rocky Mountain mining history"
+      ]
     },
     {
       "id": 134,
@@ -24679,7 +25929,14 @@
       },
       "typeCounts": {
         "author": 4
-      }
+      },
+      "title": "Collaborative Research Team in Ecological Science",
+      "summary": "A small author cluster representing collaborative research connections among scientists likely working on shared fieldwork, publications, or datasets in the Gunnison Basin region.",
+      "themes": [
+        "research collaboration",
+        "authorship networks",
+        "field ecology"
+      ]
     },
     {
       "id": 138,
@@ -24743,7 +26000,14 @@
       },
       "typeCounts": {
         "author": 4
-      }
+      },
+      "title": "Small Collaborative Research Author Group",
+      "summary": "Links a small team of co-authors whose shared publications form a tightly connected research cluster within the broader RMBL knowledge network.",
+      "themes": [
+        "research collaboration",
+        "co-authorship",
+        "scientific network"
+      ]
     },
     {
       "id": 140,
@@ -24817,7 +26081,16 @@
       "typeCounts": {
         "author": 2,
         "publication": 2
-      }
+      },
+      "title": "Winter Cloud Seeding and Supercooled Water over Grand Mesa",
+      "summary": "Examines wintertime cloud microphysics and the effects of silver iodide cloud seeding on supercooled liquid water over the Grand Mesa of western Colorado.",
+      "themes": [
+        "cloud seeding",
+        "winter orographic clouds",
+        "supercooled liquid water",
+        "silver iodide",
+        "Grand Mesa"
+      ]
     },
     {
       "id": 142,
@@ -24881,7 +26154,14 @@
       },
       "typeCounts": {
         "author": 4
-      }
+      },
+      "title": "Research Collaboration Network: Small Author Cluster",
+      "summary": "Connects a small group of researchers whose collaborative work likely spans shared fieldwork, co-authored publications, or joint investigations within the Gunnison Basin scientific community.",
+      "themes": [
+        "research collaboration",
+        "authorship network",
+        "scientific community"
+      ]
     },
     {
       "id": 143,
@@ -24955,7 +26235,16 @@
       "typeCounts": {
         "author": 1,
         "publication": 3
-      }
+      },
+      "title": "Topographic Analysis of Colorado River Drainage Divide Origins",
+      "summary": "Applies topographic map evidence to investigate the origin and evolution of major drainage divides across Colorado's river systems, including the Continental Divide and connections between the Colorado, Yampa, North Platte, and South Platte watersheds.",
+      "themes": [
+        "drainage divide origins",
+        "geomorphology",
+        "topographic map analysis",
+        "Colorado River headwaters",
+        "watershed evolution"
+      ]
     },
     {
       "id": 148,
@@ -25029,7 +26318,16 @@
       "typeCounts": {
         "author": 2,
         "publication": 2
-      }
+      },
+      "title": "Jurassic Reptile Fossils from Dry Mesa, Colorado",
+      "summary": "Describes new fossil specimens of Mesozoic reptiles — a goniopholid crocodyliform and a freshwater turtle — recovered from the Morrison Formation at Dry Mesa Quarry in Colorado.",
+      "themes": [
+        "vertebrate paleontology",
+        "Morrison Formation",
+        "Jurassic reptiles",
+        "Dry Mesa Quarry",
+        "fossil description"
+      ]
     },
     {
       "id": 135,
@@ -25086,7 +26384,14 @@
       },
       "typeCounts": {
         "author": 3
-      }
+      },
+      "title": "Small Author Cluster with Limited Connections",
+      "summary": "A minimal cluster of three authors whose shared connections have not yet drawn in publications, datasets, or other knowledge entities.",
+      "themes": [
+        "authorship",
+        "emerging connections",
+        "sparse network"
+      ]
     },
     {
       "id": 136,
@@ -25143,7 +26448,14 @@
       },
       "typeCounts": {
         "author": 3
-      }
+      },
+      "title": "Researcher Cluster Awaiting Context",
+      "summary": "Groups three authors whose shared research focus and contributions to the Gunnison Basin knowledge base have yet to be fully characterized by connected publications, datasets, or concepts.",
+      "themes": [
+        "authorship",
+        "research collaboration",
+        "sparse connectivity"
+      ]
     },
     {
       "id": 137,
@@ -25200,7 +26512,14 @@
       },
       "typeCounts": {
         "author": 3
-      }
+      },
+      "title": "Collaborative Research Author Cluster",
+      "summary": "Links a small group of co-authors whose joint work connects to broader research threads in the RMBL knowledge network.",
+      "themes": [
+        "authorship",
+        "research collaboration",
+        "knowledge network"
+      ]
     },
     {
       "id": 139,
@@ -25260,7 +26579,16 @@
       "typeCounts": {
         "author": 2,
         "publication": 1
-      }
+      },
+      "title": "Larval Trematode Parasites of Gunnison County",
+      "summary": "Early taxonomic documentation of larval trematode parasites collected from Gunnison County, Colorado, contributing foundational parasitological records for the region.",
+      "themes": [
+        "parasitology",
+        "trematodes",
+        "larval stages",
+        "taxonomic records",
+        "Gunnison County"
+      ]
     },
     {
       "id": 146,
@@ -25317,7 +26645,15 @@
       },
       "typeCounts": {
         "author": 3
-      }
+      },
+      "title": "Geohazard Research Team Cluster",
+      "summary": "Connects a small group of researchers likely working on geohazards, slope stability, or debris flow processes in mountain environments.",
+      "themes": [
+        "geohazards",
+        "slope instability",
+        "debris flows",
+        "mountain geology"
+      ]
     }
   ],
   "meta": {
