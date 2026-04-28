@@ -202,6 +202,26 @@ async function main() {
   }
   console.log(`  ${datasets.length} datasets`)
 
+  // Stories (excluded in research mode, like documents)
+  let stories: any[] = []
+  if (!excludeDocs) {
+    const { rows } = await db.query(`
+      SELECT id, title, story_type
+      FROM stories
+      WHERE id IN (SELECT DISTINCT item_id FROM entity_mentions WHERE collection = 'stories')
+    `)
+    stories = rows
+    for (const s of stories) {
+      graph.addNode(`story-${s.id}`, {
+        label: (s.title || '').slice(0, 50), nodeType: 'story',
+        storyType: s.story_type,
+        degree: 0, size: 2,
+        x: -50 + Math.random() * 50, y: -50 + Math.random() * 50,
+      })
+    }
+  }
+  console.log(`  ${stories.length} stories${excludeDocs ? ' (excluded)' : ''}`)
+
   console.log(`  Total candidate nodes: ${graph.order}`)
 
   // =====================================================================
@@ -302,6 +322,70 @@ async function main() {
     for (const e of docEntityLinks) addEdge(`document-${e.item_id}`, `${e.entity_type}-${e.entity_id}`, 1), docEntEdges++
     console.log(`  ${docEntEdges} document↔entity edges`)
 
+    // Story ↔ Entity
+    const { rows: storyEntityLinks } = await db.query(`
+      SELECT em.entity_type, em.entity_id, em.item_id
+      FROM entity_mentions em
+      WHERE em.collection = 'stories'
+        AND em.entity_type IN ('species', 'concept', 'protocol', 'place')
+    `)
+    let storyEntEdges = 0
+    for (const e of storyEntityLinks) addEdge(`story-${e.item_id}`, `${e.entity_type}-${e.entity_id}`, 1), storyEntEdges++
+    console.log(`  ${storyEntEdges} story↔entity edges`)
+
+    // Story ↔ Publication (from references_cited — keep strongest link per pair)
+    const { rows: storyPubLinks } = await db.query(`
+      SELECT source_story_id as story_id, target_publication_id as pub_id,
+        CASE link_type
+          WHEN 'title_match' THEN 3
+          WHEN 'researcher_match' THEN 2
+          WHEN 'entity_match' THEN 1
+          ELSE 1
+        END as weight
+      FROM (
+        SELECT DISTINCT ON (source_story_id, target_publication_id)
+          source_story_id, target_publication_id, link_type
+        FROM references_cited
+        WHERE source_story_id IS NOT NULL AND target_publication_id IS NOT NULL
+        ORDER BY source_story_id, target_publication_id,
+          CASE link_type WHEN 'title_match' THEN 1 WHEN 'researcher_match' THEN 2 ELSE 3 END
+      ) best
+    `)
+    let spEdges = 0
+    for (const e of storyPubLinks) addEdge(`story-${e.story_id}`, `pub-${e.pub_id}`, e.weight), spEdges++
+    console.log(`  ${spEdges} story↔publication edges`)
+
+    // Story ↔ Document (via shared entities ≥3)
+    const { rows: storyDocLinks } = await db.query(`
+      SELECT em1.item_id as story_id, em2.item_id as doc_id,
+        COUNT(DISTINCT (em1.entity_type || ':' || em1.entity_id)) as shared
+      FROM entity_mentions em1
+      JOIN entity_mentions em2 ON em2.entity_type = em1.entity_type AND em2.entity_id = em1.entity_id
+      WHERE em1.collection = 'stories' AND em2.collection = 'documents'
+        AND em1.entity_type IN ('species', 'concept', 'protocol', 'place')
+      GROUP BY em1.item_id, em2.item_id
+      HAVING COUNT(DISTINCT (em1.entity_type || ':' || em1.entity_id)) >= 3
+    `)
+    let sdEdges = 0
+    for (const e of storyDocLinks) addEdge(`story-${e.story_id}`, `document-${e.doc_id}`, Math.min(parseInt(e.shared), 5)), sdEdges++
+    console.log(`  ${sdEdges} story↔document edges`)
+
+    // Story ↔ Story (via shared entities ≥3)
+    const { rows: storyStoryLinks } = await db.query(`
+      SELECT em1.item_id as s1, em2.item_id as s2,
+        COUNT(DISTINCT (em1.entity_type || ':' || em1.entity_id)) as shared
+      FROM entity_mentions em1
+      JOIN entity_mentions em2 ON em2.entity_type = em1.entity_type AND em2.entity_id = em1.entity_id
+        AND em2.item_id > em1.item_id
+      WHERE em1.collection = 'stories' AND em2.collection = 'stories'
+        AND em1.entity_type IN ('species', 'concept', 'protocol', 'place')
+      GROUP BY em1.item_id, em2.item_id
+      HAVING COUNT(DISTINCT (em1.entity_type || ':' || em1.entity_id)) >= 3
+    `)
+    let ssEdges = 0
+    for (const e of storyStoryLinks) addEdge(`story-${e.s1}`, `story-${e.s2}`, Math.min(parseInt(e.shared), 5)), ssEdges++
+    console.log(`  ${ssEdges} story↔story edges`)
+
     // Stakeholder ↔ Item
     const { rows: stakeholderLinks } = await db.query(`
       SELECT em.entity_id, em.collection, em.item_id
@@ -310,7 +394,9 @@ async function main() {
     `)
     let shEdges = 0
     for (const e of stakeholderLinks) {
-      const itemNode = e.collection === 'documents' ? `document-${e.item_id}` : `pub-${e.item_id}`
+      const itemNode = e.collection === 'documents' ? `document-${e.item_id}`
+        : e.collection === 'stories' ? `story-${e.item_id}`
+        : `pub-${e.item_id}`
       addEdge(`stakeholder-${e.entity_id}`, itemNode, 1), shEdges++
     }
     console.log(`  ${shEdges} stakeholder↔item edges`)
@@ -396,9 +482,11 @@ async function main() {
     console.log(`    ${type}: ${count}`)
   }
 
-  // Update degree from actual graph edges
+  // Update degree and size from actual graph edges
   graph.forEachNode((node: string) => {
-    graph.setNodeAttribute(node, 'degree', graph.degree(node))
+    const deg = graph.degree(node)
+    graph.setNodeAttribute(node, 'degree', deg)
+    graph.setNodeAttribute(node, 'size', 1.5 + Math.log(deg + 1) * 0.8)
   })
 
   // =====================================================================

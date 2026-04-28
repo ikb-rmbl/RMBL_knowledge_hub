@@ -306,7 +306,7 @@ export async function fetchItemNetwork(
 
   // Build nodes and edges
   const nodes: GraphNode[] = [
-    { id: focalId, label: itemTitle.slice(0, 50), type: collection === 'publications' ? 'publication' : collection === 'datasets' ? 'dataset' : 'document', degree: 0, isFocal: true },
+    { id: focalId, label: itemTitle.slice(0, 50), type: collection === 'publications' ? 'publication' : collection === 'datasets' ? 'dataset' : collection === 'stories' ? 'story' : 'document', degree: 0, isFocal: true },
   ]
   const edges: GraphEdge[] = []
   const nodeIds = new Set<string>([focalId])
