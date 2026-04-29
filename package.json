@@ -35,6 +35,7 @@
     "restore:db": "AWS_PROFILE=rmbl-backup bash scripts/restore-database.sh"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@payloadcms/db-postgres": "^3.80.0",
     "@payloadcms/next": "^3.80.0",
     "@payloadcms/richtext-lexical": "^3.80.0",
@@ -53,7 +54,8 @@
     "react-dom": "^19.1.0",
     "sharp": "^0.34.2",
     "sigma": "^3.0.2",
-    "voyageai": "^0.2.1"
+    "voyageai": "^0.2.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/jsdom": "^28.0.1",
