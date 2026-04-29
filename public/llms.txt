@@ -21,17 +21,19 @@ The RMBL Knowledge Hub connects scientific publications, community documents, re
 
 ## Collections
 
-- 5,267 publications (peer-reviewed articles, theses, student papers from 1928-2025)
+- 4,852 publications (peer-reviewed articles, theses, student papers from 1928-2025)
 - 1,381 documents (community/policy documents from the Sustainable Living Library)
-- 1,216 datasets (research datasets from 8 discovery sources)
-- ~800 stories (news articles from local and national outlets, 1981-2026)
-- 6,586 authors with ORCID enrichment and deduplication
-- 402 species with ITIS taxonomic validation
-- 331 scientific concepts with definitions
-- 196 research protocols with descriptions
-- 246 geographic places with coordinates
-- 154 research neighborhoods with AI-generated research primers
-- 106,209 citation references with 10,045 internal links
+- 1,426 datasets (research datasets from 8 discovery sources)
+- 841 stories (news articles from local and national outlets, 1981-2026, 13 LLM-classified types)
+- 6,696 authors with ORCID enrichment and deduplication
+- 1,206 species with ITIS taxonomic validation
+- 4,874 scientific concepts with definitions
+- 1,474 research protocols with descriptions
+- 1,954 geographic places with coordinates
+- 5,023 stakeholders (agencies, organizations, institutions)
+- 151 research neighborhoods with AI-generated research primers
+- 98,252 entity mentions linking items to the knowledge graph
+- 143,289 citation references with 10,619 internal links
 
 ## MCP Server
 

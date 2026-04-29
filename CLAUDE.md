@@ -3,20 +3,21 @@
 ## Project Overview
 
 Unified search platform for environmental knowledge from the Rocky Mountain Biological Laboratory (RMBL) and Gunnison Basin, Colorado:
+- **Publications** (4,852) — peer-reviewed articles, theses, student papers (3,988 RMBL + 864 discovered)
 - **Documents** (1,381) — community/policy documents from the Sustainable Living Library
-- **Publications** (5,267) — peer-reviewed articles, theses, student papers (3,988 RMBL + 1,279 discovered)
-- **Datasets** (1,216) — research datasets from 8 discovery sources
-- **Stories** (~800) — news articles from CB News, Gunnison Times, LexisNexis (full text stored for search, not displayed)
-- **Authors** (6,586) — deduplicated cross-collection author registry with ORCID enrichment
+- **Datasets** (1,426) — research datasets from 8 discovery sources
+- **Stories** (841) — news articles from CB News, Gunnison Times, LexisNexis (13 LLM-classified types; full text stored for search, not displayed for copyright)
+- **Authors** (6,696) — deduplicated cross-collection author registry with ORCID enrichment
 - **Projects** (118) — research plans and programs with auto-discovered item assignments
-- **Species** (402) — taxonomic entities with ITIS validation and external links
-- **Places** (246 referenced + 641 GNIS seeds) — geographic entities with coordinates and hierarchy
-- **Protocols** (196) — research methods with embedding-based clustering
-- **Concepts** (331) — scientific concepts with type/scope classification
-- **Neighborhoods** (43) — Louvain-detected research communities with LLM-generated descriptions
-- **Entity Mentions** (2,025) — cross-links between entities and publications
-- **References** (106,209) — citation network with 10,045 internal links
-- **Embeddings** (7,758) — vector embeddings for concept graph and similarity search
+- **Species** (1,206) — taxonomic entities with ITIS validation and external links
+- **Places** (1,954) — geographic entities with coordinates and hierarchy
+- **Protocols** (1,474) — research methods with embedding-based clustering
+- **Concepts** (4,874) — scientific concepts with type/scope classification
+- **Stakeholders** (5,023) — agencies, organizations, institutions with type classification
+- **Neighborhoods** (151) — Louvain-detected research communities with LLM-generated descriptions and primers
+- **Entity Mentions** (98,252) — cross-links between entities and all collections (publications, datasets, documents, stories)
+- **References** (143,289) — citation network with 10,619 internal links + 19,827 story→publication links
+- **Embeddings** (8,239) — Voyage AI voyage-4 vector embeddings for semantic similarity search
 
 ## Tech Stack
 
@@ -84,7 +85,8 @@ scripts/export-database.sh   # Export database dump for sharing (excludes sensit
 ```
 src/
   payload.config.ts              — Payload CMS configuration (push: false, env validation, S3 conditional)
-  collections/                   — 8 Payload collections (Documents, Publications, Datasets, Topics, Authors, Projects, Users, Media)
+  collections/                   — 9 Payload collections (Documents, Publications, Datasets, Stories, Topics, Authors, Projects, Users, Media)
+  services/                      — 6 service modules (search, graph, neighborhoods, entities, items, related)
   collections/shared/access.ts   — Shared access control (publicReadAuthWrite)
   collections/shared/constants.ts — Shared field option constants
   app/(frontend)/                — Public-facing Next.js pages
@@ -105,20 +107,40 @@ src/
     protocols/[id]/page.tsx      — Protocol detail with co-occurring entities
     concepts/page.tsx            — Concepts browse with type chips
     concepts/[id]/page.tsx       — Concept detail with co-occurring entities
-    neighborhoods/page.tsx       — Neighborhoods browse with entity type filters and sidebar
-    neighborhoods/[id]/page.tsx  — Neighborhood detail with expandable member lists per type
+    stories/page.tsx             — Stories browse with type/date/focus filters and sidebar
+    stories/[id]/page.tsx        — Story detail with entity chips, related stories/publications
+    neighborhoods/page.tsx       — Neighborhoods browse with focus classification (research/policy/news/mixed)
+    neighborhoods/[id]/page.tsx  — Neighborhood detail with expandable member lists, primers, local graph
     projects/page.tsx            — Project browse
     projects/[id]/page.tsx       — Project detail with assigned items
+    about/page.tsx               — About page with FAQ, AI integration guide, technical deep-dive
     explore/neighborhoods/       — Neighborhood-colored unified graph visualization
     api/search/route.ts          — Search API endpoint (validated, parameterized)
-    lib/badges.ts                — Collection type badge labels/classes
+    api/v1/                      — REST API v1 (11 endpoints, format=json|text, rate-limited)
+    api/v1/search/               — Full-text search
+    api/v1/publications/[id]/    — Publication detail with authors + entities + citations
+    api/v1/datasets/[id]/        — Dataset detail with creators
+    api/v1/documents/[id]/       — Document detail with entities + stakeholders
+    api/v1/authors/[id]/         — Author profile with works + co-authors
+    api/v1/entities/[type]/      — Entity browse + detail + mentions
+    api/v1/related/              — 4-signal related works
+    api/v1/neighborhoods/        — Neighborhood browse + detail with primers
+    api/v1/export/               — Batch citation export (RIS, BibTeX)
+    api/v1/export-search/        — Export all search results
+    api/v1/lib/rate-limit.ts     — Per-IP rate limiting (60/min general, 10/min expensive)
+    api/v1/lib/text-format.ts    — LLM-friendly plain text formatters
+    api/v1/lib/citation-format.ts — RIS and BibTeX formatters
+    lib/badges.ts                — Collection type badge labels/classes (publication, dataset, document, story)
     lib/db.ts                    — Shared PostgreSQL pool for frontend (serverless tuning)
-    lib/related-works.tsx        — Related works panel via pgvector similarity
+    lib/related-works.tsx        — Related works panel (delegates to related service)
+    lib/graph-data.ts            — Graph data fetching (delegates to graph service)
     lib/url-validation.ts        — URL/DOI/ORCID format validation for safe rendering
     lib/graph-colors.ts          — GRAPH_COLORS and ENTITY_TYPE_LABELS for graph/badge coloring
+    lib/json-ld.tsx              — Schema.org/Bioschemas JSON-LD helpers
     components/ExpandableRelatedWorks.tsx — Client-side expand/collapse for related works
     components/ExpandableTopics.tsx       — Client-side expand/collapse for topic lists
     components/ExploreEntityGraph.tsx     — Sigma.js WebGL graph with dynamic color palettes
+    components/ThemeToggle.tsx            — Light/dark mode toggle
   app/(payload)/                 — Payload admin panel routes
 
 scripts/
@@ -158,24 +180,38 @@ scripts/
   build-explore-graph.ts     — Pre-compute entity co-occurrence graphs (concepts, species, protocols, places)
   build-collection-graph.ts  — Pre-compute collection graphs (authors, publications, datasets)
   build-unified-graph.ts     — Combined graph across all entity and collection types
-  detect-communities.ts      — Louvain community detection on unified graph (43 neighborhoods)
+  detect-communities.ts      — Louvain community detection on unified graph (151 neighborhoods)
   describe-communities.ts    — LLM-generated titles, summaries, and themes for neighborhoods
   load-neighborhoods.ts      — Load community data + members into neighborhoods tables
+  layout-neighborhoods.ts    — Pre-compute ForceAtlas2 subgraph layouts for detail pages
+  generate-primers.ts        — LLM research primers for neighborhoods (Opus, --model=opus|sonnet)
+  fix-author-order.ts        — Repair authors_rels ordering from publications_authors ground truth
+  fix-author-splits.ts       — Split false author merges using middle-initial signatures
   scrape-news.ts             — Crested Butte News scraper (search results + article text)
   scrape-gunnison-times.ts   — Gunnison Country Times scraper (current + archive search)
   parse-lexis-pdf.ts         — LexisNexis index PDF parser (metadata + embedded links)
-  parse-lexis-fulltext.ts    — LexisNexis full-text PDF parser (Body/End of Document markers)
+  parse-lexis-fulltext.ts    — LexisNexis full-text PDF parser (Page 1 anchoring + link extraction)
   load-stories.ts            — Load stories from all sources (CB News, Gunnison Times, Lexis)
-  dedup-stories.ts           — Deduplicate stories (non-relevant, exact, syndication, relevance)
-  extract-story-entities.ts  — LLM entity extraction for stories (species, places, researchers, projects)
+  dedup-stories.ts           — Deduplicate stories (non-relevant, exact, syndication, RMBL relevance check)
+  extract-story-entities.ts  — LLM entity extraction for stories (Opus 4.7, 8 entity types)
+  load-story-extractions.ts  — Load story extractions into entity_mentions + update story_type
+  link-stories-publications.ts — Build story↔publication links (title, researcher, entity matching)
+  check-staleness.ts         — Check pipeline staleness + recommend rebuild actions
+  sync-bulk-to-neon.ts       — Targeted sync for neighborhoods + story entity mentions
   setup-local.sh             — Automated local development environment setup
   export-database.sh         — Database export for sharing (excludes sensitive tables)
   lib/                       — 17 shared utility modules (includes itis-client.ts)
-  sql/                       — 8 SQL migration files (provenance, citations, embeddings, projects, entities, sync_log, neighborhoods, stories)
+  sql/                       — SQL migration files (provenance, citations, embeddings, projects, entities, sync_log, neighborhoods, stories)
   __tests__/                 — 12 test files (214 tests)
 
 public/
+  robots.txt                 — Crawler policy (allows GPTBot, ClaudeBot, PerplexityBot)
+  llms.txt                   — LLM discovery index with API docs and collection stats
   rmbl-logo.jpg              — RMBL logo for site header
+
+mcp/                         — MCP server for AI assistant access (8 tools, stdio transport)
+  src/index.ts               — Server setup with tool registration
+  src/client.ts              — HTTP client for REST API v1
 
 specification/               — Project specs (functionality + implementation variants)
 ```
@@ -211,6 +247,8 @@ specification/               — Project specs (functionality + implementation v
 - **Secrets**: `.env` gitignored; no hardcoded credentials; admin password required via env var
 - **PAYLOAD_SECRET**: 32-char minimum enforced in production, 16 in development
 - **S3 storage**: Only enabled when all three credentials (bucket, access key, secret key) are present
+- **Rate limiting**: Per-IP sliding window on /api/v1/* (60/min general, 10/min expensive)
+- **Security headers**: X-Content-Type-Options, X-Frame-Options, Cache-Control on /api/v1/*
 
 ## Common Pitfalls
 
