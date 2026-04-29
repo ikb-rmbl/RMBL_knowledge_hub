@@ -17,6 +17,15 @@ MCP (Model Context Protocol) server that gives AI assistants access to the RMBL 
 
 ## Setup for Claude Desktop
 
+### Option A: Remote connector (recommended, no install)
+
+1. Open Claude Desktop → **Settings → Connectors**
+2. Click **Add custom connector**
+3. Enter URL: `https://www.rmblknowledgehub.org/api/mcp`
+4. All 8 tools are immediately available
+
+### Option B: Local server
+
 Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 
 ```json
@@ -26,28 +35,18 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
       "command": "node",
       "args": ["/path/to/RMBL_knowledge_hub/mcp/dist/index.js"],
       "env": {
-        "RMBL_API_URL": "https://rmblknowledgehub.org"
+        "RMBL_API_URL": "https://www.rmblknowledgehub.org"
       }
     }
   }
 }
 ```
 
-Or if published to npm:
+## Compatibility
 
-```json
-{
-  "mcpServers": {
-    "rmbl-knowledge-hub": {
-      "command": "npx",
-      "args": ["-y", "@rmbl/knowledge-hub-mcp"],
-      "env": {
-        "RMBL_API_URL": "https://rmblknowledgehub.org"
-      }
-    }
-  }
-}
-```
+- **Claude Desktop**: Supported via remote connector (Streamable HTTP) or local server (stdio)
+- **OpenAI/ChatGPT**: Not currently supported — requires old SSE transport with long-lived connections, incompatible with our serverless hosting. Use the REST API (`/api/v1/*`) with `?format=text` instead.
+- **Other MCP clients**: Any client supporting Streamable HTTP transport can connect to `https://www.rmblknowledgehub.org/api/mcp`
 
 ## Development
 

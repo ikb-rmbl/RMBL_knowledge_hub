@@ -170,25 +170,33 @@ curl "https://rmblknowledgehub.org/api/v1/related/publications/13?format=text"`}
         </details>
 
         <details style={{ marginBottom: '12px' }}>
-          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>MCP Server for Claude Desktop</summary>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>MCP Server for Claude Desktop (recommended)</summary>
           <div style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 16px', maxWidth: '65ch' }}>
             <p style={{ marginBottom: '12px' }}>
-              The MCP server gives Claude Desktop (and other MCP-compatible tools) direct access to 8 Knowledge Hub tools:
-              search, publication/dataset/document lookup, entity detail, related works, and neighborhood exploration.
+              The easiest way to connect: add the Knowledge Hub as a <strong>Custom Connector</strong> in Claude Desktop.
+              No installation required — just a URL.
             </p>
 
             <p style={{ marginBottom: '8px' }}>
-              <strong>Step 1:</strong> Clone the repository and build the MCP server:
+              <strong>Option A: Remote connector (no install):</strong>
+            </p>
+            <ol style={{ paddingLeft: '20px', marginBottom: '12px' }}>
+              <li>Open Claude Desktop &rarr; <strong>Settings &rarr; Connectors</strong></li>
+              <li>Click <strong>Add custom connector</strong></li>
+              <li>Enter URL: <code>https://www.rmblknowledgehub.org/api/mcp</code></li>
+              <li>8 Knowledge Hub tools are immediately available</li>
+            </ol>
+
+            <p style={{ marginBottom: '8px' }}>
+              <strong>Option B: Local server (for development):</strong>
             </p>
             <pre style={{ fontSize: '13px', lineHeight: 1.5, padding: '12px 16px', background: 'var(--bg-inset)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'auto' }}>
 {`git clone https://github.com/ikb-rmbl/RMBL_knowledge_hub.git
 cd RMBL_knowledge_hub/mcp
-npm install
-npm run build`}
+npm install && npm run build`}
             </pre>
-
-            <p style={{ marginTop: '12px', marginBottom: '8px' }}>
-              <strong>Step 2:</strong> Add to your Claude Desktop config (<code>~/Library/Application Support/Claude/claude_desktop_config.json</code>):
+            <p style={{ marginTop: '8px', marginBottom: '8px' }}>
+              Then add to Claude Desktop config (<code>~/Library/Application Support/Claude/claude_desktop_config.json</code>):
             </p>
             <pre style={{ fontSize: '13px', lineHeight: 1.5, padding: '12px 16px', background: 'var(--bg-inset)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'auto' }}>
 {`{
@@ -197,7 +205,7 @@ npm run build`}
       "command": "node",
       "args": ["/path/to/RMBL_knowledge_hub/mcp/dist/index.js"],
       "env": {
-        "RMBL_API_URL": "https://rmblknowledgehub.org"
+        "RMBL_API_URL": "https://www.rmblknowledgehub.org"
       }
     }
   }
@@ -205,7 +213,7 @@ npm run build`}
             </pre>
 
             <p style={{ marginTop: '12px', marginBottom: '8px' }}>
-              <strong>Step 3:</strong> Restart Claude Desktop. You should see 8 tools available (hammer icon). Try asking:
+              <strong>Try asking:</strong>
             </p>
             <ul style={{ paddingLeft: '20px' }}>
               <li>&ldquo;Search for publications about marmot hibernation at RMBL&rdquo;</li>
@@ -213,6 +221,14 @@ npm run build`}
               <li>&ldquo;Find works related to publication 13&rdquo;</li>
               <li>&ldquo;Look up the species Marmota flaviventer&rdquo;</li>
             </ul>
+
+            <p style={{ marginTop: '12px', fontSize: '13px', color: 'var(--fg-3)' }}>
+              <strong>Note:</strong> The MCP server currently supports Claude Desktop and other clients that use the
+              Streamable HTTP transport. OpenAI/ChatGPT requires the older SSE transport with long-lived connections,
+              which is not compatible with our serverless hosting. We plan to add OpenAI support when they adopt
+              the Streamable HTTP standard. In the meantime, ChatGPT users can access the same data via
+              the <a href="/llms.txt" style={{ color: 'var(--accent)' }}>REST API</a> with <code>?format=text</code>.
+            </p>
           </div>
         </details>
 

@@ -273,6 +273,18 @@ specification/               — Project specs (functionality + implementation v
 - Story ingestion pipeline: scrape/parse → load → dedup → extract entities
 - Run `npx tsx scripts/check-staleness.ts` after data changes to see what needs rebuilding
 
+## MCP Server Architecture
+
+Two MCP server implementations:
+- **Remote (Streamable HTTP)**: `POST /api/mcp` — stateless, runs on Vercel serverless, no install needed. Users add URL as a Custom Connector in Claude Desktop.
+- **Local (stdio)**: `mcp/` package — for development or when users want to run locally.
+
+Both share the same tool definitions via `src/app/(frontend)/api/mcp/server.ts`, which calls the REST API v1 internally.
+
+**OpenAI/ChatGPT compatibility**: Not currently supported. OpenAI requires the old SSE transport (`/sse/` endpoint with long-lived GET connections), which is incompatible with Vercel serverless (function timeout limits). Will add support when OpenAI adopts the Streamable HTTP standard. ChatGPT users can use the REST API directly with `?format=text`.
+
+**Tool naming**: Our tools use descriptive names (`search_rmbl`, `get_publication`, `explore_neighborhood`) optimized for Claude. OpenAI requires generic `search`/`fetch` tool names. If OpenAI support is added, a separate endpoint with adapted tool names would be needed (dual-endpoint approach, not renaming existing tools).
+
 ## Rebuild Strategy
 
 When to do a **full rebuild** (graph + communities + primers):
