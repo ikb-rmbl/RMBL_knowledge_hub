@@ -8,18 +8,20 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 
-const BASE_URL = process.env.RMBL_API_URL || process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : 'http://localhost:3000'
+function getBaseUrl(): string {
+  if (process.env.RMBL_API_URL) return process.env.RMBL_API_URL
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  return 'http://localhost:3000'
+}
 
 async function fetchText(path: string, params: Record<string, string | number | undefined> = {}): Promise<string> {
-  const url = new URL(path, BASE_URL)
+  const url = new URL(path, getBaseUrl())
   url.searchParams.set('format', 'text')
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== '') url.searchParams.set(k, String(v))
   }
-  const res = await fetch(url.toString())
-  if (!res.ok) throw new Error(`API error ${res.status}`)
+  const res = await fetch(url.toString(), { redirect: 'follow' })
+  if (!res.ok) throw new Error(`API error ${res.status}: ${url.pathname}`)
   return await res.text()
 }
 
