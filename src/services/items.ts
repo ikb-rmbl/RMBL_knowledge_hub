@@ -193,10 +193,10 @@ export async function getCitations(pool: pg.Pool, pubId: number): Promise<{
       ORDER BY p.year DESC NULLS LAST
     `, [pubId]),
     pool.query(`
-      SELECT raw_reference, doi, link_type
+      SELECT raw_citation, cited_doi, link_type
       FROM references_cited
       WHERE source_publication_id = $1 AND target_publication_id IS NULL
-      ORDER BY raw_reference
+      ORDER BY raw_citation
       LIMIT 50
     `, [pubId]),
   ])
