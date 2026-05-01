@@ -45,6 +45,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </div>
               <Link href="/about">About</Link>
             </nav>
+            <span style={{ fontSize: '10px', color: 'var(--color-header-text)', opacity: 0.5, alignSelf: 'center', whiteSpace: 'nowrap' }}>v0.1</span>
             <ThemeToggle />
           </div>
         </header>
