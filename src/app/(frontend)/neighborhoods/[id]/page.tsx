@@ -7,6 +7,7 @@ import { getDb } from '../../lib/db'
 import { GRAPH_COLORS, ENTITY_TYPE_LABELS, ENTITY_SLUG_MAP, STAKEHOLDER_COLORS } from '../../lib/graph-colors'
 import { JsonLd, neighborhoodJsonLd } from '../../lib/json-ld'
 import ExploreEntityGraph from '../../components/ExploreEntityGraph'
+import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -385,6 +386,8 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
           </div>
         )
       })}
+
+      <FlagButton collection="neighborhoods" itemId={parseInt(id)} />
     </div>
   )
 }

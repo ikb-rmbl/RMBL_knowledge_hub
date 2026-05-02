@@ -9,6 +9,7 @@ import { isHttpUrl, isValidOrcid, isValidDoi } from '../../lib/url-validation'
 import { fetchItemNetwork } from '../../lib/graph-data'
 import { JsonLd, datasetJsonLd } from '../../lib/json-ld'
 import LazyGraph from '../../components/LazyGraph'
+import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -238,6 +239,8 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
       {/* Entity cards removed — superseded by Local Knowledge Graph visualization above */}
       {await renderRelatedWorks('datasets', parseInt(id))}
       {await renderDatasetCitations(parseInt(id))}
+
+      <FlagButton collection="datasets" itemId={parseInt(id)} />
     </div>
   )
 }
@@ -298,6 +301,8 @@ async function renderDatasetCitations(datasetId: number) {
           ))}
         </div>
       )}
+
+
     </div>
   )
 }

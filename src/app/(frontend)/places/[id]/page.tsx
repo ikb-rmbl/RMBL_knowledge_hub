@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
+import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -224,6 +225,8 @@ export default async function PlaceDetail({ params }: { params: Promise<{ id: st
           </div>
         </div>
       )}
+
+      <FlagButton collection="places" itemId={parseInt(id)} />
     </div>
   )
 }

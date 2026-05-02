@@ -8,6 +8,7 @@ import { isValidOrcid } from '../../lib/url-validation'
 import { getDb } from '../../lib/db'
 import { fetchAuthorNetwork } from '../../lib/graph-data'
 import LazyGraph from '../../components/LazyGraph'
+import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -294,6 +295,8 @@ export default async function AuthorDetail({ params, searchParams }: { params: P
           </div>
         )
       })()}
+
+      <FlagButton collection="authors" itemId={parseInt(id)} />
     </div>
   )
 }

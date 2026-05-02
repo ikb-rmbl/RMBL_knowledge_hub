@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import { isHttpUrl } from '../../lib/url-validation'
+import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -275,6 +276,8 @@ export default async function StoryDetail({ params }: { params: Promise<{ id: st
           </div>
         </div>
       ))}
+
+      <FlagButton collection="stories" itemId={parseInt(id)} />
     </div>
   )
 }

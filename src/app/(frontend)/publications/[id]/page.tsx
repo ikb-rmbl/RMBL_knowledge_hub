@@ -9,6 +9,7 @@ import { isHttpUrl, isValidOrcid, isValidDoi } from '../../lib/url-validation'
 import { fetchItemNetwork } from '../../lib/graph-data'
 import { JsonLd, publicationJsonLd } from '../../lib/json-ld'
 import LazyGraph from '../../components/LazyGraph'
+import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -222,6 +223,8 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
       {/* Entity cards removed — superseded by Local Knowledge Graph visualization above */}
       {await renderRelatedWorks('publications', parseInt(id))}
       {await renderCitationSections(parseInt(id), payload)}
+
+      <FlagButton collection="publications" itemId={parseInt(id)} />
     </div>
   )
 }
@@ -350,6 +353,7 @@ async function renderCitationSections(pubId: number, payload: any) {
               {externalCount} references to works outside the Knowledge Hub
             </p>
           )}
+
         </div>
       )}
     </>

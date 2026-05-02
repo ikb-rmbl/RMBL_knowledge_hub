@@ -5,6 +5,7 @@ import { getDb } from '../../lib/db'
 import { fetchNeighborhood } from '../../lib/graph-data'
 import { JsonLd, speciesJsonLd } from '../../lib/json-ld'
 import LazyGraph from '../../components/LazyGraph'
+import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -273,6 +274,8 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
           </div>
         </div>
       )}
+
+      <FlagButton collection="species" itemId={parseInt(id)} />
     </div>
   )
 }

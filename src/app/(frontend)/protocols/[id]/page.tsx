@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import { fetchNeighborhood } from '../../lib/graph-data'
 import LazyGraph from '../../components/LazyGraph'
+import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -210,6 +211,8 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
           </div>
         </div>
       )}
+
+      <FlagButton collection="protocols" itemId={parseInt(id)} />
     </div>
   )
 }

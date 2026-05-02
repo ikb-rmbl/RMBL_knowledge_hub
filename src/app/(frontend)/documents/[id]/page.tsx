@@ -9,6 +9,7 @@ import { getDb } from '../../lib/db'
 import { STAKEHOLDER_COLORS } from '../../lib/graph-colors'
 import { fetchItemNetwork } from '../../lib/graph-data'
 import LazyGraph from '../../components/LazyGraph'
+import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -280,6 +281,8 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
       )}
 
       {await renderRelatedWorks('documents', docId)}
+
+      <FlagButton collection="documents" itemId={parseInt(id)} />
     </div>
   )
 
@@ -338,6 +341,8 @@ function EntitySection({ title, items, slug, labelKey, italic, initialShow }: {
           </div>
         </details>
       )}
+
+
     </div>
   )
 }

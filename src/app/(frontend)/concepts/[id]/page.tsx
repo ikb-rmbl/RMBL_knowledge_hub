@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import { fetchNeighborhood } from '../../lib/graph-data'
 import LazyGraph from '../../components/LazyGraph'
+import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -236,6 +237,8 @@ export default async function ConceptDetail({ params }: { params: Promise<{ id: 
           </div>
         </div>
       )}
+
+      <FlagButton collection="concepts" itemId={parseInt(id)} />
     </div>
   )
 }
