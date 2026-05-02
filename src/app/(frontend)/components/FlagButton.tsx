@@ -74,7 +74,7 @@ export default function FlagButton({ collection, itemId }: { collection: string;
             padding: 0,
           }}
         >
-          Report an issue
+          Report an issue with this item
         </button>
       ) : (
         <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>
