@@ -64,17 +64,17 @@ export default function FlagButton({ collection, itemId }: { collection: string;
   }
 
   return (
-    <div style={{ marginTop: '24px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+    <div style={{ marginTop: '4px', marginBottom: '8px' }}>
       {!open ? (
         <button
           onClick={() => setOpen(true)}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: '13px', color: 'var(--fg-3)', textDecoration: 'underline',
+            fontSize: '12px', color: 'var(--fg-3)', textDecoration: 'underline',
             padding: 0,
           }}
         >
-          Report an issue with this record
+          Report an issue
         </button>
       ) : (
         <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>

@@ -123,14 +123,21 @@ export default async function AboutPage() {
         </details>
 
         <details style={{ marginBottom: '12px' }}>
-          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>How can I contribute or report issues?</summary>
-          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
-            The Knowledge Hub is developed and maintained by RMBL. If you notice missing publications, incorrect
-            data, or have suggestions for improvement, please contact RMBL or submit an issue on the{' '}
-            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub" target="_blank" rel="noopener noreferrer">
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>How can I help improve the data?</summary>
+          <div style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            <p>Every detail page has a &ldquo;Report an issue&rdquo; link below the title. Click it to flag
+            a record that has incorrect data, is a duplicate, is missing information, or has other problems.
+            You can describe what&rsquo;s wrong and suggest corrections — no account needed.</p>
+
+            <p style={{ marginTop: '8px' }}>Flags are reviewed by RMBL administrators through the Payload CMS admin panel.
+            You can optionally include your email address if you&rsquo;d like to be notified when the issue is resolved.</p>
+
+            <p style={{ marginTop: '8px' }}>For technical issues with the site itself (bugs, broken features),
+            please submit an issue on the{' '}
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/issues" target="_blank" rel="noopener noreferrer">
               GitHub repository
-            </a>.
-          </p>
+            </a>.</p>
+          </div>
         </details>
       </div>
 

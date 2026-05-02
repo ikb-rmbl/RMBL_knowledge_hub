@@ -135,6 +135,7 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
 
       <span className="badge badge-species">{species.rank}</span>
       <h1 style={{ fontStyle: 'italic' }}>{species.canonical_name}</h1>
+      <FlagButton collection="species" itemId={parseInt(id)} />
 
       <div className="detail-meta">
         {species.common_names?.length > 0 && (
@@ -274,8 +275,6 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
           </div>
         </div>
       )}
-
-      <FlagButton collection="species" itemId={parseInt(id)} />
     </div>
   )
 }

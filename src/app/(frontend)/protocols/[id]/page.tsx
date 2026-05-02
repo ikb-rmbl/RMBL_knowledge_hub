@@ -76,6 +76,7 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
       <span className="badge badge-protocol">{protocol.category || 'protocol'}</span>
       {protocol.standardized && <span className="badge" style={{ background: '#2e7d32', color: 'white', marginLeft: '8px' }}>standardized</span>}
       <h1>{protocol.name}</h1>
+      <FlagButton collection="protocols" itemId={parseInt(id)} />
 
       <div className="detail-meta">
         {protocol.subcategory && <div><strong>Subcategory:</strong> {protocol.subcategory}</div>}
@@ -211,8 +212,6 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
           </div>
         </div>
       )}
-
-      <FlagButton collection="protocols" itemId={parseInt(id)} />
     </div>
   )
 }

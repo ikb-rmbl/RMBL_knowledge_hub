@@ -143,6 +143,7 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
 
       <span className="badge badge-document">{docTypeLabel}</span>
       <h1>{doc.title}</h1>
+      <FlagButton collection="documents" itemId={parseInt(id)} />
 
       <div className="detail-meta">
         {dateStr && <div><strong>Date:</strong> {dateStr}</div>}
@@ -281,8 +282,6 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
       )}
 
       {await renderRelatedWorks('documents', docId)}
-
-      <FlagButton collection="documents" itemId={parseInt(id)} />
     </div>
   )
 

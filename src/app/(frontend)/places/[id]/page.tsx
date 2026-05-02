@@ -83,6 +83,7 @@ export default async function PlaceDetail({ params }: { params: Promise<{ id: st
 
       <span className="badge badge-place">{(place.place_type || 'place').replace(/_/g, ' ')}</span>
       <h1>{place.name}</h1>
+      <FlagButton collection="places" itemId={parseInt(id)} />
 
       <div className="detail-meta">
         {parentName && (
@@ -225,8 +226,6 @@ export default async function PlaceDetail({ params }: { params: Promise<{ id: st
           </div>
         </div>
       )}
-
-      <FlagButton collection="places" itemId={parseInt(id)} />
     </div>
   )
 }

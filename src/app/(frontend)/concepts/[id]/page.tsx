@@ -75,6 +75,7 @@ export default async function ConceptDetail({ params }: { params: Promise<{ id: 
 
       <span className="badge badge-concept">{(concept.concept_type || 'concept').replace(/_/g, ' ')}</span>
       <h1>{concept.name}</h1>
+      <FlagButton collection="concepts" itemId={parseInt(id)} />
 
       <div className="detail-meta">
         {concept.scope && <div><strong>Scope:</strong> {concept.scope.replace(/_/g, ' ')}</div>}
@@ -237,8 +238,6 @@ export default async function ConceptDetail({ params }: { params: Promise<{ id: 
           </div>
         </div>
       )}
-
-      <FlagButton collection="concepts" itemId={parseInt(id)} />
     </div>
   )
 }

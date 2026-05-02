@@ -291,6 +291,7 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
 
       <span className="badge" style={{ background: 'var(--color-accent)', color: '#fff' }}>{neighborhood.size} items</span>
       <h1>{neighborhood.title}</h1>
+      <FlagButton collection="neighborhoods" itemId={parseInt(id)} />
 
       {neighborhood.summary && (
         <p style={{ fontSize: '15px', color: 'var(--color-text-secondary)', lineHeight: 1.5, marginTop: '8px' }}>
@@ -386,8 +387,6 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
           </div>
         )
       })}
-
-      <FlagButton collection="neighborhoods" itemId={parseInt(id)} />
     </div>
   )
 }

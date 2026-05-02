@@ -118,6 +118,7 @@ export default async function StoryDetail({ params }: { params: Promise<{ id: st
 
       <span className="badge badge-story">{STORY_TYPE_LABELS[story.story_type] || 'Story'}</span>
       <h1>{story.title}</h1>
+      <FlagButton collection="stories" itemId={parseInt(id)} />
 
       <div className="detail-meta">
         {story.author && <div><strong>By:</strong> {story.author}</div>}
@@ -276,8 +277,6 @@ export default async function StoryDetail({ params }: { params: Promise<{ id: st
           </div>
         </div>
       ))}
-
-      <FlagButton collection="stories" itemId={parseInt(id)} />
     </div>
   )
 }

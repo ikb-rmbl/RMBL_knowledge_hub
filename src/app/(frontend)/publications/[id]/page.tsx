@@ -117,6 +117,7 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
         {typeLabels[pub.publicationType] || 'Publication'}
       </span>
       <h1>{pub.title}</h1>
+      <FlagButton collection="publications" itemId={parseInt(id)} />
 
       <div className="detail-meta">
         <div>
@@ -223,8 +224,6 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
       {/* Entity cards removed — superseded by Local Knowledge Graph visualization above */}
       {await renderRelatedWorks('publications', parseInt(id))}
       {await renderCitationSections(parseInt(id), payload)}
-
-      <FlagButton collection="publications" itemId={parseInt(id)} />
     </div>
   )
 }

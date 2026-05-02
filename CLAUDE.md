@@ -247,8 +247,9 @@ specification/               — Project specs (functionality + implementation v
 - **Secrets**: `.env` gitignored; no hardcoded credentials; admin password required via env var
 - **PAYLOAD_SECRET**: 32-char minimum enforced in production, 16 in development
 - **S3 storage**: Only enabled when all three credentials (bucket, access key, secret key) are present
-- **Rate limiting**: Per-IP sliding window on /api/v1/* (60/min general, 10/min expensive)
+- **Rate limiting**: Per-IP sliding window on /api/v1/* (60/min general, 10/min expensive, 5/hr flags)
 - **Security headers**: X-Content-Type-Options, X-Frame-Options, Cache-Control on /api/v1/*
+- **Content flags**: Anonymous submission with input sanitization, duplicate detection, reporter PII excluded from public API
 
 ## Common Pitfalls
 

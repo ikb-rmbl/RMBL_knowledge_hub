@@ -87,6 +87,7 @@ export default async function AuthorDetail({ params, searchParams }: { params: P
       </Link>
 
       <h1>{author.displayName}</h1>
+      <FlagButton collection="authors" itemId={parseInt(id)} />
 
       <div className="detail-meta">
         {author.affiliation && (
@@ -295,8 +296,6 @@ export default async function AuthorDetail({ params, searchParams }: { params: P
           </div>
         )
       })()}
-
-      <FlagButton collection="authors" itemId={parseInt(id)} />
     </div>
   )
 }

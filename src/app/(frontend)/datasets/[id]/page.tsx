@@ -99,6 +99,7 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
 
       <span className="badge badge-dataset">Dataset</span>
       <h1>{dataset.title}</h1>
+      <FlagButton collection="datasets" itemId={parseInt(id)} />
 
       <div className="detail-meta">
         {creatorLinks.length > 0 && (
@@ -239,8 +240,6 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
       {/* Entity cards removed — superseded by Local Knowledge Graph visualization above */}
       {await renderRelatedWorks('datasets', parseInt(id))}
       {await renderDatasetCitations(parseInt(id))}
-
-      <FlagButton collection="datasets" itemId={parseInt(id)} />
     </div>
   )
 }
