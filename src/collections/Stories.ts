@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { publicReadAuthWrite } from './shared/access'
+import { tombstoneHookFor } from './shared/tombstoneHook'
 import { flagsForItemField } from './shared/flagsField'
 
 export const Stories: CollectionConfig = {
@@ -8,6 +9,9 @@ export const Stories: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'storyType', 'author', 'date'],
     group: 'Content',
+  },
+  hooks: {
+    beforeDelete: [tombstoneHookFor('stories')],
   },
   access: publicReadAuthWrite,
   fields: [

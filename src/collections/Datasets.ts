@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { publicReadAuthWrite } from './shared/access'
+import { tombstoneHookFor } from './shared/tombstoneHook'
 import { curatedFieldsField, curationHookFor } from './shared/curationHook'
 import { curatedFieldsWidget } from './shared/curationWidgetField'
 import { CURATABLE_FIELDS } from './shared/curatableFields'
@@ -49,6 +50,7 @@ export const Datasets: CollectionConfig = {
   },
   hooks: {
     beforeChange: [curationHookFor(CURATABLE_FIELDS.datasets)],
+    beforeDelete: [tombstoneHookFor('datasets')],
   },
   access: publicReadAuthWrite,
   fields: [

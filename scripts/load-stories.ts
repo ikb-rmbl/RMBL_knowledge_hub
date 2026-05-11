@@ -8,6 +8,7 @@
 import pg from 'pg'
 import { readFileSync, existsSync } from 'fs'
 import './lib/config.js'
+import { extractKeys, matchesAnyTombstone, type TombstoneKeys } from './lib/dedup-keys.js'
 
 async function main() {
   const db = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 2 })
@@ -66,7 +67,16 @@ async function main() {
 
   console.log(`Loading ${articles.length} articles into stories table...`)
 
-  let loaded = 0, skipped = 0
+  // Load tombstones for stories — skip incoming articles that were
+  // deliberately deleted by an admin previously.
+  const { rows: tombRows } = await db.query(
+    'SELECT keys FROM duplicate_tombstones WHERE collection = $1',
+    ['stories'],
+  )
+  const tombstones: TombstoneKeys[] = tombRows.map((r) => r.keys as TombstoneKeys)
+  if (tombstones.length > 0) console.log(`  ${tombstones.length} story tombstones loaded`)
+
+  let loaded = 0, skipped = 0, tombSkipped = 0
   for (const a of articles) {
     if ((!a.fullText || a.fullText.length < 50) && (!a.summary || a.summary.length < 20)) { skipped++; continue }
     // Skip calendar/event listings
@@ -74,6 +84,11 @@ async function main() {
     if (titleLower.includes('community calendar') || titleLower.includes('calendar of events')
       || titleLower.includes('kids calendar') || titleLower.includes("kid's calendar")
       || titleLower.startsWith('briefs')) { skipped++; continue }
+
+    // Skip tombstoned articles (the equivalent shape uses url for source_url).
+    if (matchesAnyTombstone(extractKeys('stories', { title: a.title, sourceUrl: a.url || a.sourceUrl }), tombstones)) {
+      tombSkipped++; continue
+    }
 
     // Prefer byline from article text over CMS author
     let author = a.author
@@ -146,7 +161,7 @@ async function main() {
   `)
 
   const { rows: [{ n }] } = await db.query('SELECT count(*)::int as n FROM stories')
-  console.log(`Loaded: ${loaded}, Skipped: ${skipped}, Total in DB: ${n}`)
+  console.log(`Loaded: ${loaded}, Skipped: ${skipped}${tombSkipped ? `, Tombstoned: ${tombSkipped}` : ''}, Total in DB: ${n}`)
 
   await db.end()
 }

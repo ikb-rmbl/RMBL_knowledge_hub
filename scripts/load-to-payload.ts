@@ -27,6 +27,23 @@ import {
   getAllPaginated,
 } from './lib/payload-client.js'
 import { OUTPUT_DIR, PAYLOAD_API, CONCURRENCY } from './lib/config.js'
+import pg from 'pg'
+import { extractKeys, matchesAnyTombstone, type TombstoneKeys } from './lib/dedup-keys.js'
+
+const tombstoneDb = new pg.Pool({ connectionString: process.env.DATABASE_URL })
+
+async function loadTombstones(collection: string): Promise<TombstoneKeys[]> {
+  const { rows } = await tombstoneDb.query(
+    'SELECT keys FROM duplicate_tombstones WHERE collection = $1',
+    [collection],
+  )
+  return rows.map((r) => r.keys as TombstoneKeys)
+}
+
+function isTombstoned(collection: string, candidate: any, tombstones: TombstoneKeys[]): boolean {
+  if (tombstones.length === 0) return false
+  return matchesAnyTombstone(extractKeys(collection, candidate), tombstones)
+}
 
 const WRITE_CONCURRENCY = CONCURRENCY.PAYLOAD_WRITES
 
@@ -104,9 +121,14 @@ async function loadDocuments() {
     return
   }
 
-  const docs: any[] = JSON.parse(
+  const allDocs: any[] = JSON.parse(
     readFileSync(`${OUTPUT_DIR}/sustainable-library-normalized.json`, 'utf-8'),
   )
+
+  const tombstones = await loadTombstones('documents')
+  const docs = allDocs.filter((d) => !isTombstoned('documents', d, tombstones))
+  const tombSkipped = allDocs.length - docs.length
+  if (tombSkipped > 0) console.log(`  ${tombSkipped} documents skipped (tombstoned)`)
 
   await runBatch(
     docs,
@@ -137,6 +159,8 @@ async function loadDocuments() {
 async function loadPublications() {
   console.log('\n--- Loading Publications ---')
   const existingCount = await getCount('publications')
+  const tombstones = await loadTombstones('publications')
+  if (tombstones.length > 0) console.log(`  ${tombstones.length} publication tombstones loaded`)
 
   let pubs: any[]
 
@@ -151,6 +175,9 @@ async function loadPublications() {
       pubs.push(...discovered)
       console.log(`  Merged ${discovered.length} from ${file}`)
     }
+    const beforeTomb = pubs.length
+    pubs = pubs.filter((p) => !isTombstoned('publications', p, tombstones))
+    if (beforeTomb !== pubs.length) console.log(`  ${beforeTomb - pubs.length} skipped (tombstoned)`)
   } else {
     // Incremental: load new from main file + discovered files, dedup against existing
     console.log(`  ${existingCount} publications already exist, loading new only...`)
@@ -177,6 +204,7 @@ async function loadPublications() {
       const mainPubs = JSON.parse(readFileSync(mainFile, 'utf-8'))
       let added = 0
       let dupes = 0
+      let tombDup = 0
       for (const pub of mainPubs) {
         if (pub.doi && existingDois.has(pub.doi.toLowerCase())) { dupes++; continue }
         if (pub.title) {
@@ -187,6 +215,7 @@ async function loadPublications() {
             if (yearMatch) { dupes++; continue }
           }
         }
+        if (isTombstoned('publications', pub, tombstones)) { tombDup++; continue }
         pubs.push(pub)
         if (pub.doi) existingDois.add(pub.doi.toLowerCase())
         if (pub.title) {
@@ -196,7 +225,7 @@ async function loadPublications() {
         }
         added++
       }
-      console.log(`  publications-normalized.json: ${added} new, ${dupes} duplicates (of ${mainPubs.length})`)
+      console.log(`  publications-normalized.json: ${added} new, ${dupes} duplicates${tombDup ? `, ${tombDup} tombstoned` : ''} (of ${mainPubs.length})`)
     }
 
     // Check discovered files
@@ -208,6 +237,7 @@ async function loadPublications() {
       let added = 0
       let doiDup = 0
       let titleDup = 0
+      let tombDup = 0
       for (const pub of discovered) {
         // Tier 1: DOI match
         if (pub.doi && existingDois.has(pub.doi.toLowerCase())) { doiDup++; continue }
@@ -222,6 +252,9 @@ async function loadPublications() {
           }
         }
 
+        // Tier 3: tombstoned (deliberately deleted by an admin)
+        if (isTombstoned('publications', pub, tombstones)) { tombDup++; continue }
+
         pubs.push(pub)
         // Add to index so later items in the file don't duplicate earlier ones
         if (pub.doi) existingDois.add(pub.doi.toLowerCase())
@@ -232,7 +265,7 @@ async function loadPublications() {
         }
         added++
       }
-      console.log(`  ${file}: ${added} new, ${doiDup} DOI dupes, ${titleDup} title dupes (of ${discovered.length})`)
+      console.log(`  ${file}: ${added} new, ${doiDup} DOI dupes, ${titleDup} title dupes${tombDup ? `, ${tombDup} tombstoned` : ''} (of ${discovered.length})`)
     }
     console.log(`  ${pubs.length} new publications to load`)
     if (pubs.length === 0) return
@@ -283,12 +316,17 @@ async function loadPublications() {
 async function loadDatasets() {
   console.log('\n--- Loading Datasets ---')
   const existingCount = await getCount('datasets')
+  const tombstones = await loadTombstones('datasets')
+  if (tombstones.length > 0) console.log(`  ${tombstones.length} dataset tombstones loaded`)
 
   let datasets: any[]
 
   if (existingCount === 0) {
     // Fresh load
     datasets = JSON.parse(readFileSync(`${OUTPUT_DIR}/data-catalog-normalized.json`, 'utf-8'))
+    const beforeTomb = datasets.length
+    datasets = datasets.filter((d) => !isTombstoned('datasets', d, tombstones))
+    if (beforeTomb !== datasets.length) console.log(`  ${beforeTomb - datasets.length} skipped (tombstoned)`)
   } else {
     // Incremental: only load discovered datasets, dedup against existing
     console.log(`  ${existingCount} datasets already exist, loading discovered only...`)
@@ -316,15 +354,17 @@ async function loadDatasets() {
       const discovered = JSON.parse(readFileSync(`${OUTPUT_DIR}/${file}`, 'utf-8'))
       let added = 0
       let dupes = 0
+      let tombDup = 0
       for (const ds of discovered) {
         if (ds.doi && existingDois.has(ds.doi.toLowerCase())) { dupes++; continue }
         if (ds.title && existingTitles.has(ds.title.toLowerCase())) { dupes++; continue }
+        if (isTombstoned('datasets', ds, tombstones)) { tombDup++; continue }
         datasets.push(ds)
         if (ds.doi) existingDois.add(ds.doi.toLowerCase())
         if (ds.title) existingTitles.add(ds.title.toLowerCase())
         added++
       }
-      console.log(`  ${file}: ${added} new, ${dupes} duplicates (of ${discovered.length})`)
+      console.log(`  ${file}: ${added} new, ${dupes} duplicates${tombDup ? `, ${tombDup} tombstoned` : ''} (of ${discovered.length})`)
     }
     console.log(`  ${datasets.length} new datasets to load`)
     if (datasets.length === 0) return

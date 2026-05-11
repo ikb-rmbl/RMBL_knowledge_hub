@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { GEOGRAPHIC_SCOPE_OPTIONS } from './shared/constants'
 import { publicReadAuthWrite } from './shared/access'
+import { tombstoneHookFor } from './shared/tombstoneHook'
 import { curatedFieldsField, curationHookFor } from './shared/curationHook'
 import { curatedFieldsWidget } from './shared/curationWidgetField'
 import { CURATABLE_FIELDS } from './shared/curatableFields'
@@ -24,6 +25,7 @@ export const Publications: CollectionConfig = {
   },
   hooks: {
     beforeChange: [curationHookFor(CURATABLE_FIELDS.publications)],
+    beforeDelete: [tombstoneHookFor('publications')],
   },
   access: publicReadAuthWrite,
   fields: [
