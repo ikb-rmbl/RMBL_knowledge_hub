@@ -13,6 +13,7 @@
  */
 
 import pg from 'pg'
+import { curatedSkipClause } from './lib/curation.js'
 import { readFileSync } from 'fs'
 import './lib/config.js'
 
@@ -142,8 +143,8 @@ async function main() {
       }
 
       await db.query(
-        'UPDATE documents SET summary = $1::jsonb, updated_at = NOW() WHERE id = $2',
-        [JSON.stringify(newSummary), itemId],
+        `UPDATE documents SET summary = $1, updated_at = NOW() WHERE id = $2 AND ${curatedSkipClause(['summary'])}`,
+        [newSummary, itemId],
       )
       updated++
     }

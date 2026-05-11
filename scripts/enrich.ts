@@ -353,7 +353,7 @@ export async function enrichOrcids(opts: EnrichOpts, pubs?: NormalizedPublicatio
         }
 
         if (changed) {
-          const ok = await patchRecord('publications', payloadPub.id, { authors })
+          const ok = await patchRecord('publications', payloadPub.id, { authors }, { pipeline: true })
           if (ok) updated++
         }
       }

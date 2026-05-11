@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { publicReadAuthWrite } from './shared/access'
+import { flagsForItemField } from './shared/flagsField'
 
 const CONCEPT_TYPES = [
   { label: 'Theory', value: 'theory' },
@@ -99,5 +100,6 @@ export const Concepts: CollectionConfig = {
       index: true,
       admin: { readOnly: true },
     },
+    flagsForItemField,
   ],
 }

@@ -1,6 +1,10 @@
 import type { CollectionConfig } from 'payload'
 import { GEOGRAPHIC_SCOPE_OPTIONS } from './shared/constants'
 import { publicReadAuthWrite } from './shared/access'
+import { curatedFieldsField, curationHookFor } from './shared/curationHook'
+import { curatedFieldsWidget } from './shared/curationWidgetField'
+import { CURATABLE_FIELDS } from './shared/curatableFields'
+import { flagsForItemField } from './shared/flagsField'
 
 const PUBLICATION_TYPE_OPTIONS = [
   { label: 'Journal Article', value: 'article' },
@@ -17,6 +21,9 @@ export const Publications: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'year', 'publicationType'],
     group: 'Content',
+  },
+  hooks: {
+    beforeChange: [curationHookFor(CURATABLE_FIELDS.publications)],
   },
   access: publicReadAuthWrite,
   fields: [
@@ -268,5 +275,8 @@ export const Publications: CollectionConfig = {
         { name: 'name', type: 'text', required: true },
       ],
     },
+    flagsForItemField,
+    curatedFieldsField,
+    curatedFieldsWidget,
   ],
 }

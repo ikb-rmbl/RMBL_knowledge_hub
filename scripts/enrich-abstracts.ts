@@ -22,6 +22,7 @@ import { OPENALEX_API, OPENALEX_MAILTO, CROSSREF_API, CROSSREF_MAILTO, DATACITE_
 import { reconstructAbstract } from './lib/publication-discovery.js'
 import { ensureAuth, patchRecord, checkServer } from './lib/payload-client.js'
 import { extractText, checkTools } from './lib/pdf-extract.js'
+import { curatedSkipClause } from './lib/curation.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
@@ -76,7 +77,7 @@ async function enrichPublicationsViaApi(db: pg.Pool): Promise<void> {
           const abstract = abstractByDoi.get(row.doi.toLowerCase())
           if (abstract) {
             if (!dryRun) {
-              await db.query('UPDATE publications SET abstract = $1 WHERE id = $2', [abstract, row.id])
+              await db.query(`UPDATE publications SET abstract = $1 WHERE id = $2 AND ${curatedSkipClause(['abstract'])}`, [abstract, row.id])
             }
             oaFound++
             updated++
@@ -117,7 +118,7 @@ async function enrichPublicationsViaApi(db: pg.Pool): Promise<void> {
             abstract = abstract.replace(/<[^>]+>/g, '').trim()
             if (abstract.length > 10) {
               if (!dryRun) {
-                await db.query('UPDATE publications SET abstract = $1 WHERE id = $2', [abstract, row.id])
+                await db.query(`UPDATE publications SET abstract = $1 WHERE id = $2 AND ${curatedSkipClause(['abstract'])}`, [abstract, row.id])
               }
               crFound++
               updated++
@@ -169,7 +170,7 @@ async function enrichDatasetsViaApi(db: pg.Pool): Promise<void> {
         const desc = descriptions.find((d: any) => d.description && d.description.length > 10)
         if (desc) {
           if (!dryRun) {
-            await patchRecord('datasets', String(row.id), { description: desc.description })
+            await patchRecord('datasets', String(row.id), { description: desc.description }, { pipeline: true })
           }
           updated++
         }
@@ -254,7 +255,7 @@ async function enrichPublicationsViaFulltext(db: pg.Pool): Promise<void> {
     const abstract = extractAbstractFromText(row.full_text)
     if (abstract) {
       if (!dryRun) {
-        await db.query('UPDATE publications SET abstract = $1 WHERE id = $2', [abstract, row.id])
+        await db.query(`UPDATE publications SET abstract = $1 WHERE id = $2 AND ${curatedSkipClause(['abstract'])}`, [abstract, row.id])
       }
       extracted++
     }
@@ -293,7 +294,7 @@ async function enrichDocumentsViaFulltext(db: pg.Pool): Promise<void> {
     const summary = extractSummaryFromText(row.full_text)
     if (summary) {
       if (!dryRun) {
-        await patchRecord('documents', String(row.id), { summary })
+        await patchRecord('documents', String(row.id), { summary }, { pipeline: true })
       }
       extracted++
     }
@@ -348,7 +349,7 @@ async function enrichPublicationsViaSemanticScholar(db: pg.Pool): Promise<void> 
 
         if (abstract && abstract.length > 20) {
           if (!dryRun) {
-            await db.query('UPDATE publications SET abstract = $1 WHERE id = $2', [abstract, row.id])
+            await db.query(`UPDATE publications SET abstract = $1 WHERE id = $2 AND ${curatedSkipClause(['abstract'])}`, [abstract, row.id])
           }
         }
       } else if (res.status === 429) {

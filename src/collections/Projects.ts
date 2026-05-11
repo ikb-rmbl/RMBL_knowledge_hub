@@ -1,5 +1,8 @@
 import type { CollectionConfig } from 'payload'
 import { publicReadAuthWrite } from './shared/access'
+import { curatedFieldsField, curationHookFor } from './shared/curationHook'
+import { curatedFieldsWidget } from './shared/curationWidgetField'
+import { CURATABLE_FIELDS } from './shared/curatableFields'
 
 export const Projects: CollectionConfig = {
   slug: 'projects',
@@ -7,6 +10,9 @@ export const Projects: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'pi', 'projectType', 'status'],
     group: 'Content',
+  },
+  hooks: {
+    beforeChange: [curationHookFor(CURATABLE_FIELDS.projects)],
   },
   access: publicReadAuthWrite,
   fields: [
@@ -133,5 +139,7 @@ export const Projects: CollectionConfig = {
         description: 'Automatically discover and assign items to this project',
       },
     },
+    curatedFieldsField,
+    curatedFieldsWidget,
   ],
 }

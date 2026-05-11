@@ -16,6 +16,7 @@
 import pg from 'pg'
 import './lib/config.js'
 import { sleep } from './lib/concurrency.js'
+import { curatedSafe } from './lib/curation.js'
 import { parseEml, xmlText, xmlTextAll } from './lib/eml-parser.js'
 
 const args = process.argv.slice(2)
@@ -333,7 +334,7 @@ async function main() {
       let paramIdx = 1
 
       if (meta.methods) {
-        updates.push(`methods = $${paramIdx}`)
+        updates.push(curatedSafe('methods', `$${paramIdx}`))
         values.push(meta.methods.slice(0, 10000))
         paramIdx++
       }
@@ -347,7 +348,7 @@ async function main() {
       }
 
       if (meta.geoDescription && !ds.spatial_description) {
-        updates.push(`spatial_description = $${paramIdx}`)
+        updates.push(curatedSafe('spatial_description', `$${paramIdx}`))
         values.push(meta.geoDescription.slice(0, 500))
         paramIdx++
       }

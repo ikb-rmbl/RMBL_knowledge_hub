@@ -278,7 +278,7 @@ async function main() {
         publications: pubIds.length > 0 ? pubIds : undefined,
         datasets: dsIds.length > 0 ? dsIds : undefined,
         documents: docIds.length > 0 ? docIds : undefined,
-      })
+      }, { pipeline: true })
     }
 
     if ((i + 1) % 10 === 0 || i + 1 === projects.length) {

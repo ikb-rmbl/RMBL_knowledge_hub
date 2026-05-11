@@ -1,5 +1,9 @@
 import type { CollectionConfig } from 'payload'
 import { publicReadAuthWrite } from './shared/access'
+import { curatedFieldsField, curationHookFor } from './shared/curationHook'
+import { curatedFieldsWidget } from './shared/curationWidgetField'
+import { CURATABLE_FIELDS } from './shared/curatableFields'
+import { flagsForItemField } from './shared/flagsField'
 
 const PROTOCOL_CATEGORIES = [
   { label: 'Sampling', value: 'sampling' },
@@ -17,6 +21,9 @@ export const Protocols: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'category', 'approved', 'publicationCount'],
     group: 'Entities',
+  },
+  hooks: {
+    beforeChange: [curationHookFor(CURATABLE_FIELDS.protocols)],
   },
   access: publicReadAuthWrite,
   fields: [
@@ -120,5 +127,8 @@ export const Protocols: CollectionConfig = {
       index: true,
       admin: { readOnly: true },
     },
+    flagsForItemField,
+    curatedFieldsField,
+    curatedFieldsWidget,
   ],
 }

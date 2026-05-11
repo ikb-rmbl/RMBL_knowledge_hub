@@ -88,8 +88,13 @@ export async function patchRecord(
   collection: string,
   id: string | number,
   data: Record<string, unknown>,
+  options?: { pipeline?: boolean },
 ): Promise<boolean> {
-  const res = await fetch(`${PAYLOAD_API}/${collection}/${id}`, {
+  // ?context[pipeline]=true is read by the curation hook to skip marking the
+  // edited fields as admin-curated. Pass options.pipeline=true on any update
+  // that originates from a pipeline script.
+  const suffix = options?.pipeline ? '?context[pipeline]=true' : ''
+  const res = await fetch(`${PAYLOAD_API}/${collection}/${id}${suffix}`, {
     method: 'PATCH',
     headers: authHeaders(),
     body: JSON.stringify(data),

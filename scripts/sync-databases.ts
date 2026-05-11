@@ -198,6 +198,29 @@ function valuesEqual(a: any, b: any): boolean {
   return false
 }
 
+/**
+ * Per-cell curation: each row carries a jsonb `curated_fields` array listing
+ * the Payload camelCase field names whose value has been asserted by an admin
+ * (see src/collections/shared/curationHook.ts). When merging, a side that has
+ * asserted a cell always wins for that cell; otherwise the static
+ * curated/pipeline classification falls through.
+ */
+function snakeToCamel(s: string): string {
+  return s.replace(/_([a-z])/g, (_m, c) => c.toUpperCase())
+}
+
+function curatedSetFor(record: any): Set<string> {
+  const arr = record?.curated_fields
+  if (Array.isArray(arr)) return new Set(arr)
+  // Some drivers / fresh-INSERT rows may return null or a string
+  if (typeof arr === 'string') {
+    try { const parsed = JSON.parse(arr); return new Set(Array.isArray(parsed) ? parsed : []) } catch { return new Set() }
+  }
+  return new Set()
+}
+
+export const CURATED_FIELDS_COLUMN = 'curated_fields'
+
 function mergeRecord(
   localRecord: any,
   remoteRecord: any,
@@ -205,26 +228,40 @@ function mergeRecord(
   direction: 'pull' | 'push',
 ): { merged: Record<string, any>; changed: boolean } {
   const merged: Record<string, any> = {}
-
   const target = direction === 'pull' ? localRecord : remoteRecord
+  const localCurated = curatedSetFor(localRecord)
+  const remoteCurated = curatedSetFor(remoteRecord)
 
-  for (const field of config.curatedFields) {
-    merged[field] = mergeField(localRecord[field], remoteRecord[field], 'curated', direction)
+  function mergeOne(field: string, kind: 'curated' | 'pipeline') {
+    const camel = snakeToCamel(field)
+    if (remoteCurated.has(camel)) return remoteRecord[field]
+    if (localCurated.has(camel)) return localRecord[field]
+    return mergeField(localRecord[field], remoteRecord[field], kind, direction)
   }
 
-  for (const field of config.pipelineFields) {
-    merged[field] = mergeField(localRecord[field], remoteRecord[field], 'pipeline', direction)
-  }
+  for (const field of config.curatedFields) merged[field] = mergeOne(field, 'curated')
+  for (const field of config.pipelineFields) merged[field] = mergeOne(field, 'pipeline')
 
-  // Check if anything actually changed
+  // The curated_fields array itself is the union of both sides — a curation
+  // recorded on one DB should propagate to the other so further pipeline
+  // runs respect it everywhere.
+  const unioned = [...new Set([...localCurated, ...remoteCurated])]
+  // Only include this column when the target table actually has it (every
+  // curatable table does, but the sync touches a handful that don't).
+  merged[CURATED_FIELDS_COLUMN] = JSON.stringify(unioned)
+
+  // Did anything user-visible change?
   let changed = false
   for (const field of [...config.curatedFields, ...config.pipelineFields]) {
     const targetVal = JSON.stringify(target[field] ?? null)
     const mergedVal = JSON.stringify(merged[field] ?? null)
-    if (targetVal !== mergedVal) {
-      changed = true
-      break
-    }
+    if (targetVal !== mergedVal) { changed = true; break }
+  }
+  // Curated_fields itself changing also counts as a change worth writing.
+  if (!changed) {
+    const tgtCF = JSON.stringify([...curatedSetFor(target)].sort())
+    const mrgCF = JSON.stringify([...unioned].sort())
+    if (tgtCF !== mrgCF) changed = true
   }
 
   return { merged, changed }
@@ -272,7 +309,7 @@ async function pullCollection(
         // Remote is newer — merge with remote winning
         const { merged, changed } = mergeRecord(match, remoteRec, config, 'pull')
         if (changed && !dryRun) {
-          const fields = [...config.curatedFields, ...config.pipelineFields].filter((f) => merged[f] !== undefined)
+          const fields = [...config.curatedFields, ...config.pipelineFields, CURATED_FIELDS_COLUMN].filter((f) => merged[f] !== undefined)
           const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ')
           const values = fields.map((f) => merged[f])
           await localDb.query(
@@ -289,7 +326,7 @@ async function pullCollection(
       // New record on Neon — insert locally
       if (verbose) console.log(`    NEW from Neon: ${remoteRec.title?.slice(0, 60) || remoteRec.name || remoteRec.id}`)
       if (!dryRun) {
-        const fields = [...config.curatedFields, ...config.pipelineFields].filter((f) => remoteRec[f] !== undefined)
+        const fields = [...config.curatedFields, ...config.pipelineFields, CURATED_FIELDS_COLUMN].filter((f) => remoteRec[f] !== undefined)
         const placeholders = fields.map((_, i) => `$${i + 1}`).join(', ')
         const values = fields.map((f) => remoteRec[f])
         try {
@@ -386,7 +423,7 @@ async function pushCollection(
 
       if (shouldAttempt) {
         const { merged } = mergeRecord(localRec, match, config, 'push')
-        const fields = [...config.curatedFields, ...config.pipelineFields].filter(
+        const fields = [...config.curatedFields, ...config.pipelineFields, CURATED_FIELDS_COLUMN].filter(
           (f) => merged[f] !== undefined && !valuesEqual(merged[f], match[f]),
         )
         if (fields.length > 0) {
@@ -416,7 +453,7 @@ async function pushCollection(
     } else {
       if (verbose) console.log(`    NEW to Neon: ${localRec.title?.slice(0, 60) || localRec.name || localRec.canonical_name || localRec.id}`)
       if (!dryRun) {
-        const fields = ['id', ...config.curatedFields, ...config.pipelineFields].filter((f) => localRec[f] !== undefined)
+        const fields = ['id', ...config.curatedFields, ...config.pipelineFields, CURATED_FIELDS_COLUMN].filter((f) => localRec[f] !== undefined)
         const placeholders = fields.map((_, i) => `$${i + 1}`).join(', ')
         const values = fields.map((f) => prepValue(f, localRec[f]))
         try {
@@ -446,7 +483,7 @@ async function pushCollection(
       try {
         if (match) {
           const { merged } = mergeRecord(localRec, match, config, 'push')
-          const fields = [...config.curatedFields, ...config.pipelineFields].filter(
+          const fields = [...config.curatedFields, ...config.pipelineFields, CURATED_FIELDS_COLUMN].filter(
             (f) => merged[f] !== undefined && !valuesEqual(merged[f], match[f]),
           )
           if (fields.length > 0 && !dryRun) {
@@ -456,7 +493,7 @@ async function pushCollection(
           }
           pushed++
         } else {
-          const fields = ['id', ...config.curatedFields, ...config.pipelineFields].filter((f) => localRec[f] !== undefined)
+          const fields = ['id', ...config.curatedFields, ...config.pipelineFields, CURATED_FIELDS_COLUMN].filter((f) => localRec[f] !== undefined)
           const placeholders = fields.map((_, i) => `$${i + 1}`).join(', ')
           const values = fields.map((f) => prepValue(f, localRec[f]))
           if (!dryRun) {

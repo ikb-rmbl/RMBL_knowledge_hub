@@ -1,5 +1,9 @@
 import type { CollectionConfig } from 'payload'
 import { publicReadAuthWrite } from './shared/access'
+import { curatedFieldsField, curationHookFor } from './shared/curationHook'
+import { curatedFieldsWidget } from './shared/curationWidgetField'
+import { CURATABLE_FIELDS } from './shared/curatableFields'
+import { flagsForItemField } from './shared/flagsField'
 
 const DATA_FORMAT_OPTIONS = [
   { label: 'CSV', value: 'csv' },
@@ -43,6 +47,9 @@ export const Datasets: CollectionConfig = {
     defaultColumns: ['title', 'publicationYear', 'resourceType'],
     group: 'Content',
   },
+  hooks: {
+    beforeChange: [curationHookFor(CURATABLE_FIELDS.datasets)],
+  },
   access: publicReadAuthWrite,
   fields: [
     {
@@ -55,7 +62,7 @@ export const Datasets: CollectionConfig = {
     },
     {
       name: 'description',
-      type: 'richText',
+      type: 'textarea',
       admin: {
         description: 'DataCite: descriptions[0].description',
       },
@@ -242,5 +249,8 @@ export const Datasets: CollectionConfig = {
         condition: (_, siblingData) => Boolean(siblingData?.fullText),
       },
     },
+    flagsForItemField,
+    curatedFieldsField,
+    curatedFieldsWidget,
   ],
 }

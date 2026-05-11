@@ -11,6 +11,7 @@
 import pg from 'pg'
 import './lib/config.js'
 import { sleep } from './lib/concurrency.js'
+import { curatedSkipClause } from './lib/curation.js'
 
 const S2_BATCH_API = 'https://api.semanticscholar.org/graph/v1/paper/batch'
 const BATCH_SIZE = 500 // S2 batch endpoint max
@@ -136,7 +137,7 @@ async function discoverPdfs(db: pg.Pool): Promise<void> {
           console.log(`  FOUND: [${row.year}] ${row.title?.slice(0, 70)}`)
           console.log(`         ${pdfUrl}`)
         } else {
-          await db.query('UPDATE publications SET pdf_link = $1 WHERE id = $2', [pdfUrl, row.id])
+          await db.query(`UPDATE publications SET pdf_link = $1 WHERE id = $2 AND ${curatedSkipClause(['pdf_link'])}`, [pdfUrl, row.id])
         }
       }
     }

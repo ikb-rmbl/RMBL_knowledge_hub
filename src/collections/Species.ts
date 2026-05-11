@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { publicReadAuthWrite } from './shared/access'
+import { flagsForItemField } from './shared/flagsField'
 
 const TAXONOMIC_RANKS = [
   { label: 'Kingdom', value: 'kingdom' },
@@ -158,5 +159,6 @@ export const Species: CollectionConfig = {
       index: true,
       admin: { description: 'Cached count of distinct publications mentioning this taxon', readOnly: true },
     },
+    flagsForItemField,
   ],
 }

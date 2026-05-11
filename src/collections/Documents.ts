@@ -1,6 +1,10 @@
 import type { CollectionConfig } from 'payload'
 import { GEOGRAPHIC_SCOPE_OPTIONS } from './shared/constants'
 import { publicReadAuthWrite } from './shared/access'
+import { curatedFieldsField, curationHookFor } from './shared/curationHook'
+import { curatedFieldsWidget } from './shared/curationWidgetField'
+import { CURATABLE_FIELDS } from './shared/curatableFields'
+import { flagsForItemField } from './shared/flagsField'
 
 export const Documents: CollectionConfig = {
   slug: 'documents',
@@ -8,6 +12,9 @@ export const Documents: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'dateOriginal', 'categories'],
     group: 'Content',
+  },
+  hooks: {
+    beforeChange: [curationHookFor(CURATABLE_FIELDS.documents)],
   },
   access: publicReadAuthWrite,
   fields: [
@@ -18,7 +25,7 @@ export const Documents: CollectionConfig = {
     },
     {
       name: 'summary',
-      type: 'richText',
+      type: 'textarea',
       admin: {
         description: 'Short description or abstract (Dublin Core: dc:description)',
       },
@@ -149,5 +156,8 @@ export const Documents: CollectionConfig = {
         ],
       },
     },
+    flagsForItemField,
+    curatedFieldsField,
+    curatedFieldsWidget,
   ],
 }

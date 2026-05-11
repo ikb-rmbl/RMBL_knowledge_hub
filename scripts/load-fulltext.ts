@@ -112,7 +112,7 @@ async function loadPublicationText() {
     }
 
     if (!dryRun) {
-      const ok = await patchRecord('publications', payloadEntry.id, patch)
+      const ok = await patchRecord('publications', payloadEntry.id, patch, { pipeline: true })
       if (ok) updated++
     } else {
       updated++
@@ -177,7 +177,7 @@ async function loadDocumentText() {
     if (fullText.length < 50) { skipped++; continue }
 
     if (!dryRun) {
-      const ok = await patchRecord('documents', payloadEntry.id, { fullText })
+      const ok = await patchRecord('documents', payloadEntry.id, { fullText }, { pipeline: true })
       if (ok) updated++
     } else {
       updated++

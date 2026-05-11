@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { publicReadAuthWrite } from './shared/access'
+import { flagsForItemField } from './shared/flagsField'
 
 const PLACE_TYPES = [
   { label: 'Study Site', value: 'study_site' },
@@ -131,5 +132,6 @@ export const Places: CollectionConfig = {
       index: true,
       admin: { readOnly: true },
     },
+    flagsForItemField,
   ],
 }

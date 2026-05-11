@@ -1,5 +1,9 @@
 import type { CollectionConfig } from 'payload'
 import { publicReadAuthWrite } from './shared/access'
+import { curatedFieldsField, curationHookFor } from './shared/curationHook'
+import { curatedFieldsWidget } from './shared/curationWidgetField'
+import { CURATABLE_FIELDS } from './shared/curatableFields'
+import { flagsForItemField } from './shared/flagsField'
 
 export const Authors: CollectionConfig = {
   slug: 'authors',
@@ -7,6 +11,9 @@ export const Authors: CollectionConfig = {
     useAsTitle: 'displayName',
     defaultColumns: ['displayName', 'orcid', 'affiliation'],
     group: 'Content',
+  },
+  hooks: {
+    beforeChange: [curationHookFor(CURATABLE_FIELDS.authors)],
   },
   access: publicReadAuthWrite,
   fields: [
@@ -80,5 +87,8 @@ export const Authors: CollectionConfig = {
         description: 'Documents by this author',
       },
     },
+    flagsForItemField,
+    curatedFieldsField,
+    curatedFieldsWidget,
   ],
 }

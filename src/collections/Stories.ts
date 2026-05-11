@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { publicReadAuthWrite } from './shared/access'
+import { flagsForItemField } from './shared/flagsField'
 
 export const Stories: CollectionConfig = {
   slug: 'stories',
@@ -133,5 +134,6 @@ export const Stories: CollectionConfig = {
         description: 'Where the story takes place (e.g., "Gothic, Colorado")',
       },
     },
+    flagsForItemField,
   ],
 }

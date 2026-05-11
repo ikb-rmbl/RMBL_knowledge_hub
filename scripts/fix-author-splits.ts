@@ -18,6 +18,7 @@
 
 import pg from 'pg'
 import './lib/config.js'
+import { curatedSafe } from './lib/curation.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
@@ -106,7 +107,8 @@ async function main() {
 
       // Update original author's given_name to the best variant from the kept group
       if (!dryRun) {
-        await db.query('UPDATE authors SET given_name = $1, display_name = $2, updated_at = NOW() WHERE id = $3',
+        await db.query(
+          `UPDATE authors SET ${curatedSafe('given_name', '$1')}, ${curatedSafe('display_name', '$2')}, updated_at = NOW() WHERE id = $3`,
           [bestKeepGiven, `${bestKeepGiven} ${s.family_name}`, s.author_id])
       }
 

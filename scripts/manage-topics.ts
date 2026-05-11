@@ -44,7 +44,7 @@ async function createTopic(name: string, parentId?: string): Promise<string | nu
 }
 
 async function updateTopicParent(topicId: string, parentId: string): Promise<boolean> {
-  return patchRecord('topics', topicId, { parent: parentId })
+  return patchRecord('topics', topicId, { parent: parentId }, { pipeline: true })
 }
 
 // ---------------------------------------------------------------------------
@@ -250,7 +250,7 @@ export async function assignTopicsToPublications(opts: ManageTopicsOpts): Promis
 
     // Update in Payload
     if (!dryRun) {
-      const ok = await patchRecord('publications', String(pub.id), { researchTopics: topicIdList })
+      const ok = await patchRecord('publications', String(pub.id), { researchTopics: topicIdList }, { pipeline: true })
       if (ok) updated++
     } else {
       updated++
@@ -325,7 +325,7 @@ export async function assignTopicsToDocumentsAndDatasets(opts: ManageTopicsOpts)
 
     if (merged.length > existingTopics.length) {
       if (!dryRun) {
-        await patchRecord('documents', String(doc.id), { categories: merged })
+        await patchRecord('documents', String(doc.id), { categories: merged }, { pipeline: true })
       }
       docUpdated++
       for (const m of matches) docTopicDist.set(m, (docTopicDist.get(m) || 0) + 1)
@@ -369,7 +369,7 @@ export async function assignTopicsToDocumentsAndDatasets(opts: ManageTopicsOpts)
 
     if (merged.length > existingTags.length) {
       if (!dryRun) {
-        await patchRecord('datasets', String(ds.id), { tags: merged })
+        await patchRecord('datasets', String(ds.id), { tags: merged }, { pipeline: true })
       }
       dsUpdated++
       for (const m of matches) dsTopicDist.set(m, (dsTopicDist.get(m) || 0) + 1)
