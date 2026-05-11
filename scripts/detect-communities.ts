@@ -8,12 +8,14 @@
  * Output:
  *   - public/graph/communities.json — community metadata + member lists
  *   - Updates unified.json with community assignments per node
+ *   - Updates unified-research.json (if present) with the same community IDs,
+ *     so the research-only neighborhoods graph stays in sync
  *
  * Usage:
  *   npx tsx scripts/detect-communities.ts [--resolution=1.0]
  */
 
-import { readFileSync, writeFileSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync } from 'fs'
 import './lib/config.js'
 
 const Graph = (await import('graphology')).default
@@ -184,6 +186,29 @@ async function main() {
 
   writeFileSync('public/graph/unified.json', JSON.stringify(raw))
   console.log(`\nUpdated public/graph/unified.json with community assignments`)
+
+  // Propagate the same community IDs into the research-only variant if it exists.
+  // Nodes excluded by --exclude-docs (documents, stakeholders) won't appear in
+  // unified.json's community map — those would only show up if the research file
+  // was generated separately, which currently it isn't.
+  const researchPath = 'public/graph/unified-research.json'
+  if (existsSync(researchPath)) {
+    const research = JSON.parse(readFileSync(researchPath, 'utf-8'))
+    let matched = 0
+    for (const node of research.nodes) {
+      const cid = communities[node.id]
+      if (cid !== undefined) {
+        node.community = cid
+        node.communityLabel = communityLabels.get(cid) || null
+        matched++
+      } else {
+        node.community = -1
+        node.communityLabel = null
+      }
+    }
+    writeFileSync(researchPath, JSON.stringify(research))
+    console.log(`Updated ${researchPath} (${matched}/${research.nodes.length} nodes matched)`)
+  }
 
   // Write community metadata
   const output = {
