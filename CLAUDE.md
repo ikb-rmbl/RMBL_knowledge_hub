@@ -75,20 +75,28 @@ scripts/export-database.sh   # Export database dump for sharing (excludes sensit
 - **PDF text extraction uses system tools** (`pdftotext` from poppler, `tesseract` for OCR) — NOT npm packages
 - **All scraped data is cached** in `scripts/output/` (gitignored) and can be regenerated from source
 - **`push: false`** in payload.config.ts — preserves custom tsvector columns, work_count, embeddings, and SQL tables
-- **Custom SQL tables** (`references_cited`, `publications_mentors`, `content_chunks`, `sync_log`) managed outside Payload schema
+- **Custom SQL tables** (`references_cited`, `publications_mentors`, `content_chunks`, `sync_log`, `duplicate_tombstones`) managed outside Payload schema
 - **Provenance tracking** — `dataSource` + `discoveryMethod` fields distinguish RMBL-database publications from discovered ones
-- **Bidirectional sync** — "remote wins" for admin-curated fields, "local wins" for pipeline-enriched fields
-- **Access control** — public read, authenticated write on all content collections (shared `publicReadAuthWrite`)
+- **Cell-level curation** — `curated_fields jsonb` on each curatable table records which cells were last set by a human (auto-tracked by a Payload `beforeChange` hook). Sync and pipeline writes honor it per-row; sidebar widget lets admins release a cell back to the pipeline. See `Curation & Deletion` below.
+- **Bidirectional sync** — per-row `curated_fields` takes precedence; otherwise the static fallback is "remote wins" for admin-editable fields, "local wins" for pipeline-enriched fields
+- **Duplicate tombstones** — `duplicate_tombstones` table records the identifying keys of admin-deleted rows so pipeline loaders won't recreate them. Pure delete (no merge), one-way, 404 on deleted URLs. See `Curation & Deletion` below.
+- **Access control** — public read, authenticated write on all content collections (shared `publicReadAuthWrite`); Flags collection is auth-only (PII redaction)
 
 ## Project Structure
 
 ```
 src/
   payload.config.ts              — Payload CMS configuration (push: false, env validation, S3 conditional)
-  collections/                   — 9 Payload collections (Documents, Publications, Datasets, Stories, Topics, Authors, Projects, Users, Media)
+  collections/                   — 14 Payload collections (Documents, Publications, Datasets, Stories, Topics, Authors, Projects, Species, Places, Protocols, Concepts, Flags, Users, Media)
   services/                      — 6 service modules (search, graph, neighborhoods, entities, items, related)
+  admin/components/              — Custom Payload admin React components (FlagsForItem, CuratedFields sidebar widgets)
   collections/shared/access.ts   — Shared access control (publicReadAuthWrite)
   collections/shared/constants.ts — Shared field option constants
+  collections/shared/flagsField.ts        — Sidebar UI field showing curation flags for the current item
+  collections/shared/curationHook.ts      — beforeChange hook that auto-tracks admin-edited fields into curated_fields[]
+  collections/shared/curationWidgetField.ts — Sidebar UI field listing curated cells with release (×) buttons
+  collections/shared/curatableFields.ts   — Per-collection allowlists of fields eligible for curation tracking
+  collections/shared/tombstoneHook.ts     — beforeDelete hook that snapshots a row's keys into duplicate_tombstones
   app/(frontend)/                — Public-facing Next.js pages
     page.tsx                     — Home page
     layout.tsx                   — Site layout (RMBL header, footer)
@@ -220,9 +228,11 @@ specification/               — Project specs (functionality + implementation v
 
 - `config.ts` — All API endpoints, paths, credentials, rate limits; auto-loads `.env` on import
 - `types.ts` — `NormalizedPublication`, `NormalizedDocument`, `NormalizedDataset`, etc.
-- `payload-client.ts` — Payload REST API auth, CRUD, pagination
+- `payload-client.ts` — Payload REST API auth, CRUD, pagination. `patchRecord(..., { pipeline: true })` opts out of curation tracking.
 - `concurrency.ts` — `runConcurrent()`, `runBatch()`, `sleep()`
 - `record-matching.ts` — Tiered record matching (DOI, title similarity, ORCID, name) + field merge logic
+- `curation.ts` — `curatedSafe(col, expr)` and `curatedSkipClause(cols)` helpers for building SQL UPDATEs that respect per-row `curated_fields`
+- `dedup-keys.ts` — `extractKeys(collection, doc)` + `matchesAnyTombstone(keys, tombstones)` for the duplicate-tombstones flow
 - `crossref-client.ts` — CrossRef + Unpaywall API queries (strict/relaxed modes)
 - `topic-rules.ts` — 40 thematic topic categories + matching helpers
 - `dataset-discovery.ts` — Dataset dedup, normalization, and license helpers
@@ -251,6 +261,46 @@ specification/               — Project specs (functionality + implementation v
 - **Security headers**: X-Content-Type-Options, X-Frame-Options, Cache-Control on /api/v1/*
 - **Content flags**: Anonymous submission with input sanitization, duplicate detection, reporter PII excluded from public API
 
+## Curation & Deletion
+
+The admin curation workflow is three connected pieces:
+
+### Flags collection (`content-flags`)
+- Backed by `content_flags` table; managed in the Payload admin under "Curation > Flags".
+- Public POST `/api/v1/flags` writes anonymous reports (rate-limited 5/hr/IP, no admin auth).
+- Per-item **Flags** sidebar widget on every flaggable collection edit page; lists open flags with status badges + link to the flag record. Component: `src/admin/components/FlagsForItem.tsx`.
+- `beforeChange` hook auto-stamps `resolvedAt` / `resolvedBy` when status transitions to `resolved` or `rejected`.
+
+### Cell-level curation tracking
+- Every curatable table has a `curated_fields jsonb` column (a JSON array of camelCase Payload field names). Default `'[]'`.
+- A shared `beforeChange` hook (`src/collections/shared/curationHook.ts`) diffs incoming `data` against `originalDoc` and adds/removes field names from the array. Clearing a field to null/empty *removes* it from the array — that's the "release back to pipeline" semantic.
+- Sidebar widget `src/admin/components/CuratedFields.tsx` lets admins release a cell with a × button; the widget mutates form state, save persists it.
+- Per-collection allowlists in `src/collections/shared/curatableFields.ts` mirror the static `curatedFields` config in `scripts/sync-databases.ts`. Keep them in lockstep.
+- **Pipeline writes must opt out** of the hook with `?context[pipeline]=true` (or `patchRecord(..., { pipeline: true })`) so they don't falsely mark fields as admin-curated.
+- Pipeline SQL UPDATEs respect curation via two helpers in `scripts/lib/curation.ts`:
+  - `curatedSafe(col, expr)` — wraps a SET assignment in a CASE that preserves the existing value when curated. Use for multi-column updates.
+  - `curatedSkipClause(cols)` — `AND NOT (curated_fields ?| array[...])` for single-column writes.
+- Sync (`scripts/sync-databases.ts`) consults per-row `curated_fields` from both sides in `mergeRecord`; a side that has asserted a cell wins for that cell. The `curated_fields` array itself is unioned, so curations propagate both directions.
+
+### Duplicate tombstones
+- Schema: `duplicate_tombstones(collection, keys jsonb, deleted_by, deleted_at, notes)`. Not a Payload collection — pure SQL.
+- A `beforeDelete` hook on Publications, Datasets, Documents, Stories (`src/collections/shared/tombstoneHook.ts`) snapshots the row's identifying keys before Payload removes it.
+- Key shapes per collection (mirrored in `scripts/lib/dedup-keys.ts::extractKeys`):
+  - publications: doi (lowercased), title, year
+  - datasets: doi (lowercased), title
+  - documents: source_url, title
+  - stories: source_url, title
+- Pipeline loaders (`load-to-payload.ts`, `load-stories.ts`) load tombstones at start and skip incoming records matched by `matchesAnyTombstone`. Match rules:
+  1. Exact lowercased DOI
+  2. Exact source_url
+  3. Title similarity > 0.9 (with year within ±1 for publications)
+- Deleted items return 404 on their public URLs (no redirect to a canonical record). No "undo merge" path; restore from Neon PITR if a delete was a mistake.
+- Inspect / clear:
+  ```sql
+  SELECT id, collection, keys, deleted_at FROM duplicate_tombstones ORDER BY deleted_at DESC;
+  DELETE FROM duplicate_tombstones WHERE id = <n>;  -- lets the pipeline reintroduce
+  ```
+
 ## Common Pitfalls
 
 - Scripts that write to Payload (`load-to-payload.ts`, `manage-topics.ts`, `build-authors.ts`, `load-fulltext.ts`, `crosslink-datasets.ts`, `seed-projects.ts`, `assign-projects.ts`) require `npm run dev` running
@@ -264,7 +314,10 @@ specification/               — Project specs (functionality + implementation v
 - `build-authors.ts --load-payload` clears and rebuilds all authors — safe to re-run but destructive
 - Projects table created manually via SQL (`scripts/sql/add-projects.sql`), not via Payload push
 - `sync-databases.ts` requires `NEON_DIRECT_URL` environment variable
-- `load-to-payload.ts` has incremental dedup (DOI + title+year for publications, DOI + title for datasets) — safe to re-run
+- `load-to-payload.ts` has incremental dedup (DOI + title+year for publications, DOI + title for datasets) plus a tombstone check that skips records matching `duplicate_tombstones` — safe to re-run
+- **Pipeline writes that go through Payload REST must pass `{ pipeline: true }` to `patchRecord`** — otherwise the curation hook treats the script's writes as admin edits and falsely marks fields as curated. The flag adds `?context[pipeline]=true` which the hook checks.
+- **`curated_fields` stores camelCase Payload field names**, not snake_case DB column names. `curatedSafe`/`curatedSkipClause` handle the conversion internally; if you write raw SQL against the column, remember to query for camelCase.
+- **Admin delete = tombstone**: any delete on Publications/Datasets/Documents/Stories writes a `duplicate_tombstones` row before removal. If you delete a row for some non-duplicate reason and want the pipeline to reintroduce it, `DELETE FROM duplicate_tombstones WHERE id = <n>` after the fact.
 - Pipeline scripts auto-load `.env` via `config.ts` import — no need for manual `source .env`
 - Stories collection created manually via SQL (`scripts/sql/add-stories.sql`), not via Payload push
 - Stories full text is stored for search indexing but NOT displayed on detail pages (copyright)

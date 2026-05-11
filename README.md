@@ -23,10 +23,10 @@ Next.js 16 + Payload CMS 3.x (single app)
     +-- REST + GraphQL APIs (auto-generated)
          |
     PostgreSQL 17 + pgvector (local / Neon)
-    +-- Payload collections (8)
+    +-- Payload collections (14)
     +-- tsvector full-text search indexes
     +-- pgvector HNSW indexes (concept graph / similarity)
-    +-- Custom tables (references_cited, content_chunks, publications_mentors, sync_log)
+    +-- Custom tables (references_cited, content_chunks, publications_mentors, sync_log, duplicate_tombstones)
          |
     AWS S3 (PDF + media storage)
     Voyage AI (vector embeddings)
@@ -276,8 +276,21 @@ npm run sync:push                    # push new pipeline data to Neon
 **After admin curation on Neon:**
 ```bash
 npm run sync:pull                    # download curated edits to local
-# Local DB now has admin fixes — future pipeline runs build on curated data
+# Local DB now has admin fixes; future pipeline runs build on curated data.
+# Edits are protected per-cell: each row's `curated_fields` column tracks
+# which fields an admin asserted, and both sync and pipeline writes skip
+# those cells. Admins release a cell via the "Curated fields" sidebar
+# widget on the item's edit page.
 ```
+
+**Removing duplicates:** Use the Payload admin's Delete button on a flagged
+duplicate. A `beforeDelete` hook snapshots the row's identifying keys
+(DOI, title+year for publications; DOI/title for datasets; source_url/title
+for documents and stories) into `duplicate_tombstones`. The next pipeline
+run skips any incoming record that matches a tombstone, so the duplicate
+won't be reintroduced. Deletes are one-way — restore from Neon PITR if
+needed, or `DELETE FROM duplicate_tombstones WHERE id = <n>` to let the
+pipeline reintroduce a previously-deleted record.
 
 **Quick enrichment (no conflict risk):**
 ```bash
