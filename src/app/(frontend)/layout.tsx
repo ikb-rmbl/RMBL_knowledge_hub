@@ -18,7 +18,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <div className="site-header-inner">
             <Link href="/" className="site-logo">
               <img src="/rmbl-logo.jpg" alt="RMBL" />
-              <span>Knowledge<br />Hub</span>
+              <span className="site-brand-title">
+                Knowledge Hub<span className="site-brand-ver">v0.1</span>
+              </span>
             </Link>
             <nav className="site-nav">
               <Link href="/search">Search</Link>
@@ -43,9 +45,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <Link href="/projects">Projects</Link>
                 </div>
               </div>
+              <div className="nav-dropdown">
+                <button className="nav-dropdown-trigger" aria-haspopup="true">Research Tools</button>
+                <div className="nav-dropdown-menu">
+                  <a href="https://sdpbrowser.org" target="_blank" rel="noopener noreferrer">
+                    SDP Browser
+                    <span className="nav-dropdown-desc">Geospatial data layers from western Colorado research sites</span>
+                  </a>
+                  <a href="https://rmblcomputehub.org" target="_blank" rel="noopener noreferrer">
+                    RMBL Compute Hub
+                    <span className="nav-dropdown-desc">JupyterHub environment for geospatial analysis</span>
+                  </a>
+                </div>
+              </div>
               <Link href="/about">About</Link>
             </nav>
-            <span style={{ fontSize: '10px', color: 'var(--color-header-text)', opacity: 0.5, alignSelf: 'center', whiteSpace: 'nowrap' }}>v0.1</span>
             <ThemeToggle />
           </div>
         </header>
