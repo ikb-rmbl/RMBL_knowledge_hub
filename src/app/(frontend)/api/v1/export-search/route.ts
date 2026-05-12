@@ -13,6 +13,7 @@ import { checkRateLimit } from '../lib/rate-limit'
 import {
   publicationToRIS, datasetToRIS, documentToRIS,
   publicationToBibTeX, datasetToBibTeX, documentToBibTeX,
+  publicationToCSL, datasetToCSL, documentToCSL,
 } from '../lib/citation-format'
 
 export const dynamic = 'force-dynamic'
@@ -26,14 +27,15 @@ export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const query = searchParams.get('q')?.trim()
   const typeFilter = searchParams.get('type') || ''
-  const format = searchParams.get('format') as 'ris' | 'bibtex'
+  const format = searchParams.get('format') as 'ris' | 'bibtex' | 'csl'
 
-  if (!format || (format !== 'ris' && format !== 'bibtex')) {
-    return NextResponse.json({ error: 'format must be "ris" or "bibtex"' }, { status: 400 })
+  if (!format || (format !== 'ris' && format !== 'bibtex' && format !== 'csl')) {
+    return NextResponse.json({ error: 'format must be "ris", "bibtex", or "csl"' }, { status: 400 })
   }
 
   const pool = getDb()
-  const parts: string[] = []
+  const parts: string[] = []      // for ris / bibtex
+  const cslItems: any[] = []      // for csl
 
   const searchDocs = !typeFilter || typeFilter === 'documents'
   const searchPubs = !typeFilter || typeFilter === 'publications'
@@ -67,7 +69,8 @@ export async function GET(request: NextRequest) {
       }
       for (const pub of pubs) {
         const enriched = { ...pub, authors: authorsByPub.get(pub.id) || [] }
-        parts.push(format === 'ris' ? publicationToRIS(enriched) : publicationToBibTeX(enriched))
+        if (format === 'csl') cslItems.push(publicationToCSL(enriched))
+        else parts.push(format === 'ris' ? publicationToRIS(enriched) : publicationToBibTeX(enriched))
       }
     }
   }
@@ -94,7 +97,8 @@ export async function GET(request: NextRequest) {
       }
       for (const ds of datasets) {
         const enriched = { ...ds, creators: creatorsByDs.get(ds.id) || [] }
-        parts.push(format === 'ris' ? datasetToRIS(enriched) : datasetToBibTeX(enriched))
+        if (format === 'csl') cslItems.push(datasetToCSL(enriched))
+        else parts.push(format === 'ris' ? datasetToRIS(enriched) : datasetToBibTeX(enriched))
       }
     }
   }
@@ -107,15 +111,31 @@ export async function GET(request: NextRequest) {
       qParams,
     )
     for (const doc of docs) {
-      parts.push(format === 'ris' ? documentToRIS(doc) : documentToBibTeX(doc))
+      if (format === 'csl') cslItems.push(documentToCSL(doc))
+      else parts.push(format === 'ris' ? documentToRIS(doc) : documentToBibTeX(doc))
     }
+  }
+
+  if (format === 'csl') {
+    if (cslItems.length === 0) {
+      return new Response('No results to export.', { status: 404, headers: { 'Content-Type': 'text/plain' } })
+    }
+    return new Response(JSON.stringify(cslItems, null, 2), {
+      headers: {
+        'Content-Type': 'application/vnd.citationstyles.csl+json; charset=utf-8',
+        'Content-Disposition': `attachment; filename="rmbl-export.json"`,
+      },
+    })
   }
 
   if (parts.length === 0) {
     return new Response('No results to export.', { status: 404, headers: { 'Content-Type': 'text/plain' } })
   }
 
-  const content = parts.join('\n')
+  // Each RIS record already terminates with `ER  - \r\n`; BibTeX entries with `}\n`.
+  // Join with the format's native line ending so the inter-record separator stays consistent.
+  const sep = format === 'ris' ? '\r\n' : '\n'
+  const content = parts.join(sep)
   const ext = format === 'ris' ? 'ris' : 'bib'
   const contentType = format === 'ris' ? 'application/x-research-info-systems' : 'application/x-bibtex'
 

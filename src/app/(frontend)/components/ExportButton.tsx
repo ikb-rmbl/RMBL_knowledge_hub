@@ -11,7 +11,7 @@ export default function ExportButton({ items, totalCount, searchQuery, typeFilte
   const [exporting, setExporting] = useState(false)
   const [open, setOpen] = useState(false)
 
-  async function doExport(format: 'ris' | 'bibtex') {
+  async function doExport(format: 'ris' | 'bibtex' | 'csl') {
     setExporting(true)
     setOpen(false)
     try {
@@ -26,7 +26,7 @@ export default function ExportButton({ items, totalCount, searchQuery, typeFilte
           })
       if (!res.ok) throw new Error('Export failed')
       const blob = await res.blob()
-      const ext = format === 'ris' ? 'ris' : 'bib'
+      const ext = format === 'ris' ? 'ris' : format === 'csl' ? 'json' : 'bib'
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -82,11 +82,17 @@ export default function ExportButton({ items, totalCount, searchQuery, typeFilte
           zIndex: 50,
           minWidth: '180px',
         }}>
+          <button onClick={() => doExport('csl')} style={menuStyle}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-inset)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}>
+            CSL JSON (.json)
+            <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-3)' }}>Zotero, Pandoc, Mendeley</span>
+          </button>
           <button onClick={() => doExport('ris')} style={menuStyle}
             onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-inset)')}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}>
             RIS (.ris)
-            <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-3)' }}>Zotero, Mendeley, EndNote</span>
+            <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-3)' }}>EndNote, RefWorks</span>
           </button>
           <button onClick={() => doExport('bibtex')} style={menuStyle}
             onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-inset)')}

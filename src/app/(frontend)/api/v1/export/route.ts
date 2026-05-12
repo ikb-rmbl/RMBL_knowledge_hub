@@ -14,6 +14,7 @@ import { checkRateLimit } from '../lib/rate-limit'
 import {
   publicationToRIS, datasetToRIS, documentToRIS,
   publicationToBibTeX, datasetToBibTeX, documentToBibTeX,
+  publicationToCSL, datasetToCSL, documentToCSL,
 } from '../lib/citation-format'
 
 export const dynamic = 'force-dynamic'
@@ -38,12 +39,13 @@ export async function POST(request: NextRequest) {
   if (ids.length > MAX_ITEMS) {
     return NextResponse.json({ error: `Maximum ${MAX_ITEMS} items per export` }, { status: 400 })
   }
-  if (format !== 'ris' && format !== 'bibtex') {
-    return NextResponse.json({ error: 'format must be "ris" or "bibtex"' }, { status: 400 })
+  if (format !== 'ris' && format !== 'bibtex' && format !== 'csl') {
+    return NextResponse.json({ error: 'format must be "ris", "bibtex", or "csl"' }, { status: 400 })
   }
 
   const pool = getDb()
-  const parts: string[] = []
+  const parts: string[] = []      // for ris / bibtex
+  const cslItems: any[] = []      // for csl
 
   // Group IDs by type for bulk queries
   const pubIds = ids.filter((i: any) => i.type === 'publication').map((i: any) => i.id)
@@ -86,7 +88,8 @@ export async function POST(request: NextRequest) {
 
     for (const pub of pubs) {
       const enriched = { ...pub, authors: authorsByPub.get(pub.id) || [], keywords: kwByPub.get(pub.id) || [] }
-      parts.push(format === 'ris' ? publicationToRIS(enriched) : publicationToBibTeX(enriched))
+      if (format === 'csl') cslItems.push(publicationToCSL(enriched))
+      else parts.push(format === 'ris' ? publicationToRIS(enriched) : publicationToBibTeX(enriched))
     }
   }
 
@@ -113,7 +116,8 @@ export async function POST(request: NextRequest) {
 
     for (const ds of datasets) {
       const enriched = { ...ds, creators: creatorsByDs.get(ds.id) || [] }
-      parts.push(format === 'ris' ? datasetToRIS(enriched) : datasetToBibTeX(enriched))
+      if (format === 'csl') cslItems.push(datasetToCSL(enriched))
+      else parts.push(format === 'ris' ? datasetToRIS(enriched) : datasetToBibTeX(enriched))
     }
   }
 
@@ -125,11 +129,22 @@ export async function POST(request: NextRequest) {
     `, [docIds])
 
     for (const doc of docs) {
-      parts.push(format === 'ris' ? documentToRIS(doc) : documentToBibTeX(doc))
+      if (format === 'csl') cslItems.push(documentToCSL(doc))
+      else parts.push(format === 'ris' ? documentToRIS(doc) : documentToBibTeX(doc))
     }
   }
 
-  const content = parts.join('\n')
+  if (format === 'csl') {
+    return new Response(JSON.stringify(cslItems, null, 2), {
+      headers: {
+        'Content-Type': 'application/vnd.citationstyles.csl+json; charset=utf-8',
+        'Content-Disposition': `attachment; filename="rmbl-export.json"`,
+      },
+    })
+  }
+
+  const sep = format === 'ris' ? '\r\n' : '\n'
+  const content = parts.join(sep)
   const ext = format === 'ris' ? 'ris' : 'bib'
   const contentType = format === 'ris' ? 'application/x-research-info-systems' : 'application/x-bibtex'
 
