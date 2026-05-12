@@ -1,4 +1,4 @@
-# RMBL Knowledge Hub — Technical Specification
+# RMBL Knowledge Fabric — Technical Specification
 
 **Version:** 1.1
 **Date:** February 2026
@@ -38,7 +38,7 @@ Each lives on a separate WordPress site or data repository with its own search, 
 
 ### Solution
 
-The **RMBL Knowledge Hub** unifies all three collections into a single searchable platform with:
+The **RMBL Knowledge Fabric** unifies all three collections into a single searchable platform with:
 
 - **Faceted full-text search** across all resource types (Phase 1)
 - **Semantic/hybrid search** using vector embeddings for natural-language queries (Phase 2)
@@ -67,7 +67,7 @@ The **RMBL Knowledge Hub** unifies all three collections into a single searchabl
 
 ### Mission
 
-The RMBL Knowledge Hub makes the environmental knowledge of the Gunnison Basin — scientific research, community documents, and ecological data — discoverable, connected, and accessible to everyone, from local residents to visiting researchers.
+The RMBL Knowledge Fabric makes the environmental knowledge of the Gunnison Basin — scientific research, community documents, and ecological data — discoverable, connected, and accessible to everyone, from local residents to visiting researchers.
 
 ### The Three Source Collections
 
@@ -100,7 +100,7 @@ A combined platform enables what separate sites cannot:
 
 ### Target Audiences
 
-The Knowledge Hub serves two primary audiences with equal priority:
+The Knowledge Fabric serves two primary audiences with equal priority:
 
 1. **Community members, planners, and advocates** — people who need accessible information about their region's environment, history, and policy without needing a science degree to find it
 2. **Scientists, researchers, and students** — people who need precise metadata, citation-quality records, dataset access, and the ability to discover connections between publications and data
@@ -124,7 +124,7 @@ Both audiences benefit from the same underlying infrastructure; the difference i
   - Searches "Mt. Emmons molybdenum" → finds the original EIS, follow-up studies, and related water chemistry data → reads plain-language abstracts
 
 - *"I want a summary of what scientists have found about drought impacts in this area without reading 20 papers."* (Phase 3)
-  - Uses "Ask the Knowledge Hub" → gets a synthesized answer with citations → follows citations to the source documents for details
+  - Uses "Ask the Knowledge Fabric" → gets a synthesized answer with citations → follows citations to the source documents for details
 
 ### Persona B — Scientist / Researcher / Student
 
@@ -142,11 +142,11 @@ Both audiences benefit from the same underlying infrastructure; the difference i
   - Searches by author name → filters to Publications → sees a complete list → uses "Find Similar" to discover related work by other authors
 
 - *"I want to identify gaps in research on alpine plant phenology at RMBL."* (Phase 3)
-  - Uses "Ask the Knowledge Hub" → asks about existing phenology research → gets a summary of what exists and what time periods/species are under-studied
+  - Uses "Ask the Knowledge Fabric" → asks about existing phenology research → gets a summary of what exists and what time periods/species are under-studied
 
 ### Persona C — Content Manager (1-3 staff)
 
-**Profile:** Alex is an RMBL staff member responsible for keeping the Knowledge Hub current. They have moderate technical skills and access to the WordPress admin.
+**Profile:** Alex is an RMBL staff member responsible for keeping the Knowledge Fabric current. They have moderate technical skills and access to the WordPress admin.
 
 **User Stories:**
 
@@ -184,7 +184,7 @@ Three WordPress Custom Post Types (CPTs), each with structured fields defined vi
 | `source_file` | File | no | `dc:format` | PDF uploaded to Media Library (offloaded to S3) |
 | `geographic_scope` | Checkbox | no | `dc:coverage.spatial` | Predefined geographic areas (East River, Gothic, CB area, etc.) |
 | `source_url` | URL | no | `dc:source` | Original URL on Sustainable Library site |
-| `ingestion_date` | Date Picker | auto | — | When the record was added to the Knowledge Hub |
+| `ingestion_date` | Date Picker | auto | — | When the record was added to the Knowledge Fabric |
 
 ### Publication Post Type (RMBL Publications)
 

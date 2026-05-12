@@ -9,13 +9,13 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
   const { rows: [p] } = await getDb().query('SELECT name, place_type, elevation_m FROM places WHERE id = $1', [id])
-  if (!p) return { title: 'Place — RMBL Knowledge Hub' }
+  if (!p) return { title: 'Place — RMBL Knowledge Fabric' }
   const details = [p.place_type?.replace(/_/g, ' '), p.elevation_m ? `${p.elevation_m}m` : null].filter(Boolean).join(', ')
-  const desc = details ? `${p.name} (${details}) — geographic entity in the RMBL Knowledge Hub` : `${p.name} — geographic entity in the RMBL Knowledge Hub`
+  const desc = details ? `${p.name} (${details}) — geographic entity in the RMBL Knowledge Fabric` : `${p.name} — geographic entity in the RMBL Knowledge Fabric`
   return {
-    title: `${p.name} — RMBL Knowledge Hub`,
+    title: `${p.name} — RMBL Knowledge Fabric`,
     description: desc,
-    openGraph: { title: p.name, description: desc, url: `https://rmblknowledgehub.org/places/${id}` },
+    openGraph: { title: p.name, description: desc, url: `https://rmblknowledgefabric.org/places/${id}` },
   }
 }
 

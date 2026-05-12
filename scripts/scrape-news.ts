@@ -25,7 +25,7 @@ const ARTICLES_FILE = `${OUTPUT_DIR}/news-articles.json`
 const DELAY_MS = 2000
 const BASE_URL = 'https://crestedbuttenews.com'
 const SEARCH_URL = `${BASE_URL}/?s=RMBL`
-const USER_AGENT = 'RMBLKnowledgeHub/1.0 (research; ikb@rmbl.org)'
+const USER_AGENT = 'RMBLKnowledgeFabric/1.0 (research; ikb@rmbl.org)'
 
 interface ArticleUrl {
   url: string

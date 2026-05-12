@@ -280,7 +280,7 @@ async function main() {
   mkdirSync(OUTPUT_DIR, { recursive: true })
 
   const start = Date.now()
-  console.log('RMBL Knowledge Hub — Pipeline Orchestrator')
+  console.log('RMBL Knowledge Fabric — Pipeline Orchestrator')
   console.log('==========================================')
   console.log(`Phase: ${phaseArg}`)
   if (dryRun) console.log('(DRY RUN — no destructive changes)')

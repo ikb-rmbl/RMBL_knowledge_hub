@@ -1,4 +1,4 @@
-# RMBL Knowledge Hub
+# RMBL Knowledge Fabric
 
 A unified search platform for environmental knowledge from the Rocky Mountain Biological Laboratory (RMBL) and Gunnison Basin, Colorado. Brings together community documents, scientific publications, and research datasets into a single searchable interface with citation network navigation.
 
@@ -46,8 +46,8 @@ The data pipeline scrapes three external sources, enriches with CrossRef DOIs an
 ### Automated Setup
 
 ```bash
-git clone https://github.com/ikb-rmbl/RMBL_knowledge_hub.git
-cd RMBL_knowledge_hub
+git clone https://github.com/ikb-rmbl/RMBL_knowledge_fabric.git
+cd RMBL_knowledge_fabric
 chmod +x scripts/setup-local.sh
 ./scripts/setup-local.sh
 ```
@@ -308,4 +308,4 @@ See `scripts/README.md` for detailed deployment workflow documentation.
 ## License
 
 This project is developed for the Rocky Mountain Biological Laboratory under grant funding.
-Support for the Knowledge Hub provided by the Clark Family Foundation.
+Support for the Knowledge Fabric provided by the Clark Family Foundation.

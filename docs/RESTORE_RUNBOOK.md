@@ -1,6 +1,6 @@
 # Disaster Recovery Runbook
 
-This document describes how to recover the RMBL Knowledge Hub database when
+This document describes how to recover the RMBL Knowledge Fabric database when
 something goes wrong. **Read this calmly before acting.** Most "disasters" are
 recoverable without panic if you follow the right path.
 
@@ -232,7 +232,7 @@ never restored from isn't a backup.
 | Neon | https://console.neon.tech | DB hosting + PITR |
 | AWS | https://console.aws.amazon.com | S3 backups |
 | Vercel | https://vercel.com/dashboard | Frontend hosting |
-| GitHub | https://github.com/ikb-rmbl/RMBL_knowledge_hub | Source + CI |
+| GitHub | https://github.com/ikb-rmbl/RMBL_knowledge_fabric | Source + CI |
 
 | Person | Role | Contact |
 |---|---|---|

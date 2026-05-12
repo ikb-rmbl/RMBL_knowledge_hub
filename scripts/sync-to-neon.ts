@@ -263,7 +263,7 @@ async function applySchema() {
 // ---------------------------------------------------------------------------
 
 async function main() {
-  console.log('RMBL Knowledge Hub — Neon Sync')
+  console.log('RMBL Knowledge Fabric — Neon Sync')
   console.log('==============================')
   console.log(`Mode: ${mode}`)
   console.log(`Neon: ${NEON_URL!.replace(/:[^@]+@/, ':***@')}`) // mask password

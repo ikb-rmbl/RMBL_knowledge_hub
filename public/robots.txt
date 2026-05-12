@@ -17,4 +17,4 @@ Allow: /api/v1/
 User-agent: *
 Disallow: /admin/
 
-Sitemap: https://rmblknowledgehub.org/sitemap.xml
+Sitemap: https://rmblknowledgefabric.org/sitemap.xml

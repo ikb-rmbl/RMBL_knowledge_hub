@@ -1,5 +1,5 @@
 /**
- * Dynamic sitemap for the RMBL Knowledge Hub.
+ * Dynamic sitemap for the RMBL Knowledge Fabric.
  *
  * Next.js App Router automatically serves this at /sitemap.xml.
  * Queries the database for all public detail pages.
@@ -8,7 +8,7 @@
 import type { MetadataRoute } from 'next'
 import { getDb } from './(frontend)/lib/db'
 
-const BASE_URL = 'https://rmblknowledgehub.org'
+const BASE_URL = 'https://rmblknowledgefabric.org'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const db = getDb()

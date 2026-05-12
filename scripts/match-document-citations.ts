@@ -1,5 +1,5 @@
 /**
- * Match Document References to Publications and Documents in the Knowledge Hub
+ * Match Document References to Publications and Documents in the Knowledge Fabric
  *
  * For each references_cited row with source_document_id set but no
  * target_publication_id, try to find a matching item by:

@@ -1,4 +1,4 @@
-# RMBL Knowledge Hub — Technical Specification
+# RMBL Knowledge Fabric — Technical Specification
 
 **Version:** 1.1
 **Date:** February 2026
@@ -38,7 +38,7 @@ Each lives on a separate WordPress site or data repository with its own search, 
 
 ### Solution
 
-The **RMBL Knowledge Hub** unifies all three collections into a single searchable platform with:
+The **RMBL Knowledge Fabric** unifies all three collections into a single searchable platform with:
 
 - **Faceted full-text search** across all resource types (Phase 1)
 - **Semantic/hybrid search** using vector embeddings for natural-language queries (Phase 2)
@@ -67,7 +67,7 @@ The **RMBL Knowledge Hub** unifies all three collections into a single searchabl
 
 ### Mission
 
-The RMBL Knowledge Hub makes the environmental knowledge of the Gunnison Basin — scientific research, community documents, and ecological data — discoverable, connected, and accessible to everyone, from local residents to visiting researchers.
+The RMBL Knowledge Fabric makes the environmental knowledge of the Gunnison Basin — scientific research, community documents, and ecological data — discoverable, connected, and accessible to everyone, from local residents to visiting researchers.
 
 ### The Three Source Collections
 
@@ -100,7 +100,7 @@ A combined platform enables what separate sites cannot:
 
 ### Target Audiences
 
-The Knowledge Hub serves two primary audiences with equal priority:
+The Knowledge Fabric serves two primary audiences with equal priority:
 
 1. **Community members, planners, and advocates** — people who need accessible information about their region's environment, history, and policy without needing a science degree to find it
 2. **Scientists, researchers, and students** — people who need precise metadata, citation-quality records, dataset access, and the ability to discover connections between publications and data
@@ -124,7 +124,7 @@ Both audiences benefit from the same underlying infrastructure; the difference i
   - Searches "Mt. Emmons molybdenum" → finds the original EIS, follow-up studies, and related water chemistry data → reads plain-language abstracts
 
 - *"I want a summary of what scientists have found about drought impacts in this area without reading 20 papers."* (Phase 3)
-  - Uses "Ask the Knowledge Hub" → gets a synthesized answer with citations → follows citations to the source documents for details
+  - Uses "Ask the Knowledge Fabric" → gets a synthesized answer with citations → follows citations to the source documents for details
 
 ### Persona B — Scientist / Researcher / Student
 
@@ -142,11 +142,11 @@ Both audiences benefit from the same underlying infrastructure; the difference i
   - Searches by author name → filters to Publications → sees a complete list → uses "Find Similar" to discover related work by other authors
 
 - *"I want to identify gaps in research on alpine plant phenology at RMBL."* (Phase 3)
-  - Uses "Ask the Knowledge Hub" → asks about existing phenology research → gets a summary of what exists and what time periods/species are under-studied
+  - Uses "Ask the Knowledge Fabric" → asks about existing phenology research → gets a summary of what exists and what time periods/species are under-studied
 
 ### Persona C — Content Manager (1-3 staff)
 
-**Profile:** Alex is an RMBL staff member responsible for keeping the Knowledge Hub current. They have moderate technical skills and access to the WordPress admin.
+**Profile:** Alex is an RMBL staff member responsible for keeping the Knowledge Fabric current. They have moderate technical skills and access to the WordPress admin.
 
 **User Stories:**
 
@@ -184,7 +184,7 @@ Three WordPress Custom Post Types (CPTs), each with structured fields defined vi
 | `source_file` | File | no | `dc:format` | PDF uploaded to Media Library (offloaded to S3) |
 | `geographic_scope` | Checkbox | no | `dc:coverage.spatial` | Predefined geographic areas (East River, Gothic, CB area, etc.) |
 | `source_url` | URL | no | `dc:source` | Original URL on Sustainable Library site |
-| `ingestion_date` | Date Picker | auto | — | When the record was added to the Knowledge Hub |
+| `ingestion_date` | Date Picker | auto | — | When the record was added to the Knowledge Fabric |
 
 ### Publication Post Type (RMBL Publications)
 
@@ -313,7 +313,7 @@ Alignment with DataCite, CSL-JSON, and Dublin Core enables:
 │  │         │                         │                      │  │
 │  │  ┌──────┴─────────────────────────┴──────────────────┐  │  │
 │  │  │ Plugins: ACF Pro, Relevanssi Premium,              │  │  │
-│  │  │ WP Offload Media, Custom Knowledge Hub plugin      │  │  │
+│  │  │ WP Offload Media, Custom Knowledge Fabric plugin      │  │  │
 │  │  └───────────────────────┬───────────────────────────┘  │  │
 │  │                          │ WP REST API                   │  │
 │  └──────────────────────────┼──────────────────────────────┘  │
@@ -377,7 +377,7 @@ WordPress is the content management layer. Three Custom Post Types (Documents, P
 
 #### MySQL / MariaDB (WordPress Default)
 
-WordPress uses MySQL (or MariaDB) as its database. The Knowledge Hub stores all content, metadata, and taxonomy relationships in WordPress's standard table structure (`wp_posts`, `wp_postmeta`, `wp_terms`, `wp_term_taxonomy`).
+WordPress uses MySQL (or MariaDB) as its database. The Knowledge Fabric stores all content, metadata, and taxonomy relationships in WordPress's standard table structure (`wp_posts`, `wp_postmeta`, `wp_terms`, `wp_term_taxonomy`).
 
 **Trade-offs vs. PostgreSQL:**
 - MySQL lacks PostgreSQL's `tsvector` for full-text search — this is handled by Relevanssi Premium (see Section 6)
@@ -541,7 +541,7 @@ Re-rank chunks for relevance to the specific question
     │
     ▼
 Construct prompt:
-  System: "You are a research assistant for the RMBL Knowledge Hub.
+  System: "You are a research assistant for the RMBL Knowledge Fabric.
            Answer based ONLY on the provided sources.
            Cite every claim with [Source N].
            If you cannot answer from the sources, say so."
@@ -558,11 +558,11 @@ Post-process: link [Source N] citations to WordPress post URLs
 Return JSON response → WordPress theme renders answer with clickable source links
 ```
 
-**UI:** "Ask the Knowledge Hub" page in WordPress, using a custom page template with a JavaScript-driven chat interface that calls the sidecar API. Supports conversational follow-ups within a session. Every AI-generated statement links to its source document(s).
+**UI:** "Ask the Knowledge Fabric" page in WordPress, using a custom page template with a JavaScript-driven chat interface that calls the sidecar API. Supports conversational follow-ups within a session. Every AI-generated statement links to its source document(s).
 
 **Guardrails:**
 - Answers are grounded only in retrieved content — the prompt explicitly instructs the model not to use prior knowledge
-- When confidence is low or sources are insufficient, the response says: "I don't have enough information in the Knowledge Hub to answer that question. Try searching for [suggested terms]."
+- When confidence is low or sources are insufficient, the response says: "I don't have enough information in the Knowledge Fabric to answer that question. Try searching for [suggested terms]."
 - No hallucinated citations — every cited source is verified to exist in the retrieved context
 
 **Cost controls:**
@@ -684,7 +684,7 @@ Home
 │   ├── Publications (RMBL Research)
 │   └── Datasets (Data Catalog)
 ├── About
-│   ├── About the Knowledge Hub
+│   ├── About the Knowledge Fabric
 │   ├── About the Sources
 │   └── How to Contribute
 └── Ask (Phase 3 — AI Q&A)
@@ -702,7 +702,7 @@ The public site is built as a **custom WordPress theme** with:
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  RMBL Knowledge Hub                            [About] [Ask] │
+│  RMBL Knowledge Fabric                            [About] [Ask] │
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
 │   Explore Western Colorado's Environmental Knowledge         │
@@ -748,7 +748,7 @@ The public site is built as a **custom WordPress theme** with:
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  RMBL Knowledge Hub                            [About] [Ask] │
+│  RMBL Knowledge Fabric                            [About] [Ask] │
 ├──────────────────────────────────────────────────────────────┤
 │  ┌────────────────────────────────────────────────────┐      │
 │  │  molybdenum water quality                          │      │
@@ -791,7 +791,7 @@ The public site is built as a **custom WordPress theme** with:
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  RMBL Knowledge Hub                            [About] [Ask] │
+│  RMBL Knowledge Fabric                            [About] [Ask] │
 ├──────────────────────────────────────────────────────────────┤
 │  < Back to results                                           │
 │                                                              │
@@ -836,7 +836,7 @@ The public site is built as a **custom WordPress theme** with:
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  RMBL Knowledge Hub                            [About] [Ask] │
+│  RMBL Knowledge Fabric                            [About] [Ask] │
 ├──────────────────────────────────────────────────────────────┤
 │  < Back to results                                           │
 │                                                              │
@@ -873,7 +873,7 @@ The public site is built as a **custom WordPress theme** with:
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  RMBL Knowledge Hub                            [About] [Ask] │
+│  RMBL Knowledge Fabric                            [About] [Ask] │
 ├──────────────────────────────────────────────────────────────┤
 │  < Back to results                                           │
 │                                                              │
@@ -914,10 +914,10 @@ The public site is built as a **custom WordPress theme** with:
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  RMBL Knowledge Hub                            [About] [Ask] │
+│  RMBL Knowledge Fabric                            [About] [Ask] │
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
-│  Ask the Knowledge Hub                                       │
+│  Ask the Knowledge Fabric                                       │
 │  Get AI-powered answers from RMBL's research, documents,     │
 │  and datasets. Every answer cites its sources.               │
 │                                                              │
@@ -928,7 +928,7 @@ The public site is built as a **custom WordPress theme** with:
 │  │                                                        │  │
 │  │  ────────────────────────────────────────────          │  │
 │  │                                                        │  │
-│  │  Knowledge Hub: Based on the available research and    │  │
+│  │  Knowledge Fabric: Based on the available research and    │  │
 │  │  documents, here's what we know:                       │  │
 │  │                                                        │  │
 │  │  The proposed Mt. Emmons molybdenum mine was subject   │  │
@@ -952,7 +952,7 @@ The public site is built as a **custom WordPress theme** with:
 │  └────────────────────────────────────────────────────┘      │
 │                                                              │
 │  Note: Answers are generated by AI based on sources in the   │
-│  Knowledge Hub. Always verify important claims by checking   │
+│  Knowledge Fabric. Always verify important claims by checking   │
 │  the cited sources directly.                                 │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -996,7 +996,7 @@ The public site is built as a **custom WordPress theme** with:
 | **ACF Pro** | Structured custom fields for all CPTs | $99/year |
 | **Relevanssi Premium** | Full-text search with PDF indexing, custom field indexing | $129/year |
 | **WP Offload Media** | Offload media uploads (PDFs, images) to S3/R2 | $99/year (Lite is free for basic use) |
-| **Custom Knowledge Hub plugin** | CPT registration, taxonomy registration, REST endpoints (citation export, search API proxy), migration utilities, sidecar sync hooks | Custom (developed as part of this project) |
+| **Custom Knowledge Fabric plugin** | CPT registration, taxonomy registration, REST endpoints (citation export, search API proxy), migration utilities, sidecar sync hooks | Custom (developed as part of this project) |
 | **WP Crontrol** (free) | Manage WordPress cron jobs (search index rebuilds, sidecar sync) | Free |
 | **Wordfence** or **Solid Security** (free tier) | Security hardening, firewall, login protection | Free |
 
@@ -1010,7 +1010,7 @@ DB_PASSWORD=...
 DB_HOST=localhost
 
 # S3-Compatible Storage (for WP Offload Media)
-AS3CF_SETTINGS_BUCKET=rmbl-knowledge-hub
+AS3CF_SETTINGS_BUCKET=rmbl-knowledge-fabric
 AS3CF_SETTINGS_REGION=auto
 AS3CF_SETTINGS_PROVIDER=aws  # or cloudflare-r2
 AWS_ACCESS_KEY_ID=...
@@ -1050,7 +1050,7 @@ WORDPRESS_APP_PASSWORD=...  # For authenticated WP REST API calls
 
 ### Public Access
 
-The Knowledge Hub is a public resource. No login is required to:
+The Knowledge Fabric is a public resource. No login is required to:
 - Search across all collections
 - Browse resources by type or topic
 - View resource detail pages with full metadata
@@ -1162,7 +1162,7 @@ The critical path runs through Phase 1 content migration (Months 2-3). The three
 
 These features are out of scope for the grant period but are enabled by the architecture and worth noting for future planning:
 
-- **Automated content sync:** If source sites continue to operate, build lightweight scrapers that detect new content and flag it for import into the Knowledge Hub (avoiding full re-scraping).
+- **Automated content sync:** If source sites continue to operate, build lightweight scrapers that detect new content and flag it for import into the Knowledge Fabric (avoiding full re-scraping).
 
 - **Dataset previews:** Render interactive maps for GIS data, charts for time series, and table previews for tabular datasets — directly on detail pages, using JavaScript libraries (Leaflet/Mapbox GL JS for maps, Chart.js or Observable Plot for charts).
 
@@ -1204,12 +1204,12 @@ These features are out of scope for the grant period but are enabled by the arch
 
 ### Publication Fields → CSL-JSON
 
-| Knowledge Hub Field | CSL-JSON Key | Notes |
+| Knowledge Fabric Field | CSL-JSON Key | Notes |
 |---|---|---|
 | title (post title) | `title` | |
 | authors[].given_name | `author[].given` | ACF Repeater subfield |
 | authors[].family_name | `author[].family` | ACF Repeater subfield |
-| authors[].orcid | — | Stored in Knowledge Hub; not part of CSL-JSON spec |
+| authors[].orcid | — | Stored in Knowledge Fabric; not part of CSL-JSON spec |
 | year | `issued.date-parts[0][0]` | |
 | publication_type | `type` | Mapped: article→article-journal, thesis→thesis, etc. |
 | journal | `container-title` | |
@@ -1225,7 +1225,7 @@ These features are out of scope for the grant period but are enabled by the arch
 
 ### Dataset Fields → DataCite 4.5
 
-| Knowledge Hub Field | DataCite Property | Obligation |
+| Knowledge Fabric Field | DataCite Property | Obligation |
 |---|---|---|
 | doi | `identifier` | Mandatory (if DOI exists) |
 | creators | `creators` | Mandatory |
@@ -1243,11 +1243,11 @@ These features are out of scope for the grant period but are enabled by the arch
 | related_publications | `relatedIdentifiers[]` | Recommended |
 | data_format | `formats[]` | Optional |
 | file_size | `sizes[]` | Optional |
-| download_url | — | Knowledge Hub internal |
+| download_url | — | Knowledge Fabric internal |
 
 ### Document Fields → Dublin Core
 
-| Knowledge Hub Field | Dublin Core Element | Notes |
+| Knowledge Fabric Field | Dublin Core Element | Notes |
 |---|---|---|
 | title (post title) | `dc:title` | |
 | summary | `dc:description` | |

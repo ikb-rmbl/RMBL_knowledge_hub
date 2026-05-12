@@ -1,5 +1,5 @@
 /**
- * HTTP client for the RMBL Knowledge Hub REST API v1.
+ * HTTP client for the RMBL Knowledge Fabric REST API v1.
  *
  * All methods return plain text (format=text) for LLM consumption.
  */

@@ -158,7 +158,7 @@ export default async function HomePage() {
       <div className="hero">
         <h1>Explore Environmental Knowledge at Rocky Mountain Biological Laboratory</h1>
         <p>
-          The Knowledge Hub brings together {totalCount.toLocaleString()} scientific publications,
+          The Knowledge Fabric brings together {totalCount.toLocaleString()} scientific publications,
           datasets, and other documents from one of the best-studied ecosystems in the world,
           connected in a dense knowledge network.
         </p>

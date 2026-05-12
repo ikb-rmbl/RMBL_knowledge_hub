@@ -145,7 +145,7 @@ export const Documents: CollectionConfig = {
       admin: {
         readOnly: true,
         date: { pickerAppearance: 'dayOnly', displayFormat: 'yyyy-MM-dd' },
-        description: 'When the record was added to the Knowledge Hub',
+        description: 'When the record was added to the Knowledge Fabric',
       },
       hooks: {
         beforeChange: [

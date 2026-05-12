@@ -16,12 +16,12 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
   const { rows: [d] } = await getDb().query("SELECT title, summary::text as summary, document_type FROM documents WHERE id = $1", [id])
-  if (!d) return { title: 'Document — RMBL Knowledge Hub' }
-  const desc = d.summary ? String(d.summary).slice(0, 200) : `${(d.document_type || 'Document').replace(/_/g, ' ')} from the RMBL Knowledge Hub`
+  if (!d) return { title: 'Document — RMBL Knowledge Fabric' }
+  const desc = d.summary ? String(d.summary).slice(0, 200) : `${(d.document_type || 'Document').replace(/_/g, ' ')} from the RMBL Knowledge Fabric`
   return {
-    title: `${d.title} — RMBL Knowledge Hub`,
+    title: `${d.title} — RMBL Knowledge Fabric`,
     description: desc,
-    openGraph: { title: d.title, description: desc, url: `https://rmblknowledgehub.org/documents/${id}` },
+    openGraph: { title: d.title, description: desc, url: `https://rmblknowledgefabric.org/documents/${id}` },
   }
 }
 

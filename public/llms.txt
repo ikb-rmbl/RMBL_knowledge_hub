@@ -1,10 +1,10 @@
-# RMBL Knowledge Hub
+# RMBL Knowledge Fabric
 
 > Unified search platform for environmental research at the Rocky Mountain Biological Laboratory (RMBL) and Gunnison Basin, Colorado.
 
 ## About
 
-The RMBL Knowledge Hub connects scientific publications, community documents, research datasets, and a knowledge graph of species, concepts, protocols, and places studied at one of the longest-running field biology stations in North America. The platform supports researchers, land managers, and community members working on environmental issues in the Upper Gunnison Basin.
+The RMBL Knowledge Fabric connects scientific publications, community documents, research datasets, and a knowledge graph of species, concepts, protocols, and places studied at one of the longest-running field biology stations in North America. The platform supports researchers, land managers, and community members working on environmental issues in the Upper Gunnison Basin.
 
 ## API (add ?format=text for LLM-friendly plain text)
 
@@ -41,5 +41,5 @@ An MCP (Model Context Protocol) server is available for Claude Desktop and other
 
 ## Source
 
-- Website: https://rmblknowledgehub.org
-- Repository: https://github.com/ikb-rmbl/RMBL_knowledge_hub
+- Website: https://rmblknowledgefabric.org
+- Repository: https://github.com/ikb-rmbl/RMBL_knowledge_fabric

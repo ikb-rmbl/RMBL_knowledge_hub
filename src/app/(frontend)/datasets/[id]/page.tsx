@@ -18,14 +18,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const payload = await getPayload({ config })
   try {
     const ds = await payload.findByID({ collection: 'datasets', id, depth: 0 })
-    const desc = ds.description ? String(ds.description).slice(0, 200) : 'Research dataset from the RMBL Knowledge Hub'
+    const desc = ds.description ? String(ds.description).slice(0, 200) : 'Research dataset from the RMBL Knowledge Fabric'
     return {
-      title: `${ds.title} — RMBL Knowledge Hub`,
+      title: `${ds.title} — RMBL Knowledge Fabric`,
       description: desc,
-      openGraph: { title: String(ds.title), description: desc, url: `https://rmblknowledgehub.org/datasets/${id}` },
+      openGraph: { title: String(ds.title), description: desc, url: `https://rmblknowledgefabric.org/datasets/${id}` },
     }
   } catch {
-    return { title: 'Dataset — RMBL Knowledge Hub' }
+    return { title: 'Dataset — RMBL Knowledge Fabric' }
   }
 }
 
@@ -271,7 +271,7 @@ async function renderDatasetCitations(datasetId: number) {
     <div className="detail-section">
       <h2>
         {externalCount > 0 && citedByRows.length > 0
-          ? `Cited By (${externalCount} times, ${citedByRows.length} in Knowledge Hub)`
+          ? `Cited By (${externalCount} times, ${citedByRows.length} in Knowledge Fabric)`
           : externalCount > 0
             ? `Cited ${externalCount} times`
             : `Cited By (${citedByRows.length})`}

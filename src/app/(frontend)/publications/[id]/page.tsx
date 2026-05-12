@@ -18,14 +18,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const payload = await getPayload({ config })
   try {
     const pub = await payload.findByID({ collection: 'publications', id, depth: 0 })
-    const desc = pub.abstract ? String(pub.abstract).slice(0, 200) : `Publication from the RMBL Knowledge Hub`
+    const desc = pub.abstract ? String(pub.abstract).slice(0, 200) : `Publication from the RMBL Knowledge Fabric`
     return {
-      title: `${pub.title} — RMBL Knowledge Hub`,
+      title: `${pub.title} — RMBL Knowledge Fabric`,
       description: desc,
-      openGraph: { title: String(pub.title), description: desc, url: `https://rmblknowledgehub.org/publications/${id}` },
+      openGraph: { title: String(pub.title), description: desc, url: `https://rmblknowledgefabric.org/publications/${id}` },
     }
   } catch {
-    return { title: 'Publication — RMBL Knowledge Hub' }
+    return { title: 'Publication — RMBL Knowledge Fabric' }
   }
 }
 
@@ -281,7 +281,7 @@ async function renderCitationSections(pubId: number, payload: any) {
         <div className="detail-section">
           <h2>
             {externalCitationCount > 0 && citedByRows.length > 0
-              ? `Cited By (${externalCitationCount} times, ${citedByRows.length} in Knowledge Hub)`
+              ? `Cited By (${externalCitationCount} times, ${citedByRows.length} in Knowledge Fabric)`
               : externalCitationCount > 0
                 ? `Cited ${externalCitationCount} times`
                 : `Cited By (${citedByRows.length})`}
@@ -317,7 +317,7 @@ async function renderCitationSections(pubId: number, payload: any) {
           {internalRefs.length > 0 && (
             <>
               <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '12px' }}>
-                {internalRefs.length} in Knowledge Hub{externalCount > 0 ? `, ${externalCount} external` : ''}
+                {internalRefs.length} in Knowledge Fabric{externalCount > 0 ? `, ${externalCount} external` : ''}
               </p>
               <div className="result-list">
                 {internalRefs.map((row: any, i: number) => {
@@ -349,7 +349,7 @@ async function renderCitationSections(pubId: number, payload: any) {
           )}
           {internalRefs.length === 0 && externalCount > 0 && (
             <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-              {externalCount} references to works outside the Knowledge Hub
+              {externalCount} references to works outside the Knowledge Fabric
             </p>
           )}
 

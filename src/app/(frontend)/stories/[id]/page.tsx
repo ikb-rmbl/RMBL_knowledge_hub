@@ -26,12 +26,12 @@ const ENTITY_LABEL: Record<string, string> = {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
   const { rows: [s] } = await getDb().query('SELECT title, summary, story_type FROM stories WHERE id = $1', [id])
-  if (!s) return { title: 'Story — RMBL Knowledge Hub' }
-  const desc = s.summary ? String(s.summary).slice(0, 200) : `${STORY_TYPE_LABELS[s.story_type] || 'Story'} from the RMBL Knowledge Hub`
+  if (!s) return { title: 'Story — RMBL Knowledge Fabric' }
+  const desc = s.summary ? String(s.summary).slice(0, 200) : `${STORY_TYPE_LABELS[s.story_type] || 'Story'} from the RMBL Knowledge Fabric`
   return {
-    title: `${s.title} — RMBL Knowledge Hub`,
+    title: `${s.title} — RMBL Knowledge Fabric`,
     description: desc,
-    openGraph: { title: s.title, description: desc, url: `https://rmblknowledgehub.org/stories/${id}` },
+    openGraph: { title: s.title, description: desc, url: `https://rmblknowledgefabric.org/stories/${id}` },
   }
 }
 

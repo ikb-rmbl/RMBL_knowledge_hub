@@ -1,4 +1,4 @@
-# RMBL Knowledge Hub — Technical Specification (Payload CMS Variant)
+# RMBL Knowledge Fabric — Technical Specification (Payload CMS Variant)
 
 **Version:** 1.0
 **Date:** February 2026
@@ -38,7 +38,7 @@ Each lives on a separate WordPress site or data repository with its own search, 
 
 ### Solution
 
-The **RMBL Knowledge Hub** unifies all three collections into a single searchable platform with:
+The **RMBL Knowledge Fabric** unifies all three collections into a single searchable platform with:
 
 - **Faceted full-text search** across all resource types (Phase 1)
 - **Semantic/hybrid search** using vector embeddings for natural-language queries (Phase 2)
@@ -67,7 +67,7 @@ The **RMBL Knowledge Hub** unifies all three collections into a single searchabl
 
 ### Mission
 
-The RMBL Knowledge Hub makes the environmental knowledge of the Gunnison Basin — scientific research, community documents, and ecological data — discoverable, connected, and accessible to everyone, from local residents to visiting researchers.
+The RMBL Knowledge Fabric makes the environmental knowledge of the Gunnison Basin — scientific research, community documents, and ecological data — discoverable, connected, and accessible to everyone, from local residents to visiting researchers.
 
 ### The Three Source Collections
 
@@ -100,7 +100,7 @@ A combined platform enables what separate sites cannot:
 
 ### Target Audiences
 
-The Knowledge Hub serves two primary audiences with equal priority:
+The Knowledge Fabric serves two primary audiences with equal priority:
 
 1. **Community members, planners, and advocates** — people who need accessible information about their region's environment, history, and policy without needing a science degree to find it
 2. **Scientists, researchers, and students** — people who need precise metadata, citation-quality records, dataset access, and the ability to discover connections between publications and data
@@ -124,7 +124,7 @@ Both audiences benefit from the same underlying infrastructure; the difference i
   - Searches "Mt. Emmons molybdenum" → finds the original EIS, follow-up studies, and related water chemistry data → reads plain-language abstracts
 
 - *"I want a summary of what scientists have found about drought impacts in this area without reading 20 papers."* (Phase 3)
-  - Uses "Ask the Knowledge Hub" → gets a synthesized answer with citations → follows citations to the source documents for details
+  - Uses "Ask the Knowledge Fabric" → gets a synthesized answer with citations → follows citations to the source documents for details
 
 ### Persona B — Scientist / Researcher / Student
 
@@ -142,11 +142,11 @@ Both audiences benefit from the same underlying infrastructure; the difference i
   - Searches by author name → filters to Publications → sees a complete list → uses "Find Similar" to discover related work by other authors
 
 - *"I want to identify gaps in research on alpine plant phenology at RMBL."* (Phase 3)
-  - Uses "Ask the Knowledge Hub" → asks about existing phenology research → gets a summary of what exists and what time periods/species are under-studied
+  - Uses "Ask the Knowledge Fabric" → asks about existing phenology research → gets a summary of what exists and what time periods/species are under-studied
 
 ### Persona C — Content Manager (1-3 staff)
 
-**Profile:** Alex is an RMBL staff member responsible for keeping the Knowledge Hub current. They have moderate technical skills and access to the admin panel.
+**Profile:** Alex is an RMBL staff member responsible for keeping the Knowledge Fabric current. They have moderate technical skills and access to the admin panel.
 
 **User Stories:**
 
@@ -182,7 +182,7 @@ Three primary Payload CMS collections, each mapped to a recognized metadata stan
 | `source_file` | upload | no | `dc:format` | PDF stored on S3 |
 | `geographic_scope` | select[] | no | `dc:coverage.spatial` | Predefined geographic areas (East River, Gothic, CB area, etc.) |
 | `source_url` | text | no | `dc:source` | Original URL on Sustainable Library site |
-| `ingestion_date` | date | auto | — | When the record was added to the Knowledge Hub |
+| `ingestion_date` | date | auto | — | When the record was added to the Knowledge Fabric |
 
 ### Publication Collection (RMBL Publications)
 
@@ -471,7 +471,7 @@ Re-rank chunks for relevance to the specific question
     │
     ▼
 Construct prompt:
-  System: "You are a research assistant for the RMBL Knowledge Hub.
+  System: "You are a research assistant for the RMBL Knowledge Fabric.
            Answer based ONLY on the provided sources.
            Cite every claim with [Source N].
            If you cannot answer from the sources, say so."
@@ -488,11 +488,11 @@ Post-process: link [Source N] citations to actual resource detail pages
 Display answer with clickable source links
 ```
 
-**UI:** "Ask the Knowledge Hub" panel accessible from the navigation bar. Supports conversational follow-ups within a session. Every AI-generated statement links to its source document(s).
+**UI:** "Ask the Knowledge Fabric" panel accessible from the navigation bar. Supports conversational follow-ups within a session. Every AI-generated statement links to its source document(s).
 
 **Guardrails:**
 - Answers are grounded only in retrieved content — the prompt explicitly instructs the model not to use prior knowledge
-- When confidence is low or sources are insufficient, the response says: "I don't have enough information in the Knowledge Hub to answer that question. Try searching for [suggested terms]."
+- When confidence is low or sources are insufficient, the response says: "I don't have enough information in the Knowledge Fabric to answer that question. Try searching for [suggested terms]."
 - No hallucinated citations — every cited source is verified to exist in the retrieved context
 
 **Cost controls:**
@@ -605,7 +605,7 @@ Home
 │   ├── Publications (RMBL Research)
 │   └── Datasets (Data Catalog)
 ├── About
-│   ├── About the Knowledge Hub
+│   ├── About the Knowledge Fabric
 │   ├── About the Sources
 │   └── How to Contribute
 └── Ask (Phase 3 — AI Q&A)
@@ -615,7 +615,7 @@ Home
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  RMBL Knowledge Hub                            [About] [Ask] │
+│  RMBL Knowledge Fabric                            [About] [Ask] │
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
 │   Explore Western Colorado's Environmental Knowledge         │
@@ -661,7 +661,7 @@ Home
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  RMBL Knowledge Hub                            [About] [Ask] │
+│  RMBL Knowledge Fabric                            [About] [Ask] │
 ├──────────────────────────────────────────────────────────────┤
 │  ┌────────────────────────────────────────────────────┐      │
 │  │  molybdenum water quality                          │      │
@@ -704,7 +704,7 @@ Home
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  RMBL Knowledge Hub                            [About] [Ask] │
+│  RMBL Knowledge Fabric                            [About] [Ask] │
 ├──────────────────────────────────────────────────────────────┤
 │  < Back to results                                           │
 │                                                              │
@@ -749,7 +749,7 @@ Home
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  RMBL Knowledge Hub                            [About] [Ask] │
+│  RMBL Knowledge Fabric                            [About] [Ask] │
 ├──────────────────────────────────────────────────────────────┤
 │  < Back to results                                           │
 │                                                              │
@@ -786,7 +786,7 @@ Home
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  RMBL Knowledge Hub                            [About] [Ask] │
+│  RMBL Knowledge Fabric                            [About] [Ask] │
 ├──────────────────────────────────────────────────────────────┤
 │  < Back to results                                           │
 │                                                              │
@@ -827,10 +827,10 @@ Home
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  RMBL Knowledge Hub                            [About] [Ask] │
+│  RMBL Knowledge Fabric                            [About] [Ask] │
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
-│  Ask the Knowledge Hub                                       │
+│  Ask the Knowledge Fabric                                       │
 │  Get AI-powered answers from RMBL's research, documents,     │
 │  and datasets. Every answer cites its sources.               │
 │                                                              │
@@ -841,7 +841,7 @@ Home
 │  │                                                        │  │
 │  │  ────────────────────────────────────────────          │  │
 │  │                                                        │  │
-│  │  Knowledge Hub: Based on the available research and    │  │
+│  │  Knowledge Fabric: Based on the available research and    │  │
 │  │  documents, here's what we know:                       │  │
 │  │                                                        │  │
 │  │  The proposed Mt. Emmons molybdenum mine was subject   │  │
@@ -865,7 +865,7 @@ Home
 │  └────────────────────────────────────────────────────┘      │
 │                                                              │
 │  Note: Answers are generated by AI based on sources in the   │
-│  Knowledge Hub. Always verify important claims by checking   │
+│  Knowledge Fabric. Always verify important claims by checking   │
 │  the cited sources directly.                                 │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -902,7 +902,7 @@ Home
 DATABASE_URL=postgresql://user:pass@host:5432/knowledge_hub
 
 # S3-Compatible Storage
-S3_BUCKET=rmbl-knowledge-hub
+S3_BUCKET=rmbl-knowledge-fabric
 S3_ACCESS_KEY=...
 S3_SECRET_KEY=...
 S3_REGION=auto
@@ -939,7 +939,7 @@ ANTHROPIC_API_KEY=... # Claude API key
 
 ### Public Access
 
-The Knowledge Hub is a public resource. No login is required to:
+The Knowledge Fabric is a public resource. No login is required to:
 - Search across all collections
 - Browse resources by type or topic
 - View resource detail pages with full metadata
@@ -1015,7 +1015,7 @@ Authentication is email/password with secure session tokens. Admin panel is acce
 
 | Month | Deliverables |
 |---|---|
-| **8-9** | Build RAG pipeline: retrieval → re-ranking → Claude API generation with inline citations. Prototype "Ask the Knowledge Hub" interface. Internal testing and prompt engineering for answer quality. |
+| **8-9** | Build RAG pipeline: retrieval → re-ranking → Claude API generation with inline citations. Prototype "Ask the Knowledge Fabric" interface. Internal testing and prompt engineering for answer quality. |
 | **10** | User testing with both community members and researchers (5-10 users per group). Iterate on answer quality, citation accuracy, and UI based on feedback. Implement rate limiting and cost controls. |
 | **11** | Polish conversational UI. Add cross-collection insight features ("publications that cite data from this dataset"). Deploy usage monitoring dashboard. Finalize cost projections for post-grant sustainability. |
 
@@ -1046,7 +1046,7 @@ The critical path runs through Phase 1 content migration (Months 2-3). The three
 
 These features are out of scope for the grant period but are enabled by the architecture and worth noting for future planning:
 
-- **Automated content sync:** If source sites continue to operate, build lightweight scrapers that detect new content and flag it for import into the Knowledge Hub (avoiding full re-scraping).
+- **Automated content sync:** If source sites continue to operate, build lightweight scrapers that detect new content and flag it for import into the Knowledge Fabric (avoiding full re-scraping).
 
 - **Dataset previews:** Render interactive maps for GIS data, charts for time series, and table previews for tabular datasets — directly on detail pages, using libraries like Mapbox GL JS or Observable Plot.
 
@@ -1085,12 +1085,12 @@ These features are out of scope for the grant period but are enabled by the arch
 
 ### Publication Fields → CSL-JSON
 
-| Knowledge Hub Field | CSL-JSON Key | Notes |
+| Knowledge Fabric Field | CSL-JSON Key | Notes |
 |---|---|---|
 | title | `title` | |
 | authors[].given | `author[].given` | |
 | authors[].family | `author[].family` | |
-| authors[].orcid | — | Stored in Knowledge Hub; not part of CSL-JSON spec |
+| authors[].orcid | — | Stored in Knowledge Fabric; not part of CSL-JSON spec |
 | year | `issued.date-parts[0][0]` | |
 | publication_type | `type` | Mapped: article→article-journal, thesis→thesis, etc. |
 | journal | `container-title` | |
@@ -1106,7 +1106,7 @@ These features are out of scope for the grant period but are enabled by the arch
 
 ### Dataset Fields → DataCite 4.5
 
-| Knowledge Hub Field | DataCite Property | Obligation |
+| Knowledge Fabric Field | DataCite Property | Obligation |
 |---|---|---|
 | doi | `identifier` | Mandatory (if DOI exists) |
 | creators | `creators` | Mandatory |
@@ -1124,11 +1124,11 @@ These features are out of scope for the grant period but are enabled by the arch
 | related_publications | `relatedIdentifiers[]` | Recommended |
 | data_format | `formats[]` | Optional |
 | file_size | `sizes[]` | Optional |
-| download_url | — | Knowledge Hub internal |
+| download_url | — | Knowledge Fabric internal |
 
 ### Document Fields → Dublin Core
 
-| Knowledge Hub Field | Dublin Core Element | Notes |
+| Knowledge Fabric Field | Dublin Core Element | Notes |
 |---|---|---|
 | title | `dc:title` | |
 | summary | `dc:description` | |

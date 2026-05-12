@@ -1,8 +1,8 @@
 {
-  "name": "rmbl-knowledge-hub",
+  "name": "rmbl-knowledge-fabric",
   "version": "0.1.0",
   "private": true,
-  "description": "RMBL Knowledge Hub — unified search across documents, publications, and datasets",
+  "description": "RMBL Knowledge Fabric — unified search across documents, publications, and datasets",
   "type": "module",
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",

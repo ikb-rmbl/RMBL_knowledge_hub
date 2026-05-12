@@ -1,4 +1,4 @@
-# CLAUDE.md — RMBL Knowledge Hub
+# CLAUDE.md — RMBL Knowledge Fabric
 
 ## Project Overview
 

@@ -4,7 +4,7 @@ import ThemeToggle from './components/ThemeToggle'
 import './styles.css'
 
 export const metadata = {
-  title: 'RMBL Knowledge Hub',
+  title: 'RMBL Knowledge Fabric',
   description:
     'Search documents, publications, and datasets from the Rocky Mountain Biological Laboratory and Gunnison Basin.',
 }
@@ -19,7 +19,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Link href="/" className="site-logo">
               <img src="/rmbl-logo.jpg" alt="RMBL" />
               <span className="site-brand-title">
-                Knowledge Hub<span className="site-brand-ver">v0.1</span>
+                Knowledge Fabric<span className="site-brand-ver">v0.1</span>
               </span>
             </Link>
             <nav className="site-nav">
@@ -73,7 +73,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             and operates under permit from the USDA Forest Service, Gunnison National Forest.
           </p>
           <p className="footer-legal" style={{ marginTop: '8px' }}>
-            Support for the Knowledge Hub provided by the Clark Family Foundation.
+            Support for the Knowledge Fabric provided by the Clark Family Foundation.
           </p>
         </footer>
       </body>
