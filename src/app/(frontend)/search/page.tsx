@@ -3,8 +3,8 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import type { Where } from 'payload'
 import { getBadgeLabel, getBadgeClass } from '../lib/badges'
-import type { SearchResult as FtsResult } from '../api/search/route'
 import { getDb } from '../lib/db'
+import { search as ftsSearch, type SearchSort } from '@/services/search'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,107 +13,6 @@ const PAGE_SIZE = 20
 /** Strip all HTML tags from a string */
 function stripTags(s: string): string {
   return s.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim()
-}
-
-/** Full-text search using PostgreSQL tsvector with ranked results and snippets */
-async function tsvectorSearch(
-  query: string,
-  typeFilter: string,
-  sortBy: string,
-  limit: number,
-  offset: number,
-): Promise<{ results: ResultItem[]; total: number }> {
-  const db = getDb()
-  const results: ResultItem[] = []
-  let total = 0
-
-  // Map sort param to SQL ORDER BY per collection
-  function orderBy(dateCol: string, collection: string): string {
-    switch (sortBy) {
-      case 'oldest': return `${dateCol} ASC NULLS LAST`
-      case 'title': return 'title ASC'
-      case 'title-desc': return 'title DESC'
-      case 'newest': return `${dateCol} DESC NULLS LAST`
-      case 'most-cited':
-        return collection === 'documents' ? 'rank DESC' : 'external_citation_count DESC NULLS LAST'
-      case 'most-cited-internal':
-        return collection === 'documents' ? 'rank DESC' : 'internal_citation_count DESC NULLS LAST'
-      case 'relevance':
-      default: return 'rank DESC'
-    }
-  }
-
-  const searchDocs = !typeFilter || typeFilter === 'documents'
-  const searchPubs = !typeFilter || typeFilter === 'publications'
-  const searchData = !typeFilter || typeFilter === 'datasets'
-
-  if (searchDocs) {
-    const { rows } = await db.query(
-      `SELECT id, title,
-              ts_headline('english', coalesce(full_text, title, ''), plainto_tsquery('english', $1),
-                'MaxFragments=1,MaxWords=30,MinWords=15,StartSel=<mark>,StopSel=</mark>') as snippet,
-              ts_rank(search_vector, plainto_tsquery('english', $1)) as rank,
-              date_original
-       FROM documents WHERE search_vector @@ plainto_tsquery('english', $1)
-       ORDER BY ${orderBy('date_original', 'documents')} LIMIT $2 OFFSET $3`,
-      [query, limit, offset],
-    )
-    for (const row of rows) {
-      const yearStr = row.date_original ? new Date(row.date_original).getFullYear().toString() : null
-      results.push({ collection: 'document', subtype: null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: yearStr ? parseInt(yearStr) : null, meta: [yearStr].filter(Boolean) as string[], rank: parseFloat(row.rank) || 0 })
-    }
-    const countRes = await db.query("SELECT count(*)::int FROM documents WHERE search_vector @@ plainto_tsquery('english', $1)", [query])
-    total += countRes.rows[0].count
-  }
-
-  if (searchPubs) {
-    const { rows } = await db.query(
-      `SELECT p.id, p.title, p.year, p.journal, p.doi, p.publication_type,
-              ts_headline('english', coalesce(p.abstract, p.full_text, p.title, ''), plainto_tsquery('english', $1),
-                'MaxFragments=1,MaxWords=30,MinWords=15,StartSel=<mark>,StopSel=</mark>') as snippet,
-              ts_rank(p.search_vector, plainto_tsquery('english', $1)) as rank,
-              coalesce(p.external_citation_count, 0) as external_citation_count,
-              (SELECT count(*)::int FROM references_cited r WHERE r.target_publication_id = p.id) as internal_citation_count
-       FROM publications p WHERE p.search_vector @@ plainto_tsquery('english', $1)
-       ORDER BY ${orderBy('p.year', 'publications')} LIMIT $2 OFFSET $3`,
-      [query, limit, offset],
-    )
-    for (const row of rows) {
-      results.push({ collection: 'publication', subtype: row.publication_type || null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: row.year || null, meta: [row.journal, row.year ? String(row.year) : '', row.doi ? `DOI: ${row.doi}` : ''].filter(Boolean), rank: parseFloat(row.rank) || 0, externalCitationCount: row.external_citation_count, internalCitationCount: row.internal_citation_count })
-    }
-    const countRes = await db.query("SELECT count(*)::int FROM publications WHERE search_vector @@ plainto_tsquery('english', $1)", [query])
-    total += countRes.rows[0].count
-  }
-
-  if (searchData) {
-    const { rows } = await db.query(
-      `SELECT d.id, d.title, d.publication_year, d.resource_type,
-              ts_headline('english', coalesce(d.full_text, d.title, ''), plainto_tsquery('english', $1),
-                'MaxFragments=1,MaxWords=30,MinWords=15,StartSel=<mark>,StopSel=</mark>') as snippet,
-              ts_rank(d.search_vector, plainto_tsquery('english', $1)) as rank,
-              coalesce(d.external_citation_count, 0) as external_citation_count,
-              (SELECT count(*)::int FROM references_cited r WHERE r.target_dataset_id = d.id) as internal_citation_count
-       FROM datasets d WHERE d.search_vector @@ plainto_tsquery('english', $1)
-       ORDER BY ${orderBy('d.publication_year', 'datasets')} LIMIT $2 OFFSET $3`,
-      [query, limit, offset],
-    )
-    for (const row of rows) {
-      results.push({ collection: 'dataset', subtype: row.resource_type || null, id: String(row.id), title: row.title, snippet: row.snippet || '', year: row.publication_year || null, meta: [row.publication_year ? String(row.publication_year) : ''].filter(Boolean), rank: parseFloat(row.rank) || 0, externalCitationCount: row.external_citation_count, internalCitationCount: row.internal_citation_count })
-    }
-    const countRes = await db.query("SELECT count(*)::int FROM datasets WHERE search_vector @@ plainto_tsquery('english', $1)", [query])
-    total += countRes.rows[0].count
-  }
-
-  // Re-sort merged results across collections (critical for relevance — without this,
-  // documents appear before publications regardless of ts_rank score)
-  if (sortBy === 'relevance') results.sort((a, b) => (b.rank || 0) - (a.rank || 0))
-  else if (sortBy === 'newest') results.sort((a, b) => (b.year || 0) - (a.year || 0))
-  else if (sortBy === 'oldest') results.sort((a, b) => (a.year || 0) - (b.year || 0))
-  else if (sortBy === 'title') results.sort((a, b) => a.title.localeCompare(b.title))
-  else if (sortBy === 'title-desc') results.sort((a, b) => b.title.localeCompare(a.title))
-  else if (sortBy === 'most-cited') results.sort((a, b) => (b.externalCitationCount || 0) - (a.externalCitationCount || 0))
-  else if (sortBy === 'most-cited-internal') results.sort((a, b) => (b.internalCitationCount || 0) - (a.internalCitationCount || 0))
-  return { results: results.slice(0, limit), total }
 }
 
 const PUB_TYPE_OPTIONS = [
@@ -148,7 +47,7 @@ interface SearchParams {
 }
 
 type ResultItem = {
-  collection: 'document' | 'publication' | 'dataset'
+  collection: 'document' | 'publication' | 'dataset' | 'story'
   subtype: string | null
   id: string
   title: string
@@ -257,8 +156,27 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   if (useFts) {
     const ftsOffset = (page - 1) * PAGE_SIZE
-    const fts = await tsvectorSearch(query, typeFilter, sortParam, PAGE_SIZE, ftsOffset)
-    results = fts.results
+    const fts = await ftsSearch(getDb(), {
+      query,
+      type: (typeFilter || '') as '' | 'documents' | 'publications' | 'datasets' | 'stories',
+      sortBy: sortParam as SearchSort,
+      limit: PAGE_SIZE,
+      offset: ftsOffset,
+    })
+    // Map service's SearchResult shape (id:number, type:'document'|...) into
+    // the ResultItem shape this page's renderer expects (id:string, collection).
+    results = fts.results.map((r) => ({
+      collection: r.type,
+      subtype: r.subtype,
+      id: String(r.id),
+      title: r.title,
+      snippet: r.snippet,
+      year: r.year,
+      meta: r.meta,
+      rank: r.rank,
+      externalCitationCount: r.externalCitationCount,
+      internalCitationCount: r.internalCitationCount,
+    }))
     totalResults = fts.total
   }
 
@@ -486,14 +404,16 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   const totalPages = Math.ceil(totalResults / PAGE_SIZE)
 
-  // --- Entity search: surface matching species/places/protocols/concepts above results ---
+  // --- Entity search: surface matching entities above the content results ---
   type EntityMatch = {
-    type: 'species' | 'place' | 'protocol' | 'concept'
+    type: 'species' | 'place' | 'protocol' | 'concept' | 'author' | 'neighborhood' | 'project'
     id: number
     name: string
     detail: string
     snippet: string
     count: number
+    // For non-publication-count entities, label the count differently
+    countLabel?: string
   }
   const entityMatches: EntityMatch[] = []
 
@@ -502,7 +422,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     const likeQ = `%${query}%`
 
     // Search each entity table — up to 5 per type, show 3 initially with expand
-    const [spRows, plRows, prRows, coRows] = await Promise.all([
+    const [spRows, plRows, prRows, coRows, auRows, nbRows, pjRows] = await Promise.all([
       db2.query(
         `SELECT id, canonical_name as name,
                 coalesce(family, '') as detail,
@@ -534,14 +454,41 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
          FROM concepts WHERE publication_count > 0
          AND (name ILIKE $1 OR $1 = ANY(aliases))
          ORDER BY publication_count DESC LIMIT 5`, [likeQ]),
+      db2.query(
+        `SELECT id, display_name as name,
+                coalesce(affiliation, '') as detail,
+                coalesce(orcid, '') as snippet,
+                coalesce(work_count, 0) as count
+         FROM authors WHERE coalesce(work_count, 0) > 0
+         AND (display_name ILIKE $1 OR family_name ILIKE $1 OR given_name ILIKE $1)
+         ORDER BY work_count DESC NULLS LAST LIMIT 5`, [likeQ]),
+      db2.query(
+        `SELECT id, title as name,
+                coalesce(themes[1], '') as detail,
+                coalesce(LEFT(summary, 120), '') as snippet,
+                size as count
+         FROM neighborhoods
+         WHERE title ILIKE $1 OR summary ILIKE $1 OR EXISTS (SELECT 1 FROM unnest(themes) t WHERE t ILIKE $1)
+         ORDER BY size DESC LIMIT 5`, [likeQ]),
+      db2.query(
+        `SELECT p.id, p.name,
+                coalesce(p.project_type::text, '') as detail,
+                coalesce(LEFT(p.description, 120), '') as snippet,
+                (SELECT count(*)::int FROM projects_rels r WHERE r.parent_id = p.id) as count
+         FROM projects p
+         WHERE p.name ILIKE $1 OR p.description ILIKE $1 OR p.research_areas ILIKE $1 OR p.pi ILIKE $1
+         ORDER BY p.name LIMIT 5`, [likeQ]),
     ])
 
     for (const r of spRows.rows) entityMatches.push({ type: 'species', ...r })
     for (const r of plRows.rows) entityMatches.push({ type: 'place', ...r })
     for (const r of prRows.rows) entityMatches.push({ type: 'protocol', ...r })
     for (const r of coRows.rows) entityMatches.push({ type: 'concept', ...r })
+    for (const r of auRows.rows) entityMatches.push({ type: 'author', countLabel: 'work', ...r })
+    for (const r of nbRows.rows) entityMatches.push({ type: 'neighborhood', countLabel: 'member', ...r })
+    for (const r of pjRows.rows) entityMatches.push({ type: 'project', countLabel: 'item', ...r })
 
-    // Sort by publication count descending
+    // Sort by count descending (mixes papers/works/members/items — same intent: bigger first)
     entityMatches.sort((a, b) => b.count - a.count)
   }
 
@@ -596,6 +543,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           <Link className={`type-chip ${typeFilter === 'documents' ? 'active' : ''}`} href={buildUrl(params, { type: 'documents', pubType: undefined, page: undefined })}>Documents</Link>
           <Link className={`type-chip ${typeFilter === 'publications' ? 'active' : ''}`} href={buildUrl(params, { type: 'publications', page: undefined })}>Publications</Link>
           <Link className={`type-chip ${typeFilter === 'datasets' ? 'active' : ''}`} href={buildUrl(params, { type: 'datasets', pubType: undefined, page: undefined })}>Datasets</Link>
+          <Link className={`type-chip ${typeFilter === 'stories' ? 'active' : ''}`} href={buildUrl(params, { type: 'stories', pubType: undefined, page: undefined })}>Stories</Link>
           {typeFilter === 'publications' && (
             <Link href="/explore/publications" style={{ marginLeft: 'auto', padding: '6px 14px', fontSize: '12px', borderRadius: 'var(--radius-sm)', background: 'var(--color-accent)', color: '#fff', textDecoration: 'none' }}>Explore Publication Graph</Link>
           )}
@@ -772,13 +720,19 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
             const INITIAL_SHOW = 3
             const hasMore = entityMatches.length > INITIAL_SHOW
 
+            const ENTITY_SLUG: Record<EntityMatch['type'], string> = {
+              species: 'species', place: 'places', protocol: 'protocols', concept: 'concepts',
+              author: 'authors', neighborhood: 'neighborhoods', project: 'projects',
+            }
+
             function renderEntityCard(em: EntityMatch) {
-              const href = `/${em.type === 'species' ? 'species' : em.type === 'place' ? 'places' : em.type === 'protocol' ? 'protocols' : 'concepts'}/${em.id}`
-              const badgeClass = em.type === 'species' ? 'badge-species' : em.type === 'place' ? 'badge-place' : em.type === 'protocol' ? 'badge-protocol' : 'badge-concept'
+              const href = `/${ENTITY_SLUG[em.type]}/${em.id}`
+              const badgeClass = `badge-${em.type}`
+              const countWord = em.countLabel || 'paper'
               return (
                 <Link key={`${em.type}-${em.id}`} className="result-card" href={href}
                   style={{ borderLeft: '3px solid var(--color-accent)', flex: '1 1 0', minWidth: '220px' }}>
-                  <div className="result-card-header">
+                  <div className="result-card-header" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>
                     <span className={`badge ${badgeClass}`}>{em.type}</span>
                     <h3 className="result-card-title" style={em.type === 'species' ? { fontStyle: 'italic' } : undefined}>
                       {em.name}
@@ -791,7 +745,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                   )}
                   <div className="result-card-meta">
                     {em.detail && <span>{em.detail.replace(/_/g, ' ')}</span>}
-                    <span>{em.count} paper{em.count !== 1 ? 's' : ''}</span>
+                    <span>{em.count} {countWord}{em.count !== 1 ? 's' : ''}</span>
                   </div>
                 </Link>
               )
@@ -823,7 +777,11 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               </p>
             )}
             {results.map((item) => {
-              const slug = item.collection === 'document' ? 'documents' : item.collection === 'publication' ? 'publications' : 'datasets'
+              const slug =
+                item.collection === 'document' ? 'documents'
+                : item.collection === 'publication' ? 'publications'
+                : item.collection === 'story' ? 'stories'
+                : 'datasets'
               return (
               <Link
                 key={`${item.collection}-${item.id}`}

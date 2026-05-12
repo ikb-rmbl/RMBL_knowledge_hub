@@ -589,6 +589,9 @@ a:hover {
 .badge-place { background: #6d4c41; }
 .badge-protocol { background: #1565c0; }
 .badge-concept { background: #7b1fa2; }
+.badge-author { background: #5D6A4A; }
+.badge-neighborhood { background: #3a7b6b; }
+.badge-project { background: #a85a2a; }
 
 /* ===== Result Cards ===== */
 
