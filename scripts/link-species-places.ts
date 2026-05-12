@@ -72,22 +72,36 @@ async function linkSpecies(db: pg.Pool): Promise<void> {
   console.log(`  ${candidates.length} unresolved species candidates`)
   if (candidates.length === 0) return
 
-  // Group by canonical scientific name (lowercase, trimmed)
-  // Also index by synonyms so "M. flaviventris" resolves to the full-name group
+  // Group by a normalized form of the canonical scientific name so plural,
+  // case, and whitespace variants collapse to the same group. Latin binomials
+  // and single-word genera keep their full form (no 's' trimming) since they
+  // don't pluralize in English the way common names do.
+  function normalizeForGrouping(name: string): string {
+    const lower = name.toLowerCase().trim()
+    // Keep "Marmota" / "Gallus" as-is (single capitalized word — looks Latin).
+    if (/^[A-Z][a-z]+$/.test(name.trim())) return lower
+    // Keep "Marmota flaviventris" as-is (Genus species pattern).
+    if (/^[A-Z][a-z]+ [a-z]/.test(name.trim())) return lower
+    // Otherwise treat as common name: strip a trailing 's' to merge plurals
+    // ("yellow-bellied marmots" → "yellow-bellied marmot"; "hummingbirds" →
+    // "hummingbird"). Guarded by length so we don't shred 3-letter terms.
+    if (lower.endsWith('s') && lower.length >= 5) return lower.slice(0, -1)
+    return lower
+  }
   const groups = new Map<string, typeof candidates>()
   const synonymIndex = new Map<string, string>() // synonym → canonical key
 
   for (const c of candidates) {
     const name = (c.raw_attributes.scientificName || c.raw_name || '').trim()
     if (!name) continue
-    const key = name.toLowerCase()
+    const key = normalizeForGrouping(name)
 
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key)!.push(c)
 
     // Index abbreviations from synonymsUsed
     for (const syn of c.raw_attributes.synonymsUsed || []) {
-      const synKey = syn.trim().toLowerCase()
+      const synKey = normalizeForGrouping(syn.trim())
       if (synKey && synKey !== key) {
         synonymIndex.set(synKey, key)
       }

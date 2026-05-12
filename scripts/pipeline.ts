@@ -20,7 +20,7 @@ const args = process.argv.slice(2)
 const phaseArg = args.find((a) => a.startsWith('--phase='))?.split('=')[1] || 'all'
 const dryRun = args.includes('--dry-run')
 
-const PHASES = ['check', 'ingest', 'discover', 'enrich', 'load', 'topics', 'authors', 'citations', 'embeddings'] as const
+const PHASES = ['check', 'ingest', 'discover', 'enrich', 'load', 'topics', 'authors', 'entities', 'citations', 'embeddings'] as const
 type Phase = (typeof PHASES)[number]
 
 function shouldRun(phase: Phase): boolean {
@@ -200,12 +200,46 @@ async function runAuthors(): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Phase 8: CITATIONS — refresh external citation counts
+// Phase 8: ENTITIES — consolidate fragmented species + backfill text-match
+//                     mentions across all content collections.
+// ---------------------------------------------------------------------------
+
+async function runEntities(): Promise<void> {
+  console.log('\n' + '='.repeat(60))
+  console.log('Phase 8: ENTITIES — Consolidating species + backfilling mentions')
+  console.log('='.repeat(60))
+
+  const { execSync } = await import('child_process')
+  const flags = dryRun ? '--dry-run' : ''
+  const opts = { cwd: process.cwd(), encoding: 'utf-8' as const, stdio: 'inherit' as const }
+
+  try {
+    // Collapse any plural/singular species fragmentation created by recent
+    // VLM/LLM extractions. Idempotent — a no-op once pairs collapse.
+    execSync(`npx tsx scripts/merge-plural-species.ts ${flags}`, opts)
+  } catch (err) {
+    console.error('Plural-species merge failed — continuing')
+  }
+
+  try {
+    // Backfill text-search mentions of every species across publications,
+    // documents, datasets, and stories. Conservative term selection — see
+    // scripts/backfill-species-mentions.ts. Idempotent: ON CONFLICT skips
+    // existing (species, collection, item) tuples, so re-runs only add
+    // mentions for newly-added content.
+    execSync(`npx tsx scripts/backfill-species-mentions.ts ${flags}`, opts)
+  } catch (err) {
+    console.error('Species backfill failed — continuing')
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 9: CITATIONS — refresh external citation counts
 // ---------------------------------------------------------------------------
 
 async function runCitations(): Promise<void> {
   console.log('\n' + '='.repeat(60))
-  console.log('Phase 8: CITATIONS — Refreshing external citation counts')
+  console.log('Phase 9: CITATIONS — Refreshing external citation counts')
   console.log('='.repeat(60))
 
   const { execSync } = await import('child_process')
@@ -220,12 +254,12 @@ async function runCitations(): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Phase 9: EMBEDDINGS — generate vector embeddings for concept graph
+// Phase 10: EMBEDDINGS — generate vector embeddings for concept graph
 // ---------------------------------------------------------------------------
 
 async function runEmbeddings(): Promise<void> {
   console.log('\n' + '='.repeat(60))
-  console.log('Phase 9: EMBEDDINGS — Generating vector embeddings')
+  console.log('Phase 10: EMBEDDINGS — Generating vector embeddings')
   console.log('='.repeat(60))
 
   const { execSync } = await import('child_process')
@@ -270,6 +304,7 @@ async function main() {
   if (shouldRun('load')) await runLoad()
   if (shouldRun('topics')) await runTopics()
   if (shouldRun('authors')) await runAuthors()
+  if (shouldRun('entities')) await runEntities()
   if (shouldRun('citations')) await runCitations()
   if (shouldRun('embeddings')) await runEmbeddings()
 

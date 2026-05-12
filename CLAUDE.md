@@ -40,7 +40,7 @@ npm run dev          # Start dev server at http://localhost:3000
 npm run test         # Run unit tests (Vitest, 214 tests across 12 files)
 npm run lint         # ESLint check
 npm run build        # Production build
-npm run pipeline     # Full data pipeline (9 phases)
+npm run pipeline     # Full data pipeline (10 phases)
 ```
 
 ### Local Setup
@@ -152,7 +152,7 @@ src/
   app/(payload)/                 — Payload admin panel routes
 
 scripts/
-  pipeline.ts               — Orchestrator: 9 phases (check -> ingest -> discover -> enrich -> load -> topics -> authors -> citations -> embeddings)
+  pipeline.ts               — Orchestrator: 10 phases (check -> ingest -> discover -> enrich -> load -> topics -> authors -> entities -> citations -> embeddings)
   scrape-library.ts          — Sustainable Library scrape + normalize
   scrape-publications.ts     — RMBL Publications scrape + CrossRef/Unpaywall enrichment
   scrape-catalog.ts          — Data Catalog scrape + EML metadata fetch
@@ -168,6 +168,8 @@ scripts/
   load-fulltext.ts           — Load extracted text into database
   manage-topics.ts           — 40-topic thematic taxonomy organize + assignment
   build-authors.ts           — Author registry build + dedup
+  merge-plural-species.ts    — Collapse plural/singular species fragmentation (Phase 8a; idempotent)
+  backfill-species-mentions.ts — Text-search backfill of species → publications/documents/datasets/stories mentions (Phase 8b; conservative phraseto_tsquery; reversible via DELETE WHERE extraction_method='text_match')
   fetch-citation-counts.ts   — External citation counts from OpenAlex/DataCite
   generate-embeddings.ts     — Vector embeddings via Voyage AI voyage-4
   seed-projects.ts           — Seed projects from research plan data
