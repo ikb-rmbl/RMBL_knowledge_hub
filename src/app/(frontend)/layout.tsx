@@ -16,12 +16,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#main-content" className="skip-link">Skip to main content</a>
         <header className="site-header">
           <div className="site-header-inner">
-            <Link href="/" className="site-logo">
-              <img src="/rmbl-logo.jpg" alt="RMBL" />
-              <span className="site-brand-title">
-                Knowledge Fabric<span className="site-brand-ver">v0.1</span>
-              </span>
-            </Link>
+            <a className="rmbl-mark" href="https://rmbl.org" target="_blank" rel="noopener noreferrer" aria-label="RMBL">R M B L</a>
+            <span className="topbar-sep" aria-hidden="true"></span>
+            <a className="topbar-parent" href="https://data.rmbl.org" target="_blank" rel="noopener noreferrer">Data Hub</a>
+            <span className="topbar-chev" aria-hidden="true">›</span>
+            <span className="topbar-current">Knowledge Fabric<span className="ver">v0.1</span></span>
             <nav className="site-nav">
               <Link href="/search">Search</Link>
               <div className="nav-dropdown">
@@ -43,19 +42,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <Link href="/protocols">Protocols</Link>
                   <Link href="/places">Places</Link>
                   <Link href="/projects">Projects</Link>
-                </div>
-              </div>
-              <div className="nav-dropdown">
-                <button className="nav-dropdown-trigger" aria-haspopup="true">Research Tools</button>
-                <div className="nav-dropdown-menu">
-                  <a href="https://sdpbrowser.org" target="_blank" rel="noopener noreferrer">
-                    SDP Browser
-                    <span className="nav-dropdown-desc">Geospatial data layers from western Colorado research sites</span>
-                  </a>
-                  <a href="https://rmblcomputehub.org" target="_blank" rel="noopener noreferrer">
-                    RMBL Compute Hub
-                    <span className="nav-dropdown-desc">JupyterHub environment for geospatial analysis</span>
-                  </a>
                 </div>
               </div>
               <Link href="/about">About</Link>

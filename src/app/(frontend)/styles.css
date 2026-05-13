@@ -223,33 +223,39 @@ a:hover {
   min-height: 44px;
   flex-wrap: wrap;
 }
-.site-logo {
-  display: flex;
-  align-items: center;
-  gap: var(--s-2);
-  text-decoration: none;
-  flex-shrink: 0;
-}
-.site-logo:hover { text-decoration: none; }
-.site-logo img {
-  height: 24px;
-  width: auto;
-}
-.site-brand-title {
+/* Hub-and-spoke breadcrumb: [RMBL mark] | DATA HUB › KNOWLEDGE FABRIC.
+   Pattern + classes mirror SDP Browser's #topbar so the two siblings
+   share a visual identity (see /Users/ian/code/SDP_browser/app/web/index.html). */
+.rmbl-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--rmbl-orange); color: #fff;
   font-family: var(--font-sans);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-header-text);
-  letter-spacing: 0.02em;
-  line-height: 1.2;
+  font-weight: 700; font-size: 13px;
+  letter-spacing: 0.18em;
+  padding: 6px 11px;
+  border-radius: 2px; line-height: 1;
+  text-decoration: none;
+}
+.rmbl-mark:hover { background: var(--accent-hover); text-decoration: none; }
+.topbar-sep {
+  display: inline-block;
+  width: 1px; align-self: stretch;
+  background: var(--border);
+  margin: 8px 4px;
+}
+.topbar-parent, .topbar-current {
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  font-size: 12px; letter-spacing: 0.14em; font-weight: 500;
   white-space: nowrap;
 }
-.site-brand-ver {
-  font-size: 10px;
-  font-weight: 400;
-  color: var(--color-header-text);
-  opacity: 0.55;
-  margin-left: 4px;
+.topbar-parent { color: var(--fg-3); text-decoration: none; }
+.topbar-parent:hover { color: var(--color-header-text); text-decoration: none; }
+.topbar-chev { color: var(--fg-3); font-size: 14px; margin: 0 2px; }
+.topbar-current { color: var(--color-header-text); }
+.topbar-current .ver {
+  text-transform: none; font-size: 10px; color: var(--fg-3);
+  letter-spacing: 0; margin-left: 6px; font-weight: 400;
 }
 .site-nav {
   display: flex;
