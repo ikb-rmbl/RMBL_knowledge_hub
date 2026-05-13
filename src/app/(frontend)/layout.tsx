@@ -20,7 +20,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <span className="topbar-sep" aria-hidden="true"></span>
             <a className="topbar-parent" href="https://data.rmbl.org" target="_blank" rel="noopener noreferrer">Data Hub</a>
             <span className="topbar-chev" aria-hidden="true">›</span>
-            <span className="topbar-current">Knowledge Fabric<span className="ver">v0.1</span></span>
+            <Link href="/" className="topbar-current">Knowledge Fabric<span className="ver">v0.1</span></Link>
             <nav className="site-nav">
               <Link href="/search">Search</Link>
               <div className="nav-dropdown">

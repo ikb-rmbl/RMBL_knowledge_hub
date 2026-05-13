@@ -252,7 +252,8 @@ a:hover {
 .topbar-parent { color: var(--fg-3); text-decoration: none; }
 .topbar-parent:hover { color: var(--color-header-text); text-decoration: none; }
 .topbar-chev { color: var(--fg-3); font-size: 14px; margin: 0 2px; }
-.topbar-current { color: var(--color-header-text); }
+.topbar-current { color: var(--color-header-text); text-decoration: none; }
+.topbar-current:hover { text-decoration: none; opacity: 0.85; }
 .topbar-current .ver {
   text-transform: none; font-size: 10px; color: var(--fg-3);
   letter-spacing: 0; margin-left: 6px; font-weight: 400;
