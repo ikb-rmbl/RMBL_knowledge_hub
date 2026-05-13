@@ -196,9 +196,13 @@ async function main() {
 
   const commData = JSON.parse(readFileSync('public/graph/communities.json', 'utf-8'))
   const communities = commData.communities as any[]
-  console.log(`${communities.length} communities to describe`)
+  // --missing-only restarts a partially-completed run by skipping communities
+  // that already have a Claude title. Useful after transient API failures.
+  const missingOnly = process.argv.includes('--missing-only')
+  const candidates = missingOnly ? communities.filter((c) => !c.title) : communities
+  console.log(`${communities.length} communities total; ${candidates.length} to describe${missingOnly ? ' (missing-only)' : ''}`)
 
-  const toProcess = communities.slice(0, limit)
+  const toProcess = candidates.slice(0, limit)
   let described = 0
   let cost = 0
 
