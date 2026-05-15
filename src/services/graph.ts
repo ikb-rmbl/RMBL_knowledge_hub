@@ -191,12 +191,32 @@ export async function fetchNeighborhood(
     addEdge(focalId, nid, 1)
   }
 
+  // Top datasets mentioning this entity
+  const { rows: dsets } = await db.query(`
+    SELECT d.id, d.title, coalesce(d.external_citation_count, 0) as cite_count
+    FROM entity_mentions em
+    JOIN datasets d ON d.id = em.item_id
+    WHERE em.entity_type = $1 AND em.entity_id = $2 AND em.collection = 'datasets'
+    ORDER BY d.external_citation_count DESC NULLS LAST
+    LIMIT 5
+  `, [entityType, entityId])
+
+  for (const d of dsets) {
+    const nid = `datasets-${d.id}`
+    if (!nodeIds.has(nid)) {
+      nodes.push({ id: nid, label: (d.title || '').slice(0, 50), type: 'dataset', degree: d.cite_count || 0, isFocal: false })
+      nodeIds.add(nid)
+    }
+    addEdge(focalId, nid, 1)
+  }
+
   // Top documents mentioning this entity
   const { rows: docs } = await db.query(`
     SELECT d.id, d.title
     FROM entity_mentions em
     JOIN documents d ON d.id = em.item_id
     WHERE em.entity_type = $1 AND em.entity_id = $2 AND em.collection = 'documents'
+    ORDER BY d.date_original DESC NULLS LAST
     LIMIT 5
   `, [entityType, entityId])
 
@@ -209,18 +229,26 @@ export async function fetchNeighborhood(
     addEdge(focalId, nid, 1)
   }
 
-  // Top authors of those publications
-  const pubIds = pubs.map((p: any) => p.id)
-  if (pubIds.length > 0) {
+  // Top authors across all displayed works (publications + datasets + documents)
+  const pubIds: number[] = pubs.map((p: any) => p.id)
+  const dsIds: number[] = dsets.map((d: any) => d.id)
+  const docIds: number[] = docs.map((d: any) => d.id)
+
+  if (pubIds.length + dsIds.length + docIds.length > 0) {
     const { rows: authors } = await db.query(`
-      SELECT a.id, a.display_name, COUNT(DISTINCT ar.publications_id) as shared
-      FROM authors_rels ar
-      JOIN authors a ON a.id = ar.parent_id
-      WHERE ar.publications_id = ANY($1) AND ar.path = 'publications'
+      WITH work_authors AS (
+        SELECT parent_id AS author_id FROM authors_rels WHERE publications_id = ANY($1) AND path = 'publications'
+        UNION ALL
+        SELECT parent_id FROM authors_rels WHERE datasets_id = ANY($2) AND path = 'datasets'
+        UNION ALL
+        SELECT parent_id FROM authors_rels WHERE documents_id = ANY($3) AND path = 'documents'
+      )
+      SELECT a.id, a.display_name, COUNT(*) AS shared
+      FROM work_authors wa JOIN authors a ON a.id = wa.author_id
       GROUP BY a.id, a.display_name
       ORDER BY shared DESC
       LIMIT 5
-    `, [pubIds])
+    `, [pubIds, dsIds, docIds])
 
     for (const a of authors) {
       const nid = `author-${a.id}`
@@ -231,31 +259,45 @@ export async function fetchNeighborhood(
       addEdge(focalId, nid, parseInt(a.shared))
     }
 
-    // Author ↔ publication links
+    // Author ↔ work links across all 3 collections
     const authorIds = authors.map((a: any) => a.id)
     if (authorIds.length > 0) {
-      const { rows: apLinks } = await db.query(`
-        SELECT parent_id as author_id, publications_id as pub_id
-        FROM authors_rels
-        WHERE parent_id = ANY($1) AND publications_id = ANY($2) AND path = 'publications'
-      `, [authorIds, pubIds])
-      for (const l of apLinks) addEdge(`author-${l.author_id}`, `publications-${l.pub_id}`, 1)
+      const COLL_FIELDS: Record<string, [string, number[]]> = {
+        publications: ['publications_id', pubIds],
+        datasets: ['datasets_id', dsIds],
+        documents: ['documents_id', docIds],
+      }
+      for (const [coll, [field, ids]] of Object.entries(COLL_FIELDS)) {
+        if (ids.length === 0) continue
+        const { rows } = await db.query(`
+          SELECT parent_id AS author_id, ${field} AS work_id
+          FROM authors_rels
+          WHERE parent_id = ANY($1) AND ${field} = ANY($2) AND path = $3
+        `, [authorIds, ids, coll])
+        for (const l of rows) addEdge(`author-${l.author_id}`, `${coll}-${l.work_id}`, 1)
+      }
     }
 
-    // Entity neighbor ↔ publication links
+    // Entity neighbor ↔ work links across all 3 collections
     const entityNodeIds = [...nodeIds].filter((nid) =>
       (nid.startsWith('species-') || nid.startsWith('protocol-') || nid.startsWith('concept-') || nid.startsWith('place-') || nid.startsWith('stakeholder-')) && nid !== focalId
     )
     if (entityNodeIds.length > 0) {
-      const { rows: epLinks } = await db.query(`
-        SELECT entity_type, entity_id, item_id
-        FROM entity_mentions
-        WHERE collection = 'publications' AND item_id = ANY($1) AND ${GRAPH_ENTITY_FILTER_BARE}
-      `, [pubIds])
       const entitySet = new Set(entityNodeIds)
-      for (const e of epLinks) {
-        const enid = `${e.entity_type}-${e.entity_id}`
-        if (entitySet.has(enid)) addEdge(enid, `publications-${e.item_id}`, 1)
+      const COLL_IDS: Record<string, number[]> = {
+        publications: pubIds, datasets: dsIds, documents: docIds,
+      }
+      for (const [coll, ids] of Object.entries(COLL_IDS)) {
+        if (ids.length === 0) continue
+        const { rows: epLinks } = await db.query(`
+          SELECT entity_type, entity_id, item_id
+          FROM entity_mentions
+          WHERE collection = $1 AND item_id = ANY($2) AND ${GRAPH_ENTITY_FILTER_BARE}
+        `, [coll, ids])
+        for (const e of epLinks) {
+          const enid = `${e.entity_type}-${e.entity_id}`
+          if (entitySet.has(enid)) addEdge(enid, `${coll}-${e.item_id}`, 1)
+        }
       }
     }
   }
@@ -332,9 +374,14 @@ export async function fetchItemNetwork(
     addEdge(focalId, nid, 1)
   }
 
-  // Co-authors: other authors on this publication/dataset (top 8 by work count)
-  if (collection === 'publications' || collection === 'datasets') {
-    const collField = collection === 'publications' ? 'publications_id' : 'datasets_id'
+  // Co-authors: other authors on this publication/dataset/document (top 8 by work count)
+  const COAUTHOR_FIELDS: Record<string, string> = {
+    publications: 'publications_id',
+    datasets: 'datasets_id',
+    documents: 'documents_id',
+  }
+  if (collection in COAUTHOR_FIELDS) {
+    const collField = COAUTHOR_FIELDS[collection]
     const { rows: coauthors } = await db.query(`
       SELECT DISTINCT a.id, a.display_name, a.work_count
       FROM authors_rels ar1
@@ -343,7 +390,7 @@ export async function fetchItemNetwork(
       WHERE ar1.${collField} = $1 AND ar1.path = $2
       ORDER BY a.work_count DESC NULLS LAST
       LIMIT 8
-    `, [itemId, collection === 'publications' ? 'publications' : 'datasets'])
+    `, [itemId, collection])
 
     for (const a of coauthors) {
       const nid = `author-${a.id}`
@@ -354,20 +401,31 @@ export async function fetchItemNetwork(
       addEdge(focalId, nid, 1)
     }
 
-    // Co-author inter-links (shared other publications)
+    // Co-author inter-links: shared works across publications + datasets + documents (≥2)
     if (coauthors.length > 1) {
       const authorIds = coauthors.map((a: any) => a.id)
       const { rows: coauthorEdges } = await db.query(`
-        SELECT ar1.parent_id as a1, ar2.parent_id as a2, COUNT(DISTINCT ar1.publications_id) as shared
-        FROM authors_rels ar1
-        JOIN authors_rels ar2 ON ar2.publications_id = ar1.publications_id AND ar2.parent_id > ar1.parent_id
-          AND ar2.path = 'publications'
-        WHERE ar1.path = 'publications' AND ar1.parent_id = ANY($1) AND ar2.parent_id = ANY($1)
-          AND ar1.publications_id != $2
-        GROUP BY ar1.parent_id, ar2.parent_id
-        HAVING COUNT(DISTINCT ar1.publications_id) >= 2
-        LIMIT 20
-      `, [authorIds, itemId])
+        WITH pairs AS (
+          SELECT ar1.parent_id AS a1, ar2.parent_id AS a2
+          FROM authors_rels ar1
+          JOIN authors_rels ar2 ON ar2.publications_id = ar1.publications_id AND ar2.parent_id > ar1.parent_id AND ar2.path = 'publications'
+          WHERE ar1.path = 'publications' AND ar1.parent_id = ANY($1) AND ar2.parent_id = ANY($1)
+          UNION ALL
+          SELECT ar1.parent_id, ar2.parent_id
+          FROM authors_rels ar1
+          JOIN authors_rels ar2 ON ar2.datasets_id = ar1.datasets_id AND ar2.parent_id > ar1.parent_id AND ar2.path = 'datasets'
+          WHERE ar1.path = 'datasets' AND ar1.parent_id = ANY($1) AND ar2.parent_id = ANY($1)
+          UNION ALL
+          SELECT ar1.parent_id, ar2.parent_id
+          FROM authors_rels ar1
+          JOIN authors_rels ar2 ON ar2.documents_id = ar1.documents_id AND ar2.parent_id > ar1.parent_id AND ar2.path = 'documents'
+          WHERE ar1.path = 'documents' AND ar1.parent_id = ANY($1) AND ar2.parent_id = ANY($1)
+        )
+        SELECT a1, a2, COUNT(*) AS shared
+        FROM pairs GROUP BY a1, a2
+        HAVING COUNT(*) >= 2
+        ORDER BY shared DESC LIMIT 20
+      `, [authorIds])
 
       for (const e of coauthorEdges) {
         addEdge(`author-${e.a1}`, `author-${e.a2}`, parseInt(e.shared))
@@ -428,72 +486,78 @@ export async function fetchItemNetwork(
     }
   }
 
-  // Author-publication links: which co-authors wrote which displayed papers
+  // Helper: collect displayed work nodes grouped by collection
+  const workNodeIds = [...nodeIds].filter((nid) =>
+    (nid.startsWith('publications-') || nid.startsWith('datasets-') || nid.startsWith('documents-')) && nid !== focalId
+  )
+  const worksByCollection: Record<string, number[]> = { publications: [], datasets: [], documents: [] }
+  for (const nid of workNodeIds) {
+    const dash = nid.indexOf('-')
+    const coll = nid.slice(0, dash)
+    worksByCollection[coll].push(parseInt(nid.slice(dash + 1)))
+  }
+
+  // Author ↔ work links: which co-authors wrote which displayed works (all 3 collections)
   const authorNodeIds = [...nodeIds].filter((nid) => nid.startsWith('author-'))
-  if (authorNodeIds.length > 0 && pubNodeIds.length > 0) {
+  if (authorNodeIds.length > 0 && workNodeIds.length > 0) {
     const authorIds = authorNodeIds.map((nid) => parseInt(nid.replace('author-', '')))
-    const pubIds = pubNodeIds.map((nid) => parseInt(nid.replace('publications-', '')))
-    const { rows: authorPubLinks } = await db.query(`
-      SELECT parent_id as author_id, publications_id as pub_id
-      FROM authors_rels
-      WHERE parent_id = ANY($1) AND publications_id = ANY($2) AND path = 'publications'
-    `, [authorIds, pubIds])
-    for (const e of authorPubLinks) {
-      addEdge(`author-${e.author_id}`, `publications-${e.pub_id}`, 1)
+    const COLL_FIELDS: Record<string, string> = {
+      publications: 'publications_id', datasets: 'datasets_id', documents: 'documents_id',
+    }
+    for (const [coll, ids] of Object.entries(worksByCollection)) {
+      if (ids.length === 0) continue
+      const field = COLL_FIELDS[coll]
+      const { rows } = await db.query(`
+        SELECT parent_id AS author_id, ${field} AS work_id
+        FROM authors_rels
+        WHERE parent_id = ANY($1) AND ${field} = ANY($2) AND path = $3
+      `, [authorIds, ids, coll])
+      for (const e of rows) addEdge(`author-${e.author_id}`, `${coll}-${e.work_id}`, 1)
     }
   }
 
-  // Entity-publication links: which displayed papers mention which displayed entities
+  // Entity ↔ work links: which displayed works mention which displayed entities (all 3 collections)
   const entityNodeIds = [...nodeIds].filter((nid) =>
-    (nid.startsWith('species-') || nid.startsWith('protocol-') || nid.startsWith('concept-')) && nid !== focalId
+    (nid.startsWith('species-') || nid.startsWith('protocol-') || nid.startsWith('concept-') ||
+     nid.startsWith('place-') || nid.startsWith('stakeholder-')) && nid !== focalId
   )
-  if (entityNodeIds.length > 0 && pubNodeIds.length > 0) {
-    const parsedEntities = entityNodeIds.map((nid) => {
-      const dash = nid.indexOf('-')
-      return { type: nid.slice(0, dash), id: parseInt(nid.slice(dash + 1)) }
-    })
-    const pubIds = pubNodeIds.map((nid) => parseInt(nid.replace('publications-', '')))
-    const { rows: entityPubLinks } = await db.query(`
-      SELECT entity_type, entity_id, item_id
-      FROM entity_mentions
-      WHERE collection = 'publications' AND item_id = ANY($1)
-        AND ${GRAPH_ENTITY_FILTER_BARE}
-    `, [pubIds])
+  if (entityNodeIds.length > 0 && workNodeIds.length > 0) {
     const entityNodeSet = new Set(entityNodeIds)
-    for (const e of entityPubLinks) {
-      const enid = `${e.entity_type}-${e.entity_id}`
-      if (entityNodeSet.has(enid)) {
-        addEdge(enid, `publications-${e.item_id}`, 1)
+    for (const [coll, ids] of Object.entries(worksByCollection)) {
+      if (ids.length === 0) continue
+      const { rows } = await db.query(`
+        SELECT entity_type, entity_id, item_id
+        FROM entity_mentions
+        WHERE collection = $1 AND item_id = ANY($2) AND ${GRAPH_ENTITY_FILTER_BARE}
+      `, [coll, ids])
+      for (const e of rows) {
+        const enid = `${e.entity_type}-${e.entity_id}`
+        if (entityNodeSet.has(enid)) addEdge(enid, `${coll}-${e.item_id}`, 1)
       }
     }
   }
 
-  // Author-entity links: which displayed authors have papers mentioning displayed entities
+  // Author ↔ entity links: displayed authors with works (any type) mentioning displayed entities
   if (authorNodeIds.length > 0 && entityNodeIds.length > 0) {
     const authorIds = authorNodeIds.map((nid) => parseInt(nid.replace('author-', '')))
-    const { rows: authorPubs } = await db.query(`
-      SELECT DISTINCT parent_id as author_id, publications_id as pub_id
-      FROM authors_rels
-      WHERE parent_id = ANY($1) AND path = 'publications' AND publications_id IS NOT NULL
+    const { rows: authorEntityLinks } = await db.query(`
+      WITH author_works AS (
+        SELECT parent_id AS author_id, 'publications'::text AS collection, publications_id AS item_id FROM authors_rels WHERE parent_id = ANY($1) AND path = 'publications' AND publications_id IS NOT NULL
+        UNION ALL
+        SELECT parent_id, 'datasets', datasets_id FROM authors_rels WHERE parent_id = ANY($1) AND path = 'datasets' AND datasets_id IS NOT NULL
+        UNION ALL
+        SELECT parent_id, 'documents', documents_id FROM authors_rels WHERE parent_id = ANY($1) AND path = 'documents' AND documents_id IS NOT NULL
+      )
+      SELECT DISTINCT em.entity_type, em.entity_id, aw.author_id
+      FROM entity_mentions em
+      JOIN author_works aw ON aw.collection = em.collection AND aw.item_id = em.item_id
+      WHERE ${GRAPH_ENTITY_FILTER}
+      LIMIT 500
     `, [authorIds])
-    // For each author's publications, check if any displayed entities are mentioned
-    const authorPubIds = [...new Set(authorPubs.map((r: any) => r.pub_id))]
-    if (authorPubIds.length > 0) {
-      const { rows: authorEntityLinks } = await db.query(`
-        SELECT DISTINCT em.entity_type, em.entity_id, ar.parent_id as author_id
-        FROM entity_mentions em
-        JOIN authors_rels ar ON ar.publications_id = em.item_id AND ar.path = 'publications'
-        WHERE ar.parent_id = ANY($1) AND em.collection = 'publications'
-          AND ${GRAPH_ENTITY_FILTER}
-        LIMIT 500
-      `, [authorIds])
-      const entityNodeSet = new Set(entityNodeIds)
-      for (const e of authorEntityLinks) {
-        const enid = `${e.entity_type}-${e.entity_id}`
-        if (entityNodeSet.has(enid)) {
-          addEdge(`author-${e.author_id}`, enid, 1)
-        }
-      }
+    const entityNodeSet = new Set(entityNodeIds)
+    for (const e of authorEntityLinks) {
+      const enid = `${e.entity_type}-${e.entity_id}`
+      if (entityNodeSet.has(enid)) addEdge(`author-${e.author_id}`, enid, 1)
     }
   }
 
@@ -564,32 +628,57 @@ export async function fetchAuthorNetwork(
     }
   }
 
-  // Top publications by this author (by citation count)
-  const { rows: pubs } = await db.query(`
-    SELECT p.id, p.title, coalesce(p.external_citation_count, 0) as cite_count
-    FROM authors_rels ar
-    JOIN publications p ON p.id = ar.publications_id
+  // Top works by this author across publications + datasets + documents.
+  // Pubs/datasets ranked by external_citation_count; documents fall to bottom (no cite count).
+  const { rows: works } = await db.query(`
+    SELECT 'publication' AS work_type, 'publications' AS collection, p.id, p.title,
+           coalesce(p.external_citation_count, 0) AS sort_score, coalesce(p.year, 0)::int AS year
+    FROM authors_rels ar JOIN publications p ON p.id = ar.publications_id
     WHERE ar.parent_id = $1 AND ar.path = 'publications'
-    ORDER BY p.external_citation_count DESC NULLS LAST
-    LIMIT 8
+    UNION ALL
+    SELECT 'dataset', 'datasets', d.id, d.title,
+           coalesce(d.external_citation_count, 0), coalesce(d.publication_year, 0)::int
+    FROM authors_rels ar JOIN datasets d ON d.id = ar.datasets_id
+    WHERE ar.parent_id = $1 AND ar.path = 'datasets'
+    UNION ALL
+    SELECT 'document', 'documents', doc.id, doc.title,
+           0, coalesce(EXTRACT(YEAR FROM doc.date_original)::int, 0)
+    FROM authors_rels ar JOIN documents doc ON doc.id = ar.documents_id
+    WHERE ar.parent_id = $1 AND ar.path = 'documents'
+    ORDER BY sort_score DESC, year DESC
+    LIMIT 10
   `, [authorId])
 
-  for (const p of pubs) {
-    const nid = `publications-${p.id}`
+  for (const w of works) {
+    const nid = `${w.collection}-${w.id}`
     if (!nodeIds.has(nid)) {
-      nodes.push({ id: nid, label: p.title.slice(0, 50), type: 'publication', degree: p.cite_count || 0, isFocal: false })
+      nodes.push({ id: nid, label: (w.title || '').slice(0, 50), type: w.work_type, degree: parseInt(w.sort_score) || 0, isFocal: false })
       nodeIds.add(nid)
     }
     addEdge(focalId, nid, 1)
   }
 
-  // Top co-authors (by shared publications)
+  // Top co-authors (by total shared works across publications + datasets + documents)
   const { rows: coauthors } = await db.query(`
-    SELECT a.id, a.display_name, COUNT(DISTINCT ar2.publications_id) as shared
-    FROM authors_rels ar1
-    JOIN authors_rels ar2 ON ar2.publications_id = ar1.publications_id AND ar2.parent_id != $1 AND ar2.path = 'publications'
-    JOIN authors a ON a.id = ar2.parent_id
-    WHERE ar1.parent_id = $1 AND ar1.path = 'publications'
+    WITH shared_works AS (
+      SELECT ar2.parent_id AS author_id
+      FROM authors_rels ar1
+      JOIN authors_rels ar2 ON ar2.publications_id = ar1.publications_id AND ar2.parent_id != $1 AND ar2.path = 'publications'
+      WHERE ar1.parent_id = $1 AND ar1.path = 'publications'
+      UNION ALL
+      SELECT ar2.parent_id
+      FROM authors_rels ar1
+      JOIN authors_rels ar2 ON ar2.datasets_id = ar1.datasets_id AND ar2.parent_id != $1 AND ar2.path = 'datasets'
+      WHERE ar1.parent_id = $1 AND ar1.path = 'datasets'
+      UNION ALL
+      SELECT ar2.parent_id
+      FROM authors_rels ar1
+      JOIN authors_rels ar2 ON ar2.documents_id = ar1.documents_id AND ar2.parent_id != $1 AND ar2.path = 'documents'
+      WHERE ar1.parent_id = $1 AND ar1.path = 'documents'
+    )
+    SELECT a.id, a.display_name, COUNT(*) AS shared
+    FROM shared_works s
+    JOIN authors a ON a.id = s.author_id
     GROUP BY a.id, a.display_name
     ORDER BY shared DESC
     LIMIT 8
@@ -604,51 +693,98 @@ export async function fetchAuthorNetwork(
     addEdge(focalId, nid, parseInt(c.shared))
   }
 
-  // Co-author ↔ publication links
-  if (coauthors.length > 0 && pubs.length > 0) {
+  // Co-author ↔ work links across all three paths
+  if (coauthors.length > 0 && works.length > 0) {
     const coauthorIds = coauthors.map((c: any) => c.id)
-    const pubIds = pubs.map((p: any) => p.id)
-    const { rows: links } = await db.query(`
-      SELECT parent_id as author_id, publications_id as pub_id
-      FROM authors_rels
-      WHERE parent_id = ANY($1) AND publications_id = ANY($2) AND path = 'publications'
-    `, [coauthorIds, pubIds])
-    for (const l of links) addEdge(`author-${l.author_id}`, `publications-${l.pub_id}`, 1)
+    const pubIds = works.filter((w: any) => w.work_type === 'publication').map((w: any) => w.id)
+    const dsIds = works.filter((w: any) => w.work_type === 'dataset').map((w: any) => w.id)
+    const docIds = works.filter((w: any) => w.work_type === 'document').map((w: any) => w.id)
+
+    if (pubIds.length > 0) {
+      const { rows } = await db.query(`
+        SELECT parent_id AS author_id, publications_id AS work_id
+        FROM authors_rels
+        WHERE parent_id = ANY($1) AND publications_id = ANY($2) AND path = 'publications'
+      `, [coauthorIds, pubIds])
+      for (const l of rows) addEdge(`author-${l.author_id}`, `publications-${l.work_id}`, 1)
+    }
+    if (dsIds.length > 0) {
+      const { rows } = await db.query(`
+        SELECT parent_id AS author_id, datasets_id AS work_id
+        FROM authors_rels
+        WHERE parent_id = ANY($1) AND datasets_id = ANY($2) AND path = 'datasets'
+      `, [coauthorIds, dsIds])
+      for (const l of rows) addEdge(`author-${l.author_id}`, `datasets-${l.work_id}`, 1)
+    }
+    if (docIds.length > 0) {
+      const { rows } = await db.query(`
+        SELECT parent_id AS author_id, documents_id AS work_id
+        FROM authors_rels
+        WHERE parent_id = ANY($1) AND documents_id = ANY($2) AND path = 'documents'
+      `, [coauthorIds, docIds])
+      for (const l of rows) addEdge(`author-${l.author_id}`, `documents-${l.work_id}`, 1)
+    }
   }
 
-  // Co-author ↔ co-author links
+  // Co-author ↔ co-author links (shared works of any type, ≥2)
   if (coauthors.length > 1) {
     const coauthorIds = coauthors.map((c: any) => c.id)
     const { rows: cocoEdges } = await db.query(`
-      SELECT ar1.parent_id as a1, ar2.parent_id as a2, COUNT(DISTINCT ar1.publications_id) as shared
-      FROM authors_rels ar1
-      JOIN authors_rels ar2 ON ar2.publications_id = ar1.publications_id AND ar2.parent_id > ar1.parent_id AND ar2.path = 'publications'
-      WHERE ar1.path = 'publications' AND ar1.parent_id = ANY($1) AND ar2.parent_id = ANY($1)
-      GROUP BY ar1.parent_id, ar2.parent_id
-      HAVING COUNT(DISTINCT ar1.publications_id) >= 2
-      LIMIT 20
+      WITH pairs AS (
+        SELECT ar1.parent_id AS a1, ar2.parent_id AS a2
+        FROM authors_rels ar1
+        JOIN authors_rels ar2 ON ar2.publications_id = ar1.publications_id AND ar2.parent_id > ar1.parent_id AND ar2.path = 'publications'
+        WHERE ar1.path = 'publications' AND ar1.parent_id = ANY($1) AND ar2.parent_id = ANY($1)
+        UNION ALL
+        SELECT ar1.parent_id, ar2.parent_id
+        FROM authors_rels ar1
+        JOIN authors_rels ar2 ON ar2.datasets_id = ar1.datasets_id AND ar2.parent_id > ar1.parent_id AND ar2.path = 'datasets'
+        WHERE ar1.path = 'datasets' AND ar1.parent_id = ANY($1) AND ar2.parent_id = ANY($1)
+        UNION ALL
+        SELECT ar1.parent_id, ar2.parent_id
+        FROM authors_rels ar1
+        JOIN authors_rels ar2 ON ar2.documents_id = ar1.documents_id AND ar2.parent_id > ar1.parent_id AND ar2.path = 'documents'
+        WHERE ar1.path = 'documents' AND ar1.parent_id = ANY($1) AND ar2.parent_id = ANY($1)
+      )
+      SELECT a1, a2, COUNT(*) AS shared
+      FROM pairs
+      GROUP BY a1, a2
+      HAVING COUNT(*) >= 2
+      ORDER BY shared DESC
+      LIMIT 30
     `, [coauthorIds])
     for (const e of cocoEdges) addEdge(`author-${e.a1}`, `author-${e.a2}`, parseInt(e.shared))
   }
 
-  // Top entities from this author's publications
+  // Top entities from this author's works (publications + datasets + documents)
   const entityLimit = Math.max(5, limit - nodes.length)
   const { rows: entities } = await db.query(`
+    WITH author_works AS (
+      SELECT 'publications'::text AS collection, publications_id AS item_id FROM authors_rels WHERE parent_id = $1 AND path = 'publications' AND publications_id IS NOT NULL
+      UNION ALL
+      SELECT 'datasets', datasets_id FROM authors_rels WHERE parent_id = $1 AND path = 'datasets' AND datasets_id IS NOT NULL
+      UNION ALL
+      SELECT 'documents', documents_id FROM authors_rels WHERE parent_id = $1 AND path = 'documents' AND documents_id IS NOT NULL
+    )
     SELECT em.entity_type, em.entity_id,
       CASE em.entity_type
         WHEN 'species' THEN (SELECT canonical_name FROM species WHERE id = em.entity_id)
         WHEN 'protocol' THEN (SELECT name FROM protocols WHERE id = em.entity_id)
         WHEN 'concept' THEN (SELECT name FROM concepts WHERE id = em.entity_id)
-      END as name,
+        WHEN 'place' THEN (SELECT name FROM places WHERE id = em.entity_id)
+        WHEN 'stakeholder' THEN (SELECT name FROM stakeholders WHERE id = em.entity_id)
+      END AS name,
       CASE em.entity_type
         WHEN 'species' THEN (SELECT publication_count FROM species WHERE id = em.entity_id)
         WHEN 'protocol' THEN (SELECT publication_count FROM protocols WHERE id = em.entity_id)
         WHEN 'concept' THEN (SELECT publication_count FROM concepts WHERE id = em.entity_id)
-      END as degree,
-      COUNT(DISTINCT em.item_id) as author_mentions
+        WHEN 'place' THEN (SELECT publication_count FROM places WHERE id = em.entity_id)
+        WHEN 'stakeholder' THEN (SELECT document_count FROM stakeholders WHERE id = em.entity_id)
+      END AS degree,
+      COUNT(DISTINCT (em.collection || ':' || em.item_id)) AS author_mentions
     FROM entity_mentions em
-    JOIN authors_rels ar ON ar.publications_id = em.item_id AND ar.path = 'publications'
-    WHERE ar.parent_id = $1 AND em.collection = 'publications' AND ${GRAPH_ENTITY_FILTER}
+    JOIN author_works aw ON aw.collection = em.collection AND aw.item_id = em.item_id
+    WHERE ${GRAPH_ENTITY_FILTER}
     GROUP BY em.entity_type, em.entity_id
     ORDER BY author_mentions DESC
     LIMIT $2
@@ -664,22 +800,33 @@ export async function fetchAuthorNetwork(
     addEdge(focalId, nid, parseInt(e.author_mentions))
   }
 
-  // Entity ↔ publication links
-  const pubNodeIds = [...nodeIds].filter((nid) => nid.startsWith('publications-'))
-  const entityNodeIds = [...nodeIds].filter((nid) =>
-    nid.startsWith('species-') || nid.startsWith('protocol-') || nid.startsWith('concept-')
+  // Entity ↔ work links across all 3 collections of displayed work nodes
+  const workNodeIds = [...nodeIds].filter((nid) =>
+    nid.startsWith('publications-') || nid.startsWith('datasets-') || nid.startsWith('documents-')
   )
-  if (pubNodeIds.length > 0 && entityNodeIds.length > 0) {
-    const pubIds = pubNodeIds.map((nid) => parseInt(nid.replace('publications-', '')))
-    const { rows: epLinks } = await db.query(`
-      SELECT entity_type, entity_id, item_id
-      FROM entity_mentions
-      WHERE collection = 'publications' AND item_id = ANY($1) AND ${GRAPH_ENTITY_FILTER_BARE}
-    `, [pubIds])
+  const entityNodeIds = [...nodeIds].filter((nid) =>
+    nid.startsWith('species-') || nid.startsWith('protocol-') || nid.startsWith('concept-') ||
+    nid.startsWith('place-') || nid.startsWith('stakeholder-')
+  )
+  if (workNodeIds.length > 0 && entityNodeIds.length > 0) {
+    const byCollection: Record<string, number[]> = { publications: [], datasets: [], documents: [] }
+    for (const nid of workNodeIds) {
+      const dash = nid.indexOf('-')
+      const coll = nid.slice(0, dash)
+      byCollection[coll].push(parseInt(nid.slice(dash + 1)))
+    }
     const entitySet = new Set(entityNodeIds)
-    for (const e of epLinks) {
-      const enid = `${e.entity_type}-${e.entity_id}`
-      if (entitySet.has(enid)) addEdge(enid, `publications-${e.item_id}`, 1)
+    for (const [coll, ids] of Object.entries(byCollection)) {
+      if (ids.length === 0) continue
+      const { rows: epLinks } = await db.query(`
+        SELECT entity_type, entity_id, item_id
+        FROM entity_mentions
+        WHERE collection = $1 AND item_id = ANY($2) AND ${GRAPH_ENTITY_FILTER_BARE}
+      `, [coll, ids])
+      for (const e of epLinks) {
+        const enid = `${e.entity_type}-${e.entity_id}`
+        if (entitySet.has(enid)) addEdge(enid, `${coll}-${e.item_id}`, 1)
+      }
     }
   }
 

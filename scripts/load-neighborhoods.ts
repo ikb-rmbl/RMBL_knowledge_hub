@@ -71,7 +71,14 @@ async function main() {
         top_by_type = EXCLUDED.top_by_type,
         resolution = EXCLUDED.resolution,
         generated_at = EXCLUDED.generated_at,
-        updated_at = NOW()
+        updated_at = NOW(),
+        -- Louvain reuses community_id values across runs but maps them to
+        -- different content. Clear primers so stale text doesn't outlive the
+        -- neighborhood it described.
+        primer = NULL,
+        primer_type = NULL,
+        primer_generated_at = NULL,
+        primer_citations = '[]'::jsonb
     `, [
       c.id,
       c.title || c.label,

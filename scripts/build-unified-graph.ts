@@ -269,31 +269,48 @@ async function main() {
   for (const e of authorPubLinks) addEdge(`author-${e.author_id}`, `pub-${e.pub_id}`, 3), apEdges++ // boosted
   console.log(`  ${apEdges} author↔publication edges`)
 
-  // Co-authorship (≥2 shared publications)
+  // Co-authorship (≥2 shared works across publications + datasets + documents)
   const { rows: coauthorEdges } = await db.query(`
-    SELECT ar1.parent_id as a1, ar2.parent_id as a2,
-      COUNT(DISTINCT ar1.publications_id) as shared
-    FROM authors_rels ar1
-    JOIN authors_rels ar2 ON ar2.publications_id = ar1.publications_id
-      AND ar2.parent_id > ar1.parent_id AND ar2.path = 'publications'
-    WHERE ar1.path = 'publications'
-    GROUP BY ar1.parent_id, ar2.parent_id
-    HAVING COUNT(DISTINCT ar1.publications_id) >= 2
+    WITH pairs AS (
+      SELECT ar1.parent_id AS a1, ar2.parent_id AS a2
+      FROM authors_rels ar1
+      JOIN authors_rels ar2 ON ar2.publications_id = ar1.publications_id AND ar2.parent_id > ar1.parent_id AND ar2.path = 'publications'
+      WHERE ar1.path = 'publications'
+      UNION ALL
+      SELECT ar1.parent_id, ar2.parent_id
+      FROM authors_rels ar1
+      JOIN authors_rels ar2 ON ar2.datasets_id = ar1.datasets_id AND ar2.parent_id > ar1.parent_id AND ar2.path = 'datasets'
+      WHERE ar1.path = 'datasets'
+      UNION ALL
+      SELECT ar1.parent_id, ar2.parent_id
+      FROM authors_rels ar1
+      JOIN authors_rels ar2 ON ar2.documents_id = ar1.documents_id AND ar2.parent_id > ar1.parent_id AND ar2.path = 'documents'
+      WHERE ar1.path = 'documents'
+    )
+    SELECT a1, a2, COUNT(*) AS shared
+    FROM pairs GROUP BY a1, a2
+    HAVING COUNT(*) >= 2
   `)
   let caEdges = 0
   for (const e of coauthorEdges) addEdge(`author-${e.a1}`, `author-${e.a2}`, parseInt(e.shared) * 5), caEdges++ // boosted
   console.log(`  ${caEdges} co-authorship edges`)
 
-  // Author ↔ Entity
+  // Author ↔ Entity (across publications + datasets + documents)
   const { rows: authorEntityLinks } = await db.query(`
-    SELECT ar.parent_id as author_id, em.entity_type, em.entity_id,
-      COUNT(DISTINCT em.item_id) as shared
-    FROM authors_rels ar
-    JOIN entity_mentions em ON em.item_id = ar.publications_id AND em.collection = 'publications'
-    WHERE ar.path = 'publications'
-      AND em.entity_type IN ('species', 'concept', 'protocol', 'place')
-    GROUP BY ar.parent_id, em.entity_type, em.entity_id
-    HAVING COUNT(DISTINCT em.item_id) >= 2
+    WITH author_works AS (
+      SELECT parent_id AS author_id, 'publications'::text AS collection, publications_id AS item_id FROM authors_rels WHERE path = 'publications' AND publications_id IS NOT NULL
+      UNION ALL
+      SELECT parent_id, 'datasets', datasets_id FROM authors_rels WHERE path = 'datasets' AND datasets_id IS NOT NULL
+      UNION ALL
+      SELECT parent_id, 'documents', documents_id FROM authors_rels WHERE path = 'documents' AND documents_id IS NOT NULL
+    )
+    SELECT aw.author_id, em.entity_type, em.entity_id,
+      COUNT(DISTINCT (em.collection || ':' || em.item_id)) AS shared
+    FROM author_works aw
+    JOIN entity_mentions em ON em.collection = aw.collection AND em.item_id = aw.item_id
+    WHERE em.entity_type IN ('species', 'concept', 'protocol', 'place')
+    GROUP BY aw.author_id, em.entity_type, em.entity_id
+    HAVING COUNT(DISTINCT (em.collection || ':' || em.item_id)) >= 2
   `)
   let aeEdges = 0
   for (const e of authorEntityLinks) addEdge(`author-${e.author_id}`, `${e.entity_type}-${e.entity_id}`, Math.min(parseInt(e.shared), 5)), aeEdges++ // capped

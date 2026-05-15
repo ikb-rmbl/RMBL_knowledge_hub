@@ -105,16 +105,31 @@ async function buildAuthorGraph(db: pg.Pool) {
   console.log(`  ${authorGroup.size} authors with research area assigned`)
 
   const { rows: edges } = await db.query(`
-    SELECT ar1.parent_id as source, ar2.parent_id as target,
-      COUNT(DISTINCT ar1.publications_id) as shared_pubs
-    FROM authors_rels ar1
-    JOIN authors_rels ar2 ON ar2.publications_id = ar1.publications_id
-      AND ar2.parent_id > ar1.parent_id AND ar2.path = 'publications'
-    JOIN authors a1 ON a1.id = ar1.parent_id AND a1.work_count >= $1
-    JOIN authors a2 ON a2.id = ar2.parent_id AND a2.work_count >= $1
-    WHERE ar1.path = 'publications'
-    GROUP BY ar1.parent_id, ar2.parent_id
-    HAVING COUNT(DISTINCT ar1.publications_id) >= 2
+    WITH pairs AS (
+      SELECT ar1.parent_id AS source, ar2.parent_id AS target
+      FROM authors_rels ar1
+      JOIN authors_rels ar2 ON ar2.publications_id = ar1.publications_id AND ar2.parent_id > ar1.parent_id AND ar2.path = 'publications'
+      JOIN authors a1 ON a1.id = ar1.parent_id AND a1.work_count >= $1
+      JOIN authors a2 ON a2.id = ar2.parent_id AND a2.work_count >= $1
+      WHERE ar1.path = 'publications'
+      UNION ALL
+      SELECT ar1.parent_id, ar2.parent_id
+      FROM authors_rels ar1
+      JOIN authors_rels ar2 ON ar2.datasets_id = ar1.datasets_id AND ar2.parent_id > ar1.parent_id AND ar2.path = 'datasets'
+      JOIN authors a1 ON a1.id = ar1.parent_id AND a1.work_count >= $1
+      JOIN authors a2 ON a2.id = ar2.parent_id AND a2.work_count >= $1
+      WHERE ar1.path = 'datasets'
+      UNION ALL
+      SELECT ar1.parent_id, ar2.parent_id
+      FROM authors_rels ar1
+      JOIN authors_rels ar2 ON ar2.documents_id = ar1.documents_id AND ar2.parent_id > ar1.parent_id AND ar2.path = 'documents'
+      JOIN authors a1 ON a1.id = ar1.parent_id AND a1.work_count >= $1
+      JOIN authors a2 ON a2.id = ar2.parent_id AND a2.work_count >= $1
+      WHERE ar1.path = 'documents'
+    )
+    SELECT source, target, COUNT(*) AS shared_pubs
+    FROM pairs GROUP BY source, target
+    HAVING COUNT(*) >= 2
     ORDER BY shared_pubs DESC
   `, [minWorks])
   console.log(`  ${edges.length} co-authorship edges`)
