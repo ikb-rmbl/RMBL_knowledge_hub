@@ -7,6 +7,7 @@ import { renderRelatedWorks } from '../../lib/related-works'
 import { getDb } from '../../lib/db'
 import { isHttpUrl, isValidOrcid, isValidDoi } from '../../lib/url-validation'
 import { fetchItemNetwork } from '../../lib/graph-data'
+import ViewInGlobalGraphLink from '../../components/ViewInGlobalGraphLink'
 import { JsonLd, datasetJsonLd } from '../../lib/json-ld'
 import LazyGraph from '../../components/LazyGraph'
 import FlagButton from '../../components/FlagButton'
@@ -232,7 +233,10 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
         if (network.nodes.length <= 1) return null
         return (
           <div className="detail-section">
-            <h2>Local Knowledge Graph (Top {network.nodes.length - 1} entities)</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap' }}>
+              <h2 style={{ margin: 0 }}>Local Knowledge Graph (Top {network.nodes.length - 1} entities)</h2>
+              <ViewInGlobalGraphLink globalNodeId={`dataset-${id}`} />
+            </div>
             <LazyGraph nodes={network.nodes} edges={network.edges} focalId={network.focalId} />
           </div>
         )

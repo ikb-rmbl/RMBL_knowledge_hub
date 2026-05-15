@@ -8,6 +8,7 @@ import { isHttpUrl } from '../../lib/url-validation'
 import { getDb } from '../../lib/db'
 import { STAKEHOLDER_COLORS } from '../../lib/graph-colors'
 import { fetchItemNetwork } from '../../lib/graph-data'
+import ViewInGlobalGraphLink from '../../components/ViewInGlobalGraphLink'
 import LazyGraph from '../../components/LazyGraph'
 import FlagButton from '../../components/FlagButton'
 
@@ -184,7 +185,10 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
         if (network.nodes.length <= 1) return null
         return (
           <div className="detail-section">
-            <h2>Local Knowledge Graph (Top {network.nodes.length} entities)</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap' }}>
+              <h2 style={{ margin: 0 }}>Local Knowledge Graph (Top {network.nodes.length} entities)</h2>
+              <ViewInGlobalGraphLink globalNodeId={`document-${docId}`} />
+            </div>
             <LazyGraph nodes={network.nodes} edges={network.edges} focalId={network.focalId} />
           </div>
         )

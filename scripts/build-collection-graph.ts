@@ -129,7 +129,7 @@ async function buildAuthorGraph(db: pg.Pool) {
     )
     SELECT source, target, COUNT(*) AS shared_pubs
     FROM pairs GROUP BY source, target
-    HAVING COUNT(*) >= 2
+    HAVING COUNT(*) >= 1
     ORDER BY shared_pubs DESC
   `, [minWorks])
   console.log(`  ${edges.length} co-authorship edges`)
@@ -290,9 +290,8 @@ async function buildDatasetGraph(db: pg.Pool) {
       AND em1.item_id = ANY($1) AND em2.item_id = ANY($1)
       AND em1.entity_type != 'place'
     GROUP BY em1.item_id, em2.item_id
-    HAVING COUNT(DISTINCT em1.entity_id) >= 2
+    HAVING COUNT(DISTINCT em1.entity_id) >= 1
     ORDER BY shared_entities DESC
-    LIMIT 2000
   `, [dsIds])
   console.log(`  ${entityEdges.length} shared-entity edges`)
 
@@ -308,7 +307,6 @@ async function buildDatasetGraph(db: pg.Pool) {
     GROUP BY ar1.datasets_id, ar2.datasets_id
     HAVING COUNT(DISTINCT ar1.parent_id) >= 1
     ORDER BY shared_authors DESC
-    LIMIT 2000
   `, [dsIds])
   console.log(`  ${authorEdges.length} shared-author edges`)
 

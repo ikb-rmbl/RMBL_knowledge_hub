@@ -48,7 +48,7 @@ export default async function ExploreNeighborhoodsPage({ searchParams }: { searc
   for (const n of raw.nodes) if (n.community !== undefined && n.community >= 0) visibleCommunities.add(n.community)
 
   const modeToggle = (
-    <div style={{ display: 'flex', gap: '6px' }}>
+    <div key="mode-toggle" style={{ display: 'flex', gap: '6px' }}>
       <a href="/explore/neighborhoods" style={tabStyle(!isResearch)}>All content</a>
       <a href="/explore/neighborhoods?mode=research" style={tabStyle(isResearch)}>Research only</a>
     </div>

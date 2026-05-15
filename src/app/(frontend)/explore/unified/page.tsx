@@ -5,9 +5,10 @@ import ExploreEntityGraph from '../../components/ExploreEntityGraph'
 
 export const dynamic = 'force-dynamic'
 
-export default async function ExploreUnifiedPage({ searchParams }: { searchParams: Promise<{ mode?: string }> }) {
+export default async function ExploreUnifiedPage({ searchParams }: { searchParams: Promise<{ mode?: string; focus?: string }> }) {
   const params = await searchParams
   const isResearch = params.mode === 'research'
+  const focus = params.focus || undefined
   const fileName = isResearch ? 'unified-research.json' : 'unified.json'
 
   let graphData: any = { entityType: 'unified', colorField: 'nodeType', nodes: [], edges: [], meta: {} }
@@ -25,7 +26,7 @@ export default async function ExploreUnifiedPage({ searchParams }: { searchParam
   })
 
   const modeToggle = (
-    <div style={{ display: 'flex', gap: '6px' }}>
+    <div key="mode-toggle" style={{ display: 'flex', gap: '6px' }}>
       <a href="/explore/unified" style={tabStyle(!isResearch)}>All content</a>
       <a href="/explore/unified?mode=research" style={tabStyle(isResearch)}>Research only</a>
     </div>
@@ -47,7 +48,7 @@ export default async function ExploreUnifiedPage({ searchParams }: { searchParam
           <>A unified view of the RMBL Knowledge Fabric connecting species, concepts, protocols, places, stakeholders, authors, publications, documents, and datasets. Edges represent co-occurrence, co-authorship, citations, and entity mentions. Use the checkboxes to show/hide node types.</>
         )}
       </p>
-      <ExploreEntityGraph data={graphData} detailSlug="" extraControls={modeToggle} />
+      <ExploreEntityGraph data={graphData} detailSlug="" extraControls={modeToggle} focus={focus} />
     </div>
   )
 }

@@ -33,7 +33,15 @@ const landscape = args.includes('--landscape')
 const sizeArg = args.find((a) => a.startsWith('--size='))?.split('=')[1] || 'A0'
 const colorBy = (args.find((a) => a.startsWith('--color-by='))?.split('=')[1] as 'nodetype' | 'community') || 'nodetype'
 const drawHulls = !args.includes('--no-hulls')
+const useKde = args.includes('--use-kde')
+const kdeBandwidth = parseFloat(args.find((a) => a.startsWith('--kde-bandwidth='))?.split('=')[1] || '18')
+const kdeThreshold = parseFloat(args.find((a) => a.startsWith('--kde-threshold='))?.split('=')[1] || '0.25')
+const kdeKeep = parseInt(args.find((a) => a.startsWith('--kde-keep='))?.split('=')[1] || '1', 10)
 const hullLabelTop = parseInt(args.find((a) => a.startsWith('--hull-label-top='))?.split('=')[1] || '24', 10)
+const satellitesEnabled = !args.includes('--no-satellites')
+const satelliteCell = parseFloat(args.find((a) => a.startsWith('--satellite-cell='))?.split('=')[1] || '96')
+const satelliteCount = parseInt(args.find((a) => a.startsWith('--satellites='))?.split('=')[1] || '24', 10)
+const nodeLabelsPerCommunity = parseInt(args.find((a) => a.startsWith('--node-labels='))?.split('=')[1] || '10', 10)
 const labelDensityArg = args.find((a) => a.startsWith('--labels-per-community='))?.split('=')[1]
 const labelsPerCommunity = labelDensityArg ? parseInt(labelDensityArg, 10) : 0  // default off when hulls drawn
 
@@ -53,11 +61,41 @@ const TITLE_GAP = 14
 const SUBTITLE_H = 14
 const FOOTER_H = 260
 const FOOTER_GAP = 18
+const SATELLITE_TITLE_H = 12
+const SATELLITE_FOOTER_H = 5
 
-const graphX = MARGIN
-const graphY = MARGIN + TITLE_H + TITLE_GAP + SUBTITLE_H + 10
-const graphW = W - 2 * MARGIN
-const graphH = H - graphY - FOOTER_H - FOOTER_GAP - MARGIN
+// Elliptical satellite layout: satellites are placed at evenly-spaced angles
+// on an ellipse that hugs the page edges. Central graph fits inside the
+// inscribed rectangle (constrained by the cells at the diagonal angles).
+const frameAreaY = MARGIN + TITLE_H + TITLE_GAP + SUBTITLE_H + 10
+const frameAreaH = H - frameAreaY - FOOTER_H - FOOTER_GAP - MARGIN
+const frameAreaW = W - 2 * MARGIN
+
+const totalSatellites = satellitesEnabled ? satelliteCount : 0
+const ringCx = MARGIN + frameAreaW / 2
+const ringCy = frameAreaY + frameAreaH / 2
+const ringRx = frameAreaW / 2 - satelliteCell / 2
+const ringRy = frameAreaH / 2 - satelliteCell / 2
+
+// Inner rectangle expands well past the inscribed-square (1/√2 × Rx). At
+// this size the diagonal cells overlap the central graph corners, but
+// satellites are frameless + drawn last, so they layer cleanly on top.
+const innerInsetRatio = parseFloat(args.find((a) => a.startsWith('--inner-inset-ratio='))?.split('=')[1] || '0.80')
+const innerHalfW = satellitesEnabled ? Math.max(80, ringRx * innerInsetRatio) : frameAreaW / 2
+const innerHalfH = satellitesEnabled ? Math.max(80, ringRy * innerInsetRatio) : frameAreaH / 2
+const graphX = ringCx - innerHalfW
+const graphY = ringCy - innerHalfH
+const graphW = innerHalfW * 2
+const graphH = innerHalfH * 2
+
+// Largest neighborhoods first; index 0 starts at the top and proceeds clockwise.
+function satelliteCellAt(idx: number): { x: number; y: number; w: number; h: number } | null {
+  if (!satellitesEnabled || idx < 0 || idx >= totalSatellites) return null
+  const angle = -Math.PI / 2 + (2 * Math.PI * idx) / totalSatellites
+  const cx = ringCx + ringRx * Math.cos(angle)
+  const cy = ringCy + ringRy * Math.sin(angle)
+  return { x: cx - satelliteCell / 2, y: cy - satelliteCell / 2, w: satelliteCell, h: satelliteCell }
+}
 
 // ---------------------------------------------------------------------------
 // Load data
@@ -174,6 +212,153 @@ function centroid(pts: { x: number; y: number }[]): { x: number; y: number } {
 }
 
 // ---------------------------------------------------------------------------
+// 2D Gaussian KDE + marching squares for organic, possibly multi-lobed
+// neighborhood boundaries. Used when --use-kde is set.
+// ---------------------------------------------------------------------------
+
+interface Grid { values: Float64Array; W: number; H: number; cellW: number; cellH: number; minX: number; minY: number }
+
+function kde2d(
+  pts: { x: number; y: number }[],
+  bandwidth: number,
+  bounds: { minX: number; maxX: number; minY: number; maxY: number },
+  gridSize: number,
+): Grid {
+  const cellW = (bounds.maxX - bounds.minX) / gridSize
+  const cellH = (bounds.maxY - bounds.minY) / gridSize
+  const values = new Float64Array(gridSize * gridSize)
+  const twoH2 = 2 * bandwidth * bandwidth
+  const reach = 3 * bandwidth
+  for (const p of pts) {
+    const ix0 = Math.max(0, Math.floor((p.x - bounds.minX - reach) / cellW))
+    const ix1 = Math.min(gridSize - 1, Math.ceil((p.x - bounds.minX + reach) / cellW))
+    const iy0 = Math.max(0, Math.floor((p.y - bounds.minY - reach) / cellH))
+    const iy1 = Math.min(gridSize - 1, Math.ceil((p.y - bounds.minY + reach) / cellH))
+    for (let iy = iy0; iy <= iy1; iy++) {
+      const gy = bounds.minY + (iy + 0.5) * cellH
+      for (let ix = ix0; ix <= ix1; ix++) {
+        const gx = bounds.minX + (ix + 0.5) * cellW
+        const r2 = (gx - p.x) ** 2 + (gy - p.y) ** 2
+        values[iy * gridSize + ix] += Math.exp(-r2 / twoH2)
+      }
+    }
+  }
+  return { values, W: gridSize, H: gridSize, cellW, cellH, minX: bounds.minX, minY: bounds.minY }
+}
+
+// Marching squares — returns line-segment list at a given threshold.
+function marchingSquares(g: Grid, threshold: number): { ax: number; ay: number; bx: number; by: number }[] {
+  const segs: { ax: number; ay: number; bx: number; by: number }[] = []
+  for (let i = 0; i < g.H - 1; i++) {
+    for (let j = 0; j < g.W - 1; j++) {
+      const a = g.values[i * g.W + j]
+      const b = g.values[i * g.W + (j + 1)]
+      const c = g.values[(i + 1) * g.W + (j + 1)]
+      const d = g.values[(i + 1) * g.W + j]
+      let code = 0
+      if (a >= threshold) code |= 1
+      if (b >= threshold) code |= 2
+      if (c >= threshold) code |= 4
+      if (d >= threshold) code |= 8
+      if (code === 0 || code === 15) continue
+      const x0 = g.minX + j * g.cellW, x1 = x0 + g.cellW
+      const y0 = g.minY + i * g.cellH, y1 = y0 + g.cellH
+      const lerp = (v0: number, v1: number, t0: number, t1: number) => t0 + ((threshold - v0) / (v1 - v0)) * (t1 - t0)
+      const top = { x: lerp(a, b, x0, x1), y: y0 }
+      const right = { x: x1, y: lerp(b, c, y0, y1) }
+      const bottom = { x: lerp(d, c, x0, x1), y: y1 }
+      const left = { x: x0, y: lerp(a, d, y0, y1) }
+      switch (code) {
+        case 1: case 14: segs.push({ ax: top.x, ay: top.y, bx: left.x, by: left.y }); break
+        case 2: case 13: segs.push({ ax: top.x, ay: top.y, bx: right.x, by: right.y }); break
+        case 3: case 12: segs.push({ ax: left.x, ay: left.y, bx: right.x, by: right.y }); break
+        case 4: case 11: segs.push({ ax: right.x, ay: right.y, bx: bottom.x, by: bottom.y }); break
+        case 6: case 9: segs.push({ ax: top.x, ay: top.y, bx: bottom.x, by: bottom.y }); break
+        case 7: case 8: segs.push({ ax: left.x, ay: left.y, bx: bottom.x, by: bottom.y }); break
+        case 5: case 10: // ambiguous (saddle) — two non-crossing segments
+          segs.push({ ax: top.x, ay: top.y, bx: left.x, by: left.y })
+          segs.push({ ax: right.x, ay: right.y, bx: bottom.x, by: bottom.y })
+          break
+      }
+    }
+  }
+  return segs
+}
+
+// Chain raw segments into closed polygons (or open polylines at grid edge).
+function chainSegments(segs: { ax: number; ay: number; bx: number; by: number }[]): { x: number; y: number }[][] {
+  const round = (v: number) => Math.round(v * 1000) / 1000
+  const key = (x: number, y: number) => `${round(x)},${round(y)}`
+  const adj = new Map<string, { x: number; y: number; segIdx: number; otherKey: string }[]>()
+  for (let i = 0; i < segs.length; i++) {
+    const s = segs[i]
+    const k1 = key(s.ax, s.ay), k2 = key(s.bx, s.by)
+    if (k1 === k2) continue
+    if (!adj.has(k1)) adj.set(k1, [])
+    if (!adj.has(k2)) adj.set(k2, [])
+    adj.get(k1)!.push({ x: s.bx, y: s.by, segIdx: i, otherKey: k2 })
+    adj.get(k2)!.push({ x: s.ax, y: s.ay, segIdx: i, otherKey: k1 })
+  }
+  const usedSegs = new Set<number>()
+  const polys: { x: number; y: number }[][] = []
+  for (const startKey of adj.keys()) {
+    const startNeighbors = adj.get(startKey)!
+    if (startNeighbors.every((n) => usedSegs.has(n.segIdx))) continue
+    const startParts = startKey.split(',').map(Number)
+    const poly: { x: number; y: number }[] = [{ x: startParts[0], y: startParts[1] }]
+    let currentKey = startKey
+    while (true) {
+      const neighbors = adj.get(currentKey) || []
+      const nxt = neighbors.find((n) => !usedSegs.has(n.segIdx))
+      if (!nxt) break
+      usedSegs.add(nxt.segIdx)
+      poly.push({ x: nxt.x, y: nxt.y })
+      currentKey = nxt.otherKey
+      if (currentKey === startKey) break
+    }
+    if (poly.length >= 3) polys.push(poly)
+  }
+  return polys
+}
+
+// Polygon area via shoelace formula (returns absolute area).
+function polygonArea(poly: { x: number; y: number }[]): number {
+  let sum = 0
+  for (let i = 0; i < poly.length; i++) {
+    const j = (i + 1) % poly.length
+    sum += poly[i].x * poly[j].y - poly[j].x * poly[i].y
+  }
+  return Math.abs(sum / 2)
+}
+
+// Build KDE contour polygons for a community's screen-space points.
+// Bandwidth + threshold are tunable knobs.
+function kdeContours(
+  pts: { x: number; y: number }[],
+  bandwidth: number,
+  thresholdRatio: number,
+): { x: number; y: number }[][] {
+  if (pts.length < 8) return []
+  // Pad bounds by 3*bandwidth so contours have room around outermost points
+  const pad = 3 * bandwidth
+  const bounds = {
+    minX: Math.min(...pts.map((p) => p.x)) - pad,
+    maxX: Math.max(...pts.map((p) => p.x)) + pad,
+    minY: Math.min(...pts.map((p) => p.y)) - pad,
+    maxY: Math.max(...pts.map((p) => p.y)) + pad,
+  }
+  const span = Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY)
+  // Grid resolution scales with span: aim for ~0.25*bandwidth per cell
+  const gridSize = Math.min(140, Math.max(40, Math.round(span / (bandwidth * 0.25))))
+  const g = kde2d(pts, bandwidth, bounds, gridSize)
+  let peak = 0
+  for (let k = 0; k < g.values.length; k++) if (g.values[k] > peak) peak = g.values[k]
+  if (peak === 0) return []
+  const segs = marchingSquares(g, peak * thresholdRatio)
+  return chainSegments(segs)
+}
+
+// ---------------------------------------------------------------------------
 // Render
 // ---------------------------------------------------------------------------
 
@@ -205,12 +390,14 @@ out.push(`  <text x="${W / 2}" y="${MARGIN + 50}" text-anchor="middle" class="ti
 out.push(`  <text x="${W / 2}" y="${MARGIN + TITLE_H + TITLE_GAP}" text-anchor="middle" class="subtitle" font-size="16" fill="#55553D">A unified knowledge network for the Gunnison Basin · 4,852 publications · 1,426 datasets · 1,381 documents · 152 research neighborhoods</text>`)
 out.push(`</g>`)
 
-// --- Neighborhood hulls (drawn first so they sit under edges + nodes) ------
-// "Fuzzy" effect: thick rounded-linejoin stroke + low-alpha fill in matching
-// color. The wide stroke + linejoin=round inflates the hull and softens
-// corners; combined with feGaussianBlur it reads as a soft halo.
+// --- Neighborhood boundaries (drawn first so they sit under edges + nodes) -
+// Two rendering modes:
+//   Default: fuzzy convex hulls (thick stroke + Gaussian blur)
+//   --use-kde: organic boundaries from 2D Gaussian KDE + marching-squares
+//              contours at a fraction of each community's peak density.
 if (drawHulls) {
-  out.push(`<g id="neighborhood-hulls" filter="url(#hull-blur)">`)
+  const groupAttrs = useKde ? '' : ' filter="url(#hull-blur)"'
+  out.push(`<g id="neighborhood-hulls"${groupAttrs}>`)
   const byCommunity = new Map<number, Node[]>()
   for (const n of nodes) {
     if (n.community === undefined || n.community < 0) continue
@@ -219,16 +406,28 @@ if (drawHulls) {
   }
   // Largest neighborhoods first so smaller ones overlay on top
   const sortedHullComms = [...byCommunity.entries()].sort((a, b) => b[1].length - a[1].length)
-  for (const [commId, members] of sortedHullComms) {
+  for (const [, members] of sortedHullComms) {
     if (members.length < 8) continue  // too small to draw meaningfully
     const pts = members.map((n) => ({ x: sx(n.x), y: sy(n.y) }))
-    const hull = convexHull(pts)
-    if (hull.length < 3) continue
-    const d = 'M ' + hull.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' L ') + ' Z'
-    // Always neutral warm gray for hulls so node-type colors stay legible
-    const hullColor = '#8A8268'
-    const strokeWidth = Math.min(18, Math.max(6, Math.sqrt(members.length) * 1.0))
-    out.push(`<path d="${d}" fill="${hullColor}" fill-opacity="0.07" stroke="${hullColor}" stroke-width="${strokeWidth.toFixed(1)}" stroke-opacity="0.10" stroke-linejoin="round" stroke-linecap="round"/>`)
+    const hullColor = '#8A8268'  // neutral warm gray; node-type colors stay legible
+
+    if (useKde) {
+      // Sort by area so we keep the dominant lobes; drop tiny artifact contours
+      const polys = kdeContours(pts, kdeBandwidth, kdeThreshold)
+        .filter((p) => p.length >= 3)
+        .sort((a, b) => polygonArea(b) - polygonArea(a))
+        .slice(0, kdeKeep)
+      for (const poly of polys) {
+        const d = 'M ' + poly.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' L ') + ' Z'
+        out.push(`<path d="${d}" fill="${hullColor}" fill-opacity="0.07" stroke="${hullColor}" stroke-width="0.8" stroke-opacity="0.45" stroke-linejoin="round" stroke-linecap="round"/>`)
+      }
+    } else {
+      const hull = convexHull(pts)
+      if (hull.length < 3) continue
+      const d = 'M ' + hull.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' L ') + ' Z'
+      const strokeWidth = Math.min(18, Math.max(6, Math.sqrt(members.length) * 1.0))
+      out.push(`<path d="${d}" fill="${hullColor}" fill-opacity="0.07" stroke="${hullColor}" stroke-width="${strokeWidth.toFixed(1)}" stroke-opacity="0.10" stroke-linejoin="round" stroke-linecap="round"/>`)
+    }
   }
   out.push(`</g>`)
 }
@@ -256,7 +455,9 @@ for (const n of nodes) {
 }
 out.push(`</g>`)
 
-// --- Per-node labels (off by default when hulls drawn; opt in via flag) ----
+// (Per-node labels moved from main graph into the satellite cells, where the
+// "zoom" makes labels for top high-degree nodes legible without crowding.)
+// Use --node-labels=N to control top-N per satellite, default 3.
 if (labelsPerCommunity > 0) {
   out.push(`<g id="graph-labels" font-family="Jost,sans-serif" font-weight="500" fill="#1f1f12">`)
   const byCommunity = new Map<number, Node[]>()
@@ -272,14 +473,16 @@ if (labelsPerCommunity > 0) {
       const fontSize = Math.max(1.6, Math.min(3.2, 1.4 + Math.sqrt(m.degree || 1) * 0.12))
       const fontStyle = m.nodeType === 'species' ? 'italic' : 'normal'
       const label = m.label.length > 38 ? m.label.slice(0, 36) + '…' : m.label
-      out.push(`<text x="${sx(m.x).toFixed(2)}" y="${(sy(m.y) - 4).toFixed(2)}" text-anchor="middle" font-size="${fontSize.toFixed(2)}" font-style="${fontStyle}">${escapeXml(label)}</text>`)
+      const haloW = (fontSize * 0.22).toFixed(2)
+      out.push(`<text x="${sx(m.x).toFixed(2)}" y="${(sy(m.y) - 4).toFixed(2)}" text-anchor="middle" font-size="${fontSize.toFixed(2)}" font-style="${fontStyle}" paint-order="stroke" stroke="#FBF7EE" stroke-width="${haloW}" stroke-linejoin="round">${escapeXml(label)}</text>`)
     }
   }
   out.push(`</g>`)
 }
 
-// --- Hull labels: title each top-N neighborhood at its centroid ------------
-if (drawHulls && hullLabelTop > 0) {
+// --- Neighborhood labels: title each top-N neighborhood at its centroid ----
+// (Independent of hull drawing — labels are useful even when boundaries are off.)
+if (hullLabelTop > 0) {
   out.push(`<g id="hull-labels" fill="#1f1f12">`)
   const byCommunity = new Map<number, Node[]>()
   for (const n of nodes) {
@@ -305,8 +508,9 @@ if (drawHulls && hullLabelTop > 0) {
     if (line) parts.push(line)
     const fontSize = Math.max(3.2, Math.min(6, 2.8 + Math.sqrt(members.length) * 0.18))
     let dy = -((parts.length - 1) * fontSize * 0.6)
+    const haloW = (fontSize * 0.22).toFixed(2)
     for (const part of parts) {
-      out.push(`<text x="${c.x.toFixed(2)}" y="${(c.y + dy).toFixed(2)}" text-anchor="middle" class="hull-label" font-size="${fontSize.toFixed(2)}">${escapeXml(part)}</text>`)
+      out.push(`<text x="${c.x.toFixed(2)}" y="${(c.y + dy).toFixed(2)}" text-anchor="middle" class="hull-label" font-size="${fontSize.toFixed(2)}" paint-order="stroke" stroke="#FBF7EE" stroke-width="${haloW}" stroke-linejoin="round">${escapeXml(part)}</text>`)
       dy += fontSize * 1.1
     }
   }
@@ -337,8 +541,141 @@ if (colorBy === 'nodetype') {
   out.push(`</g>`)
 }
 
+// --- Satellite subgraphs (picture-frame layout) ----------------------------
+// The N largest neighborhoods are rendered as small subgraphs around the
+// perimeter of the main graph, in clockwise spiral order from top-left.
+// Only intra-community edges are shown; node positions inherit from the
+// main FA2 layout (so each satellite is a "zoom" of its slice).
+if (satellitesEnabled && totalSatellites > 0) {
+  const byCommunity = new Map<number, Node[]>()
+  for (const n of nodes) {
+    if (n.community === undefined || n.community < 0) continue
+    if (!byCommunity.has(n.community)) byCommunity.set(n.community, [])
+    byCommunity.get(n.community)!.push(n)
+  }
+  const top = [...byCommunity.entries()]
+    .sort((a, b) => b[1].length - a[1].length)
+    .slice(0, totalSatellites)
+
+  // Collect intra-community edges per displayed community
+  const topCommSet = new Set(top.map(([id]) => id))
+  const edgesByCommunity = new Map<number, Edge[]>()
+  for (const [id] of top) edgesByCommunity.set(id, [])
+  for (const e of edges) {
+    const a = nodeById.get(e.source), b = nodeById.get(e.target)
+    if (!a || !b) continue
+    if (a.community === b.community && topCommSet.has(a.community)) {
+      edgesByCommunity.get(a.community)!.push(e)
+    }
+  }
+
+  out.push(`<g id="satellites">`)
+  top.forEach(([commId, members], i) => {
+    const pos = satelliteCellAt(i)
+    if (!pos) return
+
+    const drawY = pos.y + SATELLITE_TITLE_H
+    const drawH = pos.h - SATELLITE_TITLE_H - SATELLITE_FOOTER_H
+
+    // Bounding box of this community's positions in main-graph coordinates
+    const xs = members.map((m) => m.x), ys = members.map((m) => m.y)
+    const minX = Math.min(...xs), maxX = Math.max(...xs)
+    const minY = Math.min(...ys), maxY = Math.max(...ys)
+    const dataW = Math.max(1, maxX - minX), dataH = Math.max(1, maxY - minY)
+    const localScale = Math.min(pos.w / dataW, drawH / dataH) * 0.92
+    const localOffsetX = pos.x + (pos.w - dataW * localScale) / 2 - minX * localScale
+    const localOffsetY = drawY + (drawH - dataH * localScale) / 2 - minY * localScale
+    const lx = (x: number) => localOffsetX + x * localScale
+    const ly = (y: number) => localOffsetY + y * localScale
+
+    // Title (wrap to ~24 chars; max 2 lines)
+    const meta = communityMeta.get(commId)
+    const fullTitle = meta?.label || `Community ${commId}`
+    const titleParts: string[] = []
+    let line = ''
+    for (const word of fullTitle.split(/\s+/)) {
+      if ((line + ' ' + word).length > 24) { titleParts.push(line); line = word }
+      else line = line ? line + ' ' + word : word
+      if (titleParts.length >= 2) break
+    }
+    if (line && titleParts.length < 2) titleParts.push(line)
+    const titleFontSize = 3.4
+    titleParts.slice(0, 2).forEach((part, ti) => {
+      out.push(`<text x="${(pos.x + pos.w / 2).toFixed(2)}" y="${(pos.y + 4 + ti * titleFontSize * 1.1).toFixed(2)}" text-anchor="middle" class="hull-label" font-size="${titleFontSize}" fill="#1f1f12" paint-order="stroke" stroke="#FBF7EE" stroke-width="0.6" stroke-linejoin="round">${escapeXml(part)}</text>`)
+    })
+
+    // Edges
+    for (const e of edgesByCommunity.get(commId) || []) {
+      const a = nodeById.get(e.source)!, b = nodeById.get(e.target)!
+      out.push(`<line x1="${lx(a.x).toFixed(2)}" y1="${ly(a.y).toFixed(2)}" x2="${lx(b.x).toFixed(2)}" y2="${ly(b.y).toFixed(2)}" stroke="#7A7765" stroke-width="0.1" opacity="0.30"/>`)
+    }
+
+    // Nodes
+    for (const n of members) {
+      const r = Math.max(0.4, Math.min(2.0, 0.35 + Math.sqrt(n.degree || 1) * 0.14))
+      out.push(`<circle cx="${lx(n.x).toFixed(2)}" cy="${ly(n.y).toFixed(2)}" r="${r.toFixed(2)}" fill="${nodeColor(n)}" opacity="0.95"/>`)
+    }
+
+    // Per-node labels: greedy placement of top-N highest-degree nodes,
+    // skipping any whose label rect overlaps an already-placed one or
+    // extends past the cell's drawable area. Try above first, then below.
+    if (nodeLabelsPerCommunity > 0) {
+      const ranked = [...members]
+        .sort((a, b) => (b.degree || 0) - (a.degree || 0))
+        .filter((m) => (m.degree || 0) >= 2)
+      const placed: { x: number; y: number; w: number; h: number }[] = []
+      const fontSize = 1.7
+      const cellTop = pos.y + SATELLITE_TITLE_H
+      const cellBot = pos.y + pos.h - SATELLITE_FOOTER_H
+      let placedCount = 0
+      for (const m of ranked) {
+        if (placedCount >= nodeLabelsPerCommunity) break
+        const fontStyle = m.nodeType === 'species' ? 'italic' : 'normal'
+        const label = m.label.length > 22 ? m.label.slice(0, 20) + '…' : m.label
+        const labelW = label.length * fontSize * 0.55
+        const labelH = fontSize * 1.1
+        const cx = lx(m.x)
+        const cy = ly(m.y)
+        // Try positions: above, below, right, left
+        const candidates = [
+          { x: cx - labelW / 2, y: cy - 1.4 - labelH },                          // above
+          { x: cx - labelW / 2, y: cy + 1.4 },                                   // below
+          { x: cx + 1.4,         y: cy - labelH / 2 },                            // right
+          { x: cx - labelW - 1.4, y: cy - labelH / 2 },                          // left
+        ]
+        let chosen: typeof candidates[number] | null = null
+        for (const c of candidates) {
+          const r = { x: c.x, y: c.y, w: labelW, h: labelH }
+          // Must fit inside drawable cell area
+          if (r.x < pos.x || r.x + r.w > pos.x + pos.w || r.y < cellTop || r.y + r.h > cellBot) continue
+          // Must not overlap an already-placed label
+          let overlaps = false
+          for (const p of placed) {
+            if (r.x < p.x + p.w && r.x + r.w > p.x && r.y < p.y + p.h && r.y + r.h > p.y) { overlaps = true; break }
+          }
+          if (!overlaps) { chosen = c; break }
+        }
+        if (!chosen) continue
+        placed.push({ x: chosen.x, y: chosen.y, w: labelW, h: labelH })
+        // Position text baseline = top of bbox + fontSize * 0.85 (approx ascender)
+        const textY = chosen.y + fontSize * 0.85
+        const textX = chosen.x + labelW / 2
+        out.push(`<text x="${textX.toFixed(2)}" y="${textY.toFixed(2)}" text-anchor="middle" font-family="Jost,sans-serif" font-weight="500" font-size="${fontSize}" font-style="${fontStyle}" fill="#1f1f12" paint-order="stroke" stroke="#FBF7EE" stroke-width="0.4" stroke-linejoin="round">${escapeXml(label)}</text>`)
+        placedCount++
+      }
+    }
+
+    // Footer caption: node count + dominant types
+    const typeCounts = new Map<string, number>()
+    for (const m of members) typeCounts.set(m.nodeType, (typeCounts.get(m.nodeType) || 0) + 1)
+    const top3 = [...typeCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([t, c]) => `${c} ${t}${c !== 1 ? 's' : ''}`).join(' · ')
+    out.push(`<text x="${(pos.x + pos.w / 2).toFixed(2)}" y="${(pos.y + pos.h - 1.5).toFixed(2)}" text-anchor="middle" class="body" font-size="2.6" fill="#55553D" paint-order="stroke" stroke="#FBF7EE" stroke-width="0.5" stroke-linejoin="round">${escapeXml(`${members.length} · ${top3}`)}</text>`)
+  })
+  out.push(`</g>`)
+}
+
 // --- Footer panels ---------------------------------------------------------
-const footerY = graphY + graphH + FOOTER_GAP
+const footerY = MARGIN + TITLE_H + TITLE_GAP + SUBTITLE_H + 10 + frameAreaH + FOOTER_GAP
 const colW = (W - 2 * MARGIN - 2 * FOOTER_GAP) / 3
 
 function panel(x: number, y: number, w: number, h: number, heading: string, lines: string[]) {
@@ -405,8 +742,9 @@ panel(MARGIN + 2 * (colW + FOOTER_GAP), footerY, colW, FOOTER_H,
 
 out.push(`</svg>`)
 
-writeFileSync('public/poster.svg', out.join('\n'))
-console.log(`Wrote public/poster.svg (${(out.join('\n').length / 1024).toFixed(1)} KB)`)
+const outputName = args.find((a) => a.startsWith('--output='))?.split('=')[1] || 'public/poster.svg'
+writeFileSync(outputName, out.join('\n'))
+console.log(`Wrote ${outputName} (${(out.join('\n').length / 1024).toFixed(1)} KB)`)
 console.log(`Color: ${colorBy}; hulls: ${drawHulls}; hull labels: ${hullLabelTop}`)
 console.log(`Open with: open public/poster.svg`)
 

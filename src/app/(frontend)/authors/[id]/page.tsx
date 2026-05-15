@@ -8,6 +8,7 @@ import { isValidOrcid } from '../../lib/url-validation'
 import { getDb } from '../../lib/db'
 import { fetchAuthorNetwork } from '../../lib/graph-data'
 import LazyGraph from '../../components/LazyGraph'
+import ViewInGlobalGraphLink from '../../components/ViewInGlobalGraphLink'
 import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
@@ -166,7 +167,10 @@ export default async function AuthorDetail({ params, searchParams }: { params: P
         if (network.nodes.length <= 1) return null
         return (
           <div className="detail-section">
-            <h2>Local Knowledge Graph (Top {network.nodes.length} entities)</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap' }}>
+              <h2 style={{ margin: 0 }}>Local Knowledge Graph (Top {network.nodes.length} entities)</h2>
+              <ViewInGlobalGraphLink globalNodeId={`author-${id}`} />
+            </div>
             <LazyGraph nodes={network.nodes} edges={network.edges} focalId={network.focalId} />
           </div>
         )

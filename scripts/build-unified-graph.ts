@@ -40,12 +40,31 @@ async function main() {
   const graph = new Graph()
   const edgeKeys = new Set<string>()
 
+  // Class-pair multipliers rebalance ForceAtlas2 + Louvain so they produce
+  // cross-cutting communities instead of like-type silos. Without this,
+  // entity-entity co-occurrence (431K edges, 74% of total layout weight)
+  // dominates and pulls species-with-species, concept-with-concept etc.
+  // Like-type pairs are penalised; cross-type pairs are boosted.
+  const ENTITY_TYPES = new Set(['species', 'concept', 'protocol', 'place', 'stakeholder'])
+  const ITEM_TYPES = new Set(['pub', 'dataset', 'document', 'story'])
+  function classOf(t: string): string {
+    if (ENTITY_TYPES.has(t)) return 'entity'
+    if (ITEM_TYPES.has(t)) return 'item'
+    return t // 'author', etc.
+  }
+  function classMultiplier(sourceType: string, targetType: string): number {
+    const a = classOf(sourceType), b = classOf(targetType)
+    return a === b ? 0.5 : 2.0
+  }
+
   function addEdge(source: string, target: string, weight: number) {
     if (!graph.hasNode(source) || !graph.hasNode(target)) return
     if (source === target) return
     const k1 = `${source}--${target}`, k2 = `${target}--${source}`
     if (edgeKeys.has(k1) || edgeKeys.has(k2)) return
-    try { graph.addEdge(source, target, { weight }); edgeKeys.add(k1) }
+    const sType = source.split('-')[0], tType = target.split('-')[0]
+    const adjusted = weight * classMultiplier(sType, tType)
+    try { graph.addEdge(source, target, { weight: adjusted }); edgeKeys.add(k1) }
     catch {}
   }
 
@@ -550,6 +569,15 @@ async function main() {
   const outPath = `public/graph/${outputFile}`
   writeFileSync(outPath, JSON.stringify(output))
   console.log(`\nWritten to ${outPath} (${(JSON.stringify(output).length / 1024).toFixed(0)}KB)`)
+
+  // Index of node IDs for cheap server-side membership checks (used by detail
+  // pages to decide whether to show a "View in full graph" button).
+  if (outputFile === 'unified.json') {
+    const indexPath = 'public/graph/unified-node-index.json'
+    const indexData = { nodes: output.nodes.map((n: any) => n.id) }
+    writeFileSync(indexPath, JSON.stringify(indexData))
+    console.log(`Written ${indexPath} (${(JSON.stringify(indexData).length / 1024).toFixed(0)}KB, ${indexData.nodes.length} ids)`)
+  }
 
   await db.end()
 }

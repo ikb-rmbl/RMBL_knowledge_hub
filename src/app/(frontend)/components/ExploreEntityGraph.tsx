@@ -109,9 +109,10 @@ interface Props {
   detailField?: string // which node attribute to show as description (e.g. 'definition', 'description')
   labelField?: string  // secondary label (e.g. 'common_names' for species)
   extraControls?: React.ReactNode // optional controls to render alongside search/slider
+  focus?: string // Optional node id to center camera on + select after init
 }
 
-export default function ExploreEntityGraph({ data, detailSlug, detailField, labelField, extraControls }: Props) {
+export default function ExploreEntityGraph({ data, detailSlug, detailField, labelField, extraControls, focus }: Props) {
   // Build a dynamic palette for colorFields not in COLOR_PALETTES (e.g. communityTitle)
   const dynamicPalette = useMemo(() => {
     const cf = data.colorField
@@ -296,7 +297,7 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
     sigmaRef.current = renderer
     graphRef.current = graph
 
-    renderer.on('clickNode', ({ node }: { node: string }) => {
+    function selectNode(node: string) {
       if (!graph.hasNode(node)) return
       const attrs = graph.getNodeAttributes(node)
       const neighborIds = new Set(graph.neighbors(node))
@@ -308,7 +309,8 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
         if (!graph.hasNode(n)) return { ...d, hidden: true }
         const a = graph.getNodeAttributes(n)
         if (a.degree < f.minDegree || f.hiddenColors.has(a[colorField] || 'other')) return { ...d, hidden: true }
-        if (n === node || neighborIds.has(n)) return d
+        if (n === node) return { ...d, size: Math.max(a.size * 2, 14), zIndex: 2, highlighted: true }
+        if (neighborIds.has(n)) return d
         return { ...d, color: '#e8e8e8', label: null, size: a.size * 0.4 }
       })
       renderer.setSetting('edgeReducer', (e: string, d: any) => {
@@ -317,7 +319,9 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
         return { ...d, hidden: true }
       })
       renderer.refresh()
-    })
+    }
+
+    renderer.on('clickNode', ({ node }: { node: string }) => selectNode(node))
 
     renderer.on('clickStage', () => {
       setSelectedNode(null)
@@ -330,8 +334,28 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
     // Apply initial filters so default threshold takes effect
     applyFilters(renderer, graph, filtersRef.current)
 
+    // If parent passed a focal node id (e.g. from a detail page's "View in
+    // full graph" link), animate the camera to it and apply the same
+    // selection state the click handler uses (chip + dim non-neighbors).
+    // Must run *after* applyFilters, which would otherwise clobber the
+    // selection-style reducers.
+    //
+    // Sigma normalizes node coordinates after the first render, so defer the
+    // camera move to the next frame — raw graph x/y from FA2 layout are in
+    // the wrong coordinate space for the camera.
+    if (focus && graph.hasNode(focus)) {
+      selectNode(focus)
+      requestAnimationFrame(() => {
+        const display = renderer.getNodeDisplayData(focus)
+        if (!display) return
+        try {
+          renderer.getCamera().animate({ x: display.x, y: display.y, ratio: 0.45 }, { duration: 700 })
+        } catch {}
+      })
+    }
+
     setLoaded(true)
-  }, [data, colorField, resolveColor, theme])
+  }, [data, colorField, resolveColor, theme, focus])
 
   useEffect(() => {
     initGraph()

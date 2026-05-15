@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import { fetchNeighborhood } from '../../lib/graph-data'
+import ViewInGlobalGraphLink from '../../components/ViewInGlobalGraphLink'
 import LazyGraph from '../../components/LazyGraph'
 import FlagButton from '../../components/FlagButton'
 
@@ -89,7 +90,10 @@ export default async function ConceptDetail({ params }: { params: Promise<{ id: 
         if (neighborhood.nodes.length <= 1) return null
         return (
           <div className="detail-section">
-            <h2>Local Knowledge Graph (Top {neighborhood.nodes.length} entities)</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap' }}>
+              <h2 style={{ margin: 0 }}>Local Knowledge Graph (Top {neighborhood.nodes.length} entities)</h2>
+              <ViewInGlobalGraphLink globalNodeId={`concept-${id}`} />
+            </div>
             <LazyGraph nodes={neighborhood.nodes} edges={neighborhood.edges} focalId={neighborhood.focalId} />
           </div>
         )
