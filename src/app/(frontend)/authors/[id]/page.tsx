@@ -162,11 +162,11 @@ export default async function AuthorDetail({ params, searchParams }: { params: P
       })()}
 
       {await (async () => {
-        const network = await fetchAuthorNetwork(parseInt(id), author.displayName as string, 30)
+        const network = await fetchAuthorNetwork(parseInt(id), author.displayName as string, 60)
         if (network.nodes.length <= 1) return null
         return (
           <div className="detail-section">
-            <h2>Local Knowledge Graph ({network.nodes.length} entities)</h2>
+            <h2>Local Knowledge Graph (Top {network.nodes.length} entities)</h2>
             <LazyGraph nodes={network.nodes} edges={network.edges} focalId={network.focalId} />
           </div>
         )

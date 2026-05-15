@@ -180,11 +180,11 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
 
       {/* Local Knowledge Graph */}
       {await (async () => {
-        const network = await fetchItemNetwork('documents', docId, doc.title as string, 40)
+        const network = await fetchItemNetwork('documents', docId, doc.title as string, 60)
         if (network.nodes.length <= 1) return null
         return (
           <div className="detail-section">
-            <h2>Local Knowledge Graph ({network.nodes.length} entities)</h2>
+            <h2>Local Knowledge Graph (Top {network.nodes.length} entities)</h2>
             <LazyGraph nodes={network.nodes} edges={network.edges} focalId={network.focalId} />
           </div>
         )

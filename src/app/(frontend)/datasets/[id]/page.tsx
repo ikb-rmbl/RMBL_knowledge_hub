@@ -228,11 +228,11 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {await (async () => {
-        const network = await fetchItemNetwork('datasets', parseInt(id), dataset.title, 25)
+        const network = await fetchItemNetwork('datasets', parseInt(id), dataset.title, 60)
         if (network.nodes.length <= 1) return null
         return (
           <div className="detail-section">
-            <h2>Local Knowledge Graph ({network.nodes.length - 1} entities)</h2>
+            <h2>Local Knowledge Graph (Top {network.nodes.length - 1} entities)</h2>
             <LazyGraph nodes={network.nodes} edges={network.edges} focalId={network.focalId} />
           </div>
         )

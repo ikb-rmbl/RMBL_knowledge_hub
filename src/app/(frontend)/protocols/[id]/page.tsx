@@ -89,11 +89,11 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
       </div>
 
       {await (async () => {
-        const neighborhood = await fetchNeighborhood('protocol', parseInt(id), 30)
+        const neighborhood = await fetchNeighborhood('protocol', parseInt(id), 60)
         if (neighborhood.nodes.length <= 1) return null
         return (
           <div className="detail-section">
-            <h2>Local Knowledge Graph ({neighborhood.nodes.length} entities)</h2>
+            <h2>Local Knowledge Graph (Top {neighborhood.nodes.length} entities)</h2>
             <LazyGraph nodes={neighborhood.nodes} edges={neighborhood.edges} focalId={neighborhood.focalId} />
           </div>
         )
