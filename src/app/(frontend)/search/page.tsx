@@ -8,6 +8,15 @@ import { search as ftsSearch, type SearchSort } from '@/services/search'
 
 export const dynamic = 'force-dynamic'
 
+// Tell crawlers not to index search result pages — the URL space is
+// combinatoric (filter/sort permutations) and each request hits the DB
+// without caching. Detail pages remain indexable via the sitemap.
+// follow: true so a crawler that lands here still walks to canonical
+// detail pages from the result list.
+export const metadata = {
+  robots: { index: false, follow: true },
+}
+
 const PAGE_SIZE = 20
 
 /** Strip all HTML tags from a string */

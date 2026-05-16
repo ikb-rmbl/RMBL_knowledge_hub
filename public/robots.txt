@@ -1,20 +1,32 @@
 User-agent: *
 Allow: /
 
-# AI crawlers
-User-agent: GPTBot
-Allow: /
-User-agent: ClaudeBot
-Allow: /
-User-agent: PerplexityBot
-Allow: /
-
-# API is rate-limited, allow crawling
-User-agent: *
-Allow: /api/v1/
+# Search facet pages are not worth indexing — filter/sort permutations
+# produce ~50K+ unique URLs that hit the DB on every request without caching.
+# Detail pages are covered by the sitemap, so crawlers can still discover
+# all canonical content.
+Disallow: /search
 
 # Payload admin panel
-User-agent: *
+Disallow: /admin/
+
+# Allow the rate-limited API
+Allow: /api/v1/
+
+# AI crawlers (inherit the rules above; explicit groups for clarity)
+User-agent: GPTBot
+Allow: /
+Disallow: /search
+Disallow: /admin/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /search
+Disallow: /admin/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /search
 Disallow: /admin/
 
 Sitemap: https://rmblknowledgefabric.org/sitemap.xml
