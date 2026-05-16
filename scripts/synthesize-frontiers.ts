@@ -60,6 +60,7 @@ interface ClusterSummary {
 
 interface PushAction {
   category: 'data' | 'experiment' | 'model' | 'synthesis' | 'framework' | 'infrastructure' | 'collaboration' | 'other'
+  effort: 'near-term' | 'ambitious' | 'major' | 'consortium'
   action: string
 }
 
@@ -116,7 +117,9 @@ WRITE A SINGLE FLOWING NARRATIVE. Return strict JSON only.
 
   "pushing_the_frontier": [
     // 6-12 specific, concrete actions that would move the frontier forward.
-    // Each is one object: { category, action }. Categories are:
+    // Each is one object: { category, effort, action }.
+    //
+    // CATEGORY captures the kind of work:
     //   "data"          — new datasets to collect or assemble
     //   "experiment"    — controlled experiments, trials, or manipulations
     //   "model"         — modeling, simulation, or computational work
@@ -125,10 +128,25 @@ WRITE A SINGLE FLOWING NARRATIVE. Return strict JSON only.
     //   "infrastructure"— instrumentation, monitoring networks, lab capacity
     //   "collaboration" — coordinated multi-group or interdisciplinary efforts
     //   "other"         — anything else (use sparingly)
-    // Each "action" should be a complete, 1-2 sentence proposal naming what
-    // to do specifically — not a hand-wave like "more long-term monitoring."
-    // Mix categories so the list captures the multiple kinds of work needed.
-    { "category": "data", "action": "..." }
+    //
+    // EFFORT captures the scale of investment + coordination required:
+    //   "near-term"   — achievable now with existing capacity; single lab,
+    //                   <2 years, modest funding (~$10k-100k)
+    //   "ambitious"   — focused multi-year program by a PI lab or small team;
+    //                   3-5 years, dedicated funding (~$100k-1M, e.g. NSF
+    //                   standard grant)
+    //   "major"       — multi-institutional or multi-PI; 5-10 years, large
+    //                   federal grant (~$1M-10M, e.g. NSF LTER, DOE BER)
+    //   "consortium"  — agency-program or multi-agency scale; sustained
+    //                   programmatic commitment (>$10M, e.g. DOE SFA-class
+    //                   initiative, NEON-style network, federal RIP)
+    //
+    // ACTION should be a complete, 1-2 sentence proposal naming what to do
+    // specifically — not a hand-wave like "more long-term monitoring."
+    // Mix categories AND effort tiers so the list reflects both varied kinds
+    // of work AND varied investment levels (some achievable now, some that
+    // need substantial new investment).
+    { "category": "data", "effort": "ambitious", "action": "..." }
   ],
 
   "impacts": "~100-130 words. Who would benefit and how. Named decision contexts (Bureau of Reclamation operations at Aspinall, CWCB instream flow filings, BLM RMP revisions, specific recovery programs) are appropriate here because they describe decision processes, not factual claims. Do NOT invent management hooks for basic-science frontiers — if impact is primarily within research, say that plainly.",
@@ -283,9 +301,13 @@ async function main() {
         key_questions: data.key_questions || [],
         barriers: data.barriers || '',
         research_opportunities: data.research_opportunities || '',
-        pushing_the_frontier: (data.pushing_the_frontier || []).filter(
-          (a: any) => a && typeof a.action === 'string' && a.action.trim().length > 0,
-        ),
+        pushing_the_frontier: (data.pushing_the_frontier || [])
+          .filter((a: any) => a && typeof a.action === 'string' && a.action.trim().length > 0)
+          .map((a: any) => ({
+            category: a.category || 'other',
+            effort: a.effort || 'ambitious',
+            action: a.action,
+          })),
         impacts: data.impacts || '',
         cross_cutting_summary: data.cross_cutting_summary || '',
         tractability: data.tractability || 'medium',
