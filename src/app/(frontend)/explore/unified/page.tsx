@@ -1,21 +1,25 @@
-import { readFileSync, existsSync } from 'fs'
-import { join } from 'path'
 import Link from 'next/link'
 import ExploreEntityGraph from '../../components/ExploreEntityGraph'
 
-export const dynamic = 'force-dynamic'
+// The page itself is now tiny — the multi-MB graph JSON is fetched
+// client-side from /public/graph/* (CDN-served static asset) by the
+// component. ISR doesn't help much here because of the ?focus= variants;
+// the win is that the static asset can be aggressively cached.
+export const revalidate = 3600
+
+// Interactive viewer with arbitrary ?focus= query params — not useful in
+// search indexes and a heavy crawl surface. Detail pages cover the same
+// entities individually.
+export const metadata = {
+  robots: { index: false, follow: true },
+}
 
 export default async function ExploreUnifiedPage({ searchParams }: { searchParams: Promise<{ mode?: string; focus?: string }> }) {
   const params = await searchParams
   const isResearch = params.mode === 'research'
   const focus = params.focus || undefined
   const fileName = isResearch ? 'unified-research.json' : 'unified.json'
-
-  let graphData: any = { entityType: 'unified', colorField: 'nodeType', nodes: [], edges: [], meta: {} }
-  const filePath = join(process.cwd(), 'public/graph', fileName)
-  if (existsSync(filePath)) {
-    try { graphData = JSON.parse(readFileSync(filePath, 'utf-8')) } catch {}
-  }
+  const dataUrl = `/graph/${fileName}`
 
   const tabStyle = (active: boolean) => ({
     padding: '6px 14px', borderRadius: 'var(--radius-sm)', fontSize: '13px',
@@ -37,9 +41,6 @@ export default async function ExploreUnifiedPage({ searchParams }: { searchParam
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
         <Link href="/" style={{ fontSize: '13px', color: 'var(--color-accent)' }}>&larr; Home</Link>
         <h1 style={{ fontSize: '22px', fontWeight: 600, margin: 0 }}>Explore the Knowledge Graph</h1>
-        <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-          {graphData.meta.nodeCount?.toLocaleString()} nodes, {graphData.meta.edgeCount?.toLocaleString()} connections
-        </span>
       </div>
       <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: '0 0 12px' }}>
         {isResearch ? (
@@ -48,7 +49,7 @@ export default async function ExploreUnifiedPage({ searchParams }: { searchParam
           <>A unified view of the RMBL Knowledge Fabric connecting species, concepts, protocols, places, stakeholders, authors, publications, documents, and datasets. Edges represent co-occurrence, co-authorship, citations, and entity mentions. Use the checkboxes to show/hide node types.</>
         )}
       </p>
-      <ExploreEntityGraph data={graphData} detailSlug="" extraControls={modeToggle} focus={focus} />
+      <ExploreEntityGraph dataUrl={dataUrl} detailSlug="" extraControls={modeToggle} focus={focus} />
     </div>
   )
 }

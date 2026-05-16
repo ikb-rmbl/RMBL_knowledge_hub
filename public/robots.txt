@@ -7,6 +7,12 @@ Allow: /
 # all canonical content.
 Disallow: /search
 
+# Explore-graph viewers pull a multi-MB unified graph JSON per request
+# and accept arbitrary ?focus=<node-id> query params, giving them a huge
+# crawl surface. The underlying entities are crawlable via their detail pages.
+Disallow: /explore/unified
+Disallow: /explore/neighborhoods
+
 # Payload admin panel
 Disallow: /admin/
 
@@ -17,16 +23,22 @@ Allow: /api/v1/
 User-agent: GPTBot
 Allow: /
 Disallow: /search
+Disallow: /explore/unified
+Disallow: /explore/neighborhoods
 Disallow: /admin/
 
 User-agent: ClaudeBot
 Allow: /
 Disallow: /search
+Disallow: /explore/unified
+Disallow: /explore/neighborhoods
 Disallow: /admin/
 
 User-agent: PerplexityBot
 Allow: /
 Disallow: /search
+Disallow: /explore/unified
+Disallow: /explore/neighborhoods
 Disallow: /admin/
 
 Sitemap: https://rmblknowledgefabric.org/sitemap.xml

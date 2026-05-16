@@ -1,39 +1,29 @@
-import { readFileSync, existsSync } from 'fs'
-import { join } from 'path'
 import Link from 'next/link'
 import { getDb } from '../../lib/db'
 import ExploreEntityGraph from '../../components/ExploreEntityGraph'
 
-export const dynamic = 'force-dynamic'
+// The multi-MB graph JSON is fetched client-side from /public/graph/* now;
+// only the small (community_id → title) map is loaded server-side and
+// passed through, so the SSR payload is tiny.
+export const revalidate = 3600
+
+// Interactive viewer over the unified graph — not useful in search indexes.
+// Detail pages cover individual entities.
+export const metadata = {
+  robots: { index: false, follow: true },
+}
 
 export default async function ExploreNeighborhoodsPage({ searchParams }: { searchParams: Promise<{ mode?: string }> }) {
   const params = await searchParams
   const isResearch = params.mode === 'research'
   const fileName = isResearch ? 'unified-research.json' : 'unified.json'
+  const dataUrl = `/graph/${fileName}`
 
-  let raw: any = { nodes: [], edges: [], meta: {} }
-  const filePath = join(process.cwd(), 'public/graph', fileName)
-  if (existsSync(filePath)) {
-    try { raw = JSON.parse(readFileSync(filePath, 'utf-8')) } catch {}
-  }
-
-  // Map community IDs to LLM-generated titles
+  // Tiny query — just titles, keyed by community_id.
   const db = getDb()
   const { rows: neighborhoods } = await db.query('SELECT community_id, title FROM neighborhoods ORDER BY community_id')
-  const titleMap = new Map<number, string>()
-  for (const n of neighborhoods) titleMap.set(n.community_id, n.title)
-
-  // Build new data object with communityTitle baked into each node
-  const graphData = {
-    entityType: 'unified',
-    colorField: 'communityTitle',
-    nodes: raw.nodes.map((node: any) => ({
-      ...node,
-      communityTitle: titleMap.get(node.community) || 'Unassigned',
-    })),
-    edges: raw.edges,
-    meta: raw.meta,
-  }
+  const communityTitleMap: Record<number, string> = {}
+  for (const n of neighborhoods) communityTitleMap[n.community_id] = n.title
 
   const tabStyle = (active: boolean) => ({
     padding: '6px 14px', borderRadius: 'var(--radius-sm)', fontSize: '13px',
@@ -42,10 +32,6 @@ export default async function ExploreNeighborhoodsPage({ searchParams }: { searc
     border: '1px solid var(--color-border)', textDecoration: 'none' as const,
     cursor: 'pointer',
   })
-
-  // Count distinct communities actually represented in the filtered node set
-  const visibleCommunities = new Set<number>()
-  for (const n of raw.nodes) if (n.community !== undefined && n.community >= 0) visibleCommunities.add(n.community)
 
   const modeToggle = (
     <div key="mode-toggle" style={{ display: 'flex', gap: '6px' }}>
@@ -59,9 +45,7 @@ export default async function ExploreNeighborhoodsPage({ searchParams }: { searc
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
         <Link href="/neighborhoods" style={{ fontSize: '13px', color: 'var(--color-accent)' }}>&larr; Neighborhoods</Link>
         <h1 style={{ fontSize: '22px', fontWeight: 600, margin: 0 }}>Knowledge Neighborhoods Graph</h1>
-        <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-          {graphData.meta.nodeCount?.toLocaleString()} nodes, {visibleCommunities.size} neighborhoods
-        </span>
+        <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>{neighborhoods.length} neighborhoods</span>
       </div>
       <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: '0 0 12px' }}>
         {isResearch ? (
@@ -71,7 +55,12 @@ export default async function ExploreNeighborhoodsPage({ searchParams }: { searc
         )}
         {' '}Use the checkboxes below to show/hide individual neighborhoods.
       </p>
-      <ExploreEntityGraph data={graphData} detailSlug="" extraControls={modeToggle} />
+      <ExploreEntityGraph
+        dataUrl={dataUrl}
+        detailSlug=""
+        extraControls={modeToggle}
+        communityTitleMap={communityTitleMap}
+      />
     </div>
   )
 }

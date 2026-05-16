@@ -104,15 +104,52 @@ interface GraphData {
 }
 
 interface Props {
-  data: GraphData
+  data?: GraphData
+  dataUrl?: string  // If set and data not provided, fetch JSON client-side from this URL
   detailSlug: string  // e.g. 'concepts', 'species', 'protocols'
   detailField?: string // which node attribute to show as description (e.g. 'definition', 'description')
   labelField?: string  // secondary label (e.g. 'common_names' for species)
   extraControls?: React.ReactNode // optional controls to render alongside search/slider
   focus?: string // Optional node id to center camera on + select after init
+  // Optional per-node enrichments applied after data load. Used by the
+  // neighborhoods view to inject DB-derived community titles into each
+  // node so the graph can be colored by title rather than numeric id.
+  communityTitleMap?: Record<number, string>
 }
 
-export default function ExploreEntityGraph({ data, detailSlug, detailField, labelField, extraControls, focus }: Props) {
+const EMPTY_GRAPH: GraphData = { entityType: '', colorField: 'nodeType', nodes: [], edges: [], meta: { nodeCount: 0, edgeCount: 0 } }
+
+export default function ExploreEntityGraph({ data: initialData, dataUrl, detailSlug, detailField, labelField, extraControls, focus, communityTitleMap }: Props) {
+  // Fetch the graph JSON client-side when `dataUrl` is provided. This keeps
+  // the SSR payload tiny (the data file is served as a static asset from
+  // /public via the CDN instead of bundled into every page render).
+  const [data, setData] = useState<GraphData>(initialData || EMPTY_GRAPH)
+  const [loading, setLoading] = useState(!initialData && !!dataUrl)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  useEffect(() => {
+    if (initialData || !dataUrl) return
+    let aborted = false
+    setLoading(true); setLoadError(null)
+    fetch(dataUrl)
+      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
+      .then((d) => {
+        if (aborted) return
+        // When a community title map is supplied, enrich nodes with the
+        // title and switch the color field accordingly — used by the
+        // neighborhoods view to color by community instead of node type.
+        if (communityTitleMap) {
+          d = {
+            ...d,
+            colorField: 'communityTitle',
+            nodes: d.nodes.map((n: any) => ({ ...n, communityTitle: communityTitleMap[n.community] || 'Unassigned' })),
+          }
+        }
+        setData(d); setLoading(false)
+      })
+      .catch((err) => { if (!aborted) { setLoadError(String(err.message || err)); setLoading(false) } })
+    return () => { aborted = true }
+  }, [dataUrl, initialData, communityTitleMap])
+
   // Build a dynamic palette for colorFields not in COLOR_PALETTES (e.g. communityTitle)
   const dynamicPalette = useMemo(() => {
     const cf = data.colorField
@@ -362,6 +399,8 @@ export default function ExploreEntityGraph({ data, detailSlug, detailField, labe
     return () => { if (sigmaRef.current) { sigmaRef.current.kill(); sigmaRef.current = null }; graphRef.current = null }
   }, [initGraph])
 
+  if (loading) return <p style={{ padding: '24px', color: 'var(--color-text-muted)' }}>Loading graph…</p>
+  if (loadError) return <p style={{ padding: '24px', color: 'var(--color-text-muted)' }}>Failed to load graph: {loadError}</p>
   if (data.nodes.length === 0) return <p>No graph data. Run: <code>npx tsx scripts/build-explore-graph.ts --type={data.entityType}</code></p>
 
   return (
