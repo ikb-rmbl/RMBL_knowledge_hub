@@ -57,6 +57,7 @@ RULES:
 - Every factual claim MUST be traceable to a provided abstract or key finding
 - Use parenthetical citations ONLY for papers listed below — never fabricate
 - Citation format: (Author1 & Author2, Year) for two-author papers, (Author1 et al., Year) for three or more. Follow each citation with {pub_id:N} using the pub_id from the paper listing. Example: (Campbell & Powers, 2015){pub_id:391}
+- The braces are required. NEVER write a bare "pub_id:N" or wrap a citation as "(pub_id:N)" without the author-year text — readers see a broken reference if you do.
 - Write for community members, land managers, and undergraduate students — not specialists
 - The Background section should introduce the key concepts needed to understand the findings — not necessarily every concept listed, but those essential for comprehension
 - After the Background, avoid specialized terms that weren't introduced there
@@ -463,8 +464,52 @@ async function assembleContext(db: pg.Pool, nbr: ScoredNeighborhood): Promise<As
  * - Clean up any stray {pub_id:N} tags
  */
 function linkCitations(text: string, citationLabels: Map<number, { label: string; year: string | number }>, docLabels?: Map<number, string>): string {
+  let linked = text
+
+  // Handle the failure mode where the LLM dropped the author-year text and
+  // emitted (pub_id:N) or (pub_id:N, pub_id:M) — recover by looking up the
+  // author-year from the labels map and reconstructing proper citations.
+  linked = linked.replace(
+    /\(\{?pub_id:\d+(?:\}?[,;]\s*\{?pub_id:\d+)*\}?\)/g,
+    (match) => {
+      const ids = [...match.matchAll(/pub_id:(\d+)/g)].map((m) => parseInt(m[1]))
+      const links = ids.map((id) => {
+        const info = citationLabels.get(id)
+        return info ? `[${info.label}, ${info.year}](/publications/${id})` : `[→](/publications/${id})`
+      })
+      // Single link: emit without parens so the renderer wraps it once; multi:
+      // semicolon-join, the renderer wraps each citation individually.
+      return links.join('; ')
+    },
+  )
+  linked = linked.replace(
+    /\(\{?doc_id:\d+(?:\}?[,;]\s*\{?doc_id:\d+)*\}?\)/g,
+    (match) => {
+      const ids = [...match.matchAll(/doc_id:(\d+)/g)].map((m) => parseInt(m[1]))
+      const links = ids.map((id) => {
+        const title = docLabels?.get(id)
+        return title ? `[${title}](/documents/${id})` : `[→](/documents/${id})`
+      })
+      return links.join('; ')
+    },
+  )
+
+  // Normalize any remaining unbraced pub_id:N / doc_id:N to the braced form
+  // so the existing rules below catch them. Use lookarounds to avoid touching
+  // tags that are already braced or embedded in other constructs.
+  linked = linked.replace(/(?<![\w{])pub_id:(\d+)(?![\w}])/g, '{pub_id:$1}')
+  linked = linked.replace(/(?<![\w{])doc_id:(\d+)(?![\w}])/g, '{doc_id:$1}')
+
+  // (citation text){pub_id:N; pub_id:M} — multi-pub case, link to first id.
+  linked = linked.replace(
+    /\(([^)]+)\)\s*\{pub_id:\d+(?:[;,]\s*pub_id:\d+)+\}/g,
+    (match, citationText) => {
+      const ids = [...match.matchAll(/pub_id:(\d+)/g)].map((m) => m[1])
+      return `[${citationText}](/publications/${ids[0]})`
+    },
+  )
   // Inline citations: (citation text){pub_id:N} → [(citation text)](/publications/N)
-  let linked = text.replace(
+  linked = linked.replace(
     /\(([^)]+)\)\s*\{pub_id:(\d+)\}/g,
     '[$1](/publications/$2)',
   )
