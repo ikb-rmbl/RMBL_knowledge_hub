@@ -58,6 +58,11 @@ interface ClusterSummary {
   member_statement_ids: number[]
 }
 
+interface PushAction {
+  category: 'data' | 'experiment' | 'model' | 'synthesis' | 'framework' | 'infrastructure' | 'collaboration' | 'other'
+  action: string
+}
+
 interface SynthesizedFrontier {
   cluster_id: number
   title: string
@@ -66,6 +71,7 @@ interface SynthesizedFrontier {
   key_questions: string[]
   barriers: string
   research_opportunities: string
+  pushing_the_frontier: PushAction[]
   impacts: string
   cross_cutting_summary: string
   tractability: 'high' | 'medium' | 'low'
@@ -107,6 +113,23 @@ WRITE A SINGLE FLOWING NARRATIVE. Return strict JSON only.
   "barriers": "~70-100 words. Categorize the blockers (data gaps, method gaps, scale mismatch, jurisdictional fragmentation, coordination gaps, translation gaps). Name the SPECIFIC categories relevant to this frontier without enumerating each instance.",
 
   "research_opportunities": "~150-180 words. Forward-looking proposals: what new datasets, experiments, models, frameworks, or projects could meaningfully advance this frontier? These are proposals, not findings — citations not required. Be concrete in what's being proposed (a paired-catchment dataset, a full-matrix crossing experiment, a coupled simulation platform) without naming specific PIs or institutions.",
+
+  "pushing_the_frontier": [
+    // 6-12 specific, concrete actions that would move the frontier forward.
+    // Each is one object: { category, action }. Categories are:
+    //   "data"          — new datasets to collect or assemble
+    //   "experiment"    — controlled experiments, trials, or manipulations
+    //   "model"         — modeling, simulation, or computational work
+    //   "synthesis"     — meta-analyses or consolidations of fragmented existing data
+    //   "framework"     — conceptual or methodological frameworks the field needs
+    //   "infrastructure"— instrumentation, monitoring networks, lab capacity
+    //   "collaboration" — coordinated multi-group or interdisciplinary efforts
+    //   "other"         — anything else (use sparingly)
+    // Each "action" should be a complete, 1-2 sentence proposal naming what
+    // to do specifically — not a hand-wave like "more long-term monitoring."
+    // Mix categories so the list captures the multiple kinds of work needed.
+    { "category": "data", "action": "..." }
+  ],
 
   "impacts": "~100-130 words. Who would benefit and how. Named decision contexts (Bureau of Reclamation operations at Aspinall, CWCB instream flow filings, BLM RMP revisions, specific recovery programs) are appropriate here because they describe decision processes, not factual claims. Do NOT invent management hooks for basic-science frontiers — if impact is primarily within research, say that plainly.",
 
@@ -260,6 +283,9 @@ async function main() {
         key_questions: data.key_questions || [],
         barriers: data.barriers || '',
         research_opportunities: data.research_opportunities || '',
+        pushing_the_frontier: (data.pushing_the_frontier || []).filter(
+          (a: any) => a && typeof a.action === 'string' && a.action.trim().length > 0,
+        ),
         impacts: data.impacts || '',
         cross_cutting_summary: data.cross_cutting_summary || '',
         tractability: data.tractability || 'medium',
@@ -276,7 +302,7 @@ async function main() {
       }
       synthesized.push(out)
       totalCost += response.cost
-      console.log(`→ "${out.title.slice(0, 60)}" ${out.key_questions.length}Q $${response.cost.toFixed(3)}`)
+      console.log(`→ "${out.title.slice(0, 60)}" ${out.key_questions.length}Q ${out.pushing_the_frontier.length}A $${response.cost.toFixed(3)}`)
     } catch (err: any) {
       console.log(`— ERROR ${err.message?.slice(0, 80)}`)
     }
