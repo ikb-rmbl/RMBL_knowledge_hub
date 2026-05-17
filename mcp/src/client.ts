@@ -75,4 +75,12 @@ export class RMBLClient {
   async listNeighborhoods(query?: string): Promise<string> {
     return this.fetch('/api/v1/neighborhoods', { q: query })
   }
+
+  async getFrontier(id: number): Promise<string> {
+    return this.fetch(`/api/v1/frontiers/${id}`)
+  }
+
+  async listFrontiers(query?: string, sort?: string): Promise<string> {
+    return this.fetch('/api/v1/frontiers', { q: query, sort })
+  }
 }

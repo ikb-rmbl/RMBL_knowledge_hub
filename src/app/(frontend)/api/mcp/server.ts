@@ -28,7 +28,7 @@ async function fetchText(path: string, params: Record<string, string | number | 
 export function createMcpServer(): McpServer {
   const server = new McpServer({
     name: 'rmbl-knowledge-fabric',
-    version: '0.2.0',
+    version: '0.3.0',
   })
 
   server.tool(
@@ -110,6 +110,27 @@ export function createMcpServer(): McpServer {
     { query: z.string().optional().describe('Optional search query') },
     async ({ query }) => ({
       content: [{ type: 'text' as const, text: await fetchText('/api/v1/neighborhoods', { q: query }) }],
+    }),
+  )
+
+  server.tool(
+    'list_frontiers',
+    'Browse or search research frontiers — synthesized boundaries between what scientists know and don\'t know in the RMBL knowledge graph, with key questions and concrete actions for pushing each boundary forward.',
+    {
+      query: z.string().optional().describe('Optional search query (matches title, summary, description)'),
+      sort: z.enum(['breadth', 'leverage', 'size', 'title']).optional().describe('breadth = most cross-cutting first (default); leverage = highest management relevance; size = largest source cluster; title = A-Z'),
+    },
+    async ({ query, sort }) => ({
+      content: [{ type: 'text' as const, text: await fetchText('/api/v1/frontiers', { q: query, sort }) }],
+    }),
+  )
+
+  server.tool(
+    'get_frontier',
+    'Get full details of a research frontier including its narrative (context, frontier description, barriers, opportunities), key questions, concrete actions ("Pushing the frontier"), data gaps, contributing neighborhoods, linked entities, and source statements.',
+    { id: z.number().describe('Frontier ID') },
+    async ({ id }) => ({
+      content: [{ type: 'text' as const, text: await fetchText(`/api/v1/frontiers/${id}`) }],
     }),
   )
 

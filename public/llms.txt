@@ -18,6 +18,8 @@ The RMBL Knowledge Fabric connects scientific publications, community documents,
 - [Related Works](/api/v1/related/{collection}/{id}?format=text): Find related items via semantic similarity, shared entities, co-authorship, and citations
 - [Neighborhoods](/api/v1/neighborhoods?format=text): Browse 154 research communities
 - [Neighborhood Detail](/api/v1/neighborhoods/{id}?format=text): Community detail with research primer
+- [Frontiers](/api/v1/frontiers?format=text): Browse research frontiers (synthesized knowledge gaps with key questions and concrete actions)
+- [Frontier Detail](/api/v1/frontiers/{id}?format=text): Frontier detail with narrative, questions, actions, data gaps, contributing neighborhoods, and source statements
 
 ## Collections
 
@@ -32,6 +34,7 @@ The RMBL Knowledge Fabric connects scientific publications, community documents,
 - 1,954 geographic places with coordinates
 - 5,023 stakeholders (agencies, organizations, institutions)
 - 151 research neighborhoods with AI-generated research primers
+- 98 research frontiers — synthesized knowledge gaps clustered from neighborhood-level gap statements, with key questions, concrete actions, and linked entities
 - 98,252 entity mentions linking items to the knowledge graph
 - 143,289 citation references with 10,619 internal links
 

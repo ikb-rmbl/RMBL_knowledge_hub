@@ -19,6 +19,7 @@ export default async function HomePage() {
     payload.count({ collection: 'authors' }),
   ])
   const { rows: [{ story_count: storyCount }] } = await db.query('SELECT count(*)::int as story_count FROM stories')
+  const { rows: [{ frontier_count: frontierCount }] } = await db.query('SELECT count(*)::int as frontier_count FROM frontiers')
 
   // Fetch entity + cross-link counts from custom tables
   const { rows: [entityStats] } = await db.query(`
@@ -46,6 +47,65 @@ export default async function HomePage() {
       const commData = JSON.parse(readFileSync(join(process.cwd(), 'public/graph/communities.json'), 'utf-8'))
       communities = commData.communities || []
     } catch {}
+  }
+
+  // All frontiers (most cross-cutting first) + their strongest thematic-entity
+  // chips for the homepage cards. Top 6 render eagerly; the rest sit behind
+  // a show-all <details> toggle, mirroring the Neighborhoods pattern.
+  const { rows: allFrontiers } = await db.query(`
+    SELECT id, title, cross_cutting_summary, source_cluster_size, source_neighborhoods
+    FROM frontiers
+    ORDER BY source_neighborhoods DESC NULLS LAST, avg_management_relevance DESC NULLS LAST
+  `)
+  const frontierHighlights = new Map<number, { type: string; name: string }[]>()
+  if (allFrontiers.length > 0) {
+    const FRONTIER_CHIP_TABLE: Record<string, [string, string]> = {
+      species: ['species', 'canonical_name'],
+      concept: ['concepts', 'name'],
+      place: ['places', 'name'],
+      protocol: ['protocols', 'name'],
+    }
+    const fids = allFrontiers.map((f: any) => f.id)
+    const { rows: topEnt } = await db.query(
+      `WITH ranked AS (
+         SELECT frontier_id, entity_type, entity_id,
+                row_number() OVER (PARTITION BY frontier_id, entity_type ORDER BY weight DESC, entity_id ASC) AS type_rn,
+                weight
+         FROM frontier_entities
+         WHERE frontier_id = ANY($1) AND entity_type = ANY($2)
+       ),
+       overall AS (
+         SELECT *, row_number() OVER (PARTITION BY frontier_id ORDER BY type_rn ASC, weight DESC, entity_type ASC) AS overall_rn
+         FROM ranked WHERE type_rn <= 5
+       )
+       SELECT frontier_id, entity_type, entity_id FROM overall WHERE overall_rn <= 4 ORDER BY frontier_id, overall_rn`,
+      [fids, Object.keys(FRONTIER_CHIP_TABLE)],
+    )
+    const idsByType = new Map<string, Set<number>>()
+    for (const e of topEnt) {
+      if (!idsByType.has(e.entity_type)) idsByType.set(e.entity_type, new Set())
+      idsByType.get(e.entity_type)!.add(e.entity_id)
+    }
+    const namesByTypeAndId = new Map<string, Map<number, string>>()
+    await Promise.all(
+      Array.from(idsByType.entries()).map(async ([type, ids]) => {
+        const [table, col] = FRONTIER_CHIP_TABLE[type]
+        const { rows: nameRows } = await db.query(
+          `SELECT id, ${col} AS name FROM ${table} WHERE id = ANY($1)`,
+          [Array.from(ids)],
+        )
+        const m = new Map<number, string>()
+        for (const r of nameRows) m.set(r.id, r.name)
+        namesByTypeAndId.set(type, m)
+      }),
+    )
+    for (const e of topEnt) {
+      const name = namesByTypeAndId.get(e.entity_type)?.get(e.entity_id)
+      if (!name || /^(unknown|other|n\/a)$/i.test(name)) continue
+      const list = frontierHighlights.get(e.frontier_id) || []
+      list.push({ type: e.entity_type, name })
+      frontierHighlights.set(e.frontier_id, list)
+    }
   }
 
   // Graph stats for explore cards
@@ -187,6 +247,7 @@ export default async function HomePage() {
           <Link className="type-chip" href="/concepts">Concepts ({parseInt(entityStats.concepts).toLocaleString()})</Link>
           <Link className="type-chip" href="/authors">Authors ({authorCount.totalDocs.toLocaleString()})</Link>
           <Link className="type-chip" href="/projects">Projects ({parseInt(entityStats.projects).toLocaleString()})</Link>
+          <Link className="type-chip" href="/frontiers">Frontiers ({frontierCount.toLocaleString()})</Link>
         </div>
       </div>
 
@@ -246,6 +307,36 @@ export default async function HomePage() {
         </section>
       )}
 
+      {allFrontiers.length > 0 && (
+        <section className="section">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '4px' }}>
+            <h2 className="section-title" style={{ margin: 0 }}>Research Frontiers</h2>
+            <Link href="/frontiers" style={{
+              padding: '6px 14px', fontSize: '13px', borderRadius: 'var(--radius-sm)',
+              background: 'var(--color-accent)', color: '#fff', textDecoration: 'none',
+            }}>Browse All</Link>
+          </div>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginBottom: '16px' }}>
+            {frontierCount} synthesized boundaries between what scientists know and what they don&apos;t,
+            with key questions and concrete actions for pushing each boundary forward — clustered from
+            gap statements across the research neighborhoods.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '12px' }}>
+            {allFrontiers.slice(0, 6).map((f: any) => <FrontierCard key={f.id} f={f} chips={frontierHighlights.get(f.id) || []} />)}
+          </div>
+          {allFrontiers.length > 6 && (
+            <details style={{ marginTop: '12px' }}>
+              <summary style={{ cursor: 'pointer', fontSize: '13px', color: 'var(--color-accent)', fontWeight: 500 }}>
+                Show all {allFrontiers.length} frontiers
+              </summary>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '12px', marginTop: '12px' }}>
+                {allFrontiers.slice(6).map((f: any) => <FrontierCard key={f.id} f={f} chips={frontierHighlights.get(f.id) || []} />)}
+              </div>
+            </details>
+          )}
+        </section>
+      )}
+
       <section className="section">
         <h2 className="section-title">Browse by Topic</h2>
         <div className="topic-groups">
@@ -295,6 +386,35 @@ export default async function HomePage() {
   )
 }
 
+function FrontierCard({ f, chips }: { f: any; chips: { type: string; name: string }[] }) {
+  return (
+    <Link href={`/frontiers/${f.id}`} className="result-card" style={{ borderLeft: '3px solid var(--color-accent)', textDecoration: 'none', color: 'inherit' }}>
+      <h3 className="result-card-title" style={{ fontSize: '14px' }}>{f.title}</h3>
+      {f.cross_cutting_summary && (
+        <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', margin: '4px 0 6px', lineHeight: 1.4 }}>
+          {f.cross_cutting_summary.length > 220 ? f.cross_cutting_summary.slice(0, 218) + '…' : f.cross_cutting_summary}
+        </p>
+      )}
+      <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
+        {f.source_neighborhoods} neighborhood{f.source_neighborhoods !== 1 ? 's' : ''} · {f.source_cluster_size} statement{f.source_cluster_size !== 1 ? 's' : ''}
+      </div>
+      {chips.length > 0 && (
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+          {chips.map((h, i) => (
+            <span key={i} style={{
+              padding: '2px 8px', borderRadius: '10px', fontSize: '11px',
+              background: GRAPH_COLORS[h.type] || '#999', color: '#fff',
+              whiteSpace: 'nowrap',
+            }}>
+              {h.name.length > 30 ? h.name.slice(0, 28) + '…' : h.name}
+            </span>
+          ))}
+        </div>
+      )}
+    </Link>
+  )
+}
+
 function CommunityCard({ c }: { c: any }) {
   const highlights: { type: string; name: string; slug: string }[] = []
   for (const type of ['concept', 'species', 'protocol', 'place']) {
@@ -331,3 +451,4 @@ function CommunityCard({ c }: { c: any }) {
     </Link>
   )
 }
+

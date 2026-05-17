@@ -26,6 +26,7 @@ export default async function AboutPage() {
       (SELECT count(*) FROM places WHERE publication_count > 0)::int as places,
       (SELECT count(*) FROM neighborhoods)::int as neighborhoods,
       (SELECT count(*) FROM neighborhoods WHERE primer IS NOT NULL)::int as primers,
+      (SELECT count(*) FROM frontiers)::int as frontiers,
       (SELECT count(*) FROM entity_mentions)::int as entity_mentions,
       (SELECT count(*) FROM references_cited)::int as references
   `)
@@ -58,6 +59,7 @@ export default async function AboutPage() {
             { label: 'Places', value: c.places.toLocaleString(), href: '/places' },
             { label: 'Neighborhoods', value: c.neighborhoods.toLocaleString(), href: '/neighborhoods' },
             { label: 'Research Primers', value: c.primers.toLocaleString(), href: '/neighborhoods' },
+            { label: 'Frontiers', value: c.frontiers.toLocaleString(), href: '/frontiers' },
             { label: 'Entity Mentions', value: c.entity_mentions.toLocaleString() },
             { label: 'Citation Links', value: c.references.toLocaleString() },
           ].map((stat) => (
@@ -106,6 +108,20 @@ export default async function AboutPage() {
             distinct research theme — from marmot behavioral ecology to watershed biogeochemistry to federal land
             management policy. Many neighborhoods include AI-generated research primers that summarize the key findings
             and cite specific publications.
+          </p>
+        </details>
+
+        <details style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>What are Research Frontiers?</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            Research Frontiers are synthesized boundaries between what scientists know and what they don&apos;t,
+            with identifiable paths to push the boundary forward. The system extracts atomic gap-statements
+            from neighborhood research primers, clusters them by semantic similarity, and uses a language model
+            to weave each cluster into a narrative with context, key questions, barriers, opportunities, and
+            concrete actions categorized by category (data, experiment, model, synthesis, framework, etc.) and
+            effort tier (near-term, ambitious, major, consortium). Each frontier links back to its contributing
+            neighborhoods, source statements, and the strongest concepts, species, places, and protocols
+            involved — so you can trace any claim back to the underlying evidence.
           </p>
         </details>
 
@@ -191,7 +207,7 @@ curl "https://rmblknowledgefabric.org/api/v1/related/publications/13?format=text
               <li>Open Claude Desktop &rarr; <strong>Settings &rarr; Connectors</strong></li>
               <li>Click <strong>Add custom connector</strong></li>
               <li>Enter URL: <code>https://www.rmblknowledgefabric.org/api/mcp</code></li>
-              <li>8 Knowledge Fabric tools are immediately available</li>
+              <li>10 Knowledge Fabric tools are immediately available</li>
             </ol>
 
             <p style={{ marginBottom: '8px' }}>
@@ -259,6 +275,8 @@ npm install && npm run build`}
                   ['find_related', 'Related works via semantic similarity, shared entities, co-authorship, citations'],
                   ['explore_neighborhood', 'Research neighborhood detail with primer'],
                   ['list_neighborhoods', 'Browse or search 154 research neighborhoods'],
+                  ['get_frontier', 'Research frontier detail: questions, actions, data gaps, source statements'],
+                  ['list_frontiers', 'Browse or search synthesized research frontiers (sortable by breadth/leverage)'],
                 ].map(([tool, desc]) => (
                   <tr key={tool} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ padding: '6px 12px', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{tool}</td>

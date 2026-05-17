@@ -15,6 +15,7 @@ Unified search platform for environmental knowledge from the Rocky Mountain Biol
 - **Concepts** (4,874) — scientific concepts with type/scope classification
 - **Stakeholders** (5,023) — agencies, organizations, institutions with type classification
 - **Neighborhoods** (151) — Louvain-detected research communities with LLM-generated descriptions and primers
+- **Frontiers** (98) — synthesized knowledge boundaries clustered from neighborhood gap-statements, with key questions, concrete actions (categorized + effort-tiered), data gaps, and linked entities
 - **Entity Mentions** (98,252) — cross-links between entities and all collections (publications, datasets, documents, stories)
 - **References** (143,289) — citation network with 10,619 internal links + 19,827 story→publication links
 - **Embeddings** (8,239) — Voyage AI voyage-4 vector embeddings for semantic similarity search
@@ -88,7 +89,7 @@ scripts/export-database.sh   # Export database dump for sharing (excludes sensit
 src/
   payload.config.ts              — Payload CMS configuration (push: false, env validation, S3 conditional)
   collections/                   — 14 Payload collections (Documents, Publications, Datasets, Stories, Topics, Authors, Projects, Species, Places, Protocols, Concepts, Flags, Users, Media)
-  services/                      — 6 service modules (search, graph, neighborhoods, entities, items, related)
+  services/                      — 7 service modules (search, graph, neighborhoods, frontiers, entities, items, related)
   admin/components/              — Custom Payload admin React components (FlagsForItem, CuratedFields sidebar widgets)
   collections/shared/access.ts   — Shared access control (publicReadAuthWrite)
   collections/shared/constants.ts — Shared field option constants
@@ -124,7 +125,7 @@ src/
     about/page.tsx               — About page with FAQ, AI integration guide, technical deep-dive
     explore/neighborhoods/       — Neighborhood-colored unified graph visualization
     api/search/route.ts          — Search API endpoint (validated, parameterized)
-    api/v1/                      — REST API v1 (11 endpoints, format=json|text, rate-limited)
+    api/v1/                      — REST API v1 (13 endpoints, format=json|text, rate-limited)
     api/v1/search/               — Full-text search
     api/v1/publications/[id]/    — Publication detail with authors + entities + citations
     api/v1/datasets/[id]/        — Dataset detail with creators
@@ -133,6 +134,7 @@ src/
     api/v1/entities/[type]/      — Entity browse + detail + mentions
     api/v1/related/              — 4-signal related works
     api/v1/neighborhoods/        — Neighborhood browse + detail with primers
+    api/v1/frontiers/            — Frontier browse + detail (questions, actions, data gaps, source statements, linked entities)
     api/v1/export/               — Batch citation export (RIS, BibTeX)
     api/v1/export-search/        — Export all search results
     api/v1/lib/rate-limit.ts     — Per-IP rate limiting (60/min general, 10/min expensive)
@@ -335,7 +337,7 @@ Two MCP server implementations:
 - **Remote (Streamable HTTP)**: `POST /api/mcp` — stateless, runs on Vercel serverless, no install needed. Users add URL as a Custom Connector in Claude Desktop.
 - **Local (stdio)**: `mcp/` package — for development or when users want to run locally.
 
-Both share the same tool definitions via `src/app/(frontend)/api/mcp/server.ts`, which calls the REST API v1 internally.
+Both share the same tool definitions via `src/app/(frontend)/api/mcp/server.ts`, which calls the REST API v1 internally. **The two implementations must stay in lockstep** — when adding a tool to the remote server, mirror it in `mcp/src/index.ts` and add a matching method on `mcp/src/client.ts`. Tool count is currently 10 (search, get/list pairs for publications/datasets/documents/entities/neighborhoods/frontiers, plus find_related and explore_neighborhood).
 
 **OpenAI/ChatGPT compatibility**: Not currently supported. OpenAI requires the old SSE transport (`/sse/` endpoint with long-lived GET connections), which is incompatible with Vercel serverless (function timeout limits). Will add support when OpenAI adopts the Streamable HTTP standard. ChatGPT users can use the REST API directly with `?format=text`.
 

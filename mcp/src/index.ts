@@ -19,7 +19,7 @@ const client = new RMBLClient()
 
 const server = new McpServer({
   name: 'rmbl-knowledge-fabric',
-  version: '0.1.0',
+  version: '0.2.0',
 })
 
 // --- Tools ---
@@ -120,6 +120,31 @@ server.tool(
   },
   async ({ query }) => {
     const text = await client.listNeighborhoods(query)
+    return { content: [{ type: 'text', text }] }
+  },
+)
+
+server.tool(
+  'list_frontiers',
+  'Browse or search research frontiers — synthesized boundaries between what scientists know and don\'t know in the RMBL knowledge graph, with key questions and concrete actions for pushing each boundary forward.',
+  {
+    query: z.string().optional().describe('Optional search query (matches title, summary, description)'),
+    sort: z.enum(['breadth', 'leverage', 'size', 'title']).optional().describe('breadth = most cross-cutting first (default); leverage = highest management relevance; size = largest source cluster; title = A-Z'),
+  },
+  async ({ query, sort }) => {
+    const text = await client.listFrontiers(query, sort)
+    return { content: [{ type: 'text', text }] }
+  },
+)
+
+server.tool(
+  'get_frontier',
+  'Get full details of a research frontier including its narrative (context, frontier description, barriers, opportunities), key questions, concrete actions ("Pushing the frontier"), data gaps, contributing neighborhoods, linked entities, and source statements.',
+  {
+    id: z.number().describe('Frontier ID'),
+  },
+  async ({ id }) => {
+    const text = await client.getFrontier(id)
     return { content: [{ type: 'text', text }] }
   },
 )

@@ -113,3 +113,95 @@ export function documentToText(doc: any): string {
   if (doc.summary) lines.push(`\nSummary: ${typeof doc.summary === 'string' ? doc.summary : JSON.stringify(doc.summary)}`)
   return lines.join('\n')
 }
+
+export function frontierToText(f: any): string {
+  const lines = [
+    `Frontier: ${f.title}`,
+    `ID: ${f.id}`,
+    `Source statements: ${f.source_cluster_size} across ${f.source_neighborhoods} neighborhood${f.source_neighborhoods !== 1 ? 's' : ''}`,
+  ]
+  if (f.avg_management_relevance != null) {
+    lines.push(`Management relevance (0=basic, 3=applied): ${Number(f.avg_management_relevance).toFixed(2)}`)
+  }
+  if (f.tractability) lines.push(`Tractability: ${f.tractability}`)
+  if (f.cross_cutting_summary) lines.push(`\nSummary: ${f.cross_cutting_summary}`)
+  if (f.context) lines.push(`\n--- Context ---\n${f.context}`)
+  if (f.frontier_description) lines.push(`\n--- Frontier ---\n${f.frontier_description}`)
+
+  const questions: string[] = f.key_questions || []
+  if (questions.length > 0) {
+    lines.push('\n--- Key questions ---')
+    for (const q of questions) lines.push(`  - ${q}`)
+  }
+
+  if (f.barriers) lines.push(`\n--- Barriers ---\n${f.barriers}`)
+  if (f.research_opportunities) lines.push(`\n--- Research opportunities ---\n${f.research_opportunities}`)
+
+  const actions: { category?: string; effort?: string; action: string }[] = f.pushing_the_frontier || []
+  if (actions.length > 0) {
+    lines.push('\n--- Pushing the frontier ---')
+    for (const a of actions) {
+      const tags = [a.category, a.effort].filter(Boolean).join('/')
+      lines.push(`  - ${tags ? `[${tags}] ` : ''}${a.action}`)
+    }
+  }
+
+  const gaps: string[] = f.data_gaps || []
+  if (gaps.length > 0) {
+    lines.push('\n--- Data gaps ---')
+    for (const g of gaps.slice(0, 20)) lines.push(`  - ${g}`)
+    if (gaps.length > 20) lines.push(`  ... and ${gaps.length - 20} more`)
+  }
+
+  if (f.impacts) lines.push(`\n--- Impacts ---\n${f.impacts}`)
+
+  const nbrs = f.contributing_neighborhoods || []
+  if (nbrs.length > 0) {
+    lines.push('\n--- Contributing neighborhoods ---')
+    for (const n of nbrs) {
+      lines.push(`  [${n.id}] ${n.title} (${n.statement_count} statement${n.statement_count !== 1 ? 's' : ''})`)
+    }
+  }
+
+  const entities = f.linked_entities || {}
+  for (const etype of ['concept', 'species', 'place', 'protocol', 'stakeholder', 'author', 'publication', 'dataset', 'document', 'project']) {
+    const items: any[] = entities[etype] || []
+    if (items.length === 0) continue
+    lines.push(`\n--- Linked ${etype}s (${items.length}) ---`)
+    for (const item of items.slice(0, 10)) {
+      lines.push(`  [${item.id}] ${item.name}`)
+    }
+    if (items.length > 10) lines.push(`  ... and ${items.length - 10} more`)
+  }
+
+  const stmts = f.source_statements || []
+  if (stmts.length > 0) {
+    lines.push(`\n--- Source statements (${stmts.length}) ---`)
+    for (const s of stmts.slice(0, 30)) {
+      const rel = s.management_relevance != null ? ` [mgmt=${s.management_relevance}]` : ''
+      lines.push(`  [${s.neighborhood_title}]${rel} ${s.statement_text}`)
+    }
+    if (stmts.length > 30) lines.push(`  ... and ${stmts.length - 30} more`)
+  }
+
+  return lines.join('\n')
+}
+
+export function frontierListToText(rows: any[], total: number, query?: string): string {
+  const header = query
+    ? `${rows.length} of ${total} frontiers matching "${query}":\n`
+    : `${rows.length} of ${total} frontiers:\n`
+  const lines = [header]
+  for (const f of rows) {
+    const mgmt = f.avg_management_relevance != null ? `, mgmt ${Number(f.avg_management_relevance).toFixed(2)}` : ''
+    lines.push(`[${f.id}] ${f.title}`)
+    lines.push(`  ${f.source_cluster_size} statements across ${f.source_neighborhoods} neighborhood${f.source_neighborhoods !== 1 ? 's' : ''}${mgmt}`)
+    if (f.cross_cutting_summary) {
+      const s = f.cross_cutting_summary
+      lines.push(`  ${s.length > 200 ? s.slice(0, 200) + '...' : s}`)
+    }
+    if (f.question_count) lines.push(`  ${f.question_count} key question${f.question_count !== 1 ? 's' : ''} · ${f.action_count} action${f.action_count !== 1 ? 's' : ''}`)
+    lines.push('')
+  }
+  return lines.join('\n')
+}

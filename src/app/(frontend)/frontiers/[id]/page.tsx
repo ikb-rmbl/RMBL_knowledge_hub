@@ -39,12 +39,40 @@ const EFFORT_COLORS: Record<string, string> = {
   'consortium': '#a8423f',
 }
 
-function mgmtBadge(score: number | null): { label: string; color: string } | null {
-  if (score == null) return null
-  if (score >= 2.7) return { label: 'Regulatory leverage', color: '#a8423f' }
-  if (score >= 2.0) return { label: 'Direct mgmt', color: '#a8693f' }
-  if (score >= 1.0) return { label: 'Indirect mgmt', color: '#7a7a4a' }
-  return { label: 'Basic science', color: '#5a6a7a' }
+/**
+ * Position-on-axis bar — locates the frontier between two qualitative endpoints
+ * (basic↔applied for management relevance, narrow↔broad for cross-cutting reach).
+ * Linear positioning; no bucketing.
+ */
+function AxisBar({
+  value, max, leftLabel, rightLabel, valueLabel, scale = 'linear',
+}: {
+  value: number; max: number; leftLabel: string; rightLabel: string
+  valueLabel: string; scale?: 'linear' | 'log'
+}) {
+  const raw = scale === 'log'
+    ? Math.log(Math.max(1, value)) / Math.log(Math.max(2, max))
+    : value / max
+  const pct = Math.max(0, Math.min(1, raw)) * 100
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
+      <span style={{ fontStyle: 'italic' }}>{leftLabel}</span>
+      <span style={{
+        position: 'relative', display: 'inline-block', width: '120px', height: '5px',
+        background: 'var(--color-border)', borderRadius: '3px',
+      }}>
+        <span style={{
+          position: 'absolute', left: `${pct.toFixed(0)}%`, top: '50%',
+          width: '10px', height: '10px', marginLeft: '-5px', marginTop: '-5px',
+          background: 'var(--color-accent)', borderRadius: '50%',
+        }} />
+      </span>
+      <span style={{ fontStyle: 'italic' }}>{rightLabel}</span>
+      <span style={{ color: 'var(--color-text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
+        {valueLabel}
+      </span>
+    </span>
+  )
 }
 
 interface FrontierRow {
@@ -133,11 +161,13 @@ export default async function FrontierDetailPage({ params }: { params: Promise<{
   if (!f) notFound()
 
   const frontier = f as FrontierRow
-  const [entities, sources] = await Promise.all([
+  const [entities, sources, { rows: [reachMax] }] = await Promise.all([
     fetchLinkedEntities(db, fid),
     fetchSources(db, fid),
+    db.query(`SELECT max(source_neighborhoods) AS max_reach FROM frontiers`),
   ])
-  const badge = mgmtBadge(frontier.avg_management_relevance != null ? Number(frontier.avg_management_relevance) : null)
+  const mgmtScore = frontier.avg_management_relevance != null ? Number(frontier.avg_management_relevance) : null
+  const maxReach = Number(reachMax.max_reach) || 1
 
   // Group pushing_the_frontier by category
   const actionsByCategory = new Map<string, typeof frontier.pushing_the_frontier>()
@@ -152,23 +182,6 @@ export default async function FrontierDetailPage({ params }: { params: Promise<{
       <Link href="/frontiers" style={{ fontSize: '13px', color: 'var(--color-accent)' }}>&larr; All frontiers</Link>
 
       <div style={{ marginTop: '12px', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
-          {badge && (
-            <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: 'var(--radius-sm)', background: badge.color, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              {badge.label}
-            </span>
-          )}
-          {frontier.source_neighborhoods >= 6 && (
-            <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: 'var(--radius-sm)', background: '#3a6b7b', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Cross-cutting
-            </span>
-          )}
-          {frontier.tractability && (
-            <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: 'var(--radius-sm)', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
-              {frontier.tractability} tractability
-            </span>
-          )}
-        </div>
         <h1 style={{ fontSize: '28px', fontWeight: 600, margin: '0 0 10px', lineHeight: 1.25 }}>
           {frontier.title}
         </h1>
@@ -177,8 +190,32 @@ export default async function FrontierDetailPage({ params }: { params: Promise<{
             {frontier.cross_cutting_summary}
           </p>
         )}
-        <div style={{ marginTop: '10px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
-          Built from {frontier.source_cluster_size} statements across {frontier.source_neighborhoods} neighborhood{frontier.source_neighborhoods !== 1 ? 's' : ''}
+        <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '24px', rowGap: '8px' }}>
+          {mgmtScore != null && (
+            <span title="Average management relevance across the source statements. 0 = pure basic science; 3 = regulatory/legal decision waiting on this.">
+              <AxisBar
+                value={mgmtScore}
+                max={3}
+                leftLabel="basic"
+                rightLabel="applied"
+                valueLabel={`mgmt ${mgmtScore.toFixed(2)} / 3`}
+              />
+            </span>
+          )}
+          <span title={`Number of distinct research neighborhoods this frontier draws statements from (1 = focused on one community; ${maxReach} = corpus-wide maximum, log scale).`}>
+            <AxisBar
+              value={frontier.source_neighborhoods}
+              max={maxReach}
+              leftLabel="focused"
+              rightLabel="cross-cutting"
+              valueLabel={`${frontier.source_neighborhoods} of ${maxReach} nbrs`}
+              scale="log"
+            />
+          </span>
+        </div>
+        <div style={{ marginTop: '10px', fontSize: '12px', color: 'var(--color-text-muted)', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <span>{frontier.source_cluster_size} source statement{frontier.source_cluster_size !== 1 ? 's' : ''}</span>
+          {frontier.tractability && <span>{frontier.tractability} tractability</span>}
         </div>
       </div>
 
