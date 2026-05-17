@@ -595,20 +595,28 @@ async function syncEntityBulkTables(
   localDb: pg.Pool,
   neonDb: pg.Pool,
 ): Promise<void> {
-  // Tables in insert order (parents first, then children)
-  // stakeholders before entity_mentions (FK: entity_type='stakeholder' references stakeholder IDs)
-  const INSERT_ORDER = [
-    'stakeholders',
-    'neighborhoods',
-    'neighborhood_members',
-    'entity_mentions',
-    'entity_candidates',
-    'code_repositories',
-    'data_repositories',
-    'content_chunks',
+  // Tables in insert order (parents first, then children).
+  // - stakeholders before entity_mentions (FK: entity_type='stakeholder' references stakeholder IDs)
+  // - neighborhoods before frontiers (frontier_neighborhoods/source_statements FK to neighborhoods)
+  // - frontiers before the three frontier link tables (FK + CASCADE)
+  // orderBy defaults to 'id'; composite-PK tables (frontier_neighborhoods,
+  // frontier_entities) need their own ordering since they have no id column.
+  const INSERT_ORDER: { table: string; orderBy?: string }[] = [
+    { table: 'stakeholders' },
+    { table: 'neighborhoods' },
+    { table: 'neighborhood_members' },
+    { table: 'entity_mentions' },
+    { table: 'entity_candidates' },
+    { table: 'code_repositories' },
+    { table: 'data_repositories' },
+    { table: 'content_chunks' },
+    { table: 'frontiers' },
+    { table: 'frontier_neighborhoods', orderBy: 'frontier_id, neighborhood_id' },
+    { table: 'frontier_entities', orderBy: 'frontier_id, entity_type, entity_id' },
+    { table: 'frontier_source_statements' },
   ]
   // Delete in reverse (children first)
-  const DELETE_ORDER = [...INSERT_ORDER].reverse()
+  const DELETE_ORDER = [...INSERT_ORDER].reverse().map((t) => t.table)
 
   // Phase 1: Delete all in child-first order
   console.log('\n  Phase 1: Clearing Neon tables (children first)...')
@@ -631,7 +639,9 @@ async function syncEntityBulkTables(
 
   // Phase 2: Insert all in parent-first order
   console.log('\n  Phase 2: Inserting data (parents first)...')
-  for (const table of INSERT_ORDER) {
+  for (const cfg of INSERT_ORDER) {
+    const { table } = cfg
+    const orderBy = cfg.orderBy || 'id'
     if (skippedTables.has(table)) {
       console.log(`\n  --- ${table} --- skipped (delete was skipped)`)
       continue
@@ -649,7 +659,7 @@ async function syncEntityBulkTables(
     if (dryRun) { console.log('    (dry run)'); continue }
 
     // Fetch local rows and insert in batches
-    const { rows: localRows } = await localDb.query(`SELECT * FROM ${table} ORDER BY id`)
+    const { rows: localRows } = await localDb.query(`SELECT * FROM ${table} ORDER BY ${orderBy}`)
     if (localRows.length === 0) continue
 
     // Detect JSONB columns from schema (runtime detection fails for JSON arrays)
@@ -925,6 +935,7 @@ async function main() {
     ...Object.values(ENTITY_COLLECTIONS).map((c) => c.table),
     'stories', 'stories_participants', 'stories_rels',
     'neighborhoods', 'neighborhood_members',
+    'frontiers', 'frontier_neighborhoods', 'frontier_entities', 'frontier_source_statements',
     'entity_mentions', 'entity_candidates', 'code_repositories', 'data_repositories', 'content_chunks', 'references_cited',
     'authors_rels', 'datasets_rels', 'projects_rels', 'datasets_creators',
   ]
@@ -1127,7 +1138,7 @@ async function main() {
       const marker = diff === 0 ? '✓' : '✗'
       console.log(`  ${marker} ${collName.padEnd(18)} local: ${String(local.n).padStart(7)}  neon: ${String(neon.n).padStart(7)}${diff !== 0 ? `  (${diff > 0 ? '+' : ''}${diff})` : ''}`)
     }
-    for (const bulk of ['stories', 'stories_participants', 'stakeholders', 'neighborhoods', 'neighborhood_members', 'entity_mentions', 'entity_candidates', 'code_repositories', 'data_repositories', 'content_chunks', 'authors_rels']) {
+    for (const bulk of ['stories', 'stories_participants', 'stakeholders', 'neighborhoods', 'neighborhood_members', 'frontiers', 'frontier_neighborhoods', 'frontier_entities', 'frontier_source_statements', 'entity_mentions', 'entity_candidates', 'code_repositories', 'data_repositories', 'content_chunks', 'authors_rels']) {
       const { rows: [local] } = await localDb.query(`SELECT count(*)::int as n FROM ${bulk}`)
       const { rows: [neon] } = await neonDb.query(`SELECT count(*)::int as n FROM ${bulk}`)
       const diff = local.n - neon.n

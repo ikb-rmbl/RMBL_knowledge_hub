@@ -1,7 +1,7 @@
 {
   "name": "@rmbl/knowledge-fabric-mcp",
-  "version": "0.1.0",
-  "description": "MCP server for the RMBL Knowledge Fabric — search publications, explore research neighborhoods, and access the knowledge graph",
+  "version": "0.2.0",
+  "description": "MCP server for the RMBL Knowledge Fabric — search publications, explore research neighborhoods and frontiers, and access the knowledge graph",
   "type": "module",
   "bin": {
     "rmbl-knowledge-fabric": "./dist/index.js"
