@@ -35,6 +35,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <div className="nav-dropdown">
                 <button className="nav-dropdown-trigger" aria-haspopup="true">Explore</button>
                 <div className="nav-dropdown-menu">
+                  <Link href="/frontiers">Frontiers</Link>
                   <Link href="/neighborhoods">Neighborhoods</Link>
                   <Link href="/authors">Authors</Link>
                   <Link href="/species">Species</Link>
