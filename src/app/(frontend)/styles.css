@@ -818,9 +818,50 @@ a:hover {
 
 .site-footer {
   border-top: 1px solid var(--border);
-  padding: var(--s-6);
-  text-align: center;
+  padding: var(--s-8) var(--s-6) var(--s-6);
   margin-top: var(--s-12);
+}
+.footer-columns {
+  max-width: 960px;
+  margin: 0 auto var(--s-6);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-8);
+}
+@media (max-width: 600px) {
+  .footer-columns { grid-template-columns: 1fr; gap: var(--s-4); }
+}
+.footer-column h4 {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+  margin: 0 0 var(--s-3);
+}
+.footer-column ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.footer-column li {
+  margin-bottom: var(--s-2);
+  font-size: var(--fs-small);
+}
+.footer-column a {
+  color: var(--fg-1);
+  text-decoration: none;
+}
+.footer-column a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.footer-bottom {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  padding-top: var(--s-6);
 }
 .footer-address {
   font-size: var(--fs-small);
