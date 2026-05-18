@@ -1,6 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import ThemeToggle from './components/ThemeToggle'
+import ConsoleGreeting from './components/ConsoleGreeting'
 import './styles.css'
 
 export const metadata = {
@@ -14,6 +15,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" data-theme="light">
       <body>
         <a href="#main-content" className="skip-link">Skip to main content</a>
+        <ConsoleGreeting />
         <header className="site-header">
           <div className="site-header-inner">
             <a className="rmbl-mark" href="https://rmbl.org" target="_blank" rel="noopener noreferrer" aria-label="RMBL">R M B L</a>
