@@ -81,13 +81,46 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
 
       <div className="detail-meta">
         {protocol.subcategory && <div><strong>Subcategory:</strong> {protocol.subcategory}</div>}
-        {protocol.standard_reference && (
-          <div><strong>Standard reference:</strong> {protocol.standard_reference}</div>
-        )}
         {protocol.typical_duration && <div><strong>Typical duration:</strong> {protocol.typical_duration}</div>}
         {protocol.typical_frequency && <div><strong>Frequency:</strong> {protocol.typical_frequency}</div>}
         <div><strong>Papers:</strong> {protocol.publication_count} | <strong>Mentions:</strong> {protocol.mention_count}</div>
       </div>
+
+      <div className="detail-section" style={{
+        padding: '12px 16px', borderRadius: 'var(--radius)',
+        background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+        fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.55,
+      }}>
+        <strong style={{ color: 'var(--color-text-secondary)' }}>About this protocol entry.</strong>{' '}
+        Protocols in the RMBL Knowledge Fabric are automatically clustered from method descriptions
+        extracted across many publications. The synopsis and parameters below are synthesized from
+        those mentions and represent the protocol&rsquo;s general shape — implementation details
+        vary source to source. For exact procedures, consult the canonical source (if listed) or
+        the source papers under <em>Papers Using This Protocol</em> below.
+      </div>
+
+      {(protocol.standardized || protocol.standard_reference) && (
+        <div className="detail-section">
+          <h2>Canonical Source</h2>
+          {protocol.standardized && (
+            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: '0 0 8px' }}>
+              This protocol is flagged as <strong>standardized</strong> — implementations across papers
+              are expected to closely follow the canonical method below.
+            </p>
+          )}
+          {protocol.standard_reference ? (
+            <p style={{ fontSize: '15px', margin: 0 }}>
+              <span style={{ color: 'var(--color-text-muted)', marginRight: '6px' }}>→</span>
+              {protocol.standard_reference}
+            </p>
+          ) : (
+            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: 0 }}>
+              No canonical citation captured in the corpus for this protocol; refer to source
+              papers for the method as actually implemented.
+            </p>
+          )}
+        </div>
+      )}
 
       {await (async () => {
         const neighborhood = await fetchNeighborhood('protocol', parseInt(id), 60)
@@ -105,8 +138,21 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
 
       {protocol.description && (
         <div className="detail-section">
-          <h2>Description</h2>
-          <p>{protocol.description}</p>
+          <h2>Method synopsis</h2>
+          <p style={{ fontSize: '15px', lineHeight: 1.6 }}>{protocol.description}</p>
+          <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '8px', fontStyle: 'italic' }}>
+            Synthesized from method descriptions across {protocol.publication_count} paper
+            {protocol.publication_count !== 1 ? 's' : ''} using this protocol.
+          </p>
+        </div>
+      )}
+
+      {protocol.prerequisites?.length > 0 && (
+        <div className="detail-section">
+          <h2>Prerequisites</h2>
+          <ul>
+            {protocol.prerequisites.map((pr: string, i: number) => <li key={i}>{pr}</li>)}
+          </ul>
         </div>
       )}
 
