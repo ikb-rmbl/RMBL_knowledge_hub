@@ -37,34 +37,58 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
     ORDER BY p.year DESC NULLS LAST
   `, [id])
 
-  // Canonical source: an "introducing"-role mention whose paper has matching
-  // extracted protocol steps. Prefer the earliest year (foundational) so we
-  // surface the original method rather than a later modification.
-  const { rows: canonicalCandidates } = await db.query(`
-    SELECT p.id, p.title, p.year, p.journal,
-           em.metadata->'protocolStepIndices' AS step_indices_json
-    FROM entity_mentions em
-    JOIN publications p ON p.id = em.item_id
-    WHERE em.entity_type = 'protocol' AND em.entity_id = $1
-      AND em.collection = 'publications' AND em.role = 'introducing'
-      AND em.metadata->'protocolStepIndices' IS NOT NULL
-      AND EXISTS (SELECT 1 FROM publication_protocol_steps pps WHERE pps.publication_id = p.id)
-    ORDER BY p.year ASC NULLS LAST, em.id ASC
-    LIMIT 1
-  `, [id])
+  // Two complementary signals for the protocol's procedural detail:
+  //  1. Canonical-source paper: the earliest paper with role='introducing'.
+  //     This is the *citation* anchor — methods are typically named for the
+  //     paper that introduced them, regardless of where they're currently used.
+  //  2. Display paper: the *most recent peer-reviewed* paper that has loaded
+  //     protocol steps for this protocol. Methods evolve; we want the displayed
+  //     procedure to reflect current practice. "Peer-reviewed" excludes
+  //     student_papers in this corpus.
+  type CanonicalPaperRef = {
+    id: number; title: string; year: number | null; journal: string | null; publication_type: string | null
+  }
   type CanonicalStep = {
     step_index: number; action: string | null; details: string | null;
     quantities: string | null; duration: string | null; conditions: string | null;
     equipment: string[]
   }
-  let canonicalSourceWithSteps: {
-    publication_id: number; publication_title: string;
-    publication_year: number | null; publication_journal: string | null;
+
+  // (1) Earliest introducing-role paper — for the citation pointer
+  const { rows: introducingRows } = await db.query(`
+    SELECT p.id, p.title, p.year, p.journal, p.publication_type
+    FROM entity_mentions em
+    JOIN publications p ON p.id = em.item_id
+    WHERE em.entity_type = 'protocol' AND em.entity_id = $1
+      AND em.collection = 'publications' AND em.role = 'introducing'
+    ORDER BY p.year ASC NULLS LAST, em.id ASC
+    LIMIT 1
+  `, [id])
+  const introducingPaper: CanonicalPaperRef | null = introducingRows[0] || null
+
+  // (2) Most recent peer-reviewed paper with loaded steps — for the displayed procedure
+  const { rows: displayCandidates } = await db.query(`
+    SELECT p.id, p.title, p.year, p.journal, p.publication_type,
+           em.metadata->'protocolStepIndices' AS step_indices_json
+    FROM entity_mentions em
+    JOIN publications p ON p.id = em.item_id
+    WHERE em.entity_type = 'protocol' AND em.entity_id = $1
+      AND em.collection = 'publications'
+      AND p.publication_type IN ('article', 'thesis', 'chapter', 'book')
+      AND em.metadata->'protocolStepIndices' IS NOT NULL
+      AND EXISTS (SELECT 1 FROM publication_protocol_steps pps WHERE pps.publication_id = p.id)
+    ORDER BY p.year DESC NULLS LAST,
+             jsonb_array_length(em.metadata->'protocolStepIndices') DESC,
+             em.id ASC
+    LIMIT 1
+  `, [id])
+  let displayedProcedure: {
+    paper: CanonicalPaperRef
     steps: CanonicalStep[]
   } | null = null
-  if (canonicalCandidates.length > 0) {
-    const c = canonicalCandidates[0]
-    // node-postgres usually parses jsonb to a native value, but be defensive in case it returns a string
+  if (displayCandidates.length > 0) {
+    const c = displayCandidates[0]
+    // node-postgres usually parses jsonb natively; defensive parse just in case
     let indices: number[] = []
     if (Array.isArray(c.step_indices_json)) {
       indices = c.step_indices_json.filter((n: any) => typeof n === 'number')
@@ -79,9 +103,8 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
         ORDER BY step_index ASC
       `, [c.id, indices])
       if (stepRows.length > 0) {
-        canonicalSourceWithSteps = {
-          publication_id: c.id, publication_title: c.title,
-          publication_year: c.year, publication_journal: c.journal,
+        displayedProcedure = {
+          paper: { id: c.id, title: c.title, year: c.year, journal: c.journal, publication_type: c.publication_type },
           steps: stepRows as CanonicalStep[],
         }
       }
@@ -150,21 +173,32 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
         the source papers under <em>Papers Using This Protocol</em> below.
       </div>
 
-      {(protocol.standardized || protocol.standard_reference) && (
+      {(protocol.standardized || protocol.standard_reference || introducingPaper) && (
         <div className="detail-section">
           <h2>Canonical Source</h2>
           {protocol.standardized && (
             <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: '0 0 8px' }}>
               This protocol is flagged as <strong>standardized</strong> — implementations across papers
-              are expected to closely follow the canonical method below.
+              are expected to closely follow the canonical method.
             </p>
           )}
-          {protocol.standard_reference ? (
-            <p style={{ fontSize: '15px', margin: 0 }}>
+          {protocol.standard_reference && (
+            <p style={{ fontSize: '15px', margin: '0 0 8px' }}>
               <span style={{ color: 'var(--color-text-muted)', marginRight: '6px' }}>→</span>
               {protocol.standard_reference}
             </p>
-          ) : (
+          )}
+          {introducingPaper && (
+            <p style={{ fontSize: '14px', margin: 0 }}>
+              <span style={{ color: 'var(--color-text-muted)', marginRight: '6px' }}>Introducing paper in this corpus:</span>
+              <Link href={`/publications/${introducingPaper.id}`} style={{ color: 'var(--color-accent)', fontWeight: 500 }}>
+                {introducingPaper.title}
+              </Link>
+              {introducingPaper.year ? ` (${introducingPaper.year})` : ''}
+              {introducingPaper.journal ? `, ${introducingPaper.journal}` : ''}
+            </p>
+          )}
+          {!protocol.standard_reference && !introducingPaper && (
             <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: 0 }}>
               No canonical citation captured in the corpus for this protocol; refer to source
               papers for the method as actually implemented.
@@ -198,41 +232,73 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
         </div>
       )}
 
-      {canonicalSourceWithSteps && (
-        <div className="detail-section">
-          <h2>Procedure as described in the canonical source</h2>
-          <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: '0 0 12px' }}>
-            Steps below were extracted from the source paper that introduces this protocol —{' '}
-            <Link href={`/publications/${canonicalSourceWithSteps.publication_id}`} style={{ color: 'var(--color-accent)', fontWeight: 500 }}>
-              {canonicalSourceWithSteps.publication_title}
-            </Link>
-            {canonicalSourceWithSteps.publication_year ? ` (${canonicalSourceWithSteps.publication_year})` : ''}
-            {canonicalSourceWithSteps.publication_journal ? `, ${canonicalSourceWithSteps.publication_journal}` : ''}.
-            Implementations in other papers (listed below) may differ.
-          </p>
-          <ol style={{ paddingLeft: '20px', margin: 0 }}>
-            {canonicalSourceWithSteps.steps.map((s) => (
-              <li key={s.step_index} style={{ marginBottom: '16px', lineHeight: 1.55 }}>
-                {s.action && <div style={{ fontWeight: 600, fontSize: '15px' }}>{s.action}</div>}
-                {s.details && <div style={{ fontSize: '14px', marginTop: '4px' }}>{s.details}</div>}
-                {(s.quantities || s.duration || s.conditions) && (
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '6px', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-                    {s.quantities && <span><strong style={{ color: 'var(--color-text-secondary)' }}>Quantities:</strong> {s.quantities}</span>}
-                    {s.duration && <span><strong style={{ color: 'var(--color-text-secondary)' }}>Duration:</strong> {s.duration}</span>}
-                    {s.conditions && <span><strong style={{ color: 'var(--color-text-secondary)' }}>Conditions:</strong> {s.conditions}</span>}
-                  </div>
-                )}
-                {s.equipment && s.equipment.length > 0 && (
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-                    <strong style={{ color: 'var(--color-text-secondary)' }}>Equipment:</strong>{' '}
-                    {s.equipment.join(', ')}
-                  </div>
-                )}
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
+      {displayedProcedure && (() => {
+        const dp = displayedProcedure!
+        const sameAsIntroducing = introducingPaper && introducingPaper.id === dp.paper.id
+        const heading = sameAsIntroducing
+          ? 'Procedure as described in the canonical source'
+          : 'Procedure from a recent peer-reviewed implementation'
+        return (
+          <div className="detail-section">
+            <h2>{heading}</h2>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: '0 0 12px' }}>
+              {sameAsIntroducing ? (
+                <>
+                  Steps below were extracted from the paper that introduces this protocol —{' '}
+                  <Link href={`/publications/${dp.paper.id}`} style={{ color: 'var(--color-accent)', fontWeight: 500 }}>
+                    {dp.paper.title}
+                  </Link>
+                  {dp.paper.year ? ` (${dp.paper.year})` : ''}
+                  {dp.paper.journal ? `, ${dp.paper.journal}` : ''}.
+                </>
+              ) : (
+                <>
+                  Steps below were extracted from the most recent peer-reviewed implementation of this
+                  protocol in the corpus —{' '}
+                  <Link href={`/publications/${dp.paper.id}`} style={{ color: 'var(--color-accent)', fontWeight: 500 }}>
+                    {dp.paper.title}
+                  </Link>
+                  {dp.paper.year ? ` (${dp.paper.year})` : ''}
+                  {dp.paper.journal ? `, ${dp.paper.journal}` : ''}
+                  {introducingPaper && (
+                    <>
+                      . The protocol was originally introduced by{' '}
+                      <Link href={`/publications/${introducingPaper.id}`} style={{ color: 'var(--color-accent)', fontWeight: 500 }}>
+                        {introducingPaper.title}
+                      </Link>
+                      {introducingPaper.year ? ` (${introducingPaper.year})` : ''}
+                      {introducingPaper.journal ? `, ${introducingPaper.journal}` : ''}
+                    </>
+                  )}
+                  .
+                </>
+              )}
+              {' '}Implementations in other papers (listed below) may differ.
+            </p>
+            <ol style={{ paddingLeft: '20px', margin: 0 }}>
+              {dp.steps.map((s) => (
+                <li key={s.step_index} style={{ marginBottom: '16px', lineHeight: 1.55 }}>
+                  {s.action && <div style={{ fontWeight: 600, fontSize: '15px' }}>{s.action}</div>}
+                  {s.details && <div style={{ fontSize: '14px', marginTop: '4px' }}>{s.details}</div>}
+                  {(s.quantities || s.duration || s.conditions) && (
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '6px', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                      {s.quantities && <span><strong style={{ color: 'var(--color-text-secondary)' }}>Quantities:</strong> {s.quantities}</span>}
+                      {s.duration && <span><strong style={{ color: 'var(--color-text-secondary)' }}>Duration:</strong> {s.duration}</span>}
+                      {s.conditions && <span><strong style={{ color: 'var(--color-text-secondary)' }}>Conditions:</strong> {s.conditions}</span>}
+                    </div>
+                  )}
+                  {s.equipment && s.equipment.length > 0 && (
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                      <strong style={{ color: 'var(--color-text-secondary)' }}>Equipment:</strong>{' '}
+                      {s.equipment.join(', ')}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
+        )
+      })()}
 
       {protocol.prerequisites?.length > 0 && (
         <div className="detail-section">
