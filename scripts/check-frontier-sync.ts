@@ -13,6 +13,8 @@ async function main() {
   const tables = [
     'neighborhoods', 'neighborhood_members',
     'frontiers', 'frontier_neighborhoods', 'frontier_entities', 'frontier_source_statements',
+    'frontier_planning_items', 'frontier_planning_clusters',
+    'frontier_planning_themes', 'frontier_long_reach_opportunities',
   ]
   console.log('Table'.padEnd(32), 'Local'.padStart(8), 'Neon'.padStart(8))
   console.log('-'.repeat(50))

@@ -22,7 +22,7 @@ const BATCH = 200
 
 const args = process.argv.slice(2)
 const onlyArg = args.find((a) => a.startsWith('--only='))?.split('=')[1]
-const sections = new Set(onlyArg ? onlyArg.split(',').map((s) => s.trim()) : ['neighborhoods', 'entity_mentions', 'frontiers'])
+const sections = new Set(onlyArg ? onlyArg.split(',').map((s) => s.trim()) : ['neighborhoods', 'entity_mentions', 'frontiers', 'planning'])
 
 async function main() {
   console.log('Sync Bulk Tables to Neon')
@@ -162,20 +162,120 @@ async function main() {
     console.log(`  ${frStmts.length} source statements`)
     }
 
-    // 4. Reset sequences
+    if (sections.has('planning')) {
+    // 4. Frontier planning tables (items, clusters, themes, long-reach opportunities)
+    // Insert order: themes → clusters → items → opportunities. No hard FKs between
+    // them at the schema level; soft references (cluster_id, theme_id) are integer
+    // pointers, so order matters only for cosmetic consistency.
+    console.log('\n--- Frontier planning tables ---')
+    // Children-first delete to avoid leftover orphan references
+    await neon.query('DELETE FROM frontier_long_reach_opportunities')
+    await neon.query('DELETE FROM frontier_planning_items')
+    await neon.query('DELETE FROM frontier_planning_clusters')
+    await neon.query('DELETE FROM frontier_planning_themes')
+
+    // 4a. themes (parent, simple JSONB cols)
+    const { rows: themes } = await local.query('SELECT * FROM frontier_planning_themes ORDER BY id')
+    const themeJsonbCols = new Set(['planning_anchors', 'type_distribution', 'long_reach_anchors'])
+    if (themes.length > 0) {
+      const cols = Object.keys(themes[0])
+      for (const row of themes) {
+        const vals = cols.map(c => themeJsonbCols.has(c) && row[c] != null ? JSON.stringify(row[c]) : row[c] ?? null)
+        const placeholders = cols.map((_, i) => `$${i + 1}`)
+        await neon.query(`INSERT INTO frontier_planning_themes (${cols.join(',')}) VALUES (${placeholders.join(',')})`, vals)
+      }
+    }
+    console.log(`  ${themes.length} themes`)
+
+    // 4b. clusters (one row at a time — small table, JSONB cols)
+    const { rows: clusters } = await local.query('SELECT * FROM frontier_planning_clusters ORDER BY id')
+    const clusterJsonbCols = new Set(['type_distribution', 'category_distribution', 'effort_distribution', 'key_items'])
+    if (clusters.length > 0) {
+      const cols = Object.keys(clusters[0])
+      for (const row of clusters) {
+        const vals = cols.map(c => clusterJsonbCols.has(c) && row[c] != null ? JSON.stringify(row[c]) : row[c] ?? null)
+        const placeholders = cols.map((_, i) => `$${i + 1}`)
+        await neon.query(`INSERT INTO frontier_planning_clusters (${cols.join(',')}) VALUES (${placeholders.join(',')})`, vals)
+      }
+    }
+    console.log(`  ${clusters.length} clusters`)
+
+    // 4c. items (3,288 rows with vector embeddings — batched, vector cast inline)
+    // Vectors come back from local as text in the form '[0.1,0.2,...]'; we cast
+    // back to vector on insert. Item rows have no JSONB columns.
+    const { rows: items } = await local.query(
+      `SELECT id, frontier_id, item_type, category, effort, text,
+              embedding::text AS embedding_str, cluster_id, generated_at
+       FROM frontier_planning_items ORDER BY id`,
+    )
+    if (items.length > 0) {
+      for (let i = 0; i < items.length; i += BATCH) {
+        const batch = items.slice(i, i + BATCH)
+        const allVals: any[] = []
+        const valueSets: string[] = []
+        const cols = ['id', 'frontier_id', 'item_type', 'category', 'effort', 'text', 'embedding', 'cluster_id', 'generated_at']
+        for (const row of batch) {
+          const offset = allVals.length
+          // 9 cols; embedding is the 7th (index 6). Cast that param to vector.
+          const ph = cols.map((c, j) => c === 'embedding' ? `$${offset + j + 1}::vector` : `$${offset + j + 1}`)
+          valueSets.push('(' + ph.join(',') + ')')
+          allVals.push(
+            row.id, row.frontier_id, row.item_type, row.category, row.effort, row.text,
+            row.embedding_str, row.cluster_id, row.generated_at,
+          )
+        }
+        await neon.query(`INSERT INTO frontier_planning_items (${cols.join(',')}) VALUES ${valueSets.join(',')}`, allVals)
+        if ((i + BATCH) % 1000 === 0 || i + BATCH >= items.length) {
+          process.stdout.write(`\r  items inserted ${Math.min(i + BATCH, items.length)}/${items.length}`)
+        }
+      }
+      process.stdout.write('\n')
+    }
+    console.log(`  ${items.length} planning items (with vector embeddings)`)
+
+    // 4d. long-reach opportunities
+    const { rows: opps } = await local.query('SELECT * FROM frontier_long_reach_opportunities ORDER BY rank')
+    const oppJsonbCols = new Set(['contributing_themes'])
+    if (opps.length > 0) {
+      const cols = Object.keys(opps[0])
+      for (const row of opps) {
+        const vals = cols.map(c => oppJsonbCols.has(c) && row[c] != null ? JSON.stringify(row[c]) : row[c] ?? null)
+        const placeholders = cols.map((_, i) => `$${i + 1}`)
+        await neon.query(`INSERT INTO frontier_long_reach_opportunities (${cols.join(',')}) VALUES (${placeholders.join(',')})`, vals)
+      }
+    }
+    console.log(`  ${opps.length} long-reach opportunities`)
+    }
+
+    // 5. Reset sequences
     console.log('\n--- Resetting sequences ---')
-    for (const t of ['neighborhoods', 'neighborhood_members', 'frontiers', 'frontier_source_statements']) {
-      await neon.query(`SELECT setval('${t}_id_seq', (SELECT COALESCE(MAX(id), 1) FROM ${t}))`)
+    for (const t of [
+      'neighborhoods', 'neighborhood_members', 'frontiers', 'frontier_source_statements',
+      'frontier_planning_themes', 'frontier_planning_clusters', 'frontier_planning_items',
+      'frontier_long_reach_opportunities',
+    ]) {
+      try {
+        await neon.query(`SELECT setval('${t}_id_seq', (SELECT COALESCE(MAX(id), 1) FROM ${t}))`)
+      } catch { /* table or sequence may be absent if section wasn't synced this run */ }
     }
     console.log('  Done')
 
-    // 5. Verify
+    // 6. Verify
     console.log('\n--- Verification ---')
-    for (const t of ['neighborhoods', 'neighborhood_members', 'entity_mentions', 'stories', 'frontiers', 'frontier_neighborhoods', 'frontier_entities', 'frontier_source_statements']) {
-      const { rows: [{ n: localN }] } = await local.query(`SELECT count(*)::int as n FROM ${t}`)
-      const { rows: [{ n: neonN }] } = await neon.query(`SELECT count(*)::int as n FROM ${t}`)
-      const marker = localN === neonN ? '✓' : '✗'
-      console.log(`  ${marker} ${t.padEnd(28)} local: ${String(localN).padStart(7)}  neon: ${String(neonN).padStart(7)}`)
+    for (const t of [
+      'neighborhoods', 'neighborhood_members', 'entity_mentions', 'stories',
+      'frontiers', 'frontier_neighborhoods', 'frontier_entities', 'frontier_source_statements',
+      'frontier_planning_themes', 'frontier_planning_clusters', 'frontier_planning_items',
+      'frontier_long_reach_opportunities',
+    ]) {
+      try {
+        const { rows: [{ n: localN }] } = await local.query(`SELECT count(*)::int as n FROM ${t}`)
+        const { rows: [{ n: neonN }] } = await neon.query(`SELECT count(*)::int as n FROM ${t}`)
+        const marker = localN === neonN ? '✓' : '✗'
+        console.log(`  ${marker} ${t.padEnd(36)} local: ${String(localN).padStart(7)}  neon: ${String(neonN).padStart(7)}`)
+      } catch (err: any) {
+        console.log(`  · ${t.padEnd(36)} (skipped — ${err.message?.slice(0, 60)})`)
+      }
     }
   } finally {
     await local.end()
