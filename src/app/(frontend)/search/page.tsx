@@ -415,7 +415,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   // --- Entity search: surface matching entities above the content results ---
   type EntityMatch = {
-    type: 'species' | 'place' | 'protocol' | 'concept' | 'author' | 'neighborhood' | 'project'
+    type: 'species' | 'place' | 'protocol' | 'concept' | 'author' | 'neighborhood' | 'project' | 'frontier'
     id: number
     name: string
     detail: string
@@ -431,7 +431,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     const likeQ = `%${query}%`
 
     // Search each entity table — up to 5 per type, show 3 initially with expand
-    const [spRows, plRows, prRows, coRows, auRows, nbRows, pjRows] = await Promise.all([
+    const [spRows, plRows, prRows, coRows, auRows, nbRows, pjRows, frRows] = await Promise.all([
       db2.query(
         `SELECT id, canonical_name as name,
                 coalesce(family, '') as detail,
@@ -487,6 +487,14 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
          FROM projects p
          WHERE p.name ILIKE $1 OR p.description ILIKE $1 OR p.research_areas ILIKE $1 OR p.pi ILIKE $1
          ORDER BY p.name LIMIT 5`, [likeQ]),
+      db2.query(
+        `SELECT id, title as name,
+                coalesce(tractability, '') as detail,
+                coalesce(LEFT(cross_cutting_summary, 120), '') as snippet,
+                source_cluster_size as count
+         FROM frontiers
+         WHERE title ILIKE $1 OR cross_cutting_summary ILIKE $1 OR frontier_description ILIKE $1
+         ORDER BY source_neighborhoods DESC NULLS LAST, source_cluster_size DESC NULLS LAST LIMIT 5`, [likeQ]),
     ])
 
     for (const r of spRows.rows) entityMatches.push({ type: 'species', ...r })
@@ -496,6 +504,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     for (const r of auRows.rows) entityMatches.push({ type: 'author', countLabel: 'work', ...r })
     for (const r of nbRows.rows) entityMatches.push({ type: 'neighborhood', countLabel: 'member', ...r })
     for (const r of pjRows.rows) entityMatches.push({ type: 'project', countLabel: 'item', ...r })
+    for (const r of frRows.rows) entityMatches.push({ type: 'frontier', countLabel: 'statement', ...r })
 
     // Sort by count descending (mixes papers/works/members/items — same intent: bigger first)
     entityMatches.sort((a, b) => b.count - a.count)
@@ -732,6 +741,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
             const ENTITY_SLUG: Record<EntityMatch['type'], string> = {
               species: 'species', place: 'places', protocol: 'protocols', concept: 'concepts',
               author: 'authors', neighborhood: 'neighborhoods', project: 'projects',
+              frontier: 'frontiers',
             }
 
             function renderEntityCard(em: EntityMatch) {
