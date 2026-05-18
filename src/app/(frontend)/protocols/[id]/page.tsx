@@ -37,6 +37,57 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
     ORDER BY p.year DESC NULLS LAST
   `, [id])
 
+  // Canonical source: an "introducing"-role mention whose paper has matching
+  // extracted protocol steps. Prefer the earliest year (foundational) so we
+  // surface the original method rather than a later modification.
+  const { rows: canonicalCandidates } = await db.query(`
+    SELECT p.id, p.title, p.year, p.journal,
+           em.metadata->'protocolStepIndices' AS step_indices_json
+    FROM entity_mentions em
+    JOIN publications p ON p.id = em.item_id
+    WHERE em.entity_type = 'protocol' AND em.entity_id = $1
+      AND em.collection = 'publications' AND em.role = 'introducing'
+      AND em.metadata->'protocolStepIndices' IS NOT NULL
+      AND EXISTS (SELECT 1 FROM publication_protocol_steps pps WHERE pps.publication_id = p.id)
+    ORDER BY p.year ASC NULLS LAST, em.id ASC
+    LIMIT 1
+  `, [id])
+  type CanonicalStep = {
+    step_index: number; action: string | null; details: string | null;
+    quantities: string | null; duration: string | null; conditions: string | null;
+    equipment: string[]
+  }
+  let canonicalSourceWithSteps: {
+    publication_id: number; publication_title: string;
+    publication_year: number | null; publication_journal: string | null;
+    steps: CanonicalStep[]
+  } | null = null
+  if (canonicalCandidates.length > 0) {
+    const c = canonicalCandidates[0]
+    // node-postgres usually parses jsonb to a native value, but be defensive in case it returns a string
+    let indices: number[] = []
+    if (Array.isArray(c.step_indices_json)) {
+      indices = c.step_indices_json.filter((n: any) => typeof n === 'number')
+    } else if (typeof c.step_indices_json === 'string') {
+      try { const parsed = JSON.parse(c.step_indices_json); if (Array.isArray(parsed)) indices = parsed.filter((n: any) => typeof n === 'number') } catch {}
+    }
+    if (indices.length > 0) {
+      const { rows: stepRows } = await db.query(`
+        SELECT step_index, action, details, quantities, duration, conditions, equipment
+        FROM publication_protocol_steps
+        WHERE publication_id = $1 AND step_index = ANY($2)
+        ORDER BY step_index ASC
+      `, [c.id, indices])
+      if (stepRows.length > 0) {
+        canonicalSourceWithSteps = {
+          publication_id: c.id, publication_title: c.title,
+          publication_year: c.year, publication_journal: c.journal,
+          steps: stepRows as CanonicalStep[],
+        }
+      }
+    }
+  }
+
   // Documents mentioning this protocol
   const { rows: docs } = await db.query(`
     SELECT d.id, d.title, d.document_type
@@ -144,6 +195,42 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
             Synthesized from method descriptions across {protocol.publication_count} paper
             {protocol.publication_count !== 1 ? 's' : ''} using this protocol.
           </p>
+        </div>
+      )}
+
+      {canonicalSourceWithSteps && (
+        <div className="detail-section">
+          <h2>Procedure as described in the canonical source</h2>
+          <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: '0 0 12px' }}>
+            Steps below were extracted from the source paper that introduces this protocol —{' '}
+            <Link href={`/publications/${canonicalSourceWithSteps.publication_id}`} style={{ color: 'var(--color-accent)', fontWeight: 500 }}>
+              {canonicalSourceWithSteps.publication_title}
+            </Link>
+            {canonicalSourceWithSteps.publication_year ? ` (${canonicalSourceWithSteps.publication_year})` : ''}
+            {canonicalSourceWithSteps.publication_journal ? `, ${canonicalSourceWithSteps.publication_journal}` : ''}.
+            Implementations in other papers (listed below) may differ.
+          </p>
+          <ol style={{ paddingLeft: '20px', margin: 0 }}>
+            {canonicalSourceWithSteps.steps.map((s) => (
+              <li key={s.step_index} style={{ marginBottom: '16px', lineHeight: 1.55 }}>
+                {s.action && <div style={{ fontWeight: 600, fontSize: '15px' }}>{s.action}</div>}
+                {s.details && <div style={{ fontSize: '14px', marginTop: '4px' }}>{s.details}</div>}
+                {(s.quantities || s.duration || s.conditions) && (
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '6px', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                    {s.quantities && <span><strong style={{ color: 'var(--color-text-secondary)' }}>Quantities:</strong> {s.quantities}</span>}
+                    {s.duration && <span><strong style={{ color: 'var(--color-text-secondary)' }}>Duration:</strong> {s.duration}</span>}
+                    {s.conditions && <span><strong style={{ color: 'var(--color-text-secondary)' }}>Conditions:</strong> {s.conditions}</span>}
+                  </div>
+                )}
+                {s.equipment && s.equipment.length > 0 && (
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                    <strong style={{ color: 'var(--color-text-secondary)' }}>Equipment:</strong>{' '}
+                    {s.equipment.join(', ')}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ol>
         </div>
       )}
 
@@ -265,3 +352,4 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
     </div>
   )
 }
+
