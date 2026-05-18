@@ -24,6 +24,7 @@ import { readFileSync, writeFileSync, existsSync } from 'fs'
 import './lib/config.js'
 import { OUTPUT_DIR } from './lib/config.js'
 import { resolveSpeciesViaITIS, type ITISResult } from './lib/itis-client.js'
+import { isJunkEntityName } from './lib/entity-filter.js'
 import { runConcurrent } from './lib/concurrency.js'
 
 const args = process.argv.slice(2)
@@ -259,6 +260,9 @@ async function linkSpecies(db: pg.Pool): Promise<void> {
 
     // Use ITIS data for taxonomy (authoritative), VLM for the rest
     const canonicalName = itis?.canonicalName || best.scientificName || members[0].raw_name
+    // Skip "Unknown", "not specified", etc. — placeholder names the LLM emits
+    // when the source text didn't actually name a species. See lib/entity-filter.ts.
+    if (isJunkEntityName(canonicalName)) continue
     // Infer rank: trust ITIS if available; otherwise detect genus-only names (single word, no epithet)
     const inferredName = itis?.canonicalName || best.scientificName || members[0].raw_name
     const rank = itis?.rank || (inferredName.trim().split(/\s+/).length === 1 ? 'genus' : 'species')
@@ -555,6 +559,7 @@ async function linkPlaces(db: pg.Pool): Promise<void> {
     }
 
     const canonicalName = best.name || members[0].raw_name
+    if (isJunkEntityName(canonicalName)) continue
 
     // Apply scale/type overrides for known misclassifications
     const override = SCALE_OVERRIDES[key]

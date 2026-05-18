@@ -18,6 +18,7 @@ import pg from 'pg'
 import { readFileSync } from 'fs'
 import './lib/config.js'
 import { embedTexts, clusterCandidates } from './lib/embedding-cluster.js'
+import { isJunkEntityName } from './lib/entity-filter.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
@@ -247,6 +248,10 @@ async function main() {
     const entityCollections: string[] = []
 
     for (const c of canonicals) {
+      // Skip "Unknown", "SPP", "N/A", etc. — placeholder names the LLM emits
+      // when source text didn't actually name a stakeholder. See lib/entity-filter.ts.
+      if (isJunkEntityName(c.name)) continue
+
       const { rows: [sh] } = await db.query(
         `INSERT INTO stakeholders (name, stakeholder_type, aliases, embedding)
          VALUES ($1, $2, $3, $4) RETURNING id`,

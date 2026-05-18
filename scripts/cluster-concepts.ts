@@ -14,6 +14,7 @@ import pg from 'pg'
 import './lib/config.js'
 import { VOYAGE_API_KEY } from './lib/config.js'
 import { embedTexts, cosineSimilarity, clusterCandidates, type Cluster } from './lib/embedding-cluster.js'
+import { isJunkEntityName } from './lib/entity-filter.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
@@ -130,6 +131,10 @@ async function main() {
     for (let ci = 0; ci < canonicals.length; ci++) {
       const canonical = canonicals[ci]
       const cluster = clusters[ci]
+
+      // Skip "Unknown", "Na", "not specified", etc. — placeholder names the LLM emits
+      // when source text didn't actually name a concept. See lib/entity-filter.ts.
+      if (isJunkEntityName(canonical.name)) continue
 
       const { rows: [con] } = await db.query(
         `INSERT INTO concepts (name, concept_type, definition, scope, aliases, embedding)
