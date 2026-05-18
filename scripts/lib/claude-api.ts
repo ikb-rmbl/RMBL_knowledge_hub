@@ -9,8 +9,20 @@
 import { sleep } from './concurrency.js'
 
 const MAX_RETRIES = 3
-const SONNET_INPUT_COST = 3   // $ per million tokens
-const SONNET_OUTPUT_COST = 15 // $ per million tokens
+
+// Per-million-token pricing. Falls back to Sonnet rates for unknown models
+// so cost reports are still in the right ballpark.
+const MODEL_PRICING: Record<string, { input: number; output: number }> = {
+  'claude-sonnet-4-20250514': { input: 3,  output: 15 },
+  'claude-sonnet-4-6':         { input: 3,  output: 15 },
+  'claude-opus-4-7':           { input: 15, output: 75 },
+  'claude-haiku-4-5-20251001': { input: 1,  output: 5  },
+}
+const FALLBACK_PRICING = { input: 3, output: 15 }
+
+function priceFor(model: string): { input: number; output: number } {
+  return MODEL_PRICING[model] || FALLBACK_PRICING
+}
 
 export interface ClaudeResponse {
   text: string
@@ -61,12 +73,13 @@ export async function callClaude(options: {
     const data = await res.json()
     const inputTokens = data.usage?.input_tokens || 0
     const outputTokens = data.usage?.output_tokens || 0
+    const pricing = priceFor(model)
 
     return {
       text: data.content?.[0]?.text || '',
       inputTokens,
       outputTokens,
-      cost: (inputTokens * SONNET_INPUT_COST + outputTokens * SONNET_OUTPUT_COST) / 1_000_000,
+      cost: (inputTokens * pricing.input + outputTokens * pricing.output) / 1_000_000,
     }
   }
 
