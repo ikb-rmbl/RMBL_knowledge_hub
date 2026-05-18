@@ -1,4 +1,8 @@
 /**
+ * STATUS: Historical one-shot (completed). Idempotent — safe to re-run if
+ *         year-only or arrow-only citations appear in newly-generated
+ *         primers, but no expected re-runs in normal operation.
+ *
  * Fix year-only and arrow-only citations in existing primers.
  *
  * Finds patterns like [2010](/publications/N) or [→](/publications/N)

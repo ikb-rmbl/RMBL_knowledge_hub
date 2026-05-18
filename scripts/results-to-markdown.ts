@@ -1,4 +1,8 @@
 /**
+ * STATUS: Experiment artifact (completed). Helper for the VLM extraction
+ *         experiment from spring 2026. Reusable if a new extraction run
+ *         produces a results.json in the same shape.
+ *
  * Convert VLM extraction results.json to a plain Markdown report.
  *
  * Usage:

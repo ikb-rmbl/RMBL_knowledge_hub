@@ -1,4 +1,8 @@
 /**
+ * STATUS: Experiment artifact (completed). Part of the VLM extraction
+ *         experiment from spring 2026. Kept for reference / re-stratification
+ *         if a new sampling pass is needed.
+ *
  * Select Experiment Papers
  *
  * Picks a stratified sample of publications for the GraphRAG VLM extraction

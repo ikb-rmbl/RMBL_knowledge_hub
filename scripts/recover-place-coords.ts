@@ -1,4 +1,7 @@
 /**
+ * STATUS: Historical one-shot (completed). Re-runnable only after another
+ *         places rebuild that drops GNIS coords. Not part of routine ops.
+ *
  * Recover place coordinates from Neon database.
  * After link-species-places.ts re-created places, GNIS coordinates were lost.
  * This script matches Neon places (which still have GNIS coords) to local

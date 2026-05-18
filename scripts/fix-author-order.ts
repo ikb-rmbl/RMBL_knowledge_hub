@@ -1,4 +1,8 @@
 /**
+ * STATUS: Historical one-shot (completed). Idempotent — safe to re-run if
+ *         build-authors.ts is re-run with an older version that drops
+ *         position info, but no expected re-runs in normal operation.
+ *
  * Fix Author Ordering in authors_rels
  *
  * The `publications_authors` table (Payload inline array) has correct author

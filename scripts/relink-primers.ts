@@ -1,4 +1,8 @@
 /**
+ * STATUS: Historical one-shot (completed). Idempotent — safe to re-run if
+ *         broken citation tags recur in newly-generated primers, but no
+ *         expected re-runs in normal operation.
+ *
  * One-off backfill: re-run the citation linkifier over primers in the DB
  * whose text contains raw `pub_id:N` or `doc_id:N` tags (LLM dropped the
  * curly braces and/or author-year text). No LLM calls — purely text

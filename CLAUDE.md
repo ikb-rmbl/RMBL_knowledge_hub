@@ -154,67 +154,145 @@ src/
   app/(payload)/                 — Payload admin panel routes
 
 scripts/
-  pipeline.ts               — Orchestrator: 10 phases (check -> ingest -> discover -> enrich -> load -> topics -> authors -> entities -> citations -> embeddings)
-  scrape-library.ts          — Sustainable Library scrape + normalize
-  scrape-publications.ts     — RMBL Publications scrape + CrossRef/Unpaywall enrichment
-  scrape-catalog.ts          — Data Catalog scrape + EML metadata fetch
-  discover-publications.ts   — Publication discovery via OpenAlex + CrossRef
-  discover-datasets.ts       — Dataset discovery (7 repository sources)
-  enrich.ts                  — DOI, ORCID, and mentor enrichment
-  enrich-abstracts.ts        — Abstract enrichment (API + regex + Semantic Scholar + PDF)
-  download-pdfs.ts           — PDF download pipeline with manifest tracking
-  download-institutional.ts  — Institutional repository PDF downloads
-  extract-text.ts            — PDF text extraction (pdftotext + OCR fallback)
-  backfill-pdf-sizes.ts      — Backfill PDF file sizes via HEAD requests
-  load-to-payload.ts         — Load all collections into Payload via REST API (incremental dedup)
-  load-fulltext.ts           — Load extracted text into database
-  manage-topics.ts           — 40-topic thematic taxonomy organize + assignment
-  build-authors.ts           — Author registry build + dedup
-  merge-plural-species.ts    — Collapse plural/singular species fragmentation (Phase 8a; idempotent)
-  backfill-species-mentions.ts — Text-search backfill of species → publications/documents/datasets/stories mentions (Phase 8b; conservative phraseto_tsquery; reversible via DELETE WHERE extraction_method='text_match')
-  fetch-citation-counts.ts   — External citation counts from OpenAlex/DataCite
-  generate-embeddings.ts     — Vector embeddings via Voyage AI voyage-4
-  seed-projects.ts           — Seed projects from research plan data
-  assign-projects.ts         — Auto-discover and assign items to projects
-  extract-references.ts      — Reference extraction (CrossRef + GROBID + fulltext)
-  match-references.ts        — Reference matching + PostgreSQL loading
-  crosslink-datasets.ts      — Publication<->dataset linking from full text
-  update-sources.ts          — Incremental source change detection
-  sync-to-neon.ts            — Production sync: full restore, verify, safe enrichment, schema migration
-  sync-databases.ts          — Bidirectional incremental sync (local <-> Neon)
-  experiment-extraction.ts   — VLM entity extraction via Claude vision (resumable, incremental saves)
-  select-experiment-papers.ts — Stratified paper sampling for VLM extraction
-  load-extraction-results.ts — Load VLM results into entity_candidates tables
-  cluster-protocols.ts       — Embedding-based protocol dedup and clustering
-  cluster-concepts.ts        — Embedding-based concept dedup and clustering
-  link-species-places.ts     — Species ITIS validation + places hierarchy linking
-  seed-places-gnis.ts        — Seed places from GNIS authoritative data (668 locations)
-  build-explore-graph.ts     — Pre-compute entity co-occurrence graphs (concepts, species, protocols, places)
-  build-collection-graph.ts  — Pre-compute collection graphs (authors, publications, datasets)
-  build-unified-graph.ts     — Combined graph across all entity and collection types
-  detect-communities.ts      — Louvain community detection on unified graph (151 neighborhoods)
-  describe-communities.ts    — LLM-generated titles, summaries, and themes for neighborhoods
-  load-neighborhoods.ts      — Load community data + members into neighborhoods tables
-  layout-neighborhoods.ts    — Pre-compute ForceAtlas2 subgraph layouts for detail pages
-  generate-primers.ts        — LLM research primers for neighborhoods (Opus, --model=opus|sonnet)
-  fix-author-order.ts        — Repair authors_rels ordering from publications_authors ground truth
-  fix-author-splits.ts       — Split false author merges using middle-initial signatures
-  scrape-news.ts             — Crested Butte News scraper (search results + article text)
-  scrape-gunnison-times.ts   — Gunnison Country Times scraper (current + archive search)
-  parse-lexis-pdf.ts         — LexisNexis index PDF parser (metadata + embedded links)
-  parse-lexis-fulltext.ts    — LexisNexis full-text PDF parser (Page 1 anchoring + link extraction)
-  load-stories.ts            — Load stories from all sources (CB News, Gunnison Times, Lexis)
-  dedup-stories.ts           — Deduplicate stories (non-relevant, exact, syndication, RMBL relevance check)
-  extract-story-entities.ts  — LLM entity extraction for stories (Opus 4.7, 8 entity types)
-  load-story-extractions.ts  — Load story extractions into entity_mentions + update story_type
-  link-stories-publications.ts — Build story↔publication links (title, researcher, entity matching)
-  check-staleness.ts         — Check pipeline staleness + recommend rebuild actions
-  sync-bulk-to-neon.ts       — Targeted sync for neighborhoods + story entity mentions
-  setup-local.sh             — Automated local development environment setup
-  export-database.sh         — Database export for sharing (excludes sensitive tables)
-  lib/                       — 17 shared utility modules (includes itis-client.ts)
-  sql/                       — SQL migration files (provenance, citations, embeddings, projects, entities, sync_log, neighborhoods, stories)
-  __tests__/                 — 12 test files (214 tests)
+  pipeline.ts                 — Orchestrator: 10 phases (check → ingest → discover → enrich → load → topics → authors → entities → citations → embeddings). Frontier / planning / story pipelines below are intentionally NOT in this orchestrator — they're expensive periodic workflows, not daily runs.
+
+  # Scraping (source acquisition)
+  scrape-library.ts           — Sustainable Library scrape + normalize
+  scrape-publications.ts      — RMBL Publications scrape + CrossRef/Unpaywall enrichment
+  scrape-catalog.ts           — Data Catalog scrape + EML metadata fetch
+  scrape-news.ts              — Crested Butte News scraper (search results + article text)
+  scrape-gunnison-times.ts    — Gunnison Country Times scraper (current + archive search)
+  parse-lexis-pdf.ts          — LexisNexis index PDF parser (metadata + embedded links)
+  parse-lexis-fulltext.ts     — LexisNexis full-text PDF parser
+  update-sources.ts           — Incremental source change detection (pipeline phase 0)
+
+  # Discovery (find new items)
+  discover-publications.ts    — Publication discovery via OpenAlex + CrossRef
+  discover-datasets.ts        — Dataset discovery (7 repository sources)
+  discover-datasets-from-vlm.ts — Resolve VLM-extracted DOIs into new datasets via DataCite
+  discover-pdfs.ts            — Semantic Scholar OA PDF discovery by DOI
+  discover-fr-notices.ts      — Federal Register notice discovery (policy documents)
+
+  # Enrichment
+  enrich.ts                   — Unified enrichment: DOI lookup, ORCID matching, mentor extraction
+  enrich-abstracts.ts         — Tiered abstract enrichment (API + regex + Semantic Scholar + PDF)
+  enrich-dataset-metadata.ts  — DataCite/EML/RMBL-SDP metadata enrichment for datasets
+  enrich-document-summaries.ts — Build summaries from extracted document type + agencies + entities
+  backfill-pdf-sizes.ts       — Backfill PDF file sizes via HEAD requests
+  fetch-citation-counts.ts    — External citation counts from OpenAlex (publications) + DataCite (datasets)
+
+  # PDF processing
+  download-pdfs.ts            — PDF download pipeline with manifest tracking (resumable)
+  download-institutional.ts   — Institutional repository PDF downloads (Playwright, experimental)
+  extract-text.ts             — PDF text extraction (pdftotext + OCR fallback)
+  export-pdf-worklist.ts      — Generate CSV worklist for manual PDF acquisition
+  ingest-manual-pdfs.ts       — Ingest technician-acquired PDFs from worklist
+
+  # Loading (data → Payload or custom SQL)
+  load-to-payload.ts          — Bulk load all collections into Payload REST API (incremental dedup + tombstone check)
+  load-fulltext.ts            — Load extracted text into Payload fullText field
+  load-stories.ts             — Load stories from 4 sources (CB News, Gunnison Times, Lexis)
+  load-story-extractions.ts   — Load story LLM extractions into entity_mentions + story_type
+  load-extraction-results.ts  — Load VLM extraction JSON into entity_candidates + mentions
+  load-referenced-works.ts    — Load LLM-extracted external references into references_cited
+  load-document-authors.ts    — Load extracted document authors + match to existing authors
+  load-neighborhoods.ts       — Load community detection output into neighborhoods table
+  load-frontiers.ts           — Load synthesized frontiers + links (TRUNCATE+INSERT, idempotent)
+
+  # Reference + cross-collection matching
+  extract-references.ts       — Reference extraction (CrossRef + GROBID + fulltext)
+  match-references.ts         — Reference matching + load to references_cited
+  match-document-citations.ts — Match document reference strings to publications/documents by DOI/title
+  crosslink-datasets.ts       — Publication↔dataset linking from full text
+  link-species-places.ts      — Species ITIS validation + places hierarchy linking
+  link-stories-publications.ts — Story↔publication links (title, researcher, entity matching)
+
+  # Topics, authors, projects
+  manage-topics.ts            — 40-topic thematic taxonomy organize + assignment (pipeline phase 5)
+  build-authors.ts            — Author registry build + dedup (pipeline phase 6)
+  seed-projects.ts            — Seed projects from research plan data
+  assign-projects.ts          — Auto-discover and assign items to projects (embeddings + author + text)
+  seed-places-gnis.ts         — Seed places from GNIS authoritative data (668 locations)
+
+  # Entity extraction (LLM)
+  extract-document-entities.ts — Claude extraction from documents (species/places/protocols/concepts/stakeholders)
+  extract-longform-entities.ts — Chapter-aware Claude extraction for theses + long reports
+  extract-dataset-entities.ts  — Claude extraction from dataset metadata
+  extract-story-entities.ts    — Claude extraction from news stories
+  extract-document-authors.ts  — Author extraction from documents
+  experiment-extraction.ts     — VLM extraction prototype (3 strategies: caption regex / embeddings / Claude vision)
+
+  # Entity clustering + dedup
+  cluster-protocols.ts        — Voyage embeddings + greedy centroid clustering for protocols
+  cluster-concepts.ts         — Voyage embeddings + greedy centroid clustering for concepts
+  cluster-stakeholders.ts     — Voyage embeddings + name-normalization clustering for stakeholders
+  merge-plural-species.ts     — Collapse plural/singular species fragmentation (pipeline phase 8a; idempotent)
+  backfill-species-mentions.ts — Text-search backfill of species mentions (pipeline phase 8b; reversible via extraction_method='text_match')
+
+  # Embeddings
+  generate-embeddings.ts      — Voyage AI voyage-4 embeddings for publications/datasets/documents/stories (pipeline phase 9)
+
+  # Knowledge graph + neighborhoods
+  build-explore-graph.ts      — Per-entity co-occurrence graphs (concepts, species, protocols, places)
+  build-collection-graph.ts   — Per-collection graphs (authors, publications, datasets)
+  build-unified-graph.ts      — Combined graph across all types
+  detect-communities.ts       — Louvain community detection on unified graph (~150 neighborhoods)
+  describe-communities.ts     — LLM-generated titles + summaries for neighborhoods
+  layout-neighborhoods.ts     — Pre-compute ForceAtlas2 subgraph layouts for detail pages
+  generate-primers.ts         — LLM research primers for neighborhoods (Opus/Sonnet, ~$4-6 per 75 nbrs)
+  build-poster-svg.ts         — Hand-editable large-format SVG poster of unified graph
+
+  # Frontiers pipeline (extract → cluster → synthesize → link → load)
+  extract-frontiers.ts        — LLM extraction of atomic frontier statements from neighborhood primers
+  cluster-frontiers.ts        — Embedding-based clustering of frontier statements
+  synthesize-frontiers.ts     — LLM synthesis of clusters into named frontiers with narrative fields
+  link-frontier-entities.ts   — Structural derivation of linkable_entities for each frontier
+  inspect-frontier-clusters.ts — Diagnostic threshold sweep for tuning cluster-frontiers
+
+  # Planning pipeline (over the Frontiers corpus, for board/leadership planning)
+  extract-frontier-planning-items.ts — Flatten frontier JSONB fields → planning_items table
+  extract-frontier-narratives.ts     — LLM atomization of frontier prose (barriers, impacts)
+  embed-frontier-planning-items.ts   — Voyage embeddings for planning items (resumable)
+  cluster-frontier-planning-items.ts — Louvain clustering per item_type (action/question/data_gap/barrier/impact)
+  describe-frontier-planning-clusters.ts — LLM title + summary + key_items per cluster
+  cluster-planning-themes.ts          — Second-order Louvain over cluster descriptions → cross-lens themes
+  describe-planning-themes.ts         — LLM theme synthesis (invitational opportunity statement + considerations)
+  analyze-theme-reach.ts              — Per-theme LLM analysis of state/national/global reach beyond the basin
+  synthesize-long-reach-opportunities.ts — Cross-theme synthesis of strategic long-reach opportunities
+  generate-planning-report.ts         — Render per-lens planning clusters report (Markdown inventory)
+  generate-themes-report.ts           — Render cross-lens themes report (Markdown, planning-conversation audience)
+
+  # Story pipeline (scrape → load → dedup → extract → load extractions)
+  dedup-stories.ts            — Story dedup (non-relevant filter, exact title, syndication similarity, RMBL relevance)
+
+  # Sync (local ↔ Neon)
+  sync-to-neon.ts             — Production sync modes: full / safe / schema / verify
+  sync-databases.ts           — Bidirectional incremental sync with curation-aware merge
+  sync-bulk-to-neon.ts        — Targeted sync for SQL-only tables (--only=neighborhoods|entity_mentions|frontiers|planning)
+  sync-replace-entities.ts    — Bulk replace for entity tables (species, places, protocols, concepts)
+
+  # Diagnostics
+  check-staleness.ts          — Compare timestamps across pipeline stages
+  check-neon-schema.ts        — Verify Neon schema after SQL migration
+  check-frontier-sync.ts      — Row-count pre-flight for frontiers/planning sync
+
+  # Historical one-shots (status header in file; kept for reference, not part of routine ops)
+  fix-author-order.ts         — Repair authors_rels ordering from publications_authors ground truth
+  fix-author-splits.ts        — Split false author merges using middle-initial signatures
+  fix-primer-citations.ts     — Backfill year-only and arrow-only citations in primers
+  relink-primers.ts           — Re-link citation tags in primers (text post-processing, no LLM)
+  recover-place-coords.ts     — Recover GNIS place coordinates from Neon after places rebuild
+  cleanup-discovered.ts       — On-demand re-filter of discovered publications when filter rules change
+  select-experiment-papers.ts — Stratified paper sampling for the VLM extraction experiment
+  results-to-markdown.ts      — Convert VLM extraction results.json to Markdown report
+
+  # Setup + export (shell)
+  setup-local.sh              — Automated local development environment setup
+  export-database.sh          — Database export for sharing (excludes sensitive tables)
+
+  lib/                        — 22 shared utility modules (config, claude-api, embedding-cluster, payload-client, record-matching, dedup-keys, curation, author-{parsing,dedup}, doi-utils, eml-parser, pdf-{manifest,extract}, crossref-client, dataset-discovery, publication-discovery, sources, topic-rules, itis-client, types, concurrency, extraction-runner)
+  sql/                        — 28 SQL migration files (mostly idempotent CREATE IF NOT EXISTS / ADD COLUMN IF NOT EXISTS; one-shot data migrations should be split off — see backfill-publication-provenance.sql for the pattern)
+  __tests__/                  — Test files (~12) covering core libs (author/crossref/topic/sync/discovery). New pipeline scripts (cluster/describe/extract LLM-driven) are intentionally untested at the call level due to LLM dependency.
 
 public/
   robots.txt                 — Crawler policy (allows GPTBot, ClaudeBot, PerplexityBot)

@@ -1,4 +1,8 @@
 /**
+ * STATUS: Historical one-shot (completed). Idempotent — safe to re-run if
+ *         build-authors.ts produces new false merges, but no expected
+ *         re-runs in normal operation.
+ *
  * Split False Author Merges
  *
  * Finds authors whose linked publications have conflicting first initials

@@ -1,4 +1,7 @@
 /**
+ * STATUS: On-demand tool — re-run after changes to the relevance filter in
+ *         lib/publication-discovery.ts. Not part of the daily pipeline.
+ *
  * Cleanup Off-Target Discovered Publications
  *
  * Applies the current relevance filter (from publication-discovery.ts) to
