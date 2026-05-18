@@ -160,52 +160,6 @@ export default async function ProtocolDetail({ params }: { params: Promise<{ id:
         <div><strong>Papers:</strong> {protocol.publication_count} | <strong>Mentions:</strong> {protocol.mention_count}</div>
       </div>
 
-      <div className="detail-section" style={{
-        padding: '12px 16px', borderRadius: 'var(--radius)',
-        background: 'var(--color-surface)', border: '1px solid var(--color-border)',
-        fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.55,
-      }}>
-        <strong style={{ color: 'var(--color-text-secondary)' }}>About this protocol entry.</strong>{' '}
-        Protocols in the RMBL Knowledge Fabric are automatically clustered from method descriptions
-        extracted across many publications. The synopsis and parameters below are synthesized from
-        those mentions and represent the protocol&rsquo;s general shape — implementation details
-        vary source to source. For exact procedures, consult the canonical source (if listed) or
-        the source papers under <em>Papers Using This Protocol</em> below.
-      </div>
-
-      {(protocol.standardized || protocol.standard_reference || introducingPaper) && (
-        <div className="detail-section">
-          <h2>Canonical Source</h2>
-          {protocol.standardized && (
-            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: '0 0 8px' }}>
-              This protocol is flagged as <strong>standardized</strong> — implementations across papers
-              are expected to closely follow the canonical method.
-            </p>
-          )}
-          {protocol.standard_reference && (
-            <p style={{ fontSize: '15px', margin: '0 0 8px' }}>
-              <span style={{ color: 'var(--color-text-muted)', marginRight: '6px' }}>→</span>
-              {protocol.standard_reference}
-            </p>
-          )}
-          {introducingPaper && (
-            <p style={{ fontSize: '14px', margin: 0 }}>
-              <span style={{ color: 'var(--color-text-muted)', marginRight: '6px' }}>Introducing paper in this corpus:</span>
-              <Link href={`/publications/${introducingPaper.id}`} style={{ color: 'var(--color-accent)', fontWeight: 500 }}>
-                {introducingPaper.title}
-              </Link>
-              {introducingPaper.year ? ` (${introducingPaper.year})` : ''}
-              {introducingPaper.journal ? `, ${introducingPaper.journal}` : ''}
-            </p>
-          )}
-          {!protocol.standard_reference && !introducingPaper && (
-            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: 0 }}>
-              No canonical citation captured in the corpus for this protocol; refer to source
-              papers for the method as actually implemented.
-            </p>
-          )}
-        </div>
-      )}
 
       {await (async () => {
         const neighborhood = await fetchNeighborhood('protocol', parseInt(id), 60)
