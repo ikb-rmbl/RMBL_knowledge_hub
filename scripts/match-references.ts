@@ -2,7 +2,7 @@
  * Reference Matching Pipeline
  *
  * Matches extracted references against publications and datasets in
- * the Knowledge Fabric. Classifies as internal (in our DB) or external.
+ * the Knowledge Commons. Classifies as internal (in our DB) or external.
  * Loads matched references into the PostgreSQL references_cited table.
  *
  * Usage:

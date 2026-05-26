@@ -5,8 +5,8 @@ import { getDb } from '../lib/db'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'About — RMBL Knowledge Fabric',
-  description: 'How the RMBL Knowledge Fabric works: data sources, knowledge graph construction, and technical architecture.',
+  title: 'About — RMBL Knowledge Commons',
+  description: 'How the RMBL Knowledge Commons works: data sources, knowledge graph construction, and technical architecture.',
 }
 
 export default async function AboutPage() {
@@ -34,10 +34,10 @@ export default async function AboutPage() {
 
   return (
     <div className="detail" style={{ maxWidth: '780px' }}>
-      <h1>About the Knowledge Fabric</h1>
+      <h1>About the Knowledge Commons</h1>
 
       <p style={{ fontSize: '15px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '24px' }}>
-        The RMBL Knowledge Fabric is a unified search and discovery platform for environmental research at the{' '}
+        The RMBL Knowledge Commons is a unified search and discovery platform for environmental research at the{' '}
         <a href="https://www.rmbl.org" target="_blank" rel="noopener noreferrer">Rocky Mountain Biological Laboratory</a>{' '}
         in Gothic, Colorado. It connects scientific publications, community documents, research datasets, news stories,
         and a knowledge graph of species, concepts, protocols, and places studied at one of the longest-running field biology stations in North America.
@@ -80,9 +80,9 @@ export default async function AboutPage() {
         <h2>Frequently Asked Questions</h2>
 
         <details style={{ marginBottom: '12px' }}>
-          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>What is the RMBL Knowledge Fabric?</summary>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>What is the RMBL Knowledge Commons?</summary>
           <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
-            The Knowledge Fabric is a search and discovery tool that brings together the scientific output of RMBL and the
+            The Knowledge Commons is a search and discovery tool that brings together the scientific output of RMBL and the
             Gunnison Basin into one searchable platform. It includes peer-reviewed publications dating back to 1928,
             community and policy documents from the Sustainable Living Library, and research datasets from multiple
             repositories. A knowledge graph connects these resources through shared species, concepts, research methods,
@@ -131,7 +131,7 @@ export default async function AboutPage() {
             The Hub provides a REST API at <code>/api/v1/</code> with endpoints for search, publication detail, entity
             lookup, related works, and more. Add <code>?format=text</code> to any endpoint for LLM-friendly plain text.
             For AI assistants like Claude Desktop, an MCP server is available — see the{' '}
-            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_fabric/tree/main/mcp" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/tree/main/mcp" target="_blank" rel="noopener noreferrer">
               MCP documentation
             </a>{' '}
             for setup instructions. See <a href="/llms.txt">/llms.txt</a> for a machine-readable index of available endpoints.
@@ -150,7 +150,7 @@ export default async function AboutPage() {
 
             <p style={{ marginTop: '8px' }}>For technical issues with the site itself (bugs, broken features),
             please submit an issue on the{' '}
-            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_fabric/issues" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/issues" target="_blank" rel="noopener noreferrer">
               GitHub repository
             </a>.</p>
           </div>
@@ -161,7 +161,7 @@ export default async function AboutPage() {
       <div className="detail-section">
         <h2>AI Integration</h2>
         <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '16px', maxWidth: '65ch' }}>
-          The Knowledge Fabric can be queried by AI assistants via the REST API or the MCP (Model Context Protocol) server.
+          The Knowledge Commons can be queried by AI assistants via the REST API or the MCP (Model Context Protocol) server.
           This allows tools like Claude Desktop, ChatGPT, and custom scripts to search publications, explore research
           neighborhoods, and access the knowledge graph programmatically.
         </p>
@@ -175,19 +175,19 @@ export default async function AboutPage() {
             </p>
             <pre style={{ fontSize: '13px', lineHeight: 1.5, padding: '12px 16px', background: 'var(--bg-inset)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'auto' }}>
 {`# Search for publications about alpine pollination
-curl "https://rmblknowledgefabric.org/api/v1/search?q=alpine+pollination&format=text"
+curl "https://rmblknowledgecommons.org/api/v1/search?q=alpine+pollination&format=text"
 
 # Get publication details
-curl "https://rmblknowledgefabric.org/api/v1/publications/13?format=text"
+curl "https://rmblknowledgecommons.org/api/v1/publications/13?format=text"
 
 # Explore a research neighborhood with primer
-curl "https://rmblknowledgefabric.org/api/v1/neighborhoods/620?format=text"
+curl "https://rmblknowledgecommons.org/api/v1/neighborhoods/620?format=text"
 
 # Look up a species
-curl "https://rmblknowledgefabric.org/api/v1/entities/species/8426?format=text"
+curl "https://rmblknowledgecommons.org/api/v1/entities/species/8426?format=text"
 
 # Find related works
-curl "https://rmblknowledgefabric.org/api/v1/related/publications/13?format=text"`}
+curl "https://rmblknowledgecommons.org/api/v1/related/publications/13?format=text"`}
             </pre>
           </div>
         </details>
@@ -196,7 +196,7 @@ curl "https://rmblknowledgefabric.org/api/v1/related/publications/13?format=text
           <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>MCP Server for Claude Desktop (recommended)</summary>
           <div style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 16px', maxWidth: '65ch' }}>
             <p style={{ marginBottom: '12px' }}>
-              The easiest way to connect: add the Knowledge Fabric as a <strong>Custom Connector</strong> in Claude Desktop.
+              The easiest way to connect: add the Knowledge Commons as a <strong>Custom Connector</strong> in Claude Desktop.
               No installation required — just a URL.
             </p>
 
@@ -206,16 +206,16 @@ curl "https://rmblknowledgefabric.org/api/v1/related/publications/13?format=text
             <ol style={{ paddingLeft: '20px', marginBottom: '12px' }}>
               <li>Open Claude Desktop &rarr; <strong>Settings &rarr; Connectors</strong></li>
               <li>Click <strong>Add custom connector</strong></li>
-              <li>Enter URL: <code>https://www.rmblknowledgefabric.org/api/mcp</code></li>
-              <li>10 Knowledge Fabric tools are immediately available</li>
+              <li>Enter URL: <code>https://rmblknowledgecommons.org/api/mcp</code></li>
+              <li>10 Knowledge Commons tools are immediately available</li>
             </ol>
 
             <p style={{ marginBottom: '8px' }}>
               <strong>Option B: Local server (for development):</strong>
             </p>
             <pre style={{ fontSize: '13px', lineHeight: 1.5, padding: '12px 16px', background: 'var(--bg-inset)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'auto' }}>
-{`git clone https://github.com/ikb-rmbl/RMBL_knowledge_fabric.git
-cd RMBL_knowledge_fabric/mcp
+{`git clone https://github.com/ikb-rmbl/RMBL_knowledge_hub.git
+cd RMBL_knowledge_hub/mcp
 npm install && npm run build`}
             </pre>
             <p style={{ marginTop: '8px', marginBottom: '8px' }}>
@@ -224,11 +224,11 @@ npm install && npm run build`}
             <pre style={{ fontSize: '13px', lineHeight: 1.5, padding: '12px 16px', background: 'var(--bg-inset)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'auto' }}>
 {`{
   "mcpServers": {
-    "rmbl-knowledge-fabric": {
+    "rmbl-knowledge-commons": {
       "command": "node",
-      "args": ["/path/to/RMBL_knowledge_fabric/mcp/dist/index.js"],
+      "args": ["/path/to/RMBL_knowledge_hub/mcp/dist/index.js"],
       "env": {
-        "RMBL_API_URL": "https://www.rmblknowledgefabric.org"
+        "RMBL_API_URL": "https://rmblknowledgecommons.org"
       }
     }
   }
@@ -293,7 +293,7 @@ npm install && npm run build`}
       <div className="detail-section">
         <h2>Technical Deep-Dive</h2>
         <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '16px', maxWidth: '65ch' }}>
-          The sections below describe how data flows into the Knowledge Fabric and how the knowledge graph is constructed.
+          The sections below describe how data flows into the Knowledge Commons and how the knowledge graph is constructed.
         </p>
 
         <details style={{ marginBottom: '16px' }}>
@@ -381,14 +381,14 @@ npm install && npm run build`}
         <details style={{ marginBottom: '16px' }}>
           <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>Technology Stack</summary>
           <div style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 16px', maxWidth: '65ch' }}>
-            <p>The Knowledge Fabric is built with Next.js and Payload CMS on PostgreSQL with pgvector. Graph visualizations
+            <p>The Knowledge Commons is built with Next.js and Payload CMS on PostgreSQL with pgvector. Graph visualizations
             use Sigma.js (WebGL). The data pipeline is a set of TypeScript scripts for scraping, enrichment, entity
             extraction, and graph construction. Vector embeddings are generated by Voyage AI (voyage-4, 1024 dimensions).
             The site is hosted on Vercel with the database on Neon (serverless PostgreSQL).</p>
 
             <p style={{ marginTop: '12px' }}>The project is open source at{' '}
-            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_fabric" target="_blank" rel="noopener noreferrer">
-              github.com/ikb-rmbl/RMBL_knowledge_fabric
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub" target="_blank" rel="noopener noreferrer">
+              github.com/ikb-rmbl/RMBL_knowledge_hub
             </a>.</p>
           </div>
         </details>
@@ -398,15 +398,15 @@ npm install && npm run build`}
       <div className="detail-section">
         <h2>Feedback &amp; Contact</h2>
         <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '12px', maxWidth: '65ch' }}>
-          The Knowledge Fabric is an evolving platform and we welcome feedback from the community. If you notice
+          The Knowledge Commons is an evolving platform and we welcome feedback from the community. If you notice
           missing publications, incorrect data, broken links, or have ideas for new features, there are two ways
           to get in touch:
         </p>
         <ul style={{ fontSize: '14px', lineHeight: 1.9, color: 'var(--fg-2)', paddingLeft: '20px', maxWidth: '65ch' }}>
           <li>
             <strong>Report an issue on GitHub:</strong>{' '}
-            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_fabric/issues" target="_blank" rel="noopener noreferrer">
-              github.com/ikb-rmbl/RMBL_knowledge_fabric/issues
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/issues" target="_blank" rel="noopener noreferrer">
+              github.com/ikb-rmbl/RMBL_knowledge_hub/issues
             </a>
             {' '}&mdash; best for bug reports, data corrections, and feature requests.
           </li>
@@ -422,7 +422,7 @@ npm install && npm run build`}
       <div className="detail-section">
         <h2>Acknowledgments</h2>
         <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', maxWidth: '65ch' }}>
-          The RMBL Knowledge Fabric was developed with support from the Clark Family Foundation.
+          The RMBL Knowledge Commons was developed with support from the Clark Family Foundation.
           Built by <a href="https://www.rmbl.org" target="_blank" rel="noopener noreferrer">RMBL</a> using
           data from CrossRef, OpenAlex, Unpaywall, ITIS, GNIS, and multiple data repositories.
         </p>

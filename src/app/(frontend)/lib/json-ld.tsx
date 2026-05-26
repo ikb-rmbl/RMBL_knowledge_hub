@@ -16,7 +16,7 @@ export function publicationJsonLd(pub: any, authors?: any[]): Record<string, any
     '@context': 'https://schema.org',
     '@type': 'ScholarlyArticle',
     name: pub.title,
-    url: `https://rmblknowledgefabric.org/publications/${pub.id}`,
+    url: `https://rmblknowledgecommons.org/publications/${pub.id}`,
   }
   if (pub.year) ld.datePublished = String(pub.year)
   if (pub.abstract) ld.abstract = pub.abstract.slice(0, 500)
@@ -37,7 +37,7 @@ export function datasetJsonLd(ds: any): Record<string, any> {
     '@context': 'https://schema.org',
     '@type': 'Dataset',
     name: ds.title,
-    url: `https://rmblknowledgefabric.org/datasets/${ds.id}`,
+    url: `https://rmblknowledgecommons.org/datasets/${ds.id}`,
   }
   if (ds.description) ld.description = ds.description.slice(0, 500)
   if (ds.doi) ld.identifier = ds.doi
@@ -55,7 +55,7 @@ export function speciesJsonLd(species: any): Record<string, any> {
     '@type': 'Taxon',
     name: species.canonical_name,
     taxonRank: species.rank || 'species',
-    url: `https://rmblknowledgefabric.org/species/${species.id}`,
+    url: `https://rmblknowledgecommons.org/species/${species.id}`,
   }
   if (species.common_names?.length) ld.alternateName = species.common_names
   if (species.family) {
@@ -73,7 +73,7 @@ export function neighborhoodJsonLd(nbr: any): Record<string, any> {
     '@type': 'Collection',
     name: nbr.title,
     description: nbr.summary || undefined,
-    url: `https://rmblknowledgefabric.org/neighborhoods/${nbr.id}`,
+    url: `https://rmblknowledgecommons.org/neighborhoods/${nbr.id}`,
     numberOfItems: nbr.size,
     provider: { '@type': 'Organization', name: 'Rocky Mountain Biological Laboratory' },
   }

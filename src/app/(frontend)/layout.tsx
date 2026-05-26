@@ -5,7 +5,7 @@ import ConsoleGreeting from './components/ConsoleGreeting'
 import './styles.css'
 
 export const metadata = {
-  title: 'RMBL Knowledge Fabric',
+  title: 'RMBL Knowledge Commons',
   description:
     'Search documents, publications, and datasets from the Rocky Mountain Biological Laboratory and Gunnison Basin.',
 }
@@ -22,7 +22,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <span className="topbar-sep" aria-hidden="true"></span>
             <a className="topbar-parent" href="https://data.rmbl.org" target="_blank" rel="noopener noreferrer">Data Hub</a>
             <span className="topbar-chev" aria-hidden="true">›</span>
-            <Link href="/" className="topbar-current">Knowledge Fabric<span className="ver">v0.2</span></Link>
+            <Link href="/" className="topbar-current">Knowledge Commons<span className="ver">v0.2</span></Link>
             <nav className="site-nav">
               <Link href="/search">Search</Link>
               <div className="nav-dropdown">
@@ -91,12 +91,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <p className="footer-legal">
             P.O. Box 519 Crested Butte, CO 81224 &middot; (970) 349-7231 &middot; RMBL is a Colorado non-profit organization with IRS 501(c)(3) status.
             RMBL is an equal opportunity service provider and employer and operates under permit from the USDA Forest Service, Gunnison National Forest.
-            Support for the Knowledge Fabric provided by the Clark Family Foundation.
+            Support for the Knowledge Commons provided by the Clark Family Foundation.
           </p>
 
           <div className="site-footer__legal">
             <span>&copy; {new Date().getFullYear()} Rocky Mountain Biological Laboratory.</span>
-            <span className="mono">rmblknowledgefabric.org</span>
+            <span className="mono">rmblknowledgecommons.org</span>
           </div>
         </footer>
       </body>

@@ -1,6 +1,6 @@
-# RMBL Knowledge Fabric MCP Server
+# RMBL Knowledge Commons MCP Server
 
-MCP (Model Context Protocol) server that gives AI assistants access to the RMBL Knowledge Fabric — 5,267 publications, 1,381 documents, 1,216 datasets, and a 13,800-node knowledge graph from the Rocky Mountain Biological Laboratory.
+MCP (Model Context Protocol) server that gives AI assistants access to the RMBL Knowledge Commons — 5,267 publications, 1,381 documents, 1,216 datasets, and a 13,800-node knowledge graph from the Rocky Mountain Biological Laboratory.
 
 ## Tools
 
@@ -21,7 +21,7 @@ MCP (Model Context Protocol) server that gives AI assistants access to the RMBL 
 
 1. Open Claude Desktop → **Settings → Connectors**
 2. Click **Add custom connector**
-3. Enter URL: `https://www.rmblknowledgefabric.org/api/mcp`
+3. Enter URL: `https://rmblknowledgecommons.org/api/mcp`
 4. All 8 tools are immediately available
 
 ### Option B: Local server
@@ -33,9 +33,9 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
   "mcpServers": {
     "rmbl-knowledge-fabric": {
       "command": "node",
-      "args": ["/path/to/RMBL_knowledge_fabric/mcp/dist/index.js"],
+      "args": ["/path/to/RMBL_knowledge_hub/mcp/dist/index.js"],
       "env": {
-        "RMBL_API_URL": "https://www.rmblknowledgefabric.org"
+        "RMBL_API_URL": "https://rmblknowledgecommons.org"
       }
     }
   }
@@ -46,7 +46,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 
 - **Claude Desktop**: Supported via remote connector (Streamable HTTP) or local server (stdio)
 - **OpenAI/ChatGPT**: Not currently supported — requires old SSE transport with long-lived connections, incompatible with our serverless hosting. Use the REST API (`/api/v1/*`) with `?format=text` instead.
-- **Other MCP clients**: Any client supporting Streamable HTTP transport can connect to `https://www.rmblknowledgefabric.org/api/mcp`
+- **Other MCP clients**: Any client supporting Streamable HTTP transport can connect to `https://rmblknowledgecommons.org/api/mcp`
 
 ## Development
 

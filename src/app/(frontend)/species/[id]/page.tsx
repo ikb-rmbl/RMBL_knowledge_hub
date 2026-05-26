@@ -13,12 +13,12 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
   const { rows: [s] } = await getDb().query('SELECT canonical_name, common_names, rank FROM species WHERE id = $1', [id])
-  if (!s) return { title: 'Species — RMBL Knowledge Fabric' }
+  if (!s) return { title: 'Species — RMBL Knowledge Commons' }
   const common = s.common_names?.length ? ` (${s.common_names[0]})` : ''
   return {
-    title: `${s.canonical_name}${common} — RMBL Knowledge Fabric`,
+    title: `${s.canonical_name}${common} — RMBL Knowledge Commons`,
     description: `${s.rank || 'Species'}: ${s.canonical_name}${common}. Research publications and knowledge graph from RMBL.`,
-    openGraph: { title: `${s.canonical_name}${common}`, url: `https://rmblknowledgefabric.org/species/${id}` },
+    openGraph: { title: `${s.canonical_name}${common}`, url: `https://rmblknowledgecommons.org/species/${id}` },
   }
 }
 

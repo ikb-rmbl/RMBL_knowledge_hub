@@ -90,7 +90,7 @@ interface SynthesizedFrontier {
   cost: number
 }
 
-const SYNTHESIS_PROMPT = `You are writing an entry for a "frontier" in the RMBL Knowledge Fabric — a coherent boundary between what scientists know and what they don't, with identifiable paths to push the boundary forward.
+const SYNTHESIS_PROMPT = `You are writing an entry for a "frontier" in the RMBL Knowledge Commons — a coherent boundary between what scientists know and what they don't, with identifiable paths to push the boundary forward.
 
 The entry will be displayed alongside a structured audit trail of all source statements and cited publications, so the narrative itself should stay at the level of patterns, integration questions, and forward-looking framing — NOT a literature review. Avoid the kinds of specific factual claims (numerical results, exact magnitudes, named studies, attributed findings) that would typically demand inline citations. Those specifics live in the audit trail.
 

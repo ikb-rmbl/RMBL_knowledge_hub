@@ -20,7 +20,7 @@ const DELAY_MS = 2000
 const BASE_URL = 'https://www.gunnisontimes.com'
 const SEARCH_URL = `${BASE_URL}/browse.html?search_filter=RMBL`
 const ARCHIVE_URL = `${BASE_URL}/browse.html?content_source=archive&search_filter=RMBL&page_size=20&search_filter_mode=and&sub_type=stories%2Cvideos%2Ceeditions%2Cspecialsections`
-const USER_AGENT = 'RMBLKnowledgeFabric/1.0 (research; ikb@rmbl.org)'
+const USER_AGENT = 'RMBLKnowledgeCommons/1.0 (research; ikb@rmbl.org)'
 
 interface Article {
   url: string

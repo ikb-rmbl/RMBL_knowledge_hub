@@ -1,12 +1,12 @@
 /**
- * Streamable HTTP MCP endpoint for the RMBL Knowledge Fabric.
+ * Streamable HTTP MCP endpoint for the RMBL Knowledge Commons.
  *
  * Uses the Web Standard transport (Request/Response, not Node.js streams)
  * for compatibility with Next.js App Router and Vercel serverless.
  *
  * Stateless: each request creates a fresh server/transport instance.
  *
- * URL: https://rmblknowledgefabric.org/api/mcp
+ * URL: https://rmblknowledgecommons.org/api/mcp
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -41,12 +41,12 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   return NextResponse.json({
-    name: 'rmbl-knowledge-fabric',
+    name: 'rmbl-knowledge-commons',
     version: '0.2.0',
-    description: 'RMBL Knowledge Fabric MCP Server — search publications, explore research neighborhoods, access the knowledge graph',
+    description: 'RMBL Knowledge Commons MCP Server — search publications, explore research neighborhoods, access the knowledge graph',
     tools: 8,
     endpoint: 'POST /api/mcp',
-    setup: 'Add https://rmblknowledgefabric.org/api/mcp as a Custom Connector in Claude Desktop Settings',
+    setup: 'Add https://rmblknowledgecommons.org/api/mcp as a Custom Connector in Claude Desktop Settings',
   })
 }
 

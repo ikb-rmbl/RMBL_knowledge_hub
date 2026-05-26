@@ -5,7 +5,7 @@ import { getDb } from '../lib/db'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Stories — RMBL Knowledge Fabric',
+  title: 'Stories — RMBL Knowledge Commons',
   description: 'News articles, interviews, press releases, and other narratives about RMBL and the Gunnison Basin.',
 }
 

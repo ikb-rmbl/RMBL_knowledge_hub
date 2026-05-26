@@ -1,5 +1,5 @@
 /**
- * Build a large-format SVG poster of the RMBL Knowledge Fabric research-only
+ * Build a large-format SVG poster of the RMBL Knowledge Commons research-only
  * knowledge network. The graph centerpiece colors nodes by their type
  * (species, concept, author, etc.) and uses soft fuzzy hulls to delineate
  * each Louvain-detected neighborhood. Three sidebar/footer panels surround
@@ -386,7 +386,7 @@ out.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="#FBF7EE"/>`)
 
 // --- Title -----------------------------------------------------------------
 out.push(`<g id="title-block">`)
-out.push(`  <text x="${W / 2}" y="${MARGIN + 50}" text-anchor="middle" class="title" font-size="48" fill="#32321E">RMBL Knowledge Fabric</text>`)
+out.push(`  <text x="${W / 2}" y="${MARGIN + 50}" text-anchor="middle" class="title" font-size="48" fill="#32321E">RMBL Knowledge Commons</text>`)
 out.push(`  <text x="${W / 2}" y="${MARGIN + TITLE_H + TITLE_GAP}" text-anchor="middle" class="subtitle" font-size="16" fill="#55553D">A unified knowledge network for the Gunnison Basin · 4,852 publications · 1,426 datasets · 1,381 documents · 152 research neighborhoods</text>`)
 out.push(`</g>`)
 
@@ -706,7 +706,7 @@ panel(MARGIN, footerY, colW, FOOTER_H,
     '• 1,206 species (ITIS-validated)',
     '• 152 knowledge neighborhoods',
     '',
-    'Visit: rmblknowledgefabric.org',
+    'Visit: rmblknowledgecommons.org',
   ])
 
 panel(MARGIN + colW + FOOTER_GAP, footerY, colW, FOOTER_H,

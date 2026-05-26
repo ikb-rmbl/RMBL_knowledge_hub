@@ -24,7 +24,7 @@ const limit = limitArg ? parseInt(limitArg) : Infinity
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || ''
 
-const PROMPT = `You are writing short descriptions of knowledge neighborhoods in the RMBL Knowledge Fabric — a platform connecting scientific research, community documents, and environmental datasets from the Rocky Mountain Biological Laboratory and the Gunnison Basin of western Colorado.
+const PROMPT = `You are writing short descriptions of knowledge neighborhoods in the RMBL Knowledge Commons — a platform connecting scientific research, community documents, and environmental datasets from the Rocky Mountain Biological Laboratory and the Gunnison Basin of western Colorado.
 
 Each neighborhood is a cluster of densely connected entities (species, concepts, protocols, places), collection items (publications, datasets, documents), stakeholders (agencies, organizations), and authors detected by community analysis of the knowledge graph.
 
