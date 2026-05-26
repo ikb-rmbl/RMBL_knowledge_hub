@@ -87,7 +87,7 @@ function extractFrontierSections(primer: string): { frontier: string; openQuesti
   return { frontier, openQuestions, allRelevant }
 }
 
-const EXTRACTION_PROMPT = `You are extracting "frontier statements" from a research primer for the RMBL Knowledge Fabric.
+const EXTRACTION_PROMPT = `You are extracting "frontier statements" from a research primer for the RMBL Knowledge Commons.
 
 A frontier statement is an atomic, specific, actionable knowledge gap — what we don't yet understand, what would resolve it, and what tools / data / concepts are at stake. We will later cluster these statements across primers to identify cross-cutting research priorities.
 

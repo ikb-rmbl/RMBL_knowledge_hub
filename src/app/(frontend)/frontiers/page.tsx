@@ -6,7 +6,7 @@ import { GRAPH_COLORS } from '../lib/graph-colors'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Research Frontiers — RMBL Knowledge Fabric',
+  title: 'Research Frontiers — RMBL Knowledge Commons',
   description:
     'Synthesized boundaries between what scientists know and what they don\'t, with identifiable paths to push the boundary forward. Drawn from the research neighborhoods of the Rocky Mountain Biological Laboratory and the Gunnison Basin.',
 }
@@ -350,7 +350,7 @@ export default async function FrontiersPage({
         <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginBottom: '16px' }}>
           Synthesized boundaries between what scientists know and what they don't, with identifiable
           paths to push the boundary forward. Each frontier is built from atomic gap-statements
-          extracted across the research neighborhoods of the RMBL Knowledge Fabric, then clustered
+          extracted across the research neighborhoods of the RMBL Knowledge Commons, then clustered
           by semantic similarity and synthesized into a coherent narrative.
         </p>
         <form className="search-form" action="/frontiers" method="GET">

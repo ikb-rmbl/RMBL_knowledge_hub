@@ -1,5 +1,5 @@
 /**
- * Shared MCP server definition for the RMBL Knowledge Fabric.
+ * Shared MCP server definition for the RMBL Knowledge Commons.
  *
  * Defines tools that call the REST API v1 internally.
  * Used by both the Streamable HTTP route handler and the standalone stdio server.
@@ -27,13 +27,13 @@ async function fetchText(path: string, params: Record<string, string | number | 
 
 export function createMcpServer(): McpServer {
   const server = new McpServer({
-    name: 'rmbl-knowledge-fabric',
+    name: 'rmbl-knowledge-commons',
     version: '0.3.0',
   })
 
   server.tool(
     'search_rmbl',
-    'Search the RMBL Knowledge Fabric for publications, datasets, documents, and stories.',
+    'Search the RMBL Knowledge Commons for publications, datasets, documents, and stories.',
     {
       query: z.string().describe('Search query'),
       type: z.enum(['', 'publications', 'datasets', 'documents', 'stories']).optional().describe('Filter by collection type'),
@@ -106,7 +106,7 @@ export function createMcpServer(): McpServer {
 
   server.tool(
     'list_neighborhoods',
-    'Browse or search the research neighborhoods in the RMBL Knowledge Fabric.',
+    'Browse or search the research neighborhoods in the RMBL Knowledge Commons.',
     { query: z.string().optional().describe('Optional search query') },
     async ({ query }) => ({
       content: [{ type: 'text' as const, text: await fetchText('/api/v1/neighborhoods', { q: query }) }],

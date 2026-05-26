@@ -77,11 +77,11 @@ export function publicationToRIS(pub: any): string {
   }
   ris += risLine('DO', pub.doi)
   ris += risLine('AB', pub.abstract)
-  ris += risLine('UR', `https://rmblknowledgefabric.org/publications/${pub.id}`)
+  ris += risLine('UR', `https://rmblknowledgecommons.org/publications/${pub.id}`)
   if (pub.keywords) {
     for (const kw of pub.keywords) ris += risLine('KW', kw)
   }
-  ris += risLine('DB', 'RMBL Knowledge Fabric')
+  ris += risLine('DB', 'RMBL Knowledge Commons')
   ris += RIS_ER
   return ris
 }
@@ -97,8 +97,8 @@ export function datasetToRIS(ds: any): string {
   ris += risLine('DO', ds.doi)
   ris += risLine('PB', ds.repository)
   ris += risLine('AB', ds.description)
-  ris += risLine('UR', `https://rmblknowledgefabric.org/datasets/${ds.id}`)
-  ris += risLine('DB', 'RMBL Knowledge Fabric')
+  ris += risLine('UR', `https://rmblknowledgecommons.org/datasets/${ds.id}`)
+  ris += risLine('DB', 'RMBL Knowledge Commons')
   ris += RIS_ER
   return ris
 }
@@ -109,8 +109,8 @@ export function documentToRIS(doc: any): string {
   ris += risLine('TI', doc.title)
   ris += risLine('PY', doc.date_original ? new Date(doc.date_original).getFullYear() : undefined)
   ris += risLine('AB', typeof doc.summary === 'string' ? doc.summary : undefined)
-  ris += risLine('UR', `https://rmblknowledgefabric.org/documents/${doc.id}`)
-  ris += risLine('DB', 'RMBL Knowledge Fabric')
+  ris += risLine('UR', `https://rmblknowledgecommons.org/documents/${doc.id}`)
+  ris += risLine('DB', 'RMBL Knowledge Commons')
   ris += RIS_ER
   return ris
 }
@@ -191,9 +191,9 @@ export function publicationToCSL(pub: any): any {
     issue: pub.issue ? String(pub.issue) : undefined,
     page: pub.pages ? String(pub.pages).replace(/[–—]/g, '-') : undefined,
     DOI: pub.doi,
-    URL: `https://rmblknowledgefabric.org/publications/${pub.id}`,
+    URL: `https://rmblknowledgecommons.org/publications/${pub.id}`,
     abstract: pub.abstract || undefined,
-    source: 'RMBL Knowledge Fabric',
+    source: 'RMBL Knowledge Commons',
   })
 }
 
@@ -206,9 +206,9 @@ export function datasetToCSL(ds: any): any {
     issued: cslDateYear(ds.publication_year),
     DOI: ds.doi,
     publisher: ds.repository,
-    URL: `https://rmblknowledgefabric.org/datasets/${ds.id}`,
+    URL: `https://rmblknowledgecommons.org/datasets/${ds.id}`,
     abstract: typeof ds.description === 'string' ? ds.description : undefined,
-    source: 'RMBL Knowledge Fabric',
+    source: 'RMBL Knowledge Commons',
   })
 }
 
@@ -219,10 +219,10 @@ export function documentToCSL(doc: any): any {
     type: 'report',
     title: doc.title,
     issued: cslDateYear(year),
-    URL: `https://rmblknowledgefabric.org/documents/${doc.id}`,
+    URL: `https://rmblknowledgecommons.org/documents/${doc.id}`,
     abstract: typeof doc.summary === 'string' ? doc.summary : undefined,
     genre: doc.document_type ? String(doc.document_type).replace(/_/g, ' ') : undefined,
-    source: 'RMBL Knowledge Fabric',
+    source: 'RMBL Knowledge Commons',
   })
 }
 
@@ -250,7 +250,7 @@ export function publicationToBibTeX(pub: any): string {
   if (pub.pages) lines.push(`  pages = {${pub.pages.replace(/–/g, '--')}}`)
   if (pub.doi) lines.push(`  doi = {${pub.doi}}`)
   if (pub.abstract) lines.push(`  abstract = {${escBibtex(pub.abstract.slice(0, 1000))}}`)
-  lines.push(`  url = {https://rmblknowledgefabric.org/publications/${pub.id}}`)
+  lines.push(`  url = {https://rmblknowledgecommons.org/publications/${pub.id}}`)
 
   return lines.join(',\n') + '\n}\n'
 }
@@ -265,7 +265,7 @@ export function datasetToBibTeX(ds: any): string {
   if (ds.publication_year) lines.push(`  year = {${ds.publication_year}}`)
   if (ds.doi) lines.push(`  doi = {${ds.doi}}`)
   if (ds.repository) lines.push(`  publisher = {${escBibtex(ds.repository)}}`)
-  lines.push(`  url = {https://rmblknowledgefabric.org/datasets/${ds.id}}`)
+  lines.push(`  url = {https://rmblknowledgecommons.org/datasets/${ds.id}}`)
   lines.push(`  note = {Dataset}`)
 
   return lines.join(',\n') + '\n}\n'
@@ -277,7 +277,7 @@ export function documentToBibTeX(doc: any): string {
 
   lines.push(`  title = {${escBibtex(doc.title)}}`)
   if (doc.date_original) lines.push(`  year = {${new Date(doc.date_original).getFullYear()}}`)
-  lines.push(`  url = {https://rmblknowledgefabric.org/documents/${doc.id}}`)
+  lines.push(`  url = {https://rmblknowledgecommons.org/documents/${doc.id}}`)
   lines.push(`  note = {${escBibtex((doc.document_type || 'Document').replace(/_/g, ' '))}}`)
 
   return lines.join(',\n') + '\n}\n'

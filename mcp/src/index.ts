@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * RMBL Knowledge Fabric MCP Server
+ * RMBL Knowledge Commons MCP Server
  *
  * Provides AI assistants with tools to search publications, explore
  * research neighborhoods, look up entities, and find related works
- * in the RMBL Knowledge Fabric.
+ * in the RMBL Knowledge Commons.
  *
  * Communicates via stdio transport. Calls the REST API v1 over HTTP
  * so users need only a base URL, no database credentials.
@@ -18,7 +18,7 @@ import { RMBLClient } from './client.js'
 const client = new RMBLClient()
 
 const server = new McpServer({
-  name: 'rmbl-knowledge-fabric',
+  name: 'rmbl-knowledge-commons',
   version: '0.2.0',
 })
 
@@ -26,7 +26,7 @@ const server = new McpServer({
 
 server.tool(
   'search_rmbl',
-  'Search the RMBL Knowledge Fabric for publications, datasets, and documents. Returns ranked results with relevance scores.',
+  'Search the RMBL Knowledge Commons for publications, datasets, and documents. Returns ranked results with relevance scores.',
   {
     query: z.string().describe('Search query (e.g., "marmot hibernation", "alpine pollination")'),
     type: z.enum(['', 'publications', 'datasets', 'documents']).optional().describe('Filter by collection type'),
@@ -114,7 +114,7 @@ server.tool(
 
 server.tool(
   'list_neighborhoods',
-  'Browse or search the 154 research neighborhoods in the RMBL Knowledge Fabric. Each neighborhood represents a research community detected by analyzing the knowledge graph.',
+  'Browse or search the 154 research neighborhoods in the RMBL Knowledge Commons. Each neighborhood represents a research community detected by analyzing the knowledge graph.',
   {
     query: z.string().optional().describe('Optional search query to filter neighborhoods'),
   },
@@ -154,7 +154,7 @@ server.tool(
 async function main() {
   const transport = new StdioServerTransport()
   await server.connect(transport)
-  console.error('RMBL Knowledge Fabric MCP server running on stdio')
+  console.error('RMBL Knowledge Commons MCP server running on stdio')
 }
 
 main().catch((err) => {

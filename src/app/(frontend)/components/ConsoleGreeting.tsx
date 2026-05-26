@@ -7,7 +7,7 @@ const ART = String.raw`
              /  \
             /    \
            /  /\  \
-          /  /  \  \         RMBL Knowledge Fabric
+          /  /  \  \         RMBL Knowledge Commons
          /  /    \  \        Gothic, Colorado · since 1928
         /  /      \  \
        /__/________\__\      science.OUTSIDE.

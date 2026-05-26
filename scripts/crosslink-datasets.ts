@@ -3,7 +3,7 @@
  *
  * Scans extracted publication full text for dataset references (DOIs,
  * repository URLs) and creates links between publications and datasets
- * in the Knowledge Fabric.
+ * in the Knowledge Commons.
  *
  * For each publication with extracted text:
  *   1. Find dataset DOIs in the text

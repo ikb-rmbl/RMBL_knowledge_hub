@@ -1,6 +1,6 @@
 # Data Pipeline Scripts
 
-Scripts for scraping, enriching, and loading data into the RMBL Knowledge Fabric.
+Scripts for scraping, enriching, and loading data into the RMBL Knowledge Commons.
 
 ## Quick Start
 
@@ -20,7 +20,7 @@ npm run sync:verify      # compare row counts
 
 ## Deployment Workflow
 
-The Knowledge Fabric runs on Vercel (hosting) + Neon (PostgreSQL). Code changes auto-deploy on push. Data changes require syncing to Neon.
+The Knowledge Commons runs on Vercel (hosting) + Neon (PostgreSQL). Code changes auto-deploy on push. Data changes require syncing to Neon.
 
 ### Interface changes (code only)
 ```bash

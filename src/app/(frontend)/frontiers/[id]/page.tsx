@@ -12,15 +12,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     `SELECT title, cross_cutting_summary FROM frontiers WHERE id = $1`,
     [parseInt(id)],
   )
-  if (!f) return { title: 'Frontier — RMBL Knowledge Fabric' }
-  const desc = f.cross_cutting_summary?.slice(0, 200) || 'Research frontier in the RMBL Knowledge Fabric'
+  if (!f) return { title: 'Frontier — RMBL Knowledge Commons' }
+  const desc = f.cross_cutting_summary?.slice(0, 200) || 'Research frontier in the RMBL Knowledge Commons'
   return {
-    title: `${f.title} — RMBL Knowledge Fabric`,
+    title: `${f.title} — RMBL Knowledge Commons`,
     description: desc,
     openGraph: {
       title: f.title,
       description: desc,
-      url: `https://rmblknowledgefabric.org/frontiers/${id}`,
+      url: `https://rmblknowledgecommons.org/frontiers/${id}`,
     },
   }
 }

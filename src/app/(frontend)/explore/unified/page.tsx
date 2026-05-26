@@ -46,7 +46,7 @@ export default async function ExploreUnifiedPage({ searchParams }: { searchParam
         {isResearch ? (
           <>Scientific research view: publications, datasets, authors, and research entities (species, concepts, protocols, places). Community/policy documents and stakeholder organizations are excluded.</>
         ) : (
-          <>A unified view of the RMBL Knowledge Fabric connecting species, concepts, protocols, places, stakeholders, authors, publications, documents, and datasets. Edges represent co-occurrence, co-authorship, citations, and entity mentions. Use the checkboxes to show/hide node types.</>
+          <>A unified view of the RMBL Knowledge Commons connecting species, concepts, protocols, places, stakeholders, authors, publications, documents, and datasets. Edges represent co-occurrence, co-authorship, citations, and entity mentions. Use the checkboxes to show/hide node types.</>
         )}
       </p>
       <ExploreEntityGraph dataUrl={dataUrl} detailSlug="" extraControls={modeToggle} focus={focus} />

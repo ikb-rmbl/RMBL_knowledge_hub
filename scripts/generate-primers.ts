@@ -39,7 +39,7 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || ''
 // Prompt templates
 // ---------------------------------------------------------------------------
 
-const RESEARCH_PROMPT = `You are writing a research primer for a knowledge neighborhood in the RMBL Knowledge Fabric — a platform connecting scientific research, community documents, and environmental datasets from the Rocky Mountain Biological Laboratory in Gothic, Colorado.
+const RESEARCH_PROMPT = `You are writing a research primer for a knowledge neighborhood in the RMBL Knowledge Commons — a platform connecting scientific research, community documents, and environmental datasets from the Rocky Mountain Biological Laboratory in Gothic, Colorado.
 
 Write a 600-1200 word primer covering these sections:
 
@@ -82,7 +82,7 @@ CRITICAL JSON RULES:
 - Do NOT use backticks, quotes within quotes must be escaped as \\"
 - Return valid JSON only, no code fences`
 
-const POLICY_PROMPT = `You are writing a primer for a policy and management knowledge neighborhood in the RMBL Knowledge Fabric — a platform connecting scientific research, community documents, and environmental datasets from the Rocky Mountain Biological Laboratory and the Gunnison Basin of western Colorado.
+const POLICY_PROMPT = `You are writing a primer for a policy and management knowledge neighborhood in the RMBL Knowledge Commons — a platform connecting scientific research, community documents, and environmental datasets from the Rocky Mountain Biological Laboratory and the Gunnison Basin of western Colorado.
 
 Write a 500-1000 word primer covering these sections:
 

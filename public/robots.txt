@@ -41,4 +41,4 @@ Disallow: /explore/unified
 Disallow: /explore/neighborhoods
 Disallow: /admin/
 
-Sitemap: https://rmblknowledgefabric.org/sitemap.xml
+Sitemap: https://rmblknowledgecommons.org/sitemap.xml

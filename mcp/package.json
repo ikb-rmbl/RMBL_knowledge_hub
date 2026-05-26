@@ -1,10 +1,10 @@
 {
-  "name": "@rmbl/knowledge-fabric-mcp",
+  "name": "@rmbl/knowledge-commons-mcp",
   "version": "0.2.0",
-  "description": "MCP server for the RMBL Knowledge Fabric — search publications, explore research neighborhoods and frontiers, and access the knowledge graph",
+  "description": "MCP server for the RMBL Knowledge Commons — search publications, explore research neighborhoods and frontiers, and access the knowledge graph",
   "type": "module",
   "bin": {
-    "rmbl-knowledge-fabric": "./dist/index.js"
+    "rmbl-knowledge-commons": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",

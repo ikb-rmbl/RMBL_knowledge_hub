@@ -122,7 +122,7 @@ async function main() {
   // ------------------------------- HEADER
   doc.push('# Frontier Planning Themes')
   doc.push('')
-  doc.push(`*A cross-lens synthesis derived from the ${stats.n_frontiers} synthesized research frontiers in the RMBL Knowledge Fabric. Intended for RMBL board, leadership, and select-scientist planning conversations. Generated ${now}.*`)
+  doc.push(`*A cross-lens synthesis derived from the ${stats.n_frontiers} synthesized research frontiers in the RMBL Knowledge Commons. Intended for RMBL board, leadership, and select-scientist planning conversations. Generated ${now}.*`)
   doc.push('')
 
   // ------------------------------- WHAT THIS IS
@@ -140,7 +140,7 @@ async function main() {
   doc.push('')
   doc.push('The synthesis is the output of a seven-stage pipeline. Each stage is automated, scripted, and re-runnable. Names of the underlying scripts are noted below for traceability.')
   doc.push('')
-  doc.push('**Stage 1 — Frontier synthesis.** The pipeline starts from 98 research *Frontiers* already in the Knowledge Fabric. Each frontier was earlier LLM-synthesized from atomic gap-statements clustered out of the neighborhood primers (the upstream `extract-frontiers` → `cluster-frontiers` → `synthesize-frontiers` chain). Frontiers are narrative artifacts with both structured fields (key questions, pushing-the-frontier actions, data gaps) and prose fields (context, barriers, research opportunities, impacts, framing notes).')
+  doc.push('**Stage 1 — Frontier synthesis.** The pipeline starts from 98 research *Frontiers* already in the Knowledge Commons. Each frontier was earlier LLM-synthesized from atomic gap-statements clustered out of the neighborhood primers (the upstream `extract-frontiers` → `cluster-frontiers` → `synthesize-frontiers` chain). Frontiers are narrative artifacts with both structured fields (key questions, pushing-the-frontier actions, data gaps) and prose fields (context, barriers, research opportunities, impacts, framing notes).')
   doc.push('')
   doc.push('**Stage 2 — Atomic-item extraction.** The pipeline flattens five planning-relevant signals out of each frontier into a single polymorphic table of atomic items. Three signals are direct JSONB unpacks (actions, data gaps, questions). Two signals — barriers and impacts — are LLM-extracted from each frontier\'s prose narrative into atomic statements by `extract-frontier-narratives.ts` using Claude Sonnet 4.6. Total: 3,288 items.')
   doc.push('')

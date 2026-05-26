@@ -26,7 +26,7 @@ const singleTerm = args.find((a) => a.startsWith('--term='))?.split('=')[1]
 const verbose = args.includes('--verbose')
 
 const FR_API = 'https://www.federalregister.gov/api/v1/documents.json'
-const USER_AGENT = 'RMBLKnowledgeFabric/0.1 (+https://rmblknowledgefabric.org; ikb@rmbl.org)'
+const USER_AGENT = 'RMBLKnowledgeCommons/0.1 (+https://rmblknowledgecommons.org; ikb@rmbl.org)'
 
 // ---------------------------------------------------------------------------
 // Search terms — RMBL service area geography + key species

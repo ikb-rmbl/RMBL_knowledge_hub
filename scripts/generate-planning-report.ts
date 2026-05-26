@@ -174,12 +174,12 @@ async function main() {
   const doc: string[] = []
   doc.push('# Frontier Planning Clusters')
   doc.push('')
-  doc.push(`*A planning-oriented synthesis derived from the ${stats.n_frontiers} synthesized research frontiers in the RMBL Knowledge Fabric. Generated ${now}.*`)
+  doc.push(`*A planning-oriented synthesis derived from the ${stats.n_frontiers} synthesized research frontiers in the RMBL Knowledge Commons. Generated ${now}.*`)
   doc.push('')
 
   doc.push('## What This Is')
   doc.push('')
-  doc.push(`Each of the ${stats.n_frontiers} Frontiers in the Knowledge Fabric exposes five kinds of structured planning content: concrete **actions** (what to do), key **questions** (what to answer), **data gaps** (what records are missing), **barriers** (what is blocking progress), and **impacts** (what management decisions depend on the work). This report flattens all five into atomic items (${stats.n_items.toLocaleString()} total), embeds them, clusters each type independently by Louvain community detection on a cosine-similarity graph, and uses an LLM to synthesize a representative title plus 5-10 distilled key items for each substantial cluster. The five sections below rank clusters by leverage — size × breadth × tactical weight — to surface what kinds of investment, scientific organization, data infrastructure, institutional unblocking, and stakeholder alignment would push the most frontiers forward at once.`)
+  doc.push(`Each of the ${stats.n_frontiers} Frontiers in the Knowledge Commons exposes five kinds of structured planning content: concrete **actions** (what to do), key **questions** (what to answer), **data gaps** (what records are missing), **barriers** (what is blocking progress), and **impacts** (what management decisions depend on the work). This report flattens all five into atomic items (${stats.n_items.toLocaleString()} total), embeds them, clusters each type independently by Louvain community detection on a cosine-similarity graph, and uses an LLM to synthesize a representative title plus 5-10 distilled key items for each substantial cluster. The five sections below rank clusters by leverage — size × breadth × tactical weight — to surface what kinds of investment, scientific organization, data infrastructure, institutional unblocking, and stakeholder alignment would push the most frontiers forward at once.`)
   doc.push('')
 
   // Methods note
