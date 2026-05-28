@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isAuthenticated } from './shared/access'
+import { flaggedItemLinkField } from './shared/flaggedItemLinkField'
 
 /**
  * Curation flags. Backed by the pre-existing `content_flags` table (created
@@ -45,6 +46,7 @@ export const Flags: CollectionConfig = {
     delete: isAuthenticated,
   },
   fields: [
+    flaggedItemLinkField,
     {
       name: 'collection',
       type: 'select',
