@@ -1,5 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
+import { Analytics } from '@vercel/analytics/next'
 import ThemeToggle from './components/ThemeToggle'
 import ConsoleGreeting from './components/ConsoleGreeting'
 import './styles.css'
@@ -99,6 +100,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <span className="mono">rmblknowledgecommons.org</span>
           </div>
         </footer>
+        <Analytics />
       </body>
     </html>
   )
