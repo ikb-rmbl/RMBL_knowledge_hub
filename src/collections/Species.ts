@@ -66,23 +66,18 @@ export const Species: CollectionConfig = {
       type: 'text',
       admin: { description: 'Taxonomic authority (e.g., "Audubon, 1841")' },
     },
+    // commonNames, synonyms: stored as Postgres text[] arrays (common_names,
+    // synonyms). Payload's PG adapter would require junction tables for
+    // hasMany text fields, which don't exist (the table was created via SQL
+    // with push:false). Edit via the pipeline or SQL until those become
+    // junction-table-backed; arrays remain visible on the public site.
     {
-      name: 'commonNames',
-      type: 'text',
-      hasMany: true,
-      admin: { description: 'Common name(s) — first is primary' },
-    },
-    {
-      name: 'synonyms',
-      type: 'text',
-      hasMany: true,
-      admin: { description: 'Alternate names and abbreviations (e.g., "M. flaviventris")' },
-    },
-    {
-      name: 'parentTaxon',
-      type: 'relationship',
-      relationTo: 'species',
-      admin: { description: 'Parent taxon in the hierarchy' },
+      name: 'parentTaxonId',
+      type: 'number',
+      admin: {
+        description:
+          'Parent taxon ID (integer FK into species). Direct ID edit; admin relationship picker disabled because the species_rels table is not provisioned.',
+      },
     },
     {
       name: 'kingdom',
@@ -124,12 +119,8 @@ export const Species: CollectionConfig = {
       options: NATIVE_STATUSES,
       admin: { description: 'Native status in the Gunnison Basin region' },
     },
-    {
-      name: 'ecologicalRoles',
-      type: 'text',
-      hasMany: true,
-      admin: { description: 'Aggregated ecological roles (pollinator, predator, study subject, etc.)' },
-    },
+    // ecologicalRoles: stored as Postgres text[] (ecological_roles). Hidden
+    // from admin for the same reason as commonNames/synonyms above.
     {
       name: 'description',
       type: 'textarea',

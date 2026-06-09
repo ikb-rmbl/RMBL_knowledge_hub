@@ -59,17 +59,15 @@ export const Concepts: CollectionConfig = {
       options: CONCEPT_SCOPES,
       index: true,
     },
+    // aliases: stored as Postgres text[]. Hidden from admin until junction
+    // tables are provisioned; public site still reads the array directly.
     {
-      name: 'aliases',
-      type: 'text',
-      hasMany: true,
-      admin: { description: 'Alternative names and abbreviations (e.g., "NDVI" ↔ "Normalized Difference Vegetation Index")' },
-    },
-    {
-      name: 'parentConcept',
-      type: 'relationship',
-      relationTo: 'concepts',
-      admin: { description: 'Parent concept in the hierarchy' },
+      name: 'parentConceptId',
+      type: 'number',
+      admin: {
+        description:
+          'Parent concept ID (integer FK into concepts). Direct ID edit; admin relationship picker disabled because concepts_rels is not provisioned.',
+      },
     },
     {
       name: 'relatedConcepts',
