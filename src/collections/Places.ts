@@ -33,7 +33,7 @@ export const Places: CollectionConfig = {
   slug: 'places',
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'placeType', 'parentPlace', 'publicationCount'],
+    defaultColumns: ['name', 'placeType', 'parentPlaceId', 'publicationCount'],
     group: 'Entities',
   },
   access: publicReadAuthWrite,
@@ -57,10 +57,12 @@ export const Places: CollectionConfig = {
       options: PLACE_SCALES,
     },
     {
-      name: 'parentPlace',
-      type: 'relationship',
-      relationTo: 'places',
-      admin: { description: 'Containing place (Gothic → Gunnison County → Colorado)' },
+      name: 'parentPlaceId',
+      type: 'number',
+      admin: {
+        description:
+          'Containing place ID (integer FK into places). Direct ID edit; admin relationship picker disabled because places_rels is not provisioned.',
+      },
     },
     {
       name: 'lat',
@@ -97,21 +99,12 @@ export const Places: CollectionConfig = {
       type: 'number',
       admin: { description: 'Area in square kilometers' },
     },
-    {
-      name: 'habitatTypes',
-      type: 'text',
-      hasMany: true,
-      admin: { description: 'subalpine meadow, riparian, alpine tundra, conifer forest, etc.' },
-    },
+    // habitatTypes, aliases: stored as Postgres text[] arrays. Hidden from
+    // admin until junction tables are provisioned; public site still reads
+    // the arrays directly.
     {
       name: 'description',
       type: 'textarea',
-    },
-    {
-      name: 'aliases',
-      type: 'text',
-      hasMany: true,
-      admin: { description: 'Alternate names and abbreviations' },
     },
     {
       name: 'externalIds',

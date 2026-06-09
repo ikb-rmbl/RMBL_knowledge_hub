@@ -56,11 +56,9 @@ export const Protocols: CollectionConfig = {
       type: 'textarea',
       admin: { description: '2-3 paragraph synthesis (auto-generated, curator-editable)' },
     },
-    {
-      name: 'typicalEquipment',
-      type: 'text',
-      hasMany: true,
-    },
+    // typicalEquipment, prerequisites, outputMeasurements: stored as
+    // Postgres text[] arrays. Hidden from admin until junction tables are
+    // provisioned; public site still reads the arrays directly.
     {
       name: 'typicalDuration',
       type: 'text',
@@ -68,17 +66,6 @@ export const Protocols: CollectionConfig = {
     {
       name: 'typicalFrequency',
       type: 'text',
-    },
-    {
-      name: 'prerequisites',
-      type: 'text',
-      hasMany: true,
-    },
-    {
-      name: 'outputMeasurements',
-      type: 'text',
-      hasMany: true,
-      admin: { description: 'What data this produces (individual weights, capture histories, etc.)' },
     },
     {
       name: 'standardized',
@@ -92,16 +79,20 @@ export const Protocols: CollectionConfig = {
       admin: { description: 'Citation for the canonical methods paper' },
     },
     {
-      name: 'originPaper',
-      type: 'relationship',
-      relationTo: 'publications',
-      admin: { description: 'Paper that introduced this protocol, if known' },
+      name: 'originPaperId',
+      type: 'number',
+      admin: {
+        description:
+          'Origin publication ID (integer FK into publications). Direct ID edit; admin relationship picker disabled because protocols_rels is not provisioned.',
+      },
     },
     {
-      name: 'parentProtocol',
-      type: 'relationship',
-      relationTo: 'protocols',
-      admin: { description: 'Parent protocol if this is a variant' },
+      name: 'parentProtocolId',
+      type: 'number',
+      admin: {
+        description:
+          'Parent protocol ID (integer FK into protocols). Same caveat as originPaperId.',
+      },
     },
     {
       name: 'approved',
