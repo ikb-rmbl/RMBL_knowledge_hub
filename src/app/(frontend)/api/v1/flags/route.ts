@@ -31,9 +31,9 @@ const REASON_LABELS: Record<string, string> = {
   other: 'Other',
 }
 
-// Rate limiting: 5 flags per IP per hour
+// Rate limiting: 15 flags per IP per hour
 const FLAG_WINDOW_MS = 3600_000
-const FLAG_LIMIT = 5
+const FLAG_LIMIT = 15
 const flagStore = new Map<string, number[]>()
 
 function checkFlagRateLimit(ip: string): boolean {
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
   if (!checkFlagRateLimit(ip)) {
     return NextResponse.json(
-      { error: 'Rate limit exceeded. You can submit up to 5 flags per hour.' },
+      { error: 'Rate limit exceeded. You can submit up to 15 flags per hour.' },
       { status: 429, headers: { 'Retry-After': '3600' } },
     )
   }
