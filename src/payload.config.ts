@@ -18,6 +18,7 @@ import { Species } from './collections/Species'
 import { Places } from './collections/Places'
 import { Protocols } from './collections/Protocols'
 import { Concepts } from './collections/Concepts'
+import { Eras } from './collections/Eras'
 import { Stories } from './collections/Stories'
 import { Flags } from './collections/Flags'
 
@@ -69,7 +70,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Documents, Publications, Datasets, Topics, Authors, Projects, Species, Places, Protocols, Concepts, Stories, Flags],
+  collections: [Users, Media, Documents, Publications, Datasets, Topics, Authors, Projects, Species, Places, Protocols, Concepts, Eras, Stories, Flags],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET,
   typescript: {
