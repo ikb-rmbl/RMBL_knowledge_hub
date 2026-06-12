@@ -10,6 +10,22 @@ export const metadata = {
     'Time periods covering research, community documents, datasets, and stories from the Gunnison Basin. Open an era to see what was happening then; compare eras to see how patterns of research and policy have changed.',
 }
 
+type SortKey = 'recent' | 'oldest' | 'items' | 'publications'
+type ShowKey = 'all' | 'decades' | 'centuries'
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: 'recent', label: 'Most recent' },
+  { value: 'oldest', label: 'Oldest first' },
+  { value: 'items', label: 'Total items' },
+  { value: 'publications', label: 'Publications' },
+]
+
+const SHOW_OPTIONS: { value: ShowKey; label: string }[] = [
+  { value: 'all', label: 'All eras' },
+  { value: 'decades', label: 'Decades only' },
+  { value: 'centuries', label: 'Centuries only' },
+]
+
 const countTextStyle: React.CSSProperties = {
   fontSize: '13px',
   color: 'var(--color-text-muted)',
@@ -48,9 +64,7 @@ function EraCard({ era }: { era: EraWithCounts }) {
         display: 'block',
         padding: '16px 18px',
         background: century ? 'var(--color-surface-elevated, var(--color-surface))' : 'var(--color-bg)',
-        borderLeft: century
-          ? '3px solid var(--color-accent)'
-          : '3px solid transparent',
+        borderLeft: century ? '3px solid var(--color-accent)' : '3px solid transparent',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap' }}>
@@ -93,9 +107,59 @@ function EraCard({ era }: { era: EraWithCounts }) {
   )
 }
 
-export default async function ErasPage() {
+function buildUrl(current: { sort: SortKey; show: ShowKey }, overrides: Partial<{ sort: SortKey; show: ShowKey }>) {
+  const params = new URLSearchParams()
+  const sort = overrides.sort ?? current.sort
+  const show = overrides.show ?? current.show
+  if (sort !== 'recent') params.set('sort', sort)
+  if (show !== 'all') params.set('show', show)
+  const qs = params.toString()
+  return qs ? `/eras?${qs}` : '/eras'
+}
+
+export default async function ErasPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
+  const params = await searchParams
+  const sort: SortKey =
+    params.sort === 'items' ||
+    params.sort === 'publications' ||
+    params.sort === 'oldest'
+      ? params.sort
+      : 'recent'
+  const show: ShowKey =
+    params.show === 'decades' || params.show === 'centuries' ? params.show : 'all'
+
   const db = getDb()
-  const eras = await listErasWithCounts(db)
+  const allEras = await listErasWithCounts(db)
+
+  // Apply show filter
+  const filtered = allEras.filter((e) => {
+    const century = isCenturyEra(e)
+    if (show === 'decades') return !century
+    if (show === 'centuries') return century
+    return true
+  })
+
+  // Apply sort. For "recent" (default), reverse the chronological direction
+  // AND flip the tie-breaker: when a century and a decade share a start_year
+  // (20th C ↔ pre-1950 at 1900, 21st C ↔ 2000s at 2000), we want the decade
+  // first and the century to anchor *after* its children — visually
+  // signalling "↑ that was the 20th/21st Century."
+  const eras = [...filtered].sort((a, b) => {
+    if (sort === 'items') return b.counts.total - a.counts.total
+    if (sort === 'publications') return b.counts.publications - a.counts.publications
+    if (sort === 'oldest') {
+      return a.start_year - b.start_year || (b.end_year - b.start_year) - (a.end_year - a.start_year)
+    }
+    // 'recent' — DESC, centuries anchor after their child decades
+    return b.start_year - a.start_year || (a.end_year - a.start_year) - (b.end_year - b.start_year)
+  })
+
+  const activeStyle = { fontWeight: 700 as const, color: 'var(--color-accent)' }
+  const inactiveStyle = { fontWeight: 400 as const, color: 'inherit' }
 
   return (
     <>
@@ -103,18 +167,81 @@ export default async function ErasPage() {
         <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 8px' }}>Eras</h1>
         <p style={{ margin: '0 0 4px', fontSize: '14px', color: 'var(--color-text-muted)', maxWidth: '60ch' }}>
           Time periods covering everything in the Knowledge Commons. Open an
-          era to see what was happening then; the per-era views will let you
-          compare patterns of research, policy, and reporting across decades.
+          era to see what was happening then; the per-era views let you compare
+          patterns of research, policy, and reporting across decades.
         </p>
-        <p style={{ margin: '0 0 16px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
-          {eras.length} eras · centuries shown as anchors for their decades. <em>Pre-1950</em> is a single bucket because per-decade sample sizes before then are too thin for stable comparison.
+        <div style={{ margin: '12px 0 4px' }}>
+          <Link
+            href="/eras/trends"
+            style={{
+              display: 'inline-block',
+              padding: '6px 12px',
+              borderRadius: 'var(--radius-sm)',
+              background: 'var(--color-accent)',
+              color: '#fff',
+              textDecoration: 'none',
+              fontSize: '13px',
+              fontWeight: 500,
+            }}
+          >
+            View trends across eras →
+          </Link>
+        </div>
+        <p className="results-count" style={{ margin: '12px 0 0' }}>
+          {eras.length} {eras.length === 1 ? 'era' : 'eras'}
+          {show !== 'all' ? ` (${show === 'decades' ? 'decades only' : 'centuries only'})` : ''}
         </p>
       </div>
 
-      <div className="result-cards" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {eras.map((e) => (
-          <EraCard key={e.id} era={e} />
-        ))}
+      <div className="search-layout">
+        <aside className="filters">
+          <div className="filter-group">
+            <h4>Sort By</h4>
+            {SORT_OPTIONS.map((opt) => (
+              <label key={opt.value}>
+                <Link
+                  href={buildUrl({ sort, show }, { sort: opt.value })}
+                  style={sort === opt.value ? activeStyle : inactiveStyle}
+                >
+                  {opt.label}
+                </Link>
+              </label>
+            ))}
+          </div>
+
+          <div className="filter-group">
+            <h4>Show</h4>
+            {SHOW_OPTIONS.map((opt) => (
+              <label key={opt.value}>
+                <Link
+                  href={buildUrl({ sort, show }, { show: opt.value })}
+                  style={show === opt.value ? activeStyle : inactiveStyle}
+                >
+                  {opt.label}
+                </Link>
+              </label>
+            ))}
+          </div>
+
+          <div className="filter-group">
+            <h4>About</h4>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '4px 0', lineHeight: 1.5 }}>
+              Centuries anchor their child decades. <em>Pre-1950</em> is a
+              single bucket because per-decade sample sizes before then are too
+              thin for stable comparison.
+            </p>
+          </div>
+        </aside>
+
+        <div className="result-cards" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {eras.length === 0 ? (
+            <p style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>
+              No eras match the current filter.
+            </p>
+          ) : (
+            eras.map((e) => <EraCard key={e.id} era={e} />)
+          )}
+        </div>
       </div>
     </>
   )
