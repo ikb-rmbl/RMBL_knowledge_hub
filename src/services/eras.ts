@@ -304,8 +304,129 @@ export async function getEraTopEntities(
 }
 
 // ---------------------------------------------------------------------------
-// Sample content from an era (for the detail page)
+// Trends across eras: category diversity (step 4a)
 // ---------------------------------------------------------------------------
+
+/**
+ * The two category dimensions available with 100% coverage in the corpus.
+ * - 'scope' is concept.scope (research discipline)
+ * - 'protocol_category' is protocol.category (methodological approach)
+ *
+ * Topics taxonomy exists but 0 content items are tagged. concept.disciplines
+ * and protocol.disciplines arrays exist but are unpopulated. Both excluded.
+ */
+export type CategoryDimension = 'scope' | 'protocol_category'
+
+export interface EraCategoryBreakdown {
+  era_id: number
+  era_slug: string
+  era_name: string
+  start_year: number
+  end_year: number
+  /** All non-null categories present in this era, ranked by mention count. */
+  categories: Array<{ category: string; n: number; share: number }>
+  /** Total mentions of this category dimension in this era (across the source filter). */
+  total: number
+  /** Shannon entropy H = -Σ p·ln(p). 0 when fully concentrated, ln(K) when uniform across K. */
+  shannon_h: number
+  /** Effective number of categories: exp(H). Interpretable — "as if there were N equally-weighted categories". */
+  effective_n: number
+}
+
+/**
+ * For every decade-spanning calendar era, return its category breakdown
+ * (counts + share) and diversity metrics (Shannon entropy + effective N).
+ * Used by the /eras/trends page to answer "is research diversity rising?"
+ *
+ * Centuries (span > 50) and curated/theme eras are excluded — the chart is
+ * decade-only.
+ */
+export async function getDiversityAcrossEras(
+  pool: pg.Pool,
+  dimension: CategoryDimension,
+  sources: readonly SourceCollection[] = RESEARCH_SOURCES,
+): Promise<EraCategoryBreakdown[]> {
+  // Lookup table joins. For 'scope' we want concept.scope; for 'protocol_category'
+  // we want protocol.category. Entity_type filter follows from the dimension.
+  const config =
+    dimension === 'scope'
+      ? { entityType: 'concept', joinTable: 'concepts', categoryCol: 'scope' }
+      : { entityType: 'protocol', joinTable: 'protocols', categoryCol: 'category' }
+
+  const { rows } = await pool.query<{
+    era_id: number
+    era_slug: string
+    era_name: string
+    start_year: number
+    end_year: number
+    category: string
+    n: string
+  }>(
+    `
+    WITH dated AS (
+      SELECT em.entity_id,
+        CASE em.collection
+          WHEN 'publications' THEN (SELECT NULLIF(p.year,0)::int FROM publications p WHERE p.id=em.item_id)
+          WHEN 'documents'    THEN (SELECT extract(year FROM d.date_original)::int FROM documents d WHERE d.id=em.item_id)
+          WHEN 'datasets'     THEN (SELECT NULLIF(ds.publication_year,0)::int FROM datasets ds WHERE ds.id=em.item_id)
+          WHEN 'stories'      THEN (SELECT extract(year FROM s.date)::int FROM stories s WHERE s.id=em.item_id)
+        END AS y
+      FROM entity_mentions em
+      WHERE em.entity_type = $1 AND em.collection = ANY($2::text[])
+    )
+    SELECT e.id AS era_id, e.slug AS era_slug, e.name AS era_name,
+           e.start_year, e.end_year,
+           cat.${config.categoryCol} AS category,
+           count(*)::text AS n
+      FROM dated d
+      JOIN ${config.joinTable} cat ON cat.id = d.entity_id
+      JOIN eras e ON e.kind = 'calendar'
+                AND (e.end_year - e.start_year) < 50
+                AND d.y BETWEEN e.start_year AND e.end_year
+     WHERE d.y IS NOT NULL AND cat.${config.categoryCol} IS NOT NULL
+     GROUP BY e.id, e.slug, e.name, e.start_year, e.end_year, cat.${config.categoryCol}
+     ORDER BY e.start_year ASC, count(*) DESC
+    `,
+    [config.entityType, sources as unknown as string[]],
+  )
+
+  // Group by era and compute Shannon entropy + effective N per era in TS.
+  const byEra = new Map<number, EraCategoryBreakdown>()
+  for (const r of rows) {
+    const eraId = r.era_id
+    if (!byEra.has(eraId)) {
+      byEra.set(eraId, {
+        era_id: eraId,
+        era_slug: r.era_slug,
+        era_name: r.era_name,
+        start_year: r.start_year,
+        end_year: r.end_year,
+        categories: [],
+        total: 0,
+        shannon_h: 0,
+        effective_n: 0,
+      })
+    }
+    const bucket = byEra.get(eraId)!
+    bucket.categories.push({ category: r.category, n: parseInt(r.n, 10), share: 0 })
+  }
+
+  const out: EraCategoryBreakdown[] = []
+  for (const bucket of byEra.values()) {
+    const total = bucket.categories.reduce((s, c) => s + c.n, 0)
+    bucket.total = total
+    let h = 0
+    for (const c of bucket.categories) {
+      c.share = total > 0 ? c.n / total : 0
+      if (c.share > 0) h -= c.share * Math.log(c.share)
+    }
+    bucket.shannon_h = h
+    bucket.effective_n = Math.exp(h)
+    out.push(bucket)
+  }
+  out.sort((a, b) => a.start_year - b.start_year)
+  return out
+}
 
 export interface EraSamplePublication {
   id: number

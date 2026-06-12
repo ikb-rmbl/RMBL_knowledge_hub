@@ -106,7 +106,24 @@ export default async function ErasPage() {
           era to see what was happening then; the per-era views will let you
           compare patterns of research, policy, and reporting across decades.
         </p>
-        <p style={{ margin: '0 0 16px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+        <div style={{ margin: '12px 0 4px' }}>
+          <Link
+            href="/eras/trends"
+            style={{
+              display: 'inline-block',
+              padding: '6px 12px',
+              borderRadius: 'var(--radius-sm)',
+              background: 'var(--color-accent)',
+              color: '#fff',
+              textDecoration: 'none',
+              fontSize: '13px',
+              fontWeight: 500,
+            }}
+          >
+            View trends across eras →
+          </Link>
+        </div>
+        <p style={{ margin: '12px 0 16px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
           {eras.length} eras · centuries shown as anchors for their decades. <em>Pre-1950</em> is a single bucket because per-decade sample sizes before then are too thin for stable comparison.
         </p>
       </div>
