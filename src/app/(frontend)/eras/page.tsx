@@ -10,11 +10,12 @@ export const metadata = {
     'Time periods covering research, community documents, datasets, and stories from the Gunnison Basin. Open an era to see what was happening then; compare eras to see how patterns of research and policy have changed.',
 }
 
-type SortKey = 'chronological' | 'items' | 'publications'
+type SortKey = 'recent' | 'oldest' | 'items' | 'publications'
 type ShowKey = 'all' | 'decades' | 'centuries'
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-  { value: 'chronological', label: 'Chronological' },
+  { value: 'recent', label: 'Most recent' },
+  { value: 'oldest', label: 'Oldest first' },
   { value: 'items', label: 'Total items' },
   { value: 'publications', label: 'Publications' },
 ]
@@ -110,7 +111,7 @@ function buildUrl(current: { sort: SortKey; show: ShowKey }, overrides: Partial<
   const params = new URLSearchParams()
   const sort = overrides.sort ?? current.sort
   const show = overrides.show ?? current.show
-  if (sort !== 'chronological') params.set('sort', sort)
+  if (sort !== 'recent') params.set('sort', sort)
   if (show !== 'all') params.set('show', show)
   const qs = params.toString()
   return qs ? `/eras?${qs}` : '/eras'
@@ -123,7 +124,11 @@ export default async function ErasPage({
 }) {
   const params = await searchParams
   const sort: SortKey =
-    params.sort === 'items' || params.sort === 'publications' ? params.sort : 'chronological'
+    params.sort === 'items' ||
+    params.sort === 'publications' ||
+    params.sort === 'oldest'
+      ? params.sort
+      : 'recent'
   const show: ShowKey =
     params.show === 'decades' || params.show === 'centuries' ? params.show : 'all'
 
@@ -138,12 +143,19 @@ export default async function ErasPage({
     return true
   })
 
-  // Apply sort
+  // Apply sort. For "recent" (default), reverse the chronological direction
+  // AND flip the tie-breaker: when a century and a decade share a start_year
+  // (20th C ↔ pre-1950 at 1900, 21st C ↔ 2000s at 2000), we want the decade
+  // first and the century to anchor *after* its children — visually
+  // signalling "↑ that was the 20th/21st Century."
   const eras = [...filtered].sort((a, b) => {
     if (sort === 'items') return b.counts.total - a.counts.total
     if (sort === 'publications') return b.counts.publications - a.counts.publications
-    // chronological default
-    return a.start_year - b.start_year || (b.end_year - b.start_year) - (a.end_year - a.start_year)
+    if (sort === 'oldest') {
+      return a.start_year - b.start_year || (b.end_year - b.start_year) - (a.end_year - a.start_year)
+    }
+    // 'recent' — DESC, centuries anchor after their child decades
+    return b.start_year - a.start_year || (a.end_year - a.start_year) - (b.end_year - b.start_year)
   })
 
   const activeStyle = { fontWeight: 700 as const, color: 'var(--color-accent)' }
