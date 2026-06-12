@@ -21,14 +21,23 @@ const ALL_SOURCES: SourceCollection[] = ['publications', 'documents', 'datasets'
 // Eras under this many mentions are still drawn but dimmed and marked.
 const RELIABLE_MIN_MENTIONS = 100
 
-// Stable categorical palette. First N entries used for whichever dimension
-// has fewer categories; both dimensions get the same ordering so colors are
-// consistent within each chart.
+// Page content max-width (matches typical detail-page chrome and keeps SVG
+// charts at a comfortable reading width on wide screens).
+const PAGE_MAX_W = 960
+
+// Stacked-bar legibility cap. Top N categories (by total mentions across all
+// eras) keep their colors; everything else aggregates into a single "Other"
+// bin. Without this the long tail of small categories (especially in sparse
+// early eras) makes the color scale unreadable.
+const TOP_N_CATEGORIES = 8
+const OTHER_KEY = '__other__'
+const OTHER_COLOR = 'var(--color-text-muted)'
+
+// Stable categorical palette — 8-color Tableau-style set; legible alongside a
+// neutral Other bin.
 const PALETTE = [
-  '#4e79a7', '#f28e2c', '#59a14f', '#e15759', '#76b7b2',
-  '#af7aa1', '#edc949', '#9c755f', '#ff9da7', '#bab0ab',
-  '#6a3d9a', '#b15928', '#1f77b4', '#33a02c', '#fb9a99',
-  '#cab2d6', '#fdbf6f', '#b2df8a', '#a6cee3', '#ffff99',
+  '#4e79a7', '#f28e2c', '#59a14f', '#e15759',
+  '#76b7b2', '#af7aa1', '#edc949', '#9c755f',
 ]
 
 // ---------------------------------------------------------------------------
@@ -37,22 +46,51 @@ const PALETTE = [
 
 /** Format a category slug ("population_ecology") for display ("Population ecology"). */
 function prettifyCategory(slug: string): string {
+  if (slug === OTHER_KEY) return 'Other'
   return slug.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
 }
 
 /**
- * Collect a global ordering of categories across all eras so colors stay
- * consistent in the stacked bars even when a category drops out of one era.
- * Ordered by total mention count across all eras desc.
+ * Pick the global top-N categories by total mentions across all eras, plus
+ * an OTHER_KEY bin if there's a tail. Returned in stack order (top of legend
+ * first → bottom of stack); colors index into PALETTE by position, with the
+ * "Other" bin getting OTHER_COLOR.
  */
-function globalCategoryOrder(breakdowns: EraCategoryBreakdown[]): string[] {
+function topCategoriesWithOther(breakdowns: EraCategoryBreakdown[]): string[] {
   const totals = new Map<string, number>()
   for (const b of breakdowns) {
     for (const c of b.categories) {
       totals.set(c.category, (totals.get(c.category) ?? 0) + c.n)
     }
   }
-  return [...totals.entries()].sort((a, b) => b[1] - a[1]).map(([k]) => k)
+  const sorted = [...totals.entries()].sort((a, b) => b[1] - a[1])
+  const top = sorted.slice(0, TOP_N_CATEGORIES).map(([k]) => k)
+  const tail = sorted.slice(TOP_N_CATEGORIES)
+  if (tail.length > 0) top.push(OTHER_KEY)
+  return top
+}
+
+/**
+ * For each era, collapse its breakdown into the top-N named categories plus
+ * an aggregated "Other" bucket. Shares stay valid (sum to ≤ 1).
+ */
+function collapseBreakdowns(
+  breakdowns: EraCategoryBreakdown[],
+  keptCategories: string[],
+): EraCategoryBreakdown[] {
+  const keptSet = new Set(keptCategories.filter((k) => k !== OTHER_KEY))
+  return breakdowns.map((b) => {
+    let otherN = 0
+    const kept: typeof b.categories = []
+    for (const c of b.categories) {
+      if (keptSet.has(c.category)) kept.push(c)
+      else otherN += c.n
+    }
+    if (otherN > 0 && keptCategories.includes(OTHER_KEY)) {
+      kept.push({ category: OTHER_KEY, n: otherN, share: b.total > 0 ? otherN / b.total : 0 })
+    }
+    return { ...b, categories: kept }
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -220,7 +258,11 @@ function CompositionChart({
 
   const gap = 6
   const barW = (plotW - gap * (breakdowns.length - 1)) / breakdowns.length
-  const colorFor = (slug: string) => PALETTE[categoryOrder.indexOf(slug) % PALETTE.length]
+  const colorFor = (slug: string) => {
+    if (slug === OTHER_KEY) return OTHER_COLOR
+    const idx = categoryOrder.filter((k) => k !== OTHER_KEY).indexOf(slug)
+    return PALETTE[idx >= 0 ? idx % PALETTE.length : 0]
+  }
 
   return (
     <svg
@@ -306,21 +348,27 @@ function CompositionChart({
 // ---------------------------------------------------------------------------
 
 function Legend({ categoryOrder }: { categoryOrder: string[] }) {
+  // Same color resolution as CompositionChart so the legend always matches.
+  const named = categoryOrder.filter((k) => k !== OTHER_KEY)
+  const colorFor = (slug: string) =>
+    slug === OTHER_KEY ? OTHER_COLOR : PALETTE[named.indexOf(slug) % PALETTE.length]
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', marginTop: '8px', fontSize: '12px' }}>
-      {categoryOrder.map((slug, i) => (
+      {categoryOrder.map((slug) => (
         <div key={slug} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
           <span
             style={{
               display: 'inline-block',
               width: '12px',
               height: '12px',
-              background: PALETTE[i % PALETTE.length],
+              background: colorFor(slug),
               borderRadius: '2px',
               flexShrink: 0,
             }}
           />
-          <span style={{ color: 'var(--color-text)' }}>{prettifyCategory(slug)}</span>
+          <span style={{ color: 'var(--color-text)', fontStyle: slug === OTHER_KEY ? 'italic' : 'normal' }}>
+            {prettifyCategory(slug)}
+          </span>
         </div>
       ))}
     </div>
@@ -342,7 +390,8 @@ function DiversityPanel({
   metricLabel: string
   breakdowns: EraCategoryBreakdown[]
 }) {
-  const categoryOrder = globalCategoryOrder(breakdowns)
+  const categoryOrder = topCategoriesWithOther(breakdowns)
+  const collapsed = collapseBreakdowns(breakdowns, categoryOrder)
   return (
     <section style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--color-border)' }}>
       <h2 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 4px' }}>{title}</h2>
@@ -361,8 +410,17 @@ function DiversityPanel({
       <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 8px' }}>
         Share of mentions in each {metricLabel.toLowerCase()} per decade. Numbers under each bar are total mentions for that decade.
       </p>
-      <CompositionChart breakdowns={breakdowns} categoryOrder={categoryOrder} />
+      <CompositionChart breakdowns={collapsed} categoryOrder={categoryOrder} />
       <Legend categoryOrder={categoryOrder} />
+      {categoryOrder.includes(OTHER_KEY) && (
+        <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: '6px 0 0', fontStyle: 'italic' }}>
+          “Other” aggregates {breakdowns.reduce(
+            (max, b) => Math.max(max, b.categories.filter((c) => !categoryOrder.includes(c.category)).length),
+            0,
+          )}{' '}
+          smaller {metricLabel.toLowerCase()} with a long-tail share. Hover any segment for the underlying share.
+        </p>
+      )}
     </section>
   )
 }
@@ -418,7 +476,7 @@ export default async function ErasTrendsPage({
   ])
 
   return (
-    <>
+    <div style={{ maxWidth: `${PAGE_MAX_W}px`, margin: '0 auto', padding: '0 16px' }}>
       <div className="search-results-header">
         <Link href="/eras" style={{ fontSize: '13px', color: 'var(--color-text-muted)', textDecoration: 'none' }}>
           ← All eras
@@ -457,6 +515,6 @@ export default async function ErasTrendsPage({
         point or bar segment for the underlying mention count. The reliable
         signal is the 1990s onward.
       </section>
-    </>
+    </div>
   )
 }
