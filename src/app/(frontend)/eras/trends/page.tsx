@@ -151,7 +151,7 @@ function EffectiveNChart({ breakdowns }: { breakdowns: EraCategoryBreakdown[] })
             textAnchor="end"
             fontSize="11"
             fill="var(--color-text-muted)"
-            fontVariantNumeric="tabular-nums"
+            style={{ fontVariantNumeric: 'tabular-nums' }}
           >
             {v}
           </text>
@@ -289,8 +289,8 @@ function CompositionChart({
               textAnchor="middle"
               fontSize="9"
               fill="var(--color-text-muted)"
-              fontVariantNumeric="tabular-nums"
               opacity={b.total >= RELIABLE_MIN_MENTIONS ? 0.7 : 0.4}
+              style={{ fontVariantNumeric: 'tabular-nums' }}
             >
               {b.total >= 1000 ? `${(b.total / 1000).toFixed(1)}k` : b.total}
             </text>
