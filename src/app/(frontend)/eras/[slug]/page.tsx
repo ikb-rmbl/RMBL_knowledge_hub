@@ -197,18 +197,12 @@ export default async function EraDetailPage({
     'Ranked by log-odds-ratio z-score — over-represented in this era vs. all other dated content, not just frequent overall.'
 
   return (
-    <>
-      <div className="search-results-header">
-        <Link
-          href="/eras"
-          style={{ fontSize: '13px', color: 'var(--color-text-muted)', textDecoration: 'none' }}
-        >
-          ← All eras
-        </Link>
+    <div className="detail">
+      <Link href="/eras" className="detail-back">
+        ← All eras
+      </Link>
 
-        <h1 style={{ fontSize: '28px', fontWeight: 600, margin: '8px 0 4px' }}>
-          {era.name}
-        </h1>
+      <h1>{era.name}</h1>
 
         <div
           style={{
@@ -257,7 +251,6 @@ export default async function EraDetailPage({
           <CountBadge label="datasets" n={counts.datasets} />
           <CountBadge label="stories" n={counts.stories} />
         </div>
-      </div>
 
       {/* Synthesis placeholder — populated by Phase 3 era-primer generation */}
       <section style={sectionWrap}>
@@ -420,6 +413,6 @@ export default async function EraDetailPage({
           </ul>
         )}
       </section>
-    </>
+    </div>
   )
 }
