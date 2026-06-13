@@ -995,17 +995,20 @@ function CorpusContext({
 
 // Sequential cohort palette: oldest cohorts dark (foundational), newest
 // cohort light (recent arrival). Reads as deep-roots-bottom, fresh-top.
-// One color per decade-cohort + pre-1950 bucket (9 colors total).
+// One color per era bucket (10 colors total, matching the reshape-eras.sql
+// migration: pre-1950, 1950s–60s, 1970s–80s, then 5-year buckets through
+// 2021–25).
 const COHORT_PALETTE: Record<string, string> = {
-  'pre-1950': '#1a2c4d',
-  '1950s':    '#243c64',
-  '1960s':    '#2e5388',
-  '1970s':    '#3b6ca6',
-  '1980s':    '#5285bd',
-  '1990s':    '#6c9fcc',
-  '2000s':    '#8ab7d8',
-  '2010s':    '#aacde4',
-  '2020s':    '#cae0ec',
+  'pre-1950':  '#182740',
+  '1950s-60s': '#213353',
+  '1970s-80s': '#2b4067',
+  '1991-95':   '#355080',
+  '1996-2000': '#426499',
+  '2001-05':   '#5478b0',
+  '2006-10':   '#6a8fc0',
+  '2011-15':   '#82a4cd',
+  '2016-20':   '#9bb9d8',
+  '2021-25':   '#b4cde4',
 }
 
 function cohortColor(slug: string): string {
