@@ -45,12 +45,16 @@ import {
   getAuthorCohortsByEra,
   getEraSignature,
   getEraNewsContext,
+  getCenturyArc,
+  getCenturyLandmarks,
   RESEARCH_SOURCES,
   POLICY_SOURCES,
   type Era,
   type EraCategoryBreakdown,
   type EraSignature,
   type EraNewsItem,
+  type CenturyArc,
+  type CenturyLandmarkCandidate,
   type TopEntity,
   type TrajectoryEntity,
 } from '../src/services/eras.js'
@@ -141,6 +145,68 @@ Return a JSON object:
   "primer_text": "the full primer text including references section",
   "key_themes": ["one-line characterization 1", "..."],
   "open_questions": ["what we don't know about this era 1", "..."]
+}`
+
+// ---------------------------------------------------------------------------
+// Century-scale prompt (span > 50 years)
+// ---------------------------------------------------------------------------
+
+const PROMPT_CENTURY = `You are writing a century-scale period primer about environmental research at the Rocky Mountain Biological Laboratory (RMBL) in Gothic, Colorado, and across the broader Gunnison Basin, spanning roughly 100 years. RMBL is a non-profit field station for long-term ecological research; the Gunnison Basin is a high-elevation watershed in western Colorado where alpine and subalpine ecology has been studied since the 1920s.
+
+This is NOT a decade primer. It covers a full century, so it must be ARC-shaped: identify a small number of distinct phases of basin science across the span, name what defined each phase, and describe the threads that ran through them. The CENTURY ARC block below gives you each decade-or-bucket child era's one-line headline already; lean on it.
+
+CRITICAL: This is NOT a description of a database, archive, or catalog. Do not refer to "the corpus," "the Commons," "the collection," "the catalog," "the database," "a record," or similar meta-vocabulary. Write about the research, the basin, and the century.
+
+Audience: a curious community member, a journalist, an RMBL scientist, and a student — all at once. Use plain language; define technical terms in passing; assume curiosity and intelligence but not specialist knowledge.
+
+Write a 1500-2200 word primer covering these sections. Use plain section labels with a blank line after each, no markdown:
+
+1. The arc (2 paragraphs)
+   Identify 3-4 distinct phases of basin science across the century, drawn from CENTURY ARC. Each phase should be named (e.g., "the survey-and-natural-history phase," "the experimental-ecology turn," "the climate-and-collaboration phase," "the watershed-Earth-system phase") and tied to roughly which child eras belong to it. Open the section with the shape of the arc as a whole — a 1-2 sentence claim about what the century did to basin science — then walk through the phases. Mention specific events whose actual year falls inside the century only when they help anchor a phase (e.g., the founding of the International Biological Program in 1964 for postwar-formalization framing, the Paris Agreement in 2015 for climate-mainstreaming framing).
+
+   FORBIDDEN: opening with "the 20th/21st century saw N publications and M researchers," characterizing the century as "busy/humming/an era of growth," or any claim that would survive substituting the other century in its place. Publication-count and researcher-count figures are background information unless they support a specific phase claim.
+
+2. Lines of inquiry (2-3 paragraphs)
+   Major sustained research themes that ran across multiple decades — not era-by-era research foci, but threads of investigation. Examples to consider:
+   - Long-running organisms (Yellow-bellied marmots since the 1960s, bumble bees and floral phenology since the 1970s, subalpine wildflower demography since the 1970s)
+   - Long-running places (Gothic and the meadows around it; the East River; Mexican Cut; high-elevation tree lines)
+   - Long-running methods (mark-recapture studies, open-top warming experiments, pollination networks)
+   - Long-running questions (how plants and pollinators co-adjust; how altitude shapes life-history; how climate change reaches into mountain ecosystems)
+   Anchor each thread on landmark papers FROM ACROSS the span (drawn from LANDMARK CANDIDATES — note each is tagged with its child era; pull from different phases when constructing a thread). Avoid concentrating all citations in the last quarter of the century.
+
+3. Public engagement and policy context (1 paragraph)
+   How basin science's relationship with land management and public attention evolved across the century. For most of the 20th century, this was effectively absent — coverage was limited to professional society proceedings. By the century's end, basin findings were appearing in regional and national press. Note the shape of that arc rather than reciting individual stories. For the 21st-century primer, this section can be richer (rich news coverage from ~2006 onward).
+
+4. Defining contributions (1-2 paragraphs)
+   Name 5-8 of the century's most defining intellectual contributions, drawn from LANDMARK CANDIDATES. Spread these across phases — do not concentrate on the highest-cited papers (which will cluster in 1985-2000 for the 20th century and 2010-2020 for the 21st). Each paper named should be tied back to one of the phases identified in The arc. Cite explicitly using the format below.
+
+5. Threads still active (1 paragraph)
+   What carries from this century into the present (for the 20th-century primer: what the 21st century inherited and continues; for the 21st-century primer: what's underway as of the present that will likely shape the century's remaining decades). Keep it grounded in named research threads and landmark papers, not abstract claims about "the future."
+
+At the end, include a REFERENCES section listing every cited publication, document, and dataset in the format:
+   Author1, Author2 (Year). Title. Journal/Source. {pub_id:N}
+
+RULES:
+- Every factual claim must trace back to the provided CENTURY ARC, LANDMARK CANDIDATES, or to widely-known scientific or historical context whose actual year falls inside the century. Do not fabricate events.
+- Do not name individual researchers in running prose. Author names appear only inside parenthetical citations. Never write "Smith showed..." or "Jones and colleagues argued..."
+- Do not refer to "the corpus," "the Commons," "the collection," "the catalog," "the database," or similar meta-vocabulary.
+- Phase claims (e.g., "the experimental-ecology turn of the late 1970s and 1980s") draw on CENTURY ARC. Each phase should map to at least one specific child era's headline.
+- Landmark citations should be spread across child eras; aim for at least one anchor paper per major phase.
+- Citation format: (Author1 & Author2, Year) for two authors; (Author1 et al., Year) for three or more. Follow each citation with {pub_id:N}, {doc_id:N}, or {dataset_id:N}. The braces are required. NEVER write a bare "pub_id:N" or wrap a citation as "(pub_id:N)" without author-year text.
+- Use plain section labels with a blank line after. No markdown.
+
+CRITICAL JSON RULES:
+- The primer_text value must be a valid JSON string
+- Use \\n for newlines, NOT actual line breaks inside the string
+- Do NOT use markdown formatting (no ## headers, no **bold**, no *italic*)
+- Do NOT use backticks, quotes within quotes must be escaped as \\"
+- Return valid JSON only, no code fences
+
+Return a JSON object:
+{
+  "primer_text": "the full primer text including references section",
+  "key_themes": ["one-line characterization of a defining phase or thread 1", "..."],
+  "open_questions": ["century-scale unresolved question 1", "..."]
 }`
 
 // ---------------------------------------------------------------------------
@@ -659,6 +725,135 @@ async function assembleContext(pool: pg.Pool, era: Era): Promise<AssembledContex
 }
 
 // ---------------------------------------------------------------------------
+// Century-scale context assembly
+//
+// Branches off when era span > 50 years. Uses CENTURY ARC (per-child headline
+// + scale) and child-balanced LANDMARK CANDIDATES instead of ERA SIGNATURE +
+// distinctive-entity tables. Skip blocks that don't shape across a century:
+// distinctive entities (too noisy at 100-year scope), trajectory new/rising
+// (era-relative; meaningless), broader-pattern trajectory tags (already
+// inside the child arc).
+// ---------------------------------------------------------------------------
+
+function formatCenturyArc(arc: CenturyArc): string {
+  const lines: string[] = []
+  lines.push(
+    `CENTURY ARC — phase-by-phase backbone of basin science across this century`,
+  )
+  lines.push(
+    `  Each line is a child decade or bucket with its one-line headline (drawn from that era's existing primer).`,
+  )
+  lines.push(
+    `  Use these as the structural backbone for the "The arc" section. Group child eras into 3-4 named phases.`,
+  )
+  lines.push('')
+  for (const c of arc.children) {
+    const yrs = `${c.era.start_year}-${c.era.end_year}`
+    const pubs = c.n_pubs > 0 ? `, ${c.n_pubs.toLocaleString()} pubs` : ''
+    const theme = c.headline_theme ?? '(no headline available)'
+    lines.push(`  ${c.era.slug.padEnd(12)} (${yrs}${pubs}): ${theme}`)
+  }
+  lines.push('')
+
+  lines.push(`CENTURY-LONG SCALE`)
+  lines.push(`  Total publications across the century: ${arc.total_pubs.toLocaleString()}`)
+  lines.push(
+    `  Cumulative external citations across the century: ${arc.total_ext_cites.toLocaleString()}`,
+  )
+  if (arc.avg_authors_first && arc.avg_authors_last) {
+    lines.push(
+      `  Avg co-authors per paper: ${arc.avg_authors_first.value.toFixed(1)} (${arc.avg_authors_first.era_name}) → ${arc.avg_authors_last.value.toFixed(1)} (${arc.avg_authors_last.era_name})`,
+    )
+  }
+  if (arc.pubs_per_year_first && arc.pubs_per_year_last) {
+    const start = arc.pubs_per_year_first.value
+    const end = arc.pubs_per_year_last.value
+    const multiplier = start > 0 ? (end / start).toFixed(1) : '?'
+    lines.push(
+      `  Publications per year: ~${start.toFixed(0)} (${arc.pubs_per_year_first.era_name}) → ~${end.toFixed(0)} (${arc.pubs_per_year_last.era_name}), about ${multiplier}× the early rate`,
+    )
+  }
+
+  return lines.join('\n')
+}
+
+function formatCenturyLandmarks(
+  pubs: CenturyLandmarkCandidate[],
+  citationLabels: Map<number, { label: string; year: string | number }>,
+): string {
+  const lines: string[] = []
+  lines.push(
+    `LANDMARK CANDIDATES — child-era-balanced sample across the century (the anchor for citations)`,
+  )
+  lines.push(
+    `  Each child era contributes up to 3 papers by external citations + 2 by basin-internal citations.`,
+  )
+  lines.push(
+    `  Each paper is tagged with its child-era slug and pick reason (ext = top external cites; basin = top basin-internal citers).`,
+  )
+  lines.push(
+    `  When spreading citations across phases, draw on papers from different child eras — do not concentrate landmarks on one era.`,
+  )
+  lines.push('')
+  for (const p of pubs) {
+    const c = citationLabels.get(p.id)
+    const evidence: string[] = []
+    if (p.citation_count != null) evidence.push(`${p.citation_count} ext cites`)
+    if (p.internal_citation_count != null && p.internal_citation_count > 0)
+      evidence.push(`${p.internal_citation_count} basin citers`)
+    lines.push(
+      `  [${p.child_era_slug.padEnd(12)} ${p.pick_reason}:#${p.pick_rank}] (${c?.label ?? '?'}) "${p.title}" — ${evidence.join(', ') || 'no signal counts'} [pub_id:${p.id}]`,
+    )
+  }
+  return lines.join('\n')
+}
+
+async function assembleCenturyContext(
+  pool: pg.Pool,
+  era: Era,
+): Promise<AssembledContext> {
+  const [arc, landmarks] = await Promise.all([
+    getCenturyArc(pool, era),
+    getCenturyLandmarks(pool, era, 3, 2),
+  ])
+
+  // Author labels for citation rendering
+  const pubIds = landmarks.map((p) => p.id)
+  const authorsMap = await fetchPublicationAuthors(pool, pubIds)
+  const citationLabels = new Map<number, { label: string; year: string | number }>()
+  for (const p of landmarks) {
+    const authors = authorsMap.get(p.id) ?? []
+    citationLabels.set(p.id, {
+      label: formatCitationLabel(authors, p.year ?? null),
+      year: p.year ?? '?',
+    })
+  }
+  const docLabels = new Map<number, string>()
+  const datasetLabels = new Map<number, string>()
+
+  const parts: string[] = []
+  parts.push(`ERA INFORMATION`)
+  parts.push(`  Name: ${era.name}`)
+  parts.push(`  Years: ${era.start_year}–${era.end_year} (century-scale span)`)
+  if (era.description) parts.push(`  Description: ${era.description}`)
+  parts.push('')
+
+  parts.push(formatCenturyArc(arc))
+  parts.push('')
+
+  parts.push(formatCenturyLandmarks(landmarks, citationLabels))
+  parts.push('')
+
+  return {
+    context: parts.join('\n'),
+    citationLabels,
+    docLabels,
+    datasetLabels,
+    pubIds,
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Citation post-processing: turn {pub_id:N} tags into markdown links
 // ---------------------------------------------------------------------------
 
@@ -721,7 +916,10 @@ async function main() {
   })
 
   try {
-    // Pick the eras to process. Calendar decade-or-bucket eras only.
+    // Pick the eras to process. Default: decade-or-bucket calendar eras
+    // (centuries are skipped because they need a different prompt and are
+    // best generated AFTER their children so child key_themes are available
+    // for CENTURY ARC). Centuries can be processed explicitly with --slug.
     let eraQuery = `
       SELECT id FROM eras
        WHERE kind='calendar' AND (end_year - start_year) < 50
@@ -759,8 +957,15 @@ async function main() {
         }
       }
 
-      const assembled = await assembleContext(db, era)
-      console.log(`  Context: ${(assembled.context.length / 1000).toFixed(1)}k chars, ${assembled.pubIds.length} top pubs`)
+      // Century scope branches to its own assembly + prompt.
+      const isCentury = era.end_year - era.start_year > 50
+      const assembled = isCentury
+        ? await assembleCenturyContext(db, era)
+        : await assembleContext(db, era)
+      const promptForEra = isCentury ? PROMPT_CENTURY : PROMPT
+      console.log(
+        `  Context: ${(assembled.context.length / 1000).toFixed(1)}k chars, ${assembled.pubIds.length} ${isCentury ? 'landmark candidates' : 'top pubs'}${isCentury ? ' (century-scale prompt)' : ''}`,
+      )
 
       if (dryRun) {
         console.log(`  (DRY RUN) — context preview:`)
@@ -771,9 +976,9 @@ async function main() {
 
       const { data, response } = await callClaudeJson<PrimerResponse>({
         apiKey: ANTHROPIC_API_KEY!,
-        prompt: PROMPT,
+        prompt: promptForEra,
         content: assembled.context,
-        maxTokens: 8192,
+        maxTokens: isCentury ? 12288 : 8192,
         model: modelId,
       })
 
