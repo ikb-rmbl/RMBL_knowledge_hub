@@ -9,11 +9,14 @@ import {
   getEraRecentDocuments,
   getEraTopDatasets,
   getEraRecentStories,
+  getEraTrajectorySnapshot,
   isCenturyEra,
   RESEARCH_SOURCES,
   POLICY_SOURCES,
   type Era,
+  type EraTrajectorySnapshot,
   type TopEntity,
+  type TrajectoryEntity,
   type EntityType,
 } from '@/services/eras'
 
@@ -91,6 +94,241 @@ function EntityChip({ entity, type }: { entity: TopEntity; type: EntityType }) {
     </Link>
   ) : (
     <span style={chipStyle}>{inner}</span>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Trajectory chips + "What changed" panel
+// ---------------------------------------------------------------------------
+
+const ENTITY_TYPE_PATH: Record<EntityType, string | null> = {
+  concept: 'concepts',
+  species: 'species',
+  protocol: 'protocols',
+  place: 'places',
+  stakeholder: null, // no detail page
+}
+
+// Color dot per entity type, matching the graph palette so the chip dots
+// agree with the global graph view.
+const TYPE_DOT_COLOR: Record<EntityType, string> = {
+  concept: '#7b1fa2',
+  species: '#558b2f',
+  protocol: '#1565c0',
+  place: '#6d4c41',
+  stakeholder: '#546e7a',
+}
+
+function TrajectoryChip({
+  entity,
+  variant,
+  priorEraName,
+}: {
+  entity: TrajectoryEntity
+  variant: 'new' | 'rising' | 'fading'
+  priorEraName: string | null
+}) {
+  const path = ENTITY_TYPE_PATH[entity.entity_type]
+  const href = path ? `/${path}/${entity.entity_id}` : null
+
+  const tooltipParts: string[] = [
+    `${entity.entity_type}: ${entity.name}`,
+    `${entity.n_in_era} mentions this era`,
+  ]
+  if (variant !== 'new' && priorEraName) {
+    tooltipParts.push(`${entity.n_in_prior} mentions in ${priorEraName}`)
+    tooltipParts.push(`z=${entity.z_score.toFixed(2)} (pairwise log-odds)`)
+  }
+  if (variant === 'new') {
+    tooltipParts.push(`First observed: ${entity.first_year}`)
+  }
+  const title = tooltipParts.join(' · ')
+
+  const inner = (
+    <>
+      <span
+        aria-hidden="true"
+        style={{
+          display: 'inline-block',
+          width: '8px',
+          height: '8px',
+          borderRadius: '50%',
+          background: TYPE_DOT_COLOR[entity.entity_type],
+          flexShrink: 0,
+        }}
+      />
+      <span style={{ fontWeight: 500 }}>{entity.name}</span>
+      <span
+        style={{
+          fontSize: '11px',
+          color: 'var(--color-text-muted)',
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
+        {entity.n_in_era}
+      </span>
+    </>
+  )
+
+  const chipStyle: React.CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '4px 10px',
+    borderRadius: 'var(--radius-sm)',
+    background: 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    fontSize: '13px',
+    lineHeight: 1.4,
+    textDecoration: 'none',
+    color: 'var(--color-text)',
+  }
+
+  return href ? (
+    <Link href={href} style={chipStyle} title={title}>
+      {inner}
+    </Link>
+  ) : (
+    <span style={chipStyle} title={title}>
+      {inner}
+    </span>
+  )
+}
+
+function TrajectorySection({
+  title,
+  glyph,
+  hint,
+  entities,
+  variant,
+  priorEraName,
+}: {
+  title: string
+  glyph: string
+  hint: string
+  entities: TrajectoryEntity[]
+  variant: 'new' | 'rising' | 'fading'
+  priorEraName: string | null
+}) {
+  return (
+    <div>
+      <h4
+        style={{
+          fontSize: '13px',
+          fontWeight: 600,
+          margin: '0 0 4px',
+          display: 'flex',
+          alignItems: 'baseline',
+          gap: '6px',
+        }}
+      >
+        <span aria-hidden="true">{glyph}</span>
+        <span>{title}</span>
+        <span
+          style={{
+            fontSize: '11px',
+            color: 'var(--color-text-muted)',
+            fontWeight: 400,
+            marginLeft: '4px',
+          }}
+        >
+          {entities.length}
+        </span>
+      </h4>
+      <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: '0 0 8px' }}>
+        {hint}
+      </p>
+      {entities.length === 0 ? (
+        <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+          Nothing crossed the threshold for this era.
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          {entities.map((e) => (
+            <TrajectoryChip
+              key={`${e.entity_type}-${e.entity_id}`}
+              entity={e}
+              variant={variant}
+              priorEraName={priorEraName}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function WhatChangedPanel({
+  trajectory,
+  eraName,
+}: {
+  trajectory: EraTrajectorySnapshot
+  eraName: string
+}) {
+  const { hasPrior, prior_era_name, newInEra, rising, fading } = trajectory
+  // Suppress the panel entirely if there's literally nothing to show
+  // (extremely sparse eras can produce empty lists across the board).
+  if (!hasPrior && newInEra.length === 0) return null
+  if (hasPrior && newInEra.length === 0 && rising.length === 0 && fading.length === 0) return null
+
+  return (
+    <section style={sectionWrap}>
+      <h3 style={sectionHeading}>What changed</h3>
+      <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 16px', maxWidth: '65ch' }}>
+        Entities trending into or out of the corpus around the {eraName}.{' '}
+        {hasPrior && prior_era_name ? (
+          <>
+            Rising and Fading are ranked by pairwise log-odds-ratio z-score
+            against the immediately preceding era ({prior_era_name}); New
+            covers entities making their first corpus appearance in this era.
+            One caveat: &ldquo;new&rdquo; partly reflects extraction coverage —
+            a concept can look new only because earlier full-text was sparse.
+          </>
+        ) : (
+          <>
+            This era has no prior calendar era for comparison, so Rising and
+            Fading are unavailable. New shows entities first observed in the
+            corpus during this era.
+          </>
+        )}
+      </p>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: '20px',
+        }}
+      >
+        <TrajectorySection
+          title="New in this era"
+          glyph="🌱"
+          hint="First observed in the corpus during this era. Sorted by mentions."
+          entities={newInEra}
+          variant="new"
+          priorEraName={prior_era_name}
+        />
+        {hasPrior && (
+          <>
+            <TrajectorySection
+              title="Rising"
+              glyph="↗"
+              hint={`Biggest pairwise log-odds gain vs. ${prior_era_name}.`}
+              entities={rising}
+              variant="rising"
+              priorEraName={prior_era_name}
+            />
+            <TrajectorySection
+              title="Fading"
+              glyph="↘"
+              hint={`Biggest pairwise log-odds drop vs. ${prior_era_name}.`}
+              entities={fading}
+              variant="fading"
+              priorEraName={prior_era_name}
+            />
+          </>
+        )}
+      </div>
+    </section>
   )
 }
 
@@ -177,6 +415,7 @@ export default async function EraDetailPage({
     recentDocs,
     topDatasets,
     recentStories,
+    trajectory,
   ] = await Promise.all([
     getEraMemberCounts(db, era),
     era.parent_era_id ? getEra(db, era.parent_era_id) : Promise.resolve<Era | null>(null),
@@ -190,6 +429,7 @@ export default async function EraDetailPage({
     getEraRecentDocuments(db, era, 6),
     getEraTopDatasets(db, era, 6),
     getEraRecentStories(db, era, 6),
+    getEraTrajectorySnapshot(db, era, { limit: 10 }),
   ])
 
   const century = isCenturyEra(era)
@@ -272,6 +512,8 @@ export default async function EraDetailPage({
           the raw evidence the synthesis will draw from.
         </div>
       </section>
+
+      <WhatChangedPanel trajectory={trajectory} eraName={era.name} />
 
       {/* Distinctive entities — the headline of the page. Concepts split
           into research and policy lenses because the two collections speak

@@ -802,3 +802,270 @@ export async function getPublicationContextByEra(pool: pg.Pool): Promise<Publica
     }
   })
 }
+
+// ---------------------------------------------------------------------------
+// Era trajectory snapshot (what's new / rising / fading in this era)
+//
+// Distinct from getEraTopEntities (cross-sectional distinctiveness, "what's
+// over-represented in this era vs. all other dated content"). The trajectory
+// snapshot answers temporal questions:
+//   - new in this era      → entities making their first corpus appearance
+//   - rising               → entities present prior, now growing fastest
+//   - fading               → entities prominent prior, now declining
+//
+// Metric for rising/fading: pairwise log-odds-ratio z-score between this era
+// and the immediately preceding decade-or-bucket era. Same Monroe et al
+// machinery as the distinctiveness ranking, but the comparison cohort is the
+// prior era instead of "everything else."
+// ---------------------------------------------------------------------------
+
+export interface TrajectoryEntity {
+  entity_id: number
+  entity_type: EntityType
+  name: string
+  n_in_era: number
+  n_in_prior: number
+  /** Min year of any mention of this entity in dated content. */
+  first_year: number
+  /**
+   * Pairwise log-odds-ratio z-score, this era vs prior era. Positive = rising,
+   * negative = fading. NaN for "new" entities (no prior baseline).
+   */
+  z_score: number
+}
+
+export interface EraTrajectorySnapshot {
+  hasPrior: boolean
+  prior_era_name: string | null
+  prior_era_slug: string | null
+  newInEra: TrajectoryEntity[]
+  rising: TrajectoryEntity[]
+  fading: TrajectoryEntity[]
+}
+
+interface TrajectoryRawRow {
+  entity_id: number
+  name: string
+  n_curr: string
+  n_prior: string
+  first_year: number
+}
+
+async function fetchTrajectoryForType(
+  pool: pg.Pool,
+  entityType: EntityType,
+  era: Era,
+  priorEra: Era,
+  sources: readonly SourceCollection[],
+): Promise<TrajectoryEntity[]> {
+  const { table, nameCol } = ENTITY_TABLES[entityType]
+
+  const { rows } = await pool.query<TrajectoryRawRow>(
+    `
+    WITH dated AS (
+      SELECT em.entity_id,
+        CASE em.collection
+          WHEN 'publications' THEN (SELECT NULLIF(p.year, 0)::int FROM publications p WHERE p.id = em.item_id)
+          WHEN 'documents'    THEN (SELECT extract(year FROM d.date_original)::int FROM documents d WHERE d.id = em.item_id)
+          WHEN 'datasets'     THEN (SELECT NULLIF(ds.publication_year, 0)::int FROM datasets ds WHERE ds.id = em.item_id)
+          WHEN 'stories'      THEN (SELECT extract(year FROM s.date)::int FROM stories s WHERE s.id = em.item_id)
+        END AS y
+      FROM entity_mentions em
+      WHERE em.entity_type = $1
+        AND em.collection = ANY($2::text[])
+    ),
+    per_entity AS (
+      SELECT entity_id,
+             count(*) FILTER (WHERE y BETWEEN $3 AND $4)::int AS n_curr,
+             count(*) FILTER (WHERE y BETWEEN $5 AND $6)::int AS n_prior,
+             min(y) AS first_year
+        FROM dated
+       WHERE y IS NOT NULL
+       GROUP BY entity_id
+      HAVING count(*) FILTER (WHERE y BETWEEN $3 AND $4) > 0
+          OR count(*) FILTER (WHERE y BETWEEN $5 AND $6) > 0
+    )
+    SELECT pe.entity_id, ent.${nameCol} AS name,
+           pe.n_curr::text, pe.n_prior::text, pe.first_year
+      FROM per_entity pe
+      JOIN ${table} ent ON ent.id = pe.entity_id
+    `,
+    [entityType, sources as unknown as string[], era.start_year, era.end_year, priorEra.start_year, priorEra.end_year],
+  )
+
+  const counts = rows.map((r) => ({
+    entity_id: r.entity_id,
+    entity_type: entityType,
+    name: r.name,
+    n_in_era: parseInt(r.n_curr, 10),
+    n_in_prior: parseInt(r.n_prior, 10),
+    first_year: r.first_year,
+  }))
+
+  // Pairwise log-odds-ratio z-score with uniform Laplace prior.
+  const ALPHA = 1
+  const alpha0 = counts.length || 1
+  const totalCurr = counts.reduce((s, r) => s + r.n_in_era, 0)
+  const totalPrior = counts.reduce((s, r) => s + r.n_in_prior, 0)
+
+  return counts.map((r) => {
+    const numCurr = r.n_in_era + ALPHA
+    const denCurr = totalCurr + alpha0
+    const numPrior = r.n_in_prior + ALPHA
+    const denPrior = totalPrior + alpha0
+    const pCurr = numCurr / denCurr
+    const pPrior = numPrior / denPrior
+    const delta = Math.log(pCurr / (1 - pCurr)) - Math.log(pPrior / (1 - pPrior))
+    const variance = 1 / numCurr + 1 / numPrior
+    const z = delta / Math.sqrt(variance)
+    return { ...r, z_score: z }
+  })
+}
+
+/**
+ * Three lists summarizing what changed entering this era — new arrivals,
+ * fastest-rising entities, and fading entities. Mixed across all entity
+ * types (concept / species / protocol / place / stakeholder) and tagged so
+ * the UI can color-code chips by type.
+ *
+ * If the era has no prior calendar era (e.g. pre-1950), the rising/fading
+ * lists are empty but newInEra still populates.
+ */
+export async function getEraTrajectorySnapshot(
+  pool: pg.Pool,
+  era: Era,
+  options: {
+    sources?: readonly SourceCollection[]
+    /** Max entries returned per list. */
+    limit?: number
+    /** Min mentions in current era for rising/new candidacy. */
+    minMentionsRising?: number
+    /** Min mentions in prior era for fading candidacy. */
+    minMentionsFading?: number
+  } = {},
+): Promise<EraTrajectorySnapshot> {
+  if (era.kind !== 'calendar') {
+    return {
+      hasPrior: false,
+      prior_era_name: null,
+      prior_era_slug: null,
+      newInEra: [],
+      rising: [],
+      fading: [],
+    }
+  }
+
+  const limit = options.limit ?? 10
+  const minMentionsRising = options.minMentionsRising ?? 3
+  const minMentionsFading = options.minMentionsFading ?? 3
+  const sources = options.sources ?? RESEARCH_SOURCES
+
+  // Look up the immediately-preceding decade-or-bucket era.
+  const { rows: priorRows } = await pool.query<Era>(
+    `SELECT ${ERA_COLS} FROM eras
+      WHERE kind = 'calendar'
+        AND (end_year - start_year) < 50
+        AND end_year < $1
+      ORDER BY start_year DESC
+      LIMIT 1`,
+    [era.start_year],
+  )
+  const priorEra = priorRows[0] ?? null
+  const hasPrior = Boolean(priorEra)
+
+  // Collect "new" candidates from a per-type query — works even when there
+  // is no prior era (e.g. pre-1950). Uses the same dated/per-entity CTE
+  // shape as fetchTrajectoryForType but only needs current-era counts.
+  const entityTypes: EntityType[] = ['concept', 'species', 'protocol', 'place', 'stakeholder']
+  const allNew: TrajectoryEntity[] = []
+  const allTrajectory: TrajectoryEntity[][] = []
+
+  for (const t of entityTypes) {
+    if (hasPrior && priorEra) {
+      const trajectory = await fetchTrajectoryForType(pool, t, era, priorEra, sources)
+      allTrajectory.push(trajectory)
+      for (const e of trajectory) {
+        if (
+          e.first_year >= era.start_year &&
+          e.first_year <= era.end_year &&
+          e.n_in_era >= minMentionsRising
+        ) {
+          allNew.push(e)
+        }
+      }
+    } else {
+      // No prior — query "new" directly (anything with first_year in current era).
+      const { table, nameCol } = ENTITY_TABLES[t]
+      const { rows } = await pool.query<{
+        entity_id: number
+        name: string
+        n_curr: string
+        first_year: number
+      }>(
+        `
+        WITH dated AS (
+          SELECT em.entity_id,
+            CASE em.collection
+              WHEN 'publications' THEN (SELECT NULLIF(p.year, 0)::int FROM publications p WHERE p.id = em.item_id)
+              WHEN 'documents'    THEN (SELECT extract(year FROM d.date_original)::int FROM documents d WHERE d.id = em.item_id)
+              WHEN 'datasets'     THEN (SELECT NULLIF(ds.publication_year, 0)::int FROM datasets ds WHERE ds.id = em.item_id)
+              WHEN 'stories'      THEN (SELECT extract(year FROM s.date)::int FROM stories s WHERE s.id = em.item_id)
+            END AS y
+          FROM entity_mentions em
+          WHERE em.entity_type = $1 AND em.collection = ANY($2::text[])
+        ),
+        per_entity AS (
+          SELECT entity_id,
+                 count(*) FILTER (WHERE y BETWEEN $3 AND $4)::int AS n_curr,
+                 min(y) AS first_year
+            FROM dated
+           WHERE y IS NOT NULL
+           GROUP BY entity_id
+        )
+        SELECT pe.entity_id, ent.${nameCol} AS name, pe.n_curr::text, pe.first_year
+          FROM per_entity pe JOIN ${table} ent ON ent.id = pe.entity_id
+         WHERE pe.first_year BETWEEN $3 AND $4 AND pe.n_curr >= $5
+        `,
+        [t, sources as unknown as string[], era.start_year, era.end_year, minMentionsRising],
+      )
+      for (const r of rows) {
+        allNew.push({
+          entity_id: r.entity_id,
+          entity_type: t,
+          name: r.name,
+          n_in_era: parseInt(r.n_curr, 10),
+          n_in_prior: 0,
+          first_year: r.first_year,
+          z_score: NaN,
+        })
+      }
+    }
+  }
+
+  // Sort and trim each list.
+  const newSorted = [...allNew].sort((a, b) => b.n_in_era - a.n_in_era).slice(0, limit)
+
+  const allMerged = allTrajectory.flat()
+  const rising = allMerged
+    .filter(
+      (e) =>
+        e.n_in_era >= minMentionsRising &&
+        e.n_in_prior >= minMentionsRising &&
+        e.z_score > 0,
+    )
+    .sort((a, b) => b.z_score - a.z_score)
+    .slice(0, limit)
+  const fading = allMerged
+    .filter((e) => e.n_in_prior >= minMentionsFading && e.z_score < 0)
+    .sort((a, b) => a.z_score - b.z_score)
+    .slice(0, limit)
+
+  return {
+    hasPrior,
+    prior_era_name: priorEra?.name ?? null,
+    prior_era_slug: priorEra?.slug ?? null,
+    newInEra: newSorted,
+    rising,
+    fading,
+  }
+}
