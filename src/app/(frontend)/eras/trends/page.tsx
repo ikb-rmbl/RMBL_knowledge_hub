@@ -3,6 +3,7 @@ import { getDb } from '../../lib/db'
 import {
   getDiversityAcrossEras,
   RESEARCH_SOURCES,
+  type CategoryDimension,
   type EraCategoryBreakdown,
   type SourceCollection,
 } from '@/services/eras'
