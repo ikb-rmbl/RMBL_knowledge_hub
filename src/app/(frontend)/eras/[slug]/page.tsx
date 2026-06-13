@@ -4,6 +4,7 @@ import { getDb } from '../../lib/db'
 import {
   getEra,
   getEraMemberCounts,
+  getEraPrimer,
   getEraTopEntities,
   getEraTopPublications,
   getEraRecentDocuments,
@@ -14,6 +15,7 @@ import {
   RESEARCH_SOURCES,
   POLICY_SOURCES,
   type Era,
+  type EraPrimer,
   type EraTrajectorySnapshot,
   type TopEntity,
   type TrajectoryEntity,
@@ -94,6 +96,178 @@ function EntityChip({ entity, type }: { entity: TopEntity; type: EntityType }) {
     </Link>
   ) : (
     <span style={chipStyle}>{inner}</span>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Primer renderer (parses the generated markdown-ish text into sections)
+// ---------------------------------------------------------------------------
+
+const ERA_PRIMER_HEADERS = new Set([
+  'setting',
+  'research focus',
+  'community and policy context',
+  'emerging directions',
+  'landmark works',
+  'connections',
+  'references',
+])
+
+function renderInlineLinks(text: string): React.ReactNode {
+  // Match [link text](/{publications|documents|datasets}/N)
+  const parts = text.split(/(\[[^\]]+\]\(\/(?:publications|documents|datasets)\/\d+\))/g)
+  if (parts.length === 1) return text
+  return parts.map((part, i) => {
+    const m = part.match(/^\[([^\]]+)\]\((\/(?:publications|documents|datasets)\/\d+)\)$/)
+    if (m) {
+      const linkText = m[1]
+      // Citation-style links end with a 4-digit year — wrap in parens for prose.
+      const isCitation = /\d{4}\s*$/.test(linkText)
+      return (
+        <a key={i} href={m[2]} style={{ color: 'var(--color-accent)', textDecoration: 'none' }}>
+          {isCitation ? `(${linkText})` : linkText}
+        </a>
+      )
+    }
+    return <span key={i}>{part}</span>
+  })
+}
+
+function PrimerRenderer({ text }: { text: string }) {
+  const lines = text.split('\n')
+  const elements: React.ReactNode[] = []
+  let para: string[] = []
+  let inReferences = false
+  const refLines: string[] = []
+
+  function flushPara() {
+    if (para.length === 0) return
+    const content = para.join(' ')
+    elements.push(
+      <p
+        key={elements.length}
+        style={{
+          fontSize: '14px',
+          lineHeight: 1.7,
+          color: 'var(--fg-2)',
+          margin: '0 0 12px',
+          maxWidth: '68ch',
+        }}
+      >
+        {renderInlineLinks(content)}
+      </p>,
+    )
+    para = []
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed) {
+      flushPara()
+      continue
+    }
+    const headerText = trimmed.replace(/^#{1,3}\s+/, '')
+    if (ERA_PRIMER_HEADERS.has(headerText.toLowerCase())) {
+      flushPara()
+      inReferences = headerText.toLowerCase() === 'references'
+      elements.push(
+        <h3
+          key={elements.length}
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: '15px',
+            fontWeight: 600,
+            margin: '20px 0 8px',
+            color: 'var(--fg-1)',
+            ...(inReferences
+              ? { borderTop: '1px solid var(--color-border)', paddingTop: '16px', marginTop: '24px' }
+              : {}),
+          }}
+        >
+          {headerText}
+        </h3>,
+      )
+      continue
+    }
+    if (inReferences) {
+      flushPara()
+      refLines.push(trimmed)
+    } else {
+      para.push(trimmed)
+    }
+  }
+  flushPara()
+
+  // Render reference entries in source order (the prompt outputs them in
+  // the order they were cited; preserve that here rather than re-sorting).
+  for (const ref of refLines) {
+    elements.push(
+      <p
+        key={elements.length}
+        style={{
+          fontSize: '13px',
+          lineHeight: 1.5,
+          color: 'var(--fg-3)',
+          margin: '0 0 6px',
+          maxWidth: '68ch',
+        }}
+      >
+        {renderInlineLinks(ref)}
+      </p>,
+    )
+  }
+
+  return <>{elements}</>
+}
+
+function SynthesisSection({
+  primer,
+  eraName,
+}: {
+  primer: EraPrimer | null
+  eraName: string
+}) {
+  if (!primer) {
+    return (
+      <section style={sectionWrap}>
+        <h3 style={sectionHeading}>Synthesis</h3>
+        <div
+          style={{
+            padding: '14px 16px',
+            background: 'var(--color-surface)',
+            border: '1px dashed var(--color-border)',
+            borderRadius: 'var(--radius-sm)',
+            fontSize: '13px',
+            color: 'var(--color-text-muted)',
+            lineHeight: 1.5,
+          }}
+        >
+          A grounded period portrait of environmental research at RMBL and the
+          Gunnison Basin during the {eraName} will appear here once the era
+          primer has been generated. Today&rsquo;s view is the raw evidence
+          the synthesis will draw from.
+        </div>
+      </section>
+    )
+  }
+  return (
+    <section style={sectionWrap}>
+      <h3 style={sectionHeading}>Synthesis</h3>
+      <PrimerRenderer text={primer.primer} />
+      {primer.primer_generated_at && (
+        <p
+          style={{
+            fontSize: '11px',
+            color: 'var(--color-text-muted)',
+            margin: '20px 0 0',
+            fontStyle: 'italic',
+          }}
+        >
+          Generated {new Date(primer.primer_generated_at).toLocaleDateString()}{' '}
+          {primer.primer_model ? `with ${primer.primer_model}` : ''}.
+        </p>
+      )}
+    </section>
   )
 }
 
@@ -416,6 +590,7 @@ export default async function EraDetailPage({
     topDatasets,
     recentStories,
     trajectory,
+    primer,
   ] = await Promise.all([
     getEraMemberCounts(db, era),
     era.parent_era_id ? getEra(db, era.parent_era_id) : Promise.resolve<Era | null>(null),
@@ -430,6 +605,7 @@ export default async function EraDetailPage({
     getEraTopDatasets(db, era, 6),
     getEraRecentStories(db, era, 6),
     getEraTrajectorySnapshot(db, era, { limit: 10 }),
+    getEraPrimer(db, era.id),
   ])
 
   const century = isCenturyEra(era)
@@ -492,26 +668,7 @@ export default async function EraDetailPage({
           <CountBadge label="stories" n={counts.stories} />
         </div>
 
-      {/* Synthesis placeholder — populated by Phase 3 era-primer generation */}
-      <section style={sectionWrap}>
-        <h3 style={sectionHeading}>Synthesis</h3>
-        <div
-          style={{
-            padding: '14px 16px',
-            background: 'var(--color-surface)',
-            border: '1px dashed var(--color-border)',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '13px',
-            color: 'var(--color-text-muted)',
-            lineHeight: 1.5,
-          }}
-        >
-          A grounded primer describing what was happening in the {era.name} —
-          drawing on the distinctive concepts, species, and content below —
-          will appear here when the era-primer pipeline ships. Today’s view is
-          the raw evidence the synthesis will draw from.
-        </div>
-      </section>
+      <SynthesisSection primer={primer} eraName={era.name} />
 
       <WhatChangedPanel trajectory={trajectory} eraName={era.name} />
 
