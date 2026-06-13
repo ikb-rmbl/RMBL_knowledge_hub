@@ -684,3 +684,121 @@ export async function getAuthorCohortsByEra(
   out.sort((a, b) => a.start_year - b.start_year)
   return out
 }
+
+// ---------------------------------------------------------------------------
+// Publication-context trends across eras (corpus volume + collaboration +
+// coverage + engagement). All six metrics in one round trip via CTEs.
+// Publication-bound by design — there's no "documents version" of avg
+// co-authors or full-text coverage, so the source-lens toggle doesn't apply
+// here. The items-per-era line is lens-aware and uses listErasWithCounts
+// downstream.
+// ---------------------------------------------------------------------------
+
+export interface PublicationContextRow {
+  era_id: number
+  era_slug: string
+  era_name: string
+  start_year: number
+  end_year: number
+  /** Total publications dated within this era (year>0). Used as denominator for several rates and as a reliability gauge. */
+  n_pubs: number
+  /** Publications with substantive full text (>500 chars). */
+  n_fulltext: number
+  /** Share of publications with full text (0-1). */
+  share_fulltext: number
+  /** Average authors per publication (among publications with at least one author row). */
+  avg_authors: number
+  /** Distinct (family + given) author identities appearing on publications dated within the era. */
+  unique_authors: number
+  /** Average references per publication (refs_count / n_pubs; pubs with no extracted refs count as 0). */
+  avg_refs: number
+  /** Share of extracted references that resolve to another known publication/document/dataset (0-1). */
+  share_internal_refs: number
+}
+
+export async function getPublicationContextByEra(pool: pg.Pool): Promise<PublicationContextRow[]> {
+  const { rows } = await pool.query<{
+    era_id: number
+    era_slug: string
+    era_name: string
+    start_year: number
+    end_year: number
+    n_pubs: string
+    n_fulltext: string
+    avg_authors: string
+    unique_authors: string
+    total_refs: string
+    internal_refs: string
+  }>(`
+    WITH pub_era AS (
+      SELECT p.id AS pub_id, p.year::int AS year,
+             e.id AS era_id, e.slug AS era_slug, e.name AS era_name,
+             e.start_year, e.end_year,
+             (p.full_text IS NOT NULL AND length(p.full_text) > 500) AS has_fulltext
+        FROM publications p
+        JOIN eras e
+          ON e.kind = 'calendar' AND (e.end_year - e.start_year) < 50
+         AND p.year::int BETWEEN e.start_year AND e.end_year
+       WHERE p.year > 0 AND p.year::int >= 1900
+    ),
+    pub_counts AS (
+      SELECT era_id, era_slug, era_name, start_year, end_year,
+             count(*)::int AS n_pubs,
+             count(*) FILTER (WHERE has_fulltext)::int AS n_fulltext
+        FROM pub_era
+       GROUP BY era_id, era_slug, era_name, start_year, end_year
+    ),
+    author_stats AS (
+      SELECT pe.era_id,
+             count(*)::numeric AS author_rows,
+             count(DISTINCT a._parent_id)::int AS pubs_with_any_author,
+             count(DISTINCT lower(coalesce(a.family, '')) || '|' || lower(coalesce(a.given, '')))::int AS unique_authors
+        FROM pub_era pe
+        JOIN publications_authors a ON a._parent_id = pe.pub_id
+       GROUP BY pe.era_id
+    ),
+    ref_stats AS (
+      SELECT pe.era_id,
+             count(*)::numeric AS total_refs,
+             count(*) FILTER (
+               WHERE r.target_publication_id IS NOT NULL
+                  OR r.target_document_id IS NOT NULL
+                  OR r.target_dataset_id IS NOT NULL
+             )::numeric AS internal_refs
+        FROM pub_era pe
+        JOIN references_cited r ON r.source_publication_id = pe.pub_id
+       GROUP BY pe.era_id
+    )
+    SELECT pc.era_id, pc.era_slug, pc.era_name, pc.start_year, pc.end_year,
+           pc.n_pubs::text, pc.n_fulltext::text,
+           coalesce((a.author_rows / NULLIF(a.pubs_with_any_author, 0))::text, '0') AS avg_authors,
+           coalesce(a.unique_authors::text, '0') AS unique_authors,
+           coalesce(r.total_refs::text, '0') AS total_refs,
+           coalesce(r.internal_refs::text, '0') AS internal_refs
+      FROM pub_counts pc
+      LEFT JOIN author_stats a ON a.era_id = pc.era_id
+      LEFT JOIN ref_stats r ON r.era_id = pc.era_id
+     ORDER BY pc.start_year ASC, (pc.end_year - pc.start_year) DESC
+  `)
+
+  return rows.map((r) => {
+    const nPubs = parseInt(r.n_pubs, 10)
+    const nFt = parseInt(r.n_fulltext, 10)
+    const totalRefs = parseFloat(r.total_refs)
+    const internalRefs = parseFloat(r.internal_refs)
+    return {
+      era_id: r.era_id,
+      era_slug: r.era_slug,
+      era_name: r.era_name,
+      start_year: r.start_year,
+      end_year: r.end_year,
+      n_pubs: nPubs,
+      n_fulltext: nFt,
+      share_fulltext: nPubs > 0 ? nFt / nPubs : 0,
+      avg_authors: parseFloat(r.avg_authors),
+      unique_authors: parseInt(r.unique_authors, 10),
+      avg_refs: nPubs > 0 ? totalRefs / nPubs : 0,
+      share_internal_refs: totalRefs > 0 ? internalRefs / totalRefs : 0,
+    }
+  })
+}

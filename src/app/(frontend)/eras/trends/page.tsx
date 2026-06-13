@@ -3,10 +3,15 @@ import { getDb } from '../../lib/db'
 import {
   getAuthorCohortsByEra,
   getDiversityAcrossEras,
+  getPublicationContextByEra,
+  isCenturyEra,
+  listErasWithCounts,
   RESEARCH_SOURCES,
   type CategoryDimension,
   type EraCategoryBreakdown,
   type EraCohortBreakdown,
+  type EraWithCounts,
+  type PublicationContextRow,
   type SourceCollection,
 } from '@/services/eras'
 
@@ -705,6 +710,286 @@ function Legend({
 }
 
 // ---------------------------------------------------------------------------
+// Corpus context: small line charts that frame the diversity story.
+// ---------------------------------------------------------------------------
+
+const MINI_W = 280
+const MINI_H = 130
+const MINI_MARGIN = { top: 10, right: 8, bottom: 22, left: 30 }
+const CONTEXT_COLOR = '#3a6b7b'
+
+/** A single decade's data point for a mini chart. */
+interface MiniPoint {
+  era_slug: string
+  era_name: string
+  value: number
+  /** Used to dim points below the reliability cutoff. */
+  reliable: boolean
+}
+
+/**
+ * Compact line chart used for the corpus-context panel. One line, axis
+ * labels at the corners only, hover titles on each dot.
+ */
+function MiniChart({
+  title,
+  subtitle,
+  points,
+  format,
+  unit,
+}: {
+  title: string
+  subtitle: string
+  points: MiniPoint[]
+  format: (v: number) => string
+  unit?: string
+}) {
+  if (points.length === 0) return null
+  const plotW = MINI_W - MINI_MARGIN.left - MINI_MARGIN.right
+  const plotH = MINI_H - MINI_MARGIN.top - MINI_MARGIN.bottom
+
+  const ys = points.map((p) => p.value)
+  const rawMax = Math.max(...ys)
+  const maxY = rawMax > 0 ? rawMax * 1.1 : 1
+  const yToPx = (v: number) => MINI_MARGIN.top + plotH - (v / maxY) * plotH
+  const xToPx = (i: number) =>
+    MINI_MARGIN.left + (points.length === 1 ? plotW / 2 : (i / (points.length - 1)) * plotW)
+
+  const pts = points.map((p, i) => ({ x: xToPx(i), y: yToPx(p.value), p }))
+  const linePath = pts
+    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
+    .join(' ')
+
+  const latestReliable = [...points].reverse().find((p) => p.reliable) ?? points[points.length - 1]
+
+  return (
+    <div
+      style={{
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-sm)',
+        padding: '12px 14px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px' }}>
+        <div style={{ fontSize: '13px', fontWeight: 600 }}>{title}</div>
+        <div
+          style={{
+            fontSize: '16px',
+            fontWeight: 600,
+            color: CONTEXT_COLOR,
+            fontVariantNumeric: 'tabular-nums',
+            whiteSpace: 'nowrap',
+          }}
+          title={`Latest reliable era: ${latestReliable.era_name}`}
+        >
+          {format(latestReliable.value)}
+          {unit && (
+            <span style={{ fontSize: '11px', fontWeight: 400, color: 'var(--color-text-muted)', marginLeft: '3px' }}>
+              {unit}
+            </span>
+          )}
+        </div>
+      </div>
+      <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>{subtitle}</div>
+      <svg
+        viewBox={`0 0 ${MINI_W} ${MINI_H}`}
+        role="img"
+        aria-label={`${title} per decade`}
+        style={{ width: '100%', height: 'auto', display: 'block' }}
+      >
+        {/* y axis tick at top + baseline at bottom */}
+        <line
+          x1={MINI_MARGIN.left}
+          x2={MINI_W - MINI_MARGIN.right}
+          y1={MINI_MARGIN.top + plotH}
+          y2={MINI_MARGIN.top + plotH}
+          stroke="var(--color-border)"
+        />
+        <text
+          x={MINI_MARGIN.left - 4}
+          y={MINI_MARGIN.top + 8}
+          textAnchor="end"
+          fontSize="9"
+          fill="var(--color-text-muted)"
+          style={{ fontVariantNumeric: 'tabular-nums' }}
+        >
+          {format(maxY)}
+        </text>
+        <text
+          x={MINI_MARGIN.left - 4}
+          y={MINI_MARGIN.top + plotH + 3}
+          textAnchor="end"
+          fontSize="9"
+          fill="var(--color-text-muted)"
+          style={{ fontVariantNumeric: 'tabular-nums' }}
+        >
+          0
+        </text>
+        {/* x axis labels at extreme decades only — keeps the chart legible */}
+        <text
+          x={pts[0].x}
+          y={MINI_H - 6}
+          textAnchor="middle"
+          fontSize="9"
+          fill="var(--color-text-muted)"
+        >
+          {points[0].era_name}
+        </text>
+        <text
+          x={pts[pts.length - 1].x}
+          y={MINI_H - 6}
+          textAnchor="middle"
+          fontSize="9"
+          fill="var(--color-text-muted)"
+        >
+          {points[points.length - 1].era_name}
+        </text>
+        <path d={linePath} fill="none" stroke={CONTEXT_COLOR} strokeWidth="1.8" />
+        {pts.map((p) => (
+          <g key={p.p.era_slug}>
+            <circle
+              cx={p.x}
+              cy={p.y}
+              r={p.p.reliable ? 3 : 2}
+              fill={p.p.reliable ? CONTEXT_COLOR : 'var(--color-surface)'}
+              stroke={CONTEXT_COLOR}
+              strokeWidth="1.2"
+              opacity={p.p.reliable ? 1 : 0.55}
+            />
+            <title>{`${p.p.era_name}: ${format(p.p.value)}${unit ?? ''}${p.p.reliable ? '' : ' (sparse)'}`}</title>
+          </g>
+        ))}
+      </svg>
+    </div>
+  )
+}
+
+/**
+ * Reliability gauge for the publication-context metrics — same idea as the
+ * diversity charts but the cutoff is publication count rather than mention
+ * count. Decades with very few publications produce noisy ratios.
+ */
+const RELIABLE_MIN_PUBS = 50
+
+function buildContextPoints(
+  rows: PublicationContextRow[],
+  getter: (r: PublicationContextRow) => number,
+): MiniPoint[] {
+  return rows.map((r) => ({
+    era_slug: r.era_slug,
+    era_name: r.era_name,
+    value: getter(r),
+    reliable: r.n_pubs >= RELIABLE_MIN_PUBS,
+  }))
+}
+
+function buildItemsPoints(
+  eras: EraWithCounts[],
+  sources: readonly SourceCollection[],
+): MiniPoint[] {
+  const decadeEras = eras.filter((e) => !isCenturyEra(e))
+  return decadeEras.map((e) => {
+    const total = sources.reduce(
+      (sum, c) => sum + e.counts[c as 'publications' | 'documents' | 'datasets' | 'stories'],
+      0,
+    )
+    // Reliability for "items per decade" is essentially "did we have any
+    // content from this decade" — use total > 20 as a low bar.
+    return {
+      era_slug: e.slug,
+      era_name: e.name,
+      value: total,
+      reliable: total >= 20,
+    }
+  })
+}
+
+const fmtInt = (v: number) => Math.round(v).toLocaleString()
+const fmtFixed1 = (v: number) => v.toFixed(1)
+const fmtPct = (v: number) => `${Math.round(v * 100)}%`
+
+function CorpusContext({
+  pubContext,
+  eras,
+  lens,
+  sources,
+}: {
+  pubContext: PublicationContextRow[]
+  eras: EraWithCounts[]
+  lens: 'research' | 'all'
+  sources: readonly SourceCollection[]
+}) {
+  // Decade order only — drop centuries from the publication-context rows.
+  const decadeContext = pubContext.filter((r) => r.end_year - r.start_year < 50)
+
+  return (
+    <section style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid var(--color-border)' }}>
+      <h2 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 6px' }}>Corpus context</h2>
+      <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: '0 0 14px', maxWidth: '70ch', lineHeight: 1.55 }}>
+        Six trends framing the diversity story above: how the corpus grew, how
+        well-covered it is by full text, how the research community changed,
+        and how internally connected the literature became. The{' '}
+        <strong>items-per-decade</strong> chart respects the{' '}
+        {lens === 'research' ? 'research' : 'all-sources'} lens
+        ({sources.join(' + ')}); the other five are inherently
+        publication-bound (no &ldquo;documents version&rdquo; of average
+        co-authors), so they show publications regardless of lens.
+      </p>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: '12px',
+        }}
+      >
+        <MiniChart
+          title="Items per decade"
+          subtitle={`Total ${sources.join(' + ')} dated within each decade.`}
+          points={buildItemsPoints(eras, sources)}
+          format={fmtInt}
+        />
+        <MiniChart
+          title="Full-text coverage"
+          subtitle="Share of publications with substantive full text — frames the diversity reliability."
+          points={buildContextPoints(decadeContext, (r) => r.share_fulltext)}
+          format={fmtPct}
+        />
+        <MiniChart
+          title="References per paper"
+          subtitle="Average extracted references per publication — connection to the broader literature."
+          points={buildContextPoints(decadeContext, (r) => r.avg_refs)}
+          format={fmtFixed1}
+        />
+        <MiniChart
+          title="Unique researchers"
+          subtitle="Distinct authors publishing in the decade — community growth signal."
+          points={buildContextPoints(decadeContext, (r) => r.unique_authors)}
+          format={fmtInt}
+        />
+        <MiniChart
+          title="Co-authors per paper"
+          subtitle="Average authors per publication — collaboration signal."
+          points={buildContextPoints(decadeContext, (r) => r.avg_authors)}
+          format={fmtFixed1}
+        />
+        <MiniChart
+          title="Internal citations"
+          subtitle="Share of references that point to other RMBL publications/documents/datasets — the corpus citing itself."
+          points={buildContextPoints(decadeContext, (r) => r.share_internal_refs)}
+          format={fmtPct}
+        />
+      </div>
+    </section>
+  )
+}
+
+
+// ---------------------------------------------------------------------------
 // Community composition — author cohorts per era
 // ---------------------------------------------------------------------------
 
@@ -1021,10 +1306,12 @@ export default async function ErasTrendsPage({
   const sources = lens === 'research' ? RESEARCH_SOURCES : ALL_SOURCES
 
   const db = getDb()
-  const [scopes, protocolCats, cohorts] = await Promise.all([
+  const [scopes, protocolCats, cohorts, pubContext, eraCounts] = await Promise.all([
     getDiversityAcrossEras(db, 'scope', sources),
     getDiversityAcrossEras(db, 'protocol_category', sources),
     getAuthorCohortsByEra(db),
+    getPublicationContextByEra(db),
+    listErasWithCounts(db),
   ])
 
   return (
@@ -1084,6 +1371,13 @@ export default async function ErasTrendsPage({
           are becoming more evenly distributed without much change in breadth.
         </p>
       </section>
+
+      <CorpusContext
+        pubContext={pubContext}
+        eras={eraCounts}
+        lens={lens}
+        sources={sources}
+      />
 
       <DiversityPanel
         title="Disciplines"
