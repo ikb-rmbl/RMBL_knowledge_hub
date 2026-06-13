@@ -1606,6 +1606,238 @@ export async function getEraNewsContext(
 }
 
 // ---------------------------------------------------------------------------
+// Century-scale primers
+//
+// Century eras (span > 50yr; today the two rows are 20th-century / 21st-century)
+// have different needs from decade primers. The "ERA SIGNATURE vs prior era"
+// framing doesn't apply (no comparable predecessor), citation-ranked landmark
+// selection skews toward late decades, and the distinctive-entity machinery
+// returns ubiquitous basin topics rather than period-specific signatures.
+//
+// The century primer needs: a chronological backbone of phase-by-phase shifts
+// (built from each child era's existing primer_key_themes[0]), and a
+// child-era-balanced landmark sample so early-century papers aren't crowded
+// out by late-century citation accumulators.
+// ---------------------------------------------------------------------------
+
+export interface ChildEraSummary {
+  era: Era
+  n_pubs: number
+  /** First theme from primer_key_themes — used as the one-line headline. */
+  headline_theme: string | null
+}
+
+export interface CenturyArc {
+  parent_era_id: number
+  /** Children in chronological order. */
+  children: ChildEraSummary[]
+  /** Sum of n_pubs across children. */
+  total_pubs: number
+  /** Sum of external_citation_count across all publications in the century. */
+  total_ext_cites: number
+  /** Avg co-authors in earliest vs latest child with pub data — drives "collaboration intensified" claims. */
+  avg_authors_first: { era_name: string; value: number } | null
+  avg_authors_last: { era_name: string; value: number } | null
+  /** Pubs-per-year in earliest vs latest child — drives volume-arc framing. */
+  pubs_per_year_first: { era_name: string; value: number } | null
+  pubs_per_year_last: { era_name: string; value: number } | null
+}
+
+/**
+ * Decade-or-bucket eras whose start_year falls inside parentEra's span, in
+ * chronological order. Driven by start-year inclusion rather than full
+ * [start, end] containment because some child eras straddle a century
+ * boundary by one year (1996-2000 has end_year 2000 but is intended as a
+ * 20th-century child by convention; the 21st century's first child is
+ * 2001-05). parent_era_id isn't reliable in the current schema so this is
+ * the durable criterion.
+ */
+export async function getChildEras(
+  pool: pg.Pool,
+  parentEra: Era,
+): Promise<Era[]> {
+  const { rows } = await pool.query<Era>(
+    `SELECT ${ERA_COLS} FROM eras
+      WHERE kind = 'calendar'
+        AND (end_year - start_year) < 50
+        AND start_year >= $1
+        AND start_year <= $2
+      ORDER BY start_year ASC`,
+    [parentEra.start_year, parentEra.end_year],
+  )
+  return rows
+}
+
+/**
+ * Assemble the structured CENTURY ARC: per-child headlines (from
+ * primer_key_themes[0]), per-child pub counts, and across-the-century scale
+ * figures. Pulls in one round-trip via getPublicationContextByEra and per-child
+ * primer reads. Cheap at N=11 children.
+ */
+export async function getCenturyArc(
+  pool: pg.Pool,
+  parentEra: Era,
+): Promise<CenturyArc> {
+  const children = await getChildEras(pool, parentEra)
+  const allPubContext = await getPublicationContextByEra(pool)
+  const summaries: ChildEraSummary[] = []
+  for (const ch of children) {
+    const primer = await getEraPrimer(pool, ch.id)
+    const pc = allPubContext.find((r) => r.era_id === ch.id)
+    summaries.push({
+      era: ch,
+      n_pubs: pc?.n_pubs ?? 0,
+      headline_theme: primer?.key_themes?.[0] ?? null,
+    })
+  }
+
+  // Total external citation count across the parent's full year window.
+  const { rows: citeRows } = await pool.query<{ total: string }>(
+    `SELECT coalesce(sum(external_citation_count), 0)::text AS total
+       FROM publications WHERE year BETWEEN $1 AND $2 AND year > 0`,
+    [parentEra.start_year, parentEra.end_year],
+  )
+  const total_ext_cites = parseInt(citeRows[0]?.total ?? '0', 10)
+  const total_pubs = summaries.reduce((s, c) => s + c.n_pubs, 0)
+
+  const childrenWithPubs = summaries.filter((c) => c.n_pubs >= 10)
+  const first = childrenWithPubs[0] ?? null
+  const last = childrenWithPubs[childrenWithPubs.length - 1] ?? null
+  const firstPC = first ? allPubContext.find((r) => r.era_id === first.era.id) : null
+  const lastPC = last ? allPubContext.find((r) => r.era_id === last.era.id) : null
+
+  function pubsPerYear(c: ChildEraSummary | null): number | null {
+    if (!c) return null
+    const yrs = c.era.end_year - c.era.start_year + 1
+    return yrs > 0 ? c.n_pubs / yrs : null
+  }
+
+  return {
+    parent_era_id: parentEra.id,
+    children: summaries,
+    total_pubs,
+    total_ext_cites,
+    avg_authors_first:
+      first && firstPC
+        ? { era_name: first.era.name, value: firstPC.avg_authors }
+        : null,
+    avg_authors_last:
+      last && lastPC
+        ? { era_name: last.era.name, value: lastPC.avg_authors }
+        : null,
+    pubs_per_year_first:
+      first && pubsPerYear(first) !== null
+        ? { era_name: first.era.name, value: pubsPerYear(first)! }
+        : null,
+    pubs_per_year_last:
+      last && pubsPerYear(last) !== null
+        ? { era_name: last.era.name, value: pubsPerYear(last)! }
+        : null,
+  }
+}
+
+export interface CenturyLandmarkCandidate extends EraSamplePublication {
+  /** The child era this paper came from. */
+  child_era_slug: string
+  child_era_name: string
+  /** Within-child rank — how the paper was selected. */
+  pick_reason: 'ext' | 'basin'
+  pick_rank: number
+}
+
+/**
+ * Child-era-balanced landmark sample for a century primer. For each child
+ * era, pull top 3 by external citations + top 2 by basin-internal citations,
+ * dedup by id (preferring 'ext' tag on ties). Result: ~30 papers per century
+ * with proportional decade representation, not collapsed onto 1985-2000.
+ */
+export async function getCenturyLandmarks(
+  pool: pg.Pool,
+  parentEra: Era,
+  perChildExt: number = 3,
+  perChildBasin: number = 2,
+): Promise<CenturyLandmarkCandidate[]> {
+  const children = await getChildEras(pool, parentEra)
+  const picked = new Map<number, CenturyLandmarkCandidate>()
+
+  for (const ch of children) {
+    // Top-K by external citations within the child era window.
+    const { rows: extRows } = await pool.query<EraSamplePublication>(
+      `SELECT p.id, p.title, p.year::int AS year,
+              (SELECT string_agg(family, '; ' ORDER BY _order)
+                 FROM publications_authors a WHERE a._parent_id = p.id) AS authors,
+              coalesce(p.external_citation_count, 0)::int AS citation_count,
+              NULL::int AS internal_citation_count,
+              NULL::int AS distinct_basin_entities,
+              NULL::int AS rank_external,
+              NULL::int AS rank_internal,
+              NULL::int AS rank_grounded
+         FROM publications p
+        WHERE p.year BETWEEN $1 AND $2 AND p.year > 0
+        ORDER BY coalesce(p.external_citation_count, 0) DESC, p.year DESC
+        LIMIT $3`,
+      [ch.start_year, ch.end_year, perChildExt],
+    )
+    extRows.forEach((p, i) => {
+      if (!picked.has(p.id)) {
+        picked.set(p.id, {
+          ...p,
+          child_era_slug: ch.slug,
+          child_era_name: ch.name,
+          pick_reason: 'ext',
+          pick_rank: i + 1,
+        })
+      }
+    })
+
+    // Top-K by basin-internal citations within the child era window.
+    const { rows: basinRows } = await pool.query<EraSamplePublication & { internal_count: number }>(
+      `SELECT p.id, p.title, p.year::int AS year,
+              (SELECT string_agg(family, '; ' ORDER BY _order)
+                 FROM publications_authors a WHERE a._parent_id = p.id) AS authors,
+              coalesce(p.external_citation_count, 0)::int AS citation_count,
+              count(*)::int AS internal_count,
+              NULL::int AS distinct_basin_entities,
+              NULL::int AS rank_external,
+              NULL::int AS rank_internal,
+              NULL::int AS rank_grounded
+         FROM publications p
+         JOIN references_cited rc
+           ON rc.target_publication_id = p.id
+          AND rc.source_publication_id IS NOT NULL
+        WHERE p.year BETWEEN $1 AND $2 AND p.year > 0
+        GROUP BY p.id, p.year
+        ORDER BY count(*) DESC, p.year DESC
+        LIMIT $3`,
+      [ch.start_year, ch.end_year, perChildBasin],
+    )
+    basinRows.forEach((p, i) => {
+      if (!picked.has(p.id)) {
+        picked.set(p.id, {
+          ...p,
+          internal_citation_count: p.internal_count,
+          child_era_slug: ch.slug,
+          child_era_name: ch.name,
+          pick_reason: 'basin',
+          pick_rank: i + 1,
+        })
+      }
+    })
+  }
+
+  // Sort by child-era chronological order, then within child era keep ext
+  // picks before basin picks, then by rank.
+  const childOrder = new Map(children.map((c, idx) => [c.slug, idx]))
+  return Array.from(picked.values()).sort((a, b) => {
+    const oa = childOrder.get(a.child_era_slug) ?? 0
+    const ob = childOrder.get(b.child_era_slug) ?? 0
+    if (oa !== ob) return oa - ob
+    if (a.pick_reason !== b.pick_reason) return a.pick_reason === 'ext' ? -1 : 1
+    return a.pick_rank - b.pick_rank
+  })
+}
+
+// ---------------------------------------------------------------------------
 // Era primers (synthesized period portraits)
 // ---------------------------------------------------------------------------
 
