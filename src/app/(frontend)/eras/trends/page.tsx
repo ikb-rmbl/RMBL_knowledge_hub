@@ -3,6 +3,7 @@ import { getDb } from '../../lib/db'
 import {
   getDiversityAcrossEras,
   RESEARCH_SOURCES,
+  type CategoryDimension,
   type EraCategoryBreakdown,
   type SourceCollection,
 } from '@/services/eras'
@@ -33,8 +34,9 @@ const TOP_N_CATEGORIES = 8
 const OTHER_KEY = '__other__'
 const OTHER_COLOR = 'var(--color-text-muted)'
 
-// Stable categorical palette — 8-color Tableau-style set; legible alongside a
-// neutral Other bin.
+// Stable categorical palette used for dimensions that don't have a natural
+// thematic grouping (protocol categories). 8-color Tableau-style set, legible
+// alongside a neutral Other bin.
 const PALETTE = [
   '#4e79a7', '#f28e2c', '#59a14f', '#e15759',
   '#76b7b2', '#af7aa1', '#edc949', '#9c755f',
@@ -48,6 +50,105 @@ const SHANNON_COLOR = 'var(--color-accent)'
 const SIMPSON_COLOR = '#3a6b7b'
 
 // ---------------------------------------------------------------------------
+// Concept-scope domain grouping
+//
+// Concept scopes split into three thematic families. The composition chart
+// uses this both for ordering (life sciences cluster together, earth sciences
+// cluster together, cross-cutting at the top of the stack) and for color
+// scheme (warm reds/oranges for life, cool blues/teals for earth, neutrals
+// for cross-cutting). Boundary categories (biogeochemistry, landscape) are
+// best-effort classifications and easy to move if a curator disagrees.
+// ---------------------------------------------------------------------------
+
+type ScopeDomain = 'earth' | 'life' | 'cross'
+
+const SCOPE_DOMAINS: Record<string, ScopeDomain> = {
+  // Earth sciences — geo / hydro / climate / spatial
+  climate: 'earth',
+  hydrology: 'earth',
+  biogeochemistry: 'earth',
+  water_resources: 'earth',
+  general_geology: 'earth',
+  geology: 'earth',
+  geochemistry: 'earth',
+  geophysical: 'earth',
+  geophysics: 'earth',
+  geomorphology: 'earth',
+  paleontology: 'earth',
+  geochronology: 'earth',
+  landscape: 'earth',
+  remote_sensing: 'earth',
+  // Life sciences — biological / ecological / organismal
+  population_ecology: 'life',
+  community_ecology: 'life',
+  general_ecology: 'life',
+  evolution: 'life',
+  behavioral_ecology: 'life',
+  molecular: 'life',
+  plant_ecology: 'life',
+  plant_physiology: 'life',
+  'plant physiology': 'life',
+  physiological: 'life',
+  chemical_ecology: 'life',
+  pollination_ecology: 'life',
+  biochemistry: 'life',
+  biogeography: 'life',
+  reproduction: 'life',
+  social_behavior: 'life',
+  immunology: 'life',
+  conservation: 'life',
+  environmental_stress: 'life',
+  // Everything else defaults to 'cross': methodological, community_planning,
+  // environmental_review, energy, film_studies, etc.
+}
+
+function scopeDomain(slug: string): ScopeDomain {
+  return SCOPE_DOMAINS[slug] ?? 'cross'
+}
+
+// Stack order (first = bottom of stack). Earth at the ground, life above,
+// cross-cutting up top, Other above that.
+const DOMAIN_STACK_ORDER: ScopeDomain[] = ['earth', 'life', 'cross']
+
+// Domain-specific palettes. Each has enough range that individual categories
+// within the family stay distinguishable.
+const EARTH_PALETTE = [
+  '#1f4e79', // navy
+  '#2e6f9b', // steel blue
+  '#4e79a7', // muted blue
+  '#76b7b2', // teal
+  '#5d7e8f', // slate
+  '#3d8b78', // forest green-blue
+]
+
+const LIFE_PALETTE = [
+  '#a83232', // brick red
+  '#d62728', // red
+  '#e07a5f', // terracotta
+  '#f28e2c', // orange
+  '#edc949', // mustard
+  '#af7aa1', // dusty purple-pink
+]
+
+const CROSS_PALETTE = [
+  '#7d7d7d', // medium gray
+  '#a39584', // taupe
+  '#9c755f', // brown
+]
+
+function paletteFor(domain: ScopeDomain): string[] {
+  if (domain === 'earth') return EARTH_PALETTE
+  if (domain === 'life') return LIFE_PALETTE
+  return CROSS_PALETTE
+}
+
+const DOMAIN_LABELS: Record<ScopeDomain, string> = {
+  earth: 'Earth sciences',
+  life: 'Life sciences',
+  cross: 'Cross-cutting',
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -59,22 +160,74 @@ function prettifyCategory(slug: string): string {
 
 /**
  * Pick the global top-N categories by total mentions across all eras, plus
- * an OTHER_KEY bin if there's a tail. Returned in stack order (top of legend
- * first → bottom of stack); colors index into PALETTE by position, with the
- * "Other" bin getting OTHER_COLOR.
+ * an OTHER_KEY bin if there's a tail.
+ *
+ * For dimension='scope', the returned order groups by domain (earth → life
+ * → cross) so life sciences cluster together in both the stack and the
+ * legend. Within each domain, categories stay in count-desc order.
+ *
+ * For dimension='protocol_category', returned in pure count-desc order
+ * (no domain grouping applies — protocol categories are methods, not
+ * disciplines).
  */
-function topCategoriesWithOther(breakdowns: EraCategoryBreakdown[]): string[] {
+function topCategoriesWithOther(
+  breakdowns: EraCategoryBreakdown[],
+  dimension: CategoryDimension,
+): string[] {
   const totals = new Map<string, number>()
   for (const b of breakdowns) {
     for (const c of b.categories) {
       totals.set(c.category, (totals.get(c.category) ?? 0) + c.n)
     }
   }
-  const sorted = [...totals.entries()].sort((a, b) => b[1] - a[1])
-  const top = sorted.slice(0, TOP_N_CATEGORIES).map(([k]) => k)
-  const tail = sorted.slice(TOP_N_CATEGORIES)
-  if (tail.length > 0) top.push(OTHER_KEY)
-  return top
+  const sortedByCount = [...totals.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([k]) => k)
+  const topByCount = sortedByCount.slice(0, TOP_N_CATEGORIES)
+  const hasTail = sortedByCount.length > TOP_N_CATEGORIES
+
+  let ordered: string[]
+  if (dimension === 'scope') {
+    // Group by domain in stack order; within each group preserve count desc.
+    ordered = []
+    for (const domain of DOMAIN_STACK_ORDER) {
+      for (const slug of topByCount) {
+        if (scopeDomain(slug) === domain) ordered.push(slug)
+      }
+    }
+  } else {
+    ordered = topByCount
+  }
+
+  if (hasTail) ordered.push(OTHER_KEY)
+  return ordered
+}
+
+/**
+ * Color resolution shared between CompositionChart and Legend, dimension
+ * aware so the scope panel gets the domain palettes and the protocol-category
+ * panel keeps the simple Tableau-style PALETTE.
+ */
+function colorForCategory(
+  slug: string,
+  categoryOrder: string[],
+  dimension: CategoryDimension,
+): string {
+  if (slug === OTHER_KEY) return OTHER_COLOR
+  if (dimension !== 'scope') {
+    const named = categoryOrder.filter((k) => k !== OTHER_KEY)
+    const idx = named.indexOf(slug)
+    return PALETTE[idx >= 0 ? idx % PALETTE.length : 0]
+  }
+  // Scope: pick the palette by the category's domain; index by position
+  // within its own domain in the (already domain-grouped) categoryOrder.
+  const domain = scopeDomain(slug)
+  const palette = paletteFor(domain)
+  const sameDomain = categoryOrder.filter(
+    (k) => k !== OTHER_KEY && scopeDomain(k) === domain,
+  )
+  const idx = sameDomain.indexOf(slug)
+  return palette[idx >= 0 ? idx % palette.length : 0]
 }
 
 /**
@@ -354,9 +507,11 @@ function EffectiveNChart({ breakdowns }: { breakdowns: EraCategoryBreakdown[] })
 function CompositionChart({
   breakdowns,
   categoryOrder,
+  dimension,
 }: {
   breakdowns: EraCategoryBreakdown[]
   categoryOrder: string[]
+  dimension: CategoryDimension
 }) {
   if (breakdowns.length === 0) return null
   const plotW = CHART_W - MARGIN.left - MARGIN.right
@@ -364,11 +519,7 @@ function CompositionChart({
 
   const gap = 6
   const barW = (plotW - gap * (breakdowns.length - 1)) / breakdowns.length
-  const colorFor = (slug: string) => {
-    if (slug === OTHER_KEY) return OTHER_COLOR
-    const idx = categoryOrder.filter((k) => k !== OTHER_KEY).indexOf(slug)
-    return PALETTE[idx >= 0 ? idx % PALETTE.length : 0]
-  }
+  const colorFor = (slug: string) => colorForCategory(slug, categoryOrder, dimension)
 
   return (
     <svg
@@ -453,30 +604,100 @@ function CompositionChart({
 // Legend
 // ---------------------------------------------------------------------------
 
-function Legend({ categoryOrder }: { categoryOrder: string[] }) {
-  // Same color resolution as CompositionChart so the legend always matches.
-  const named = categoryOrder.filter((k) => k !== OTHER_KEY)
-  const colorFor = (slug: string) =>
-    slug === OTHER_KEY ? OTHER_COLOR : PALETTE[named.indexOf(slug) % PALETTE.length]
+function Swatch({ slug, color }: { slug: string; color: string }) {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', marginTop: '8px', fontSize: '12px' }}>
-      {categoryOrder.map((slug) => (
-        <div key={slug} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+      <span
+        style={{
+          display: 'inline-block',
+          width: '12px',
+          height: '12px',
+          background: color,
+          borderRadius: '2px',
+          flexShrink: 0,
+        }}
+      />
+      <span
+        style={{
+          color: 'var(--color-text)',
+          fontStyle: slug === OTHER_KEY ? 'italic' : 'normal',
+        }}
+      >
+        {prettifyCategory(slug)}
+      </span>
+    </div>
+  )
+}
+
+function Legend({
+  categoryOrder,
+  dimension,
+}: {
+  categoryOrder: string[]
+  dimension: CategoryDimension
+}) {
+  const colorFor = (slug: string) => colorForCategory(slug, categoryOrder, dimension)
+
+  // Non-scope dimensions: simple flat legend.
+  if (dimension !== 'scope') {
+    return (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', marginTop: '8px', fontSize: '12px' }}>
+        {categoryOrder.map((slug) => (
+          <Swatch key={slug} slug={slug} color={colorFor(slug)} />
+        ))}
+      </div>
+    )
+  }
+
+  // Scope: group by domain, with each domain on its own row labelled at the
+  // left so the user can read off "these are the life-sciences categories,
+  // these are the earth-sciences categories" at a glance.
+  const named = categoryOrder.filter((k) => k !== OTHER_KEY)
+  const groups = DOMAIN_STACK_ORDER.map((d) => ({
+    domain: d,
+    label: DOMAIN_LABELS[d],
+    slugs: named.filter((s) => scopeDomain(s) === d),
+  })).filter((g) => g.slugs.length > 0)
+  const hasOther = categoryOrder.includes(OTHER_KEY)
+
+  return (
+    <div style={{ marginTop: '8px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      {groups.map((g) => (
+        <div key={g.domain} style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <span
             style={{
-              display: 'inline-block',
-              width: '12px',
-              height: '12px',
-              background: colorFor(slug),
-              borderRadius: '2px',
-              flexShrink: 0,
+              fontSize: '11px',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              color: 'var(--color-text-muted)',
+              minWidth: '110px',
             }}
-          />
-          <span style={{ color: 'var(--color-text)', fontStyle: slug === OTHER_KEY ? 'italic' : 'normal' }}>
-            {prettifyCategory(slug)}
+          >
+            {g.label}
           </span>
+          {g.slugs.map((slug) => (
+            <Swatch key={slug} slug={slug} color={colorFor(slug)} />
+          ))}
         </div>
       ))}
+      {hasOther && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span
+            style={{
+              fontSize: '11px',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              color: 'var(--color-text-muted)',
+              minWidth: '110px',
+            }}
+          >
+            Tail
+          </span>
+          <Swatch slug={OTHER_KEY} color={OTHER_COLOR} />
+        </div>
+      )}
     </div>
   )
 }
@@ -490,13 +711,15 @@ function DiversityPanel({
   subtitle,
   metricLabel,
   breakdowns,
+  dimension,
 }: {
   title: string
   subtitle: string
   metricLabel: string
   breakdowns: EraCategoryBreakdown[]
+  dimension: CategoryDimension
 }) {
-  const categoryOrder = topCategoriesWithOther(breakdowns)
+  const categoryOrder = topCategoriesWithOther(breakdowns, dimension)
   const collapsed = collapseBreakdowns(breakdowns, categoryOrder)
   return (
     <section style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--color-border)' }}>
@@ -515,9 +738,10 @@ function DiversityPanel({
       </h3>
       <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 8px' }}>
         Share of mentions in each {metricLabel.toLowerCase()} per decade. Numbers under each bar are total mentions for that decade.
+        {dimension === 'scope' && ' Categories are grouped by domain: earth sciences (cool palette) at the bottom of each bar, life sciences (warm palette) above, cross-cutting categories on top.'}
       </p>
-      <CompositionChart breakdowns={collapsed} categoryOrder={categoryOrder} />
-      <Legend categoryOrder={categoryOrder} />
+      <CompositionChart breakdowns={collapsed} categoryOrder={categoryOrder} dimension={dimension} />
+      <Legend categoryOrder={categoryOrder} dimension={dimension} />
       {categoryOrder.includes(OTHER_KEY) && (
         <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: '6px 0 0', fontStyle: 'italic' }}>
           “Other” aggregates {breakdowns.reduce(
@@ -644,6 +868,7 @@ export default async function ErasTrendsPage({
         subtitle="Research disciplines represented in extracted concepts (population ecology, hydrology, evolution, biogeochemistry, …). The discipline lens for the diversity question."
         metricLabel="Disciplines"
         breakdowns={scopes}
+        dimension="scope"
       />
 
       <DiversityPanel
@@ -651,6 +876,7 @@ export default async function ErasTrendsPage({
         subtitle="Protocol categories — sampling, measurement, experimental, computational, observational, analytical, laboratory — capturing how the research was conducted."
         metricLabel="Approaches"
         breakdowns={protocolCats}
+        dimension="protocol_category"
       />
 
       <section style={{ marginTop: '32px', padding: '14px 16px', background: 'var(--color-surface)', border: '1px dashed var(--color-border)', borderRadius: 'var(--radius-sm)', fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
