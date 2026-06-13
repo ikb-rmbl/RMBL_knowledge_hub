@@ -40,6 +40,13 @@ const PALETTE = [
   '#76b7b2', '#af7aa1', '#edc949', '#9c755f',
 ]
 
+// Series colors for the two diversity metrics on the effective-N chart.
+// Shannon stays warm (accent / gold); Inverse Simpson gets the cool teal we
+// already use elsewhere for research-side semantics so the two read as a
+// related pair without competing.
+const SHANNON_COLOR = 'var(--color-accent)'
+const SIMPSON_COLOR = '#3a6b7b'
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -103,7 +110,59 @@ function trendArrow(delta: number): { glyph: string; color: string; label: strin
   return { glyph: '→', color: 'var(--color-text-muted)', label: `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}` }
 }
 
-function HeadlineSummary({ breakdowns, label }: { breakdowns: EraCategoryBreakdown[]; label: string }) {
+function MetricColumn({
+  caption,
+  current,
+  baseline,
+  baselineEra,
+  color,
+}: {
+  caption: string
+  current: number
+  baseline: number
+  baselineEra: string
+  color: string
+}) {
+  const delta = current - baseline
+  const arrow = trendArrow(delta)
+  return (
+    <div>
+      <div
+        style={{
+          fontSize: '11px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+          color: 'var(--color-text-muted)',
+        }}
+      >
+        {caption}
+      </div>
+      <div
+        style={{
+          fontSize: '34px',
+          fontWeight: 600,
+          lineHeight: 1,
+          marginTop: '4px',
+          color,
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
+        {current.toFixed(1)}
+      </div>
+      <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+        vs.{' '}
+        <strong style={{ color: 'var(--color-text)', fontWeight: 500 }}>
+          {baseline.toFixed(1)} in {baselineEra}
+        </strong>{' '}
+        <span style={{ color: arrow.color, fontWeight: 600, marginLeft: '4px' }}>
+          {arrow.glyph} {arrow.label}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function HeadlineSummary({ breakdowns }: { breakdowns: EraCategoryBreakdown[] }) {
   // Compare the latest reliable era to the earliest reliable era.
   const reliable = breakdowns.filter((b) => b.total >= RELIABLE_MIN_MENTIONS)
   const first = reliable[0]
@@ -115,27 +174,29 @@ function HeadlineSummary({ breakdowns, label }: { breakdowns: EraCategoryBreakdo
       </div>
     )
   }
-  const delta = last.effective_n - first.effective_n
-  const arrow = trendArrow(delta)
   return (
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: '20px', flexWrap: 'wrap' }}>
-      <div>
-        <div style={{ fontSize: '38px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
-          {last.effective_n.toFixed(1)}
-        </div>
-        <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-          effective {label.toLowerCase()} in the {last.era_name}
-        </div>
-      </div>
-      <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-        vs.{' '}
-        <strong style={{ color: 'var(--color-text)', fontWeight: 500 }}>
-          {first.effective_n.toFixed(1)} in the {first.era_name}
-        </strong>{' '}
-        <span style={{ color: arrow.color, fontWeight: 600, marginLeft: '4px' }}>
-          {arrow.glyph} {arrow.label}
-        </span>
-      </div>
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: '20px',
+        maxWidth: '600px',
+      }}
+    >
+      <MetricColumn
+        caption="Broad diversity (Shannon)"
+        current={last.effective_n}
+        baseline={first.effective_n}
+        baselineEra={first.era_name}
+        color={SHANNON_COLOR}
+      />
+      <MetricColumn
+        caption="Top-category evenness (Inverse Simpson)"
+        current={last.inverse_simpson}
+        baseline={first.inverse_simpson}
+        baselineEra={first.era_name}
+        color={SIMPSON_COLOR}
+      />
     </div>
   )
 }
@@ -149,26 +210,48 @@ const LINE_CHART_H = 230
 const STACK_CHART_H = 220
 const MARGIN = { top: 14, right: 16, bottom: 36, left: 42 }
 
+interface ChartSeries {
+  key: 'shannon' | 'simpson'
+  label: string
+  color: string
+  getter: (b: EraCategoryBreakdown) => number
+}
+
+const CHART_SERIES: ChartSeries[] = [
+  {
+    key: 'shannon',
+    label: 'Shannon (all categories)',
+    color: SHANNON_COLOR,
+    getter: (b) => b.effective_n,
+  },
+  {
+    key: 'simpson',
+    label: 'Inverse Simpson (top-weighted)',
+    color: SIMPSON_COLOR,
+    getter: (b) => b.inverse_simpson,
+  },
+]
+
 function EffectiveNChart({ breakdowns }: { breakdowns: EraCategoryBreakdown[] }) {
   if (breakdowns.length === 0) return null
   const plotW = CHART_W - MARGIN.left - MARGIN.right
   const plotH = LINE_CHART_H - MARGIN.top - MARGIN.bottom
 
-  // y-scale: 0 to max effective N, padded
-  const maxY = Math.max(2, Math.ceil(Math.max(...breakdowns.map((b) => b.effective_n)) + 1))
+  // y-scale: 0 to max of EITHER metric. Inverse Simpson is always ≤ Shannon
+  // effective N, so max is Shannon-bounded — but we pad based on the joint
+  // max anyway.
+  const allYs = breakdowns.flatMap((b) => CHART_SERIES.map((s) => s.getter(b)))
+  const maxY = Math.max(2, Math.ceil(Math.max(...allYs) + 1))
   const yToPx = (v: number) => MARGIN.top + plotH - (v / maxY) * plotH
-  // x positions evenly spaced
   const xToPx = (i: number) =>
     MARGIN.left + (breakdowns.length === 1 ? plotW / 2 : (i / (breakdowns.length - 1)) * plotW)
 
   const yTicks = [0, maxY / 2, maxY].map((v) => Math.round(v * 10) / 10)
-  const points = breakdowns.map((b, i) => ({ x: xToPx(i), y: yToPx(b.effective_n), b }))
-  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ')
 
   return (
     <svg
       role="img"
-      aria-label={`Line chart of effective number of categories across ${breakdowns.length} decades`}
+      aria-label={`Line chart comparing Shannon and Inverse Simpson effective number of categories across ${breakdowns.length} decades`}
       viewBox={`0 0 ${CHART_W} ${LINE_CHART_H}`}
       style={{ width: '100%', height: 'auto', display: 'block', maxWidth: `${CHART_W}px` }}
     >
@@ -195,6 +278,7 @@ function EffectiveNChart({ breakdowns }: { breakdowns: EraCategoryBreakdown[] })
           </text>
         </g>
       ))}
+
       {/* X-axis labels */}
       {breakdowns.map((b, i) => (
         <text
@@ -208,26 +292,48 @@ function EffectiveNChart({ breakdowns }: { breakdowns: EraCategoryBreakdown[] })
           {b.era_name}
         </text>
       ))}
-      {/* Line */}
-      <path d={linePath} fill="none" stroke="var(--color-accent)" strokeWidth="2" />
-      {/* Points — dimmer + smaller for sparse eras */}
-      {points.map((p) => {
-        const reliable = p.b.total >= RELIABLE_MIN_MENTIONS
+
+      {/* Series (Shannon then Simpson) */}
+      {CHART_SERIES.map((s) => {
+        const points = breakdowns.map((b, i) => ({ x: xToPx(i), y: yToPx(s.getter(b)), b }))
+        const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ')
         return (
-          <g key={p.b.era_slug}>
-            <circle
-              cx={p.x}
-              cy={p.y}
-              r={reliable ? 5 : 3.5}
-              fill={reliable ? 'var(--color-accent)' : 'var(--color-surface)'}
-              stroke="var(--color-accent)"
-              strokeWidth="1.5"
-              opacity={reliable ? 1 : 0.55}
-            />
-            <title>{`${p.b.era_name}: ${p.b.effective_n.toFixed(2)} effective categories from ${p.b.total.toLocaleString()} mentions${reliable ? '' : ' (sparse — interpret with caution)'}`}</title>
+          <g key={s.key}>
+            <path d={path} fill="none" stroke={s.color} strokeWidth="2" />
+            {points.map((p) => {
+              const reliable = p.b.total >= RELIABLE_MIN_MENTIONS
+              return (
+                <g key={p.b.era_slug}>
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r={reliable ? 4 : 3}
+                    fill={reliable ? s.color : 'var(--color-surface)'}
+                    stroke={s.color}
+                    strokeWidth="1.5"
+                    opacity={reliable ? 1 : 0.55}
+                  />
+                  <title>{`${p.b.era_name} · ${s.label}: ${s.getter(p.b).toFixed(2)} (from ${p.b.total.toLocaleString()} mentions${reliable ? '' : '; sparse'})`}</title>
+                </g>
+              )
+            })}
           </g>
         )
       })}
+
+      {/* Inline legend top-right */}
+      <g transform={`translate(${CHART_W - MARGIN.right - 230}, ${MARGIN.top + 2})`}>
+        {CHART_SERIES.map((s, i) => (
+          <g key={s.key} transform={`translate(0, ${i * 16})`}>
+            <line x1={0} x2={22} y1={6} y2={6} stroke={s.color} strokeWidth="2" />
+            <circle cx={11} cy={6} r="3" fill={s.color} />
+            <text x={28} y={9} fontSize="11" fill="var(--color-text)">
+              {s.label}
+            </text>
+          </g>
+        ))}
+      </g>
+
       {/* Y axis title */}
       <text
         transform={`translate(12 ${MARGIN.top + plotH / 2}) rotate(-90)`}
@@ -398,7 +504,7 @@ function DiversityPanel({
       <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: '0 0 16px', maxWidth: '60ch' }}>
         {subtitle}
       </p>
-      <HeadlineSummary breakdowns={breakdowns} label={metricLabel} />
+      <HeadlineSummary breakdowns={breakdowns} />
 
       <div style={{ marginTop: '20px' }}>
         <EffectiveNChart breakdowns={breakdowns} />
@@ -491,6 +597,47 @@ export default async function ErasTrendsPage({
         </p>
         <LensToggle active={lens} />
       </div>
+
+      <section
+        style={{
+          marginTop: '20px',
+          padding: '12px 16px',
+          background: 'var(--color-surface)',
+          borderLeft: `3px solid ${SHANNON_COLOR}`,
+          borderRadius: 'var(--radius-sm)',
+          fontSize: '13px',
+          lineHeight: 1.6,
+          color: 'var(--color-text)',
+        }}
+      >
+        Each panel below shows{' '}
+        <strong>two complementary diversity measures</strong>, both in{' '}
+        <em>“effective number of categories”</em> units — interpretable as
+        “as if there were <em>N</em> equally-weighted categories.” A single
+        number can&rsquo;t capture both the breadth of a long tail and the
+        evenness of the dominant categories, so the two together tell the
+        full story.
+        <ul style={{ margin: '8px 0 0', paddingLeft: '20px' }}>
+          <li>
+            <strong style={{ color: SHANNON_COLOR }}>Shannon</strong> counts{' '}
+            <em>every</em> category proportional to its share — sensitive to
+            the long tail. Answers <em>“how many categories are in play,
+              broadly?”</em>
+          </li>
+          <li>
+            <strong style={{ color: SIMPSON_COLOR }}>Inverse Simpson</strong>{' '}
+            emphasizes the dominant categories — the long tail barely
+            contributes. Answers <em>“how evenly distributed are the common
+              categories?”</em>
+          </li>
+        </ul>
+        <p style={{ margin: '8px 0 0', color: 'var(--color-text-muted)' }}>
+          When the lines diverge, you learn where change is happening. Shannon
+          rising faster than Inverse Simpson = more small categories appearing
+          in the tail. Inverse Simpson rising faster = the dominant categories
+          are becoming more evenly distributed without much change in breadth.
+        </p>
+      </section>
 
       <DiversityPanel
         title="Disciplines"
