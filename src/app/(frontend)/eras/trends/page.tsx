@@ -18,9 +18,9 @@ import {
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Trends across eras — RMBL Knowledge Commons',
+  title: 'How has RMBL research changed over time? — RMBL Knowledge Commons',
   description:
-    'How discipline and methodological-approach diversity in RMBL research has changed across eras, measured as effective number of categories per era.',
+    'Several views of how RMBL research has changed across eras: corpus growth, full-text coverage, community evolution, discipline and methodological diversification, and the generational composition of authors active in each era.',
 }
 
 const ALL_SOURCES: SourceCollection[] = ['publications', 'documents', 'datasets', 'stories']
@@ -1339,20 +1339,33 @@ export default async function ErasTrendsPage({
         <Link href="/eras" style={{ fontSize: '13px', color: 'var(--color-text-muted)', textDecoration: 'none' }}>
           ← All eras
         </Link>
-        <h1 style={{ fontSize: '26px', fontWeight: 600, margin: '8px 0 4px' }}>Trends across eras</h1>
+        <h1 style={{ fontSize: '26px', fontWeight: 600, margin: '8px 0 4px' }}>
+          How has RMBL research changed over time?
+        </h1>
         <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', margin: 0, maxWidth: '70ch' }}>
-          Is research becoming more diverse over time? Each chart below shows the{' '}
-          <em>effective number of categories</em> per era — Shannon entropy
-          transformed so the number is interpretable as &ldquo;as if there were N
-          equally-weighted categories.&rdquo; Higher = more even spread across many
-          categories; lower = concentration in a few.
+          Several views of the basin&rsquo;s research across eras. The{' '}
+          <strong>Corpus context</strong> section traces scale — how the
+          published record grew, how well-covered it is by full text, how the
+          community expanded. The <strong>Disciplines</strong> and{' '}
+          <strong>Methodological approaches</strong> panels measure how the
+          breadth and evenness of research shifted. The{' '}
+          <strong>Community composition</strong> chart maps the generational
+          layers of authors active in each era. Together they sketch how the
+          basin&rsquo;s research has changed over the past 75+ years.
         </p>
         <LensToggle active={lens} />
       </div>
 
+      <CorpusContext
+        pubContext={pubContext}
+        eras={eraCounts}
+        lens={lens}
+        sources={sources}
+      />
+
       <section
         style={{
-          marginTop: '20px',
+          marginTop: '32px',
           padding: '12px 16px',
           background: 'var(--color-surface)',
           borderLeft: `3px solid ${SHANNON_COLOR}`,
@@ -1362,8 +1375,8 @@ export default async function ErasTrendsPage({
           color: 'var(--color-text)',
         }}
       >
-        Each panel below shows{' '}
-        <strong>two complementary diversity measures</strong>, both in{' '}
+        The next two panels both report{' '}
+        <strong>two complementary diversity measures</strong>, in{' '}
         <em>“effective number of categories”</em> units — interpretable as
         “as if there were <em>N</em> equally-weighted categories.” A single
         number can&rsquo;t capture both the breadth of a long tail and the
@@ -1390,13 +1403,6 @@ export default async function ErasTrendsPage({
           are becoming more evenly distributed without much change in breadth.
         </p>
       </section>
-
-      <CorpusContext
-        pubContext={pubContext}
-        eras={eraCounts}
-        lens={lens}
-        sources={sources}
-      />
 
       <DiversityPanel
         title="Disciplines"
