@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Trends across eras — RMBL Knowledge Commons',
   description:
-    'How discipline and methodological-approach diversity in RMBL research has changed across decades, measured as effective number of categories per era.',
+    'How discipline and methodological-approach diversity in RMBL research has changed across eras, measured as effective number of categories per era.',
 }
 
 const ALL_SOURCES: SourceCollection[] = ['publications', 'documents', 'datasets', 'stories']
@@ -330,7 +330,7 @@ function HeadlineSummary({ breakdowns }: { breakdowns: EraCategoryBreakdown[] })
   if (!first || !last || first === last) {
     return (
       <div style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>
-        Not enough reliable decades to summarize a trend.
+        Not enough reliable eras to summarize a trend.
       </div>
     )
   }
@@ -411,7 +411,7 @@ function EffectiveNChart({ breakdowns }: { breakdowns: EraCategoryBreakdown[] })
   return (
     <svg
       role="img"
-      aria-label={`Line chart comparing Shannon and Inverse Simpson effective number of categories across ${breakdowns.length} decades`}
+      aria-label={`Line chart comparing Shannon and Inverse Simpson effective number of categories across ${breakdowns.length} eras`}
       viewBox={`0 0 ${CHART_W} ${LINE_CHART_H}`}
       style={{ width: '100%', height: 'auto', display: 'block', maxWidth: `${CHART_W}px` }}
     >
@@ -531,7 +531,7 @@ function CompositionChart({
   return (
     <svg
       role="img"
-      aria-label="Stacked composition of categories per decade"
+      aria-label="Stacked composition of categories per era"
       viewBox={`0 0 ${CHART_W} ${STACK_CHART_H}`}
       style={{ width: '100%', height: 'auto', display: 'block', maxWidth: `${CHART_W}px` }}
     >
@@ -798,7 +798,7 @@ function MiniChart({
       <svg
         viewBox={`0 0 ${MINI_W} ${MINI_H}`}
         role="img"
-        aria-label={`${title} per decade`}
+        aria-label={`${title} per era`}
         style={{ width: '100%', height: 'auto', display: 'block' }}
       >
         {/* y axis tick at top + baseline at bottom */}
@@ -933,7 +933,7 @@ function CorpusContext({
         Six trends framing the diversity story above: how the corpus grew, how
         well-covered it is by full text, how the research community changed,
         and how internally connected the literature became. The{' '}
-        <strong>items-per-decade</strong> chart respects the{' '}
+        <strong>items-per-era</strong> chart respects the{' '}
         {lens === 'research' ? 'research' : 'all-sources'} lens
         ({sources.join(' + ')}); the other five are inherently
         publication-bound (no &ldquo;documents version&rdquo; of average
@@ -948,8 +948,8 @@ function CorpusContext({
         }}
       >
         <MiniChart
-          title="Items per decade"
-          subtitle={`Total ${sources.join(' + ')} dated within each decade.`}
+          title="Items per era"
+          subtitle={`Total ${sources.join(' + ')} dated within each era.`}
           points={buildItemsPoints(eras, sources)}
           format={fmtInt}
         />
@@ -967,7 +967,7 @@ function CorpusContext({
         />
         <MiniChart
           title="Unique researchers"
-          subtitle="Distinct authors publishing in the decade — community growth signal."
+          subtitle="Distinct authors publishing in the era — community growth signal."
           points={buildContextPoints(decadeContext, (r) => r.unique_authors)}
           format={fmtInt}
         />
@@ -1001,14 +1001,15 @@ function CorpusContext({
 const COHORT_PALETTE: Record<string, string> = {
   'pre-1950':  '#182740',
   '1950s-60s': '#213353',
-  '1970s-80s': '#2b4067',
-  '1991-95':   '#355080',
-  '1996-2000': '#426499',
-  '2001-05':   '#5478b0',
-  '2006-10':   '#6a8fc0',
-  '2011-15':   '#82a4cd',
-  '2016-20':   '#9bb9d8',
-  '2021-25':   '#b4cde4',
+  '1970s':     '#283e63',
+  '1980s':     '#314975',
+  '1991-95':   '#3d5c91',
+  '1996-2000': '#4d72a4',
+  '2001-05':   '#6086b6',
+  '2006-10':   '#769ac4',
+  '2011-15':   '#8db0d1',
+  '2016-20':   '#a4c2dc',
+  '2021-25':   '#bcd5e8',
 }
 
 function cohortColor(slug: string): string {
@@ -1064,7 +1065,7 @@ function CohortChart({ breakdowns }: { breakdowns: EraCohortBreakdown[] }) {
   return (
     <svg
       role="img"
-      aria-label={`Stacked bars of active research community per decade by first-publication cohort`}
+      aria-label={`Stacked bars of active research community per era by first-publication cohort`}
       viewBox={`0 0 ${CHART_W} ${STACK_CHART_H}`}
       style={{ width: '100%', height: 'auto', display: 'block', maxWidth: `${CHART_W}px` }}
     >
@@ -1189,10 +1190,10 @@ function CommunityCompositionPanel({ breakdowns }: { breakdowns: EraCohortBreakd
       </h2>
       <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: '0 0 16px', maxWidth: '60ch' }}>
         Pure measurement, no inference. Each bar is the research community
-        active in that decade, segmented by the decade of each author&rsquo;s
-        first publication in the corpus. Reads as the community&rsquo;s
+        active in that era, segmented by the era of each author&rsquo;s first
+        publication in the corpus. Reads as the community&rsquo;s
         generational layers: deep cohorts at the bottom carry institutional
-        memory; the lighter top layer is the decade&rsquo;s new arrivals.
+        memory; the lighter top layer is the era&rsquo;s new arrivals.
       </p>
       <CohortHeadline breakdowns={decades} />
 
@@ -1200,7 +1201,7 @@ function CommunityCompositionPanel({ breakdowns }: { breakdowns: EraCohortBreakd
         Generational layers
       </h3>
       <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 8px' }}>
-        Total active researchers per decade. Numbers under each bar are the
+        Total active researchers per era. Numbers under each bar are the
         active community size. Author identity is keyed on
         (family + given) name pairs — small inflation possible from
         spelling variations; the trend is robust.
@@ -1246,7 +1247,7 @@ function DiversityPanel({
         Composition
       </h3>
       <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 8px' }}>
-        Share of mentions in each {metricLabel.toLowerCase()} per decade. Numbers under each bar are total mentions for that decade.
+        Share of mentions in each {metricLabel.toLowerCase()} per era. Numbers under each bar are total mentions for that era.
         {dimension === 'scope' && ' Categories are grouped by domain: earth sciences (cool palette) at the bottom of each bar, life sciences (warm palette) above, cross-cutting categories on top.'}
       </p>
       <CompositionChart breakdowns={collapsed} categoryOrder={categoryOrder} dimension={dimension} />
@@ -1326,7 +1327,7 @@ export default async function ErasTrendsPage({
         <h1 style={{ fontSize: '26px', fontWeight: 600, margin: '8px 0 4px' }}>Trends across eras</h1>
         <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', margin: 0, maxWidth: '70ch' }}>
           Is research becoming more diverse over time? Each chart below shows the{' '}
-          <em>effective number of categories</em> per decade — Shannon entropy
+          <em>effective number of categories</em> per era — Shannon entropy
           transformed so the number is interpretable as &ldquo;as if there were N
           equally-weighted categories.&rdquo; Higher = more even spread across many
           categories; lower = concentration in a few.
@@ -1402,10 +1403,10 @@ export default async function ErasTrendsPage({
 
       <section style={{ marginTop: '32px', padding: '14px 16px', background: 'var(--color-surface)', border: '1px dashed var(--color-border)', borderRadius: 'var(--radius-sm)', fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
         <strong style={{ color: 'var(--color-text)' }}>Caveat:</strong>{' '}
-        Decades before the 1990s have thin extraction coverage (the full-text PDF
+        Eras before the 1990s have thin extraction coverage (the full-text PDF
         coverage gap discussed in the broader plan), so their effective-N
         estimates are based on very few mentions and should be read as suggestive
-        rather than definitive. Sparse decades are dimmed in the charts; hover any
+        rather than definitive. Sparse eras are dimmed in the charts; hover any
         point or bar segment for the underlying mention count. The reliable
         signal is the 1990s onward.
       </section>
