@@ -180,21 +180,24 @@ Each scenario instance has the following fields. Required fields are marked **R*
 |---|---|---|---|
 | `name` | R | string | Working label; short, evocative, distinct in pitch |
 | `slug` | R | string | URL-safe identifier |
+| `version` | R | string | Semver-ish `MAJOR.MINOR` (e.g. `1.0`, `1.1`, `2.0`). See §9. |
+| `superseded_by` | O | slug | Pointer to a newer scenario that replaces this one; null when current. See §9. |
+| `set_id` | R | string | Identifier of the scenario set this scenario belongs to (e.g. `centennial-2027`). See §9. |
 | `time_window` | R | object | `{ primary_start, primary_end, coda_end }` — defaults `{2026, 2040, 2050}` |
 | `campaign_magnitude` | R | object | `{ target: $X, range: [floor, ceiling] }` |
 | `continuity_innovation_split` | R | object | `{ continuity_pct: N, innovation_pct: M }` — must sum to 100; bracketed within 25–75 |
 | `frontier_portfolio` | R | array | List of frontier IDs (Commons) or candidate IDs (this spec §5). Length 2–6. |
-| `frontier_support_strategies` | R | array | Per-frontier: how the campaign's investments serve this frontier — endowment line items, capital projects, staff roles, partnership commitments |
+| `frontier_support_strategies` | R | array | Per-frontier: how the campaign's investments serve this frontier. **Free text by design** (not a controlled vocabulary) — strategies vary enough by frontier and by scenario that constraining the vocabulary would obscure rather than clarify. Optional informal tags (`endowment`, `capital`, `staff`, `partnership`, `archival`, `methodological`) may be attached for faceted filtering without restricting authored content. |
 | `campaign_deliverables` | R | array | Concrete list derived from support strategies — what the campaign produces |
 | `forgone` | R | string | Explicit articulation of what this scenario does not fund or pursue. Required for scenario honesty. |
 | `seeds_in_present` | R | array | Pointers to current Era entries, landmark papers, planning themes that the scenario takes as foundational |
 | `frontiers_resolved_in_horizon` | O | array | Which Commons Frontiers (or candidate frontiers) the scenario assumes get partially or fully resolved within the primary horizon |
 | `frontiers_emerging` | O | array | New frontiers the scenario assumes emerge during the horizon that don't currently exist in the Commons |
 | `phase_arc` | R | array | 3 phases across the primary horizon. Each phase has `{ years, name, summary, key_developments }` |
-| `moments_of_choice` | R | array | 4–7 inflection points within primary horizon. Each has `{ year, actors, choice_description, alternatives, scenario_assumption }` |
+| `moments_of_choice` | R | array | 4–7 inflection points within primary horizon. Each has `{ year, actors, choice_description, alternatives, scenario_assumption, shared_inflection_id }`. See §6.3 on shared inflection points. |
 | `audience_lens_research` | R | string | What scientists working on these frontiers get to do during the horizon |
 | `audience_lens_institution` | R | string | What RMBL becomes through this frontier portfolio |
-| `audience_lens_donor` | R | string | Invitation register: what donors are part of building. *Invitation, not promise.* |
+| `audience_lens_donor` | R | string | Invitation register: what donors are part of building. *Invitation, not promise.* Must read coherently to a public audience (see §8.1). |
 | `overlay_robustness` | R | object | How the scenario plays out under (a) central case, and (b) 2–3 stress cases of `federal_funding_trajectory × ai_economy_and_tools × climate_trajectory` |
 | `plausibility_caveats` | R | string | What the scenario assumes; what could invalidate it; what surprises are not modeled |
 | `coda` | O | string | Lower-resolution 2040–2050 context; explicitly marked as speculative |
@@ -205,7 +208,22 @@ Each scenario instance has the following fields. Required fields are marked **R*
 - `forgone` cannot be empty. A scenario that "funds everything" is not a scenario.
 - `moments_of_choice` must have at least 4 entries, all within primary horizon. Each must name actors (roles, not individuals) and articulate alternatives, not just the scenario's choice.
 - `plausibility_caveats` must explicitly name external assumptions and at least one structural blind spot. A scenario whose caveats section reads as airtight is dishonest.
-- `audience_lens_donor` must be written in invitation register. Forbidden constructions: "your gift produces X" or "this scenario will deliver Y." Required register: "your contribution joins / is part of / enables the conditions for X."
+- `audience_lens_donor` must be written in invitation register. Forbidden constructions: "your gift produces X" or "this scenario will deliver Y." Required register: "your contribution joins / is part of / enables the conditions for X." Because scenarios are public-facing (§8.1), this language must also read coherently to a general reader, not only to a prospective donor.
+- `version` and `set_id` are required from the first authored scenario; the framework does not support unversioned scenarios. See §9.
+
+### 6.3 Shared inflection points
+
+Some moments of choice recur across multiple scenarios — the same decision faced by RMBL, resolved differently depending on which scenario obtains. Examples from the prior Foundation / Centennial Frontier drafts include the 2028 endowment-vs-capital split (faced in every scenario at every magnitude), the 2032 succession planning for the long-running programs' founding observers (faced in every continuity-touching scenario), and the 2040 next-horizon framing decision (faced as a boundary moment in every scenario).
+
+These recurrences are themselves strategically informative — they describe choices the institution will face regardless of which scenario plays out — and the framework encodes them as first-class artifacts.
+
+**Mechanism:** Each `moment_of_choice` entry has an optional `shared_inflection_id` field. When the same shared_inflection_id appears across multiple scenarios, those moments are clustered as a single Shared Inflection Point.
+
+**Identification:** Shared inflection points are identified during scenario authoring, not predetermined. When an author drafts a scenario and recognizes a moment that appeared in another scenario, they assign a shared_inflection_id (a slug like `endowment-capital-split-2028` or `founding-observer-succession-2032`). The first scenario to use a given id defines it; subsequent scenarios that share the inflection reuse the id.
+
+**Cross-scenario rendering:** Shared inflection points get their own index in the Commons (§8.4). Each shared inflection point page shows the choice across all scenarios that include it, side-by-side, with each scenario's resolution. This view becomes load-bearing for organizational visioning — readers can see "this is a decision RMBL will face; here is how each scenario resolves it."
+
+**Cardinality:** A scenario typically has 4–7 moments of choice; of these, expect 2–4 to be shared and 2–4 to be scenario-distinctive. A scenario whose moments are all shared has no distinctive character; a scenario whose moments are all distinctive misses the strategically informative recurrences.
 
 ### 6.2 Forbidden patterns
 
@@ -249,26 +267,36 @@ This shape preserves human strategic judgment where it matters and delegates pat
 
 ## 8. Presentation in the Commons
 
-### 8.1 A new collection at `/futures`
+### 8.1 Public-facing scope and framing
 
-Future Scenarios live in their own collection, parallel to `/eras` and `/frontiers`. Each scenario has a detail page. The collection's index page shows the full scenario set with the comparison view as the default presentation.
+Scenarios are **public artifacts** in the Commons, visible to general readers alongside Eras and Frontiers. This is a substantive choice with implications throughout the presentation:
 
-### 8.2 Detail page layout
+- **The artifact's genre needs to be explained to readers who haven't encountered scenario planning before.** The `/futures` index page leads with a "What you're reading" framing block that explains: scenarios are not predictions, they describe plausible futures given specified contingencies, multiple coexisting scenarios is the point, and readers are invited to weigh them against their own judgments. Without this framing public readers will read scenarios as forecasts and either over-credit them or dismiss them.
+- **Plausibility caveats are surfaced prominently, not collapsed.** A "What this scenario assumes / what could break it" panel sits near the top of each detail page, before the prose body. The anti-confidence stance is itself a UI feature.
+- **Political references handled carefully.** Date-anchored events (e.g. "the 2015 Paris Agreement") are acceptable. Partisan framing or attribution to specific administrations is not. Funder names are not used; references to "federal program officers," "Mountain West water managers," "tribal natural-resources offices" stay at role level.
+- **The donor-invitation register must read coherently to non-donors.** A general reader encountering `audience_lens_donor` should understand what donors are part of building without feeling pitched. This is more demanding than internal donor materials but produces text that travels better.
+- **The forgone field is publicly legible.** A public reader can see what each scenario doesn't pursue and form their own view about the tradeoffs. Honesty about tradeoffs strengthens public trust; obscuring them undermines it.
+
+### 8.2 A new collection at `/futures`
+
+Future Scenarios live in their own collection, parallel to `/eras` and `/frontiers`. Each scenario has a detail page. The collection's index page shows the full scenario set with the comparison view as the default presentation, preceded by the genre-framing block described in §8.1.
+
+### 8.3 Detail page layout
 
 Per scenario, vertically stacked:
 
-1. **Header**: name, slug, time window, distinctive visual treatment marking the artifact as speculative (e.g., distinct accent color, "scenario" badge)
-2. **Structured fields panel**: frontier portfolio, magnitude, split, campaign deliverables, forgone — facet-rendered for quick scan
-3. **The arc**: phase descriptions across primary horizon
-4. **Moments of choice**: structured list with actors, year, alternatives
-5. **Audience lenses**: three tabs or stacked sections (research / institution / donor)
-6. **Overlay robustness**: sensitivity panel showing how the scenario evolves under stress cases
-7. **Plausibility caveats**: prominent, not hidden
+1. **Header**: name, slug, time window, version badge, distinctive visual treatment marking the artifact as speculative (e.g., distinct accent color, "scenario" badge)
+2. **Plausibility caveats panel**: "What this scenario assumes / what could break it" — prominent placement near top, not buried at end (§8.1)
+3. **Structured fields panel**: frontier portfolio, magnitude, split, campaign deliverables, forgone — facet-rendered for quick scan
+4. **The arc**: phase descriptions across primary horizon
+5. **Moments of choice**: structured list with actors, year, alternatives; shared inflection points marked with link to cross-scenario view (§8.5)
+6. **Audience lenses**: three tabs or stacked sections (research / institution / donor)
+7. **Overlay robustness**: sensitivity panel showing how the scenario evolves under stress cases
 8. **Coda**: 2040–2050 section visually distinguished as more speculative
 9. **Grounded-to-present panel**: links to every Era entry, Frontier entry, and landmark paper the scenario references
 10. **Compare with**: links to other scenarios in the set
 
-### 8.3 Cross-linking
+### 8.4 Cross-linking
 
 The frontier-first reframe makes cross-linking the framework's distinctive UI feature.
 
@@ -277,37 +305,89 @@ The frontier-first reframe makes cross-linking the framework's distinctive UI fe
 - Each Era detail page (especially 2021–25) shows "Scenarios extending from here"
 - The scenario set's index page offers a frontier-axis view: "show me all scenarios that advance F.innov.1" or "all scenarios in which F.cont.2 is in the portfolio"
 
-### 8.4 Side-by-side comparison view
+### 8.5 Shared inflection points view
 
-The collection's index page default presentation. Up to four scenarios shown in a horizontal table aligned on structured-fields rows. Frontier portfolios shown as overlapping/distinct sets. The forgone field is comparison-rendered prominently — donors and staff can see which frontiers are funded in which scenarios and which are forgone where.
+A new index at `/futures/inflections` (or `/futures/choices`) lists every shared inflection point identified across the scenario set. Each shared inflection point has its own detail page that surfaces the choice across all scenarios containing it, side-by-side, with each scenario's resolution.
 
-### 8.5 Donor-facing materials
+For example, a `/futures/inflections/endowment-capital-split-2028` page would show: this choice appears in every scenario at every magnitude; here's how Foundation resolves it (70/30 endowment/capital), here's how Centennial Frontier resolves it (67/33 with capital directed to Centennial Hall), here's how the floor scenarios resolve it, etc.
+
+This view is load-bearing for organizational visioning purposes. It makes visible the decisions RMBL will face regardless of which scenario obtains — the "no matter which path we end up on, this is what we'll need to decide" surface. From a board or leadership perspective these are often the most strategically informative cuts.
+
+Each scenario detail page links its shared moments to the corresponding inflection point page; the inflection point page links back to every scenario that includes it. Distinctive moments (no shared_inflection_id) render normally without the cross-link.
+
+### 8.6 Side-by-side comparison view
+
+The collection's index page default presentation (after the genre-framing block). Up to four scenarios shown in a horizontal table aligned on structured-fields rows. Frontier portfolios shown as overlapping/distinct sets. The forgone field is comparison-rendered prominently — readers can see which frontiers are funded in which scenarios and which are forgone where.
+
+### 8.7 Donor-facing materials
 
 Derived from scenarios, not produced as scenarios. The donor-facing presentation may:
 - Lift the `audience_lens_donor` field into invitation language
 - Add gift-tier framings ("at the $X level, your contribution supports...")
 - Tighten prose for the donor register
-- Omit some plausibility caveats from primary materials while still linking to the full scenario
+- Omit some plausibility caveats from primary materials while still linking to the full public scenario in the Commons
 
-Donor materials answer to the campaign function. Scenarios answer to the visioning function. Both can be true; they should not be confused.
+Donor materials answer to the campaign function. Public scenarios in the Commons answer to the visioning function. Both can be true; they should not be confused. Because the public scenarios are the source of truth, the donor-facing materials cannot make claims absent from or contradictory to the public scenario.
 
 ---
 
-## 9. Open questions
+## 9. Versioning
+
+The framework supports minimal versioning to allow iteration across visioning cycles without losing the ability to reference prior artifacts.
+
+### 9.1 Per-scenario versioning
+
+Each scenario has a `version` field in semver-ish form: `MAJOR.MINOR`. The semantics are minimal:
+
+- **MAJOR** increments when the scenario's identity changes substantially — different frontier portfolio, fundamentally different campaign parameters, or substantial revision in response to learning about external context. `1.0 → 2.0`.
+- **MINOR** increments for revisions that preserve identity — prose tightening, caveat additions, structured field corrections, moments-of-choice refinement that doesn't shift the scenario's character. `1.0 → 1.1`.
+
+A scenario is **current** when its `superseded_by` field is null. When a scenario is replaced, the old scenario's `superseded_by` field points to the new scenario's slug, and the old scenario remains accessible (for traceability) but is no longer surfaced by default in collection views.
+
+### 9.2 Scenario set versioning
+
+A scenario set is the coherent collection of scenarios spanning a visioning cycle. Each scenario carries a `set_id` linking it to its set (e.g. `centennial-2027` for the initial Centennial Campaign visioning).
+
+When a new visioning cycle begins — likely after the Centennial Campaign closes and its actual outcomes can inform a second-decade set — a new set is created with a new `set_id` (e.g. `centennial-2042` or `second-decade-2040`). Scenarios in the new set may reference scenarios in the prior set as historical context.
+
+### 9.3 Supersession workflow
+
+When a scenario is revised:
+
+1. The reviser decides MAJOR vs MINOR based on the criteria in §9.1.
+2. A new scenario record is created with the incremented version.
+3. The previous version's `superseded_by` field is set to the new version's slug.
+4. The new version inherits the previous version's `set_id` (revisions stay in the same set).
+5. The Commons surfaces the new version by default; the previous version is reachable through "Earlier version" links.
+
+This is intentionally light. The framework does not require change-history tracking, diff views, or formal review processes. The supersession pointer is enough to navigate the version history without overengineering.
+
+### 9.4 When to revise vs replace
+
+A scenario should be **revised** (MINOR or MAJOR bump within the same set) when:
+- The campaign's actual unfolding contradicts an assumption the scenario made
+- Authoring discovers a structural issue (a frontier was misclassified, an overlay was missed)
+- The plausibility caveats require strengthening based on new evidence
+
+A scenario should be **replaced by a wholly new set** (new `set_id`) when:
+- A visioning cycle concludes and a new horizon opens
+- The institutional context shifts fundamentally — a new campaign begins, a major mission revision occurs
+- Enough time has passed that the scenario set's central contingencies are no longer the relevant near-term decisions
+
+---
+
+## 10. Open questions
 
 To resolve through discussion before the framework reaches v1.0:
 
-- **Q1.** Should scenarios be public-facing in the Commons, RMBL-internal, or tiered (some scenarios public, some only for board/staff)? Affects visual treatment, caveats prominence, and how directly funder names or political references can appear.
-- **Q2.** How does the framework handle scenarios that include shared moments of choice (where the same decision appears in multiple scenarios)? Should the artifact encode these as "shared inflection points" with cross-scenario rendering?
-- **Q3.** Should the LLM-assisted authoring path include explicit human approval at each structured field, or just at the prose primer? Affects scaling — five scenarios authored individually vs five scenarios authored as a set with shared framing decisions.
-- **Q4.** Should the spec articulate explicit "stop conditions" — circumstances under which a scenario should be revised or retired (e.g., the campaign's actual fundraising outcome lands outside the scenario's bracket)?
-- **Q5.** How does the framework integrate with subsequent visioning cycles? Should scenarios be versioned (Centennial v1, post-campaign v1.1, second-decade v2.0) or replaced wholesale?
-- **Q6.** Should `frontier_support_strategies` be a free-text field or a controlled vocabulary (endowment line item / capital project / staff role / partnership / archival commitment / methodological investment)?
+- **Q1.** Should the LLM-assisted authoring path include explicit human approval at each structured field, or just at the prose primer? Affects scaling — five scenarios authored individually vs five scenarios authored as a set with shared framing decisions.
+- **Q2.** Should the spec articulate explicit "stop conditions" — circumstances under which a scenario should be revised or retired (e.g., the campaign's actual fundraising outcome lands outside the scenario's bracket)? Related to but distinct from the §9 supersession workflow, which describes how to revise but not when to.
 
 ---
 
-## 10. Revision log
+## 11. Revision log
 
+- **v0.2** (this revision): four open questions resolved per RMBL leadership input — scenarios are public-facing with explicit genre framing and prominent plausibility caveats (§8.1); shared inflection points encoded as first-class artifacts with cross-scenario rendering (§6.3, §8.5); `frontier_support_strategies` remains intentionally free-text with optional informal tagging; minimal versioning infrastructure added (§9) supporting iteration across visioning cycles via per-scenario `version` and `superseded_by` fields and per-set `set_id`. Two open questions remain (LLM authoring granularity, stop conditions).
 - **v0.1** (initial draft): frontier-first reframe; bracketed magnitude and emphasis; nested 15+10 year horizons; preserved external overlays; structured fields schema with required/optional marking; candidate frontier list (12 entries); LLM-assisted human authoring as recommended; Commons presentation sketch including frontier-axis cross-linking and side-by-side comparison view.
 
 ---
