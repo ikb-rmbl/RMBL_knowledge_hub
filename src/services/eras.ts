@@ -329,8 +329,19 @@ export interface EraCategoryBreakdown {
   total: number
   /** Shannon entropy H = -Σ p·ln(p). 0 when fully concentrated, ln(K) when uniform across K. */
   shannon_h: number
-  /** Effective number of categories: exp(H). Interpretable — "as if there were N equally-weighted categories". */
+  /**
+   * Shannon's effective number of categories: exp(H). Hill number q=1.
+   * Sensitive to *all* categories (long tail counts proportionally to share).
+   * Use to answer "how many disciplines are in play, broadly?"
+   */
   effective_n: number
+  /**
+   * Inverse Simpson's effective number of categories: 1 / Σ p². Hill q=2.
+   * Weighted toward the dominant categories — long tail nearly invisible.
+   * Use to answer "how evenly distributed are the *common* disciplines?"
+   * Tends to track visual "stacked-bar evenness" better than Shannon does.
+   */
+  inverse_simpson: number
 }
 
 /**
@@ -405,6 +416,7 @@ export async function getDiversityAcrossEras(
         total: 0,
         shannon_h: 0,
         effective_n: 0,
+        inverse_simpson: 0,
       })
     }
     const bucket = byEra.get(eraId)!
@@ -416,12 +428,17 @@ export async function getDiversityAcrossEras(
     const total = bucket.categories.reduce((s, c) => s + c.n, 0)
     bucket.total = total
     let h = 0
+    let sumP2 = 0
     for (const c of bucket.categories) {
       c.share = total > 0 ? c.n / total : 0
-      if (c.share > 0) h -= c.share * Math.log(c.share)
+      if (c.share > 0) {
+        h -= c.share * Math.log(c.share)
+        sumP2 += c.share * c.share
+      }
     }
     bucket.shannon_h = h
     bucket.effective_n = Math.exp(h)
+    bucket.inverse_simpson = sumP2 > 0 ? 1 / sumP2 : 0
     out.push(bucket)
   }
   out.sort((a, b) => a.start_year - b.start_year)
