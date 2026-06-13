@@ -27,7 +27,19 @@ const ALL_SOURCES: SourceCollection[] = ['publications', 'documents', 'datasets'
 
 // Cutoff below which a decade's effective N is too sparse to take seriously.
 // Eras under this many mentions are still drawn but dimmed and marked.
-const RELIABLE_MIN_MENTIONS = 100
+// Reliability cutoff per dimension. Concept mentions are denser than
+// protocol mentions (typically 3–5x), so a single threshold either dims too
+// few sparse concept eras or too many real protocol eras. Calibrated so the
+// same era reads as reliable in both panels (e.g. 1996–2000 has 338 concept
+// mentions, 63 protocol mentions — both above their respective cutoffs).
+const RELIABLE_MIN_MENTIONS_BY_DIMENSION: Record<CategoryDimension, number> = {
+  scope: 100,
+  protocol_category: 50,
+}
+
+function reliableMinFor(dimension: CategoryDimension): number {
+  return RELIABLE_MIN_MENTIONS_BY_DIMENSION[dimension]
+}
 
 // Page content max-width (matches typical detail-page chrome and keeps SVG
 // charts at a comfortable reading width on wide screens).
@@ -322,9 +334,9 @@ function MetricColumn({
   )
 }
 
-function HeadlineSummary({ breakdowns }: { breakdowns: EraCategoryBreakdown[] }) {
+function HeadlineSummary({ breakdowns, reliableMin }: { breakdowns: EraCategoryBreakdown[]; reliableMin: number }) {
   // Compare the latest reliable era to the earliest reliable era.
-  const reliable = breakdowns.filter((b) => b.total >= RELIABLE_MIN_MENTIONS)
+  const reliable = breakdowns.filter((b) => b.total >= reliableMin)
   const first = reliable[0]
   const last = reliable[reliable.length - 1]
   if (!first || !last || first === last) {
@@ -392,7 +404,7 @@ const CHART_SERIES: ChartSeries[] = [
   },
 ]
 
-function EffectiveNChart({ breakdowns }: { breakdowns: EraCategoryBreakdown[] }) {
+function EffectiveNChart({ breakdowns, reliableMin }: { breakdowns: EraCategoryBreakdown[]; reliableMin: number }) {
   if (breakdowns.length === 0) return null
   const plotW = CHART_W - MARGIN.left - MARGIN.right
   const plotH = LINE_CHART_H - MARGIN.top - MARGIN.bottom
@@ -461,7 +473,7 @@ function EffectiveNChart({ breakdowns }: { breakdowns: EraCategoryBreakdown[] })
           <g key={s.key}>
             <path d={path} fill="none" stroke={s.color} strokeWidth="2" />
             {points.map((p) => {
-              const reliable = p.b.total >= RELIABLE_MIN_MENTIONS
+              const reliable = p.b.total >= reliableMin
               return (
                 <g key={p.b.era_slug}>
                   <circle
@@ -515,10 +527,12 @@ function CompositionChart({
   breakdowns,
   categoryOrder,
   dimension,
+  reliableMin,
 }: {
   breakdowns: EraCategoryBreakdown[]
   categoryOrder: string[]
   dimension: CategoryDimension
+  reliableMin: number
 }) {
   if (breakdowns.length === 0) return null
   const plotW = CHART_W - MARGIN.left - MARGIN.right
@@ -575,7 +589,7 @@ function CompositionChart({
               cumPx += h
               return (
                 <g key={slug}>
-                  <rect x={x} y={y} width={barW} height={h} fill={colorFor(slug)} opacity={b.total >= RELIABLE_MIN_MENTIONS ? 1 : 0.45} />
+                  <rect x={x} y={y} width={barW} height={h} fill={colorFor(slug)} opacity={b.total >= reliableMin ? 1 : 0.45} />
                   <title>{`${b.era_name} · ${prettifyCategory(slug)}: ${(c.share * 100).toFixed(1)}% (${c.n.toLocaleString()} of ${b.total.toLocaleString()})`}</title>
                 </g>
               )
@@ -595,7 +609,7 @@ function CompositionChart({
               textAnchor="middle"
               fontSize="9"
               fill="var(--color-text-muted)"
-              opacity={b.total >= RELIABLE_MIN_MENTIONS ? 0.7 : 0.4}
+              opacity={b.total >= reliableMin ? 0.7 : 0.4}
               style={{ fontVariantNumeric: 'tabular-nums' }}
             >
               {b.total >= 1000 ? `${(b.total / 1000).toFixed(1)}k` : b.total}
@@ -1231,16 +1245,17 @@ function DiversityPanel({
 }) {
   const categoryOrder = topCategoriesWithOther(breakdowns, dimension)
   const collapsed = collapseBreakdowns(breakdowns, categoryOrder)
+  const reliableMin = reliableMinFor(dimension)
   return (
     <section style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--color-border)' }}>
       <h2 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 4px' }}>{title}</h2>
       <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: '0 0 16px', maxWidth: '60ch' }}>
         {subtitle}
       </p>
-      <HeadlineSummary breakdowns={breakdowns} />
+      <HeadlineSummary breakdowns={breakdowns} reliableMin={reliableMin} />
 
       <div style={{ marginTop: '20px' }}>
-        <EffectiveNChart breakdowns={breakdowns} />
+        <EffectiveNChart breakdowns={breakdowns} reliableMin={reliableMin} />
       </div>
 
       <h3 style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-text-muted)', margin: '24px 0 8px' }}>
@@ -1250,7 +1265,7 @@ function DiversityPanel({
         Share of mentions in each {metricLabel.toLowerCase()} per era. Numbers under each bar are total mentions for that era.
         {dimension === 'scope' && ' Categories are grouped by domain: earth sciences (cool palette) at the bottom of each bar, life sciences (warm palette) above, cross-cutting categories on top.'}
       </p>
-      <CompositionChart breakdowns={collapsed} categoryOrder={categoryOrder} dimension={dimension} />
+      <CompositionChart breakdowns={collapsed} categoryOrder={categoryOrder} dimension={dimension} reliableMin={reliableMin} />
       <Legend categoryOrder={categoryOrder} dimension={dimension} />
       {categoryOrder.includes(OTHER_KEY) && (
         <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: '6px 0 0', fontStyle: 'italic' }}>
