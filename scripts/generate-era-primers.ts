@@ -326,7 +326,7 @@ async function assembleContext(pool: pg.Pool, era: Era): Promise<AssembledContex
   topPubs.forEach((p, i) => {
     const c = citationLabels.get(p.id)
     parts.push(
-      `\n[${i + 1}] (${c?.label ?? '?'}) "${p.title}" — ${p.journal ?? 'unknown journal'} (${p.citation_count ?? 0} external citations) [pub_id:${p.id}]`,
+      `\n[${i + 1}] (${c?.label ?? '?'}) "${p.title}" (${p.citation_count ?? 0} external citations) [pub_id:${p.id}]`,
     )
   })
   parts.push('')
