@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import { getDb } from '../../lib/db'
 import {
+  getAuthorCohortsByEra,
   getDiversityAcrossEras,
   RESEARCH_SOURCES,
   type CategoryDimension,
   type EraCategoryBreakdown,
+  type EraCohortBreakdown,
   type SourceCollection,
 } from '@/services/eras'
 
@@ -703,6 +705,225 @@ function Legend({
 }
 
 // ---------------------------------------------------------------------------
+// Community composition — author cohorts per era
+// ---------------------------------------------------------------------------
+
+// Sequential cohort palette: oldest cohorts dark (foundational), newest
+// cohort light (recent arrival). Reads as deep-roots-bottom, fresh-top.
+// One color per decade-cohort + pre-1950 bucket (9 colors total).
+const COHORT_PALETTE: Record<string, string> = {
+  'pre-1950': '#1a2c4d',
+  '1950s':    '#243c64',
+  '1960s':    '#2e5388',
+  '1970s':    '#3b6ca6',
+  '1980s':    '#5285bd',
+  '1990s':    '#6c9fcc',
+  '2000s':    '#8ab7d8',
+  '2010s':    '#aacde4',
+  '2020s':    '#cae0ec',
+}
+
+function cohortColor(slug: string): string {
+  return COHORT_PALETTE[slug] ?? 'var(--color-text-muted)'
+}
+
+function CohortHeadline({ breakdowns }: { breakdowns: EraCohortBreakdown[] }) {
+  // Latest reliable era — same RELIABLE_MIN_MENTIONS doesn't apply here;
+  // for cohort math we just want a non-empty era. Pick the last one.
+  const last = breakdowns[breakdowns.length - 1]
+  if (!last) return null
+  const newShare = last.total_active > 0 ? last.new_in_era / last.total_active : 0
+  const prevDecade = breakdowns[breakdowns.length - 2]
+  const sustained = prevDecade
+    ? last.cohorts
+        .filter((c) => c.cohort_start_year < last.start_year)
+        .reduce((s, c) => s + c.n, 0)
+    : 0
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: '24px', flexWrap: 'wrap' }}>
+      <div>
+        <div style={{ fontSize: '34px', fontWeight: 600, lineHeight: 1, color: '#3b6ca6', fontVariantNumeric: 'tabular-nums' }}>
+          {last.new_in_era.toLocaleString()}
+        </div>
+        <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+          new researchers first published in the {last.era_name}
+          {' '}({(newShare * 100).toFixed(0)}% of {last.total_active.toLocaleString()} active)
+        </div>
+      </div>
+      {prevDecade && (
+        <div style={{ fontSize: '13px', color: 'var(--color-text-muted)', maxWidth: '40ch' }}>
+          {sustained.toLocaleString()} continued from earlier cohorts — the
+          long tail of researchers whose first publications go back as far as{' '}
+          {breakdowns[0].era_name} contribute to institutional memory.
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CohortChart({ breakdowns }: { breakdowns: EraCohortBreakdown[] }) {
+  if (breakdowns.length === 0) return null
+  const plotW = CHART_W - MARGIN.left - MARGIN.right
+  const plotH = STACK_CHART_H - MARGIN.top - MARGIN.bottom
+  const gap = 6
+  const barW = (plotW - gap * (breakdowns.length - 1)) / breakdowns.length
+
+  const maxY = Math.max(1, ...breakdowns.map((b) => b.total_active))
+
+  // Order: chronologically — oldest cohort at bottom, newest at top.
+  // The cohort_start_year ordering already gives us this from the service.
+  return (
+    <svg
+      role="img"
+      aria-label={`Stacked bars of active research community per decade by first-publication cohort`}
+      viewBox={`0 0 ${CHART_W} ${STACK_CHART_H}`}
+      style={{ width: '100%', height: 'auto', display: 'block', maxWidth: `${CHART_W}px` }}
+    >
+      {/* y axis ticks */}
+      {[0, maxY / 2, maxY].map((v) => (
+        <g key={v}>
+          <line
+            x1={MARGIN.left}
+            x2={CHART_W - MARGIN.right}
+            y1={MARGIN.top + plotH - (v / maxY) * plotH}
+            y2={MARGIN.top + plotH - (v / maxY) * plotH}
+            stroke="var(--color-border)"
+            strokeDasharray="2 3"
+          />
+          <text
+            x={MARGIN.left - 6}
+            y={MARGIN.top + plotH - (v / maxY) * plotH + 4}
+            textAnchor="end"
+            fontSize="11"
+            fill="var(--color-text-muted)"
+            style={{ fontVariantNumeric: 'tabular-nums' }}
+          >
+            {Math.round(v).toLocaleString()}
+          </text>
+        </g>
+      ))}
+
+      {breakdowns.map((b, i) => {
+        const x = MARGIN.left + i * (barW + gap)
+        const sortedCohorts = [...b.cohorts].sort((a, b) => a.cohort_start_year - b.cohort_start_year)
+        let cumPx = 0
+        return (
+          <g key={b.era_slug}>
+            {sortedCohorts.map((c) => {
+              const h = (c.n / maxY) * plotH
+              const y = MARGIN.top + plotH - cumPx - h
+              cumPx += h
+              return (
+                <g key={c.cohort_slug}>
+                  <rect
+                    x={x}
+                    y={y}
+                    width={barW}
+                    height={h}
+                    fill={cohortColor(c.cohort_slug)}
+                  />
+                  <title>{`${b.era_name} · ${c.cohort_name} cohort: ${c.n.toLocaleString()} (${(c.share * 100).toFixed(1)}%)`}</title>
+                </g>
+              )
+            })}
+            <text
+              x={x + barW / 2}
+              y={STACK_CHART_H - MARGIN.bottom + 16}
+              textAnchor="middle"
+              fontSize="11"
+              fill="var(--color-text-muted)"
+            >
+              {b.era_name}
+            </text>
+            <text
+              x={x + barW / 2}
+              y={STACK_CHART_H - MARGIN.bottom + 28}
+              textAnchor="middle"
+              fontSize="9"
+              fill="var(--color-text-muted)"
+              opacity={0.7}
+              style={{ fontVariantNumeric: 'tabular-nums' }}
+            >
+              {b.total_active >= 1000 ? `${(b.total_active / 1000).toFixed(1)}k` : b.total_active}
+            </text>
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+function CohortLegend({ breakdowns }: { breakdowns: EraCohortBreakdown[] }) {
+  // Gather all cohorts that appear across all eras, in chronological order.
+  const seen = new Set<string>()
+  const all: { slug: string; name: string; start: number }[] = []
+  for (const b of breakdowns) {
+    for (const c of b.cohorts) {
+      if (!seen.has(c.cohort_slug)) {
+        seen.add(c.cohort_slug)
+        all.push({ slug: c.cohort_slug, name: c.cohort_name, start: c.cohort_start_year })
+      }
+    }
+  }
+  all.sort((a, b) => a.start - b.start)
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 14px', marginTop: '8px', fontSize: '12px' }}>
+      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        First-publication cohort:
+      </span>
+      {all.map((c) => (
+        <div key={c.slug} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <span
+            style={{
+              display: 'inline-block',
+              width: '12px',
+              height: '12px',
+              background: cohortColor(c.slug),
+              borderRadius: '2px',
+              flexShrink: 0,
+            }}
+          />
+          <span style={{ color: 'var(--color-text)' }}>{c.name}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function CommunityCompositionPanel({ breakdowns }: { breakdowns: EraCohortBreakdown[] }) {
+  // Drop centuries — chart is decade-only.
+  const decades = breakdowns.filter((b) => b.end_year - b.start_year < 50)
+  return (
+    <section style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--color-border)' }}>
+      <h2 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 4px' }}>
+        Community composition by cohort
+      </h2>
+      <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: '0 0 16px', maxWidth: '60ch' }}>
+        Pure measurement, no inference. Each bar is the research community
+        active in that decade, segmented by the decade of each author&rsquo;s
+        first publication in the corpus. Reads as the community&rsquo;s
+        generational layers: deep cohorts at the bottom carry institutional
+        memory; the lighter top layer is the decade&rsquo;s new arrivals.
+      </p>
+      <CohortHeadline breakdowns={decades} />
+
+      <h3 style={{ fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-text-muted)', margin: '24px 0 8px' }}>
+        Generational layers
+      </h3>
+      <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 8px' }}>
+        Total active researchers per decade. Numbers under each bar are the
+        active community size. Author identity is keyed on
+        (family + given) name pairs — small inflation possible from
+        spelling variations; the trend is robust.
+      </p>
+      <CohortChart breakdowns={decades} />
+      <CohortLegend breakdowns={decades} />
+    </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Panel (one per dimension)
 // ---------------------------------------------------------------------------
 
@@ -800,9 +1021,10 @@ export default async function ErasTrendsPage({
   const sources = lens === 'research' ? RESEARCH_SOURCES : ALL_SOURCES
 
   const db = getDb()
-  const [scopes, protocolCats] = await Promise.all([
+  const [scopes, protocolCats, cohorts] = await Promise.all([
     getDiversityAcrossEras(db, 'scope', sources),
     getDiversityAcrossEras(db, 'protocol_category', sources),
+    getAuthorCohortsByEra(db),
   ])
 
   return (
@@ -878,6 +1100,8 @@ export default async function ErasTrendsPage({
         breakdowns={protocolCats}
         dimension="protocol_category"
       />
+
+      <CommunityCompositionPanel breakdowns={cohorts} />
 
       <section style={{ marginTop: '32px', padding: '14px 16px', background: 'var(--color-surface)', border: '1px dashed var(--color-border)', borderRadius: 'var(--radius-sm)', fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
         <strong style={{ color: 'var(--color-text)' }}>Caveat:</strong>{' '}
