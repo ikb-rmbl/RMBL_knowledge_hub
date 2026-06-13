@@ -1069,3 +1069,40 @@ export async function getEraTrajectorySnapshot(
     fading,
   }
 }
+
+// ---------------------------------------------------------------------------
+// Era primers (synthesized period portraits)
+// ---------------------------------------------------------------------------
+
+export interface EraPrimer {
+  primer: string
+  primer_model: string | null
+  primer_generated_at: string | null
+  key_themes: string[]
+  open_questions: string[]
+}
+
+export async function getEraPrimer(pool: pg.Pool, eraId: number): Promise<EraPrimer | null> {
+  const { rows } = await pool.query<{
+    primer: string | null
+    primer_model: string | null
+    primer_generated_at: string | null
+    primer_key_themes: string[] | null
+    primer_open_questions: string[] | null
+  }>(
+    `SELECT primer, primer_model,
+            primer_generated_at::text AS primer_generated_at,
+            primer_key_themes, primer_open_questions
+       FROM eras WHERE id = $1`,
+    [eraId],
+  )
+  const r = rows[0]
+  if (!r?.primer) return null
+  return {
+    primer: r.primer,
+    primer_model: r.primer_model,
+    primer_generated_at: r.primer_generated_at,
+    key_themes: r.primer_key_themes ?? [],
+    open_questions: r.primer_open_questions ?? [],
+  }
+}
