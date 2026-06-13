@@ -559,3 +559,128 @@ export async function getEraRecentStories(
   )
   return rows
 }
+
+// ---------------------------------------------------------------------------
+// Author cohorts across eras (community renewal)
+//
+// For each decade, the active research community is segmented by the decade
+// of each author's first publication in the corpus. Pure measurement — no
+// inference. Answers: is the community renewing, and how much continuity is
+// there across decades? Pairs naturally with the diversity panels.
+// ---------------------------------------------------------------------------
+
+export interface CohortSegment {
+  cohort_slug: string
+  cohort_name: string
+  cohort_start_year: number
+  n: number
+  /** Share of the era's active community in this cohort (0-1). */
+  share: number
+}
+
+export interface EraCohortBreakdown {
+  era_id: number
+  era_slug: string
+  era_name: string
+  start_year: number
+  end_year: number
+  /** Total distinct authors active in this era. */
+  total_active: number
+  /** Authors whose first publication falls in this era (cohort_slug === era_slug). */
+  new_in_era: number
+  /** Cohorts in chronological order (oldest first). */
+  cohorts: CohortSegment[]
+}
+
+/**
+ * For every decade-spanning calendar era, return the active-author breakdown
+ * by first-publication cohort. Cohorts are themselves the same decade eras.
+ *
+ * Author identity uses lower(family)|lower(given) pairs — same approach as
+ * the unique-authors metric in the corpus-context section. Mildly inflated
+ * by spelling variations on the same person, but trends are robust.
+ */
+export async function getAuthorCohortsByEra(
+  pool: pg.Pool,
+): Promise<EraCohortBreakdown[]> {
+  const { rows } = await pool.query<{
+    era_id: number
+    era_slug: string
+    era_name: string
+    era_start: number
+    era_end: number
+    cohort_slug: string
+    cohort_name: string
+    cohort_start: number
+    n: string
+  }>(`
+    WITH author_first AS (
+      SELECT lower(coalesce(a.family,'')) || '|' || lower(coalesce(a.given,'')) AS author_key,
+             min(p.year::int) AS first_year
+        FROM publications_authors a
+        JOIN publications p ON p.id = a._parent_id
+       WHERE p.year > 0 AND p.year::int >= 1900 AND coalesce(a.family,'') <> ''
+       GROUP BY 1
+    ),
+    era_author AS (
+      SELECT DISTINCT
+             lower(coalesce(a.family,'')) || '|' || lower(coalesce(a.given,'')) AS author_key,
+             e.id AS era_id, e.slug AS era_slug, e.name AS era_name,
+             e.start_year AS era_start, e.end_year AS era_end
+        FROM publications_authors a
+        JOIN publications p ON p.id = a._parent_id
+        JOIN eras e ON e.kind = 'calendar' AND (e.end_year - e.start_year) < 50
+                    AND p.year::int BETWEEN e.start_year AND e.end_year
+       WHERE p.year > 0 AND p.year::int >= 1900 AND coalesce(a.family,'') <> ''
+    )
+    SELECT ea.era_id, ea.era_slug, ea.era_name, ea.era_start, ea.era_end,
+           ce.slug AS cohort_slug, ce.name AS cohort_name, ce.start_year AS cohort_start,
+           count(*)::text AS n
+      FROM era_author ea
+      JOIN author_first af ON af.author_key = ea.author_key
+      JOIN eras ce ON ce.kind = 'calendar' AND (ce.end_year - ce.start_year) < 50
+                  AND af.first_year BETWEEN ce.start_year AND ce.end_year
+     GROUP BY ea.era_id, ea.era_slug, ea.era_name, ea.era_start, ea.era_end,
+              ce.id, ce.slug, ce.name, ce.start_year
+     ORDER BY ea.era_start ASC, ce.start_year ASC
+  `)
+
+  // Group by era, compute totals + new-in-era + shares.
+  const byEra = new Map<number, EraCohortBreakdown>()
+  for (const r of rows) {
+    let bucket = byEra.get(r.era_id)
+    if (!bucket) {
+      bucket = {
+        era_id: r.era_id,
+        era_slug: r.era_slug,
+        era_name: r.era_name,
+        start_year: r.era_start,
+        end_year: r.era_end,
+        total_active: 0,
+        new_in_era: 0,
+        cohorts: [],
+      }
+      byEra.set(r.era_id, bucket)
+    }
+    const n = parseInt(r.n, 10)
+    bucket.cohorts.push({
+      cohort_slug: r.cohort_slug,
+      cohort_name: r.cohort_name,
+      cohort_start_year: r.cohort_start,
+      n,
+      share: 0, // filled in below
+    })
+    bucket.total_active += n
+    if (r.cohort_slug === r.era_slug) bucket.new_in_era = n
+  }
+
+  const out: EraCohortBreakdown[] = []
+  for (const bucket of byEra.values()) {
+    for (const c of bucket.cohorts) {
+      c.share = bucket.total_active > 0 ? c.n / bucket.total_active : 0
+    }
+    out.push(bucket)
+  }
+  out.sort((a, b) => a.start_year - b.start_year)
+  return out
+}
