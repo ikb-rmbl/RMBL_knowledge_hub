@@ -11,8 +11,14 @@
  * Usage:
  *   npx tsx scripts/sync-bulk-to-neon.ts
  *   npx tsx scripts/sync-bulk-to-neon.ts --only=neighborhoods,frontiers
+ *   npx tsx scripts/sync-bulk-to-neon.ts --only=era_primers
  *
- * Sections: neighborhoods, entity_mentions, frontiers
+ * Sections: neighborhoods, entity_mentions, frontiers, planning, era_primers
+ *
+ * Note on era_primers: this is NOT a DELETE+INSERT bulk section. The eras
+ * table is admin-editable, so era_primers UPDATEs only the five primer
+ * columns (primer, primer_generated_at, primer_model, primer_key_themes,
+ * primer_open_questions), keyed on slug.
  */
 
 import pg from 'pg'
@@ -22,7 +28,7 @@ const BATCH = 200
 
 const args = process.argv.slice(2)
 const onlyArg = args.find((a) => a.startsWith('--only='))?.split('=')[1]
-const sections = new Set(onlyArg ? onlyArg.split(',').map((s) => s.trim()) : ['neighborhoods', 'entity_mentions', 'frontiers', 'planning'])
+const sections = new Set(onlyArg ? onlyArg.split(',').map((s) => s.trim()) : ['neighborhoods', 'entity_mentions', 'frontiers', 'planning', 'era_primers'])
 
 async function main() {
   console.log('Sync Bulk Tables to Neon')
@@ -245,6 +251,51 @@ async function main() {
       }
     }
     console.log(`  ${opps.length} long-reach opportunities`)
+    }
+
+    if (sections.has('era_primers')) {
+    // Era primers — narrow targeted UPDATE by slug.
+    //
+    // The eras table is admin-editable (name/description/sort_order/curated_fields),
+    // so we can't DELETE+INSERT like the other bulk sections; we patch only the
+    // five primer columns produced by scripts/generate-era-primers.ts and key on
+    // slug (stable across both sides). Rows on Neon that don't exist locally are
+    // ignored; rows on Neon whose slug we can't match get a console warning.
+    console.log('\n--- Era primers ---')
+    const { rows: eras } = await local.query(`
+      SELECT slug, primer, primer_generated_at, primer_model,
+             primer_key_themes, primer_open_questions
+        FROM eras
+       WHERE primer IS NOT NULL
+       ORDER BY start_year`)
+    let updated = 0
+    let unmatched = 0
+    for (const row of eras) {
+      const { rowCount } = await neon.query(
+        `UPDATE eras
+            SET primer               = $1,
+                primer_generated_at  = $2,
+                primer_model         = $3,
+                primer_key_themes    = $4::jsonb,
+                primer_open_questions = $5::jsonb
+          WHERE slug = $6`,
+        [
+          row.primer,
+          row.primer_generated_at,
+          row.primer_model,
+          JSON.stringify(row.primer_key_themes ?? []),
+          JSON.stringify(row.primer_open_questions ?? []),
+          row.slug,
+        ],
+      )
+      if (rowCount && rowCount > 0) {
+        updated++
+      } else {
+        unmatched++
+        console.log(`  ⚠ slug "${row.slug}" not on Neon (skipped)`)
+      }
+    }
+    console.log(`  ${updated} era primer(s) patched${unmatched > 0 ? `, ${unmatched} unmatched` : ''}`)
     }
 
     // 5. Reset sequences
