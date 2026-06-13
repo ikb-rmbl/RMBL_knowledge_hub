@@ -451,6 +451,22 @@ export interface EraSamplePublication {
   year: number
   authors: string | null
   citation_count: number | null
+  /**
+   * Number of basin publications that cite this paper (source_publication_id
+   * IS NOT NULL in references_cited). null when the paper is not in the
+   * internal-citation top bucket.
+   */
+  internal_citation_count: number | null
+  /**
+   * Distinct entity count for this paper across species, places, protocols,
+   * concepts, stakeholders. null when the paper is not in the grounded top
+   * bucket (or has no entity_mentions rows).
+   */
+  distinct_basin_entities: number | null
+  /** 1-indexed rank within era for each signal, or null if not in top bucket. */
+  rank_external: number | null
+  rank_internal: number | null
+  rank_grounded: number | null
 }
 export interface EraSampleDocument {
   id: number
@@ -471,23 +487,98 @@ export interface EraSampleStory {
 }
 
 /**
- * Top-cited publications from an era. Citation count is the practical
- * "importance" signal for publications.
+ * Landmark candidate publications from an era, drawn from three signals so
+ * we don't only see what the world cited:
+ *   - external citations (global significance, via OpenAlex)
+ *   - basin-internal citations (basin colleagues building on the paper)
+ *   - distinct basin entities mentioned (depth of basin engagement)
+ *
+ * We pull top 25 by each signal, union them, and order by how many of the
+ * three signals each paper qualified for, then by its best rank in any
+ * signal. The LLM consumer is expected to render the per-signal ranks so
+ * it can name what kind of landmark a paper is — globally pivotal,
+ * locally foundational, or basin-grounded.
+ *
+ * `limit` caps the final union; with three top-25 lists and partial
+ * overlap, expect 30–60 candidates before the cap.
  */
 export async function getEraTopPublications(
   pool: pg.Pool,
   era: Era,
-  limit: number = 10,
+  limit: number = 30,
 ): Promise<EraSamplePublication[]> {
   const { rows } = await pool.query<EraSamplePublication>(
     `
-    SELECT p.id, p.title, p.year::int AS year,
+    WITH ext AS (
+      SELECT id,
+             coalesce(external_citation_count, 0) AS ext_count,
+             row_number() OVER (
+               ORDER BY coalesce(external_citation_count, 0) DESC, year DESC
+             ) AS rank_ext
+        FROM publications
+       WHERE year BETWEEN $1 AND $2 AND year > 0
+       ORDER BY coalesce(external_citation_count, 0) DESC, year DESC
+       LIMIT 25
+    ),
+    internal_cites AS (
+      SELECT p.id,
+             count(*)::int AS int_count,
+             row_number() OVER (
+               ORDER BY count(*) DESC, p.year DESC
+             ) AS rank_int
+        FROM publications p
+        JOIN references_cited rc
+          ON rc.target_publication_id = p.id
+         AND rc.source_publication_id IS NOT NULL
+       WHERE p.year BETWEEN $1 AND $2 AND p.year > 0
+       GROUP BY p.id, p.year
+       ORDER BY count(*) DESC, p.year DESC
+       LIMIT 25
+    ),
+    grounded AS (
+      SELECT p.id,
+             count(DISTINCT (em.entity_type, em.entity_id))::int AS distinct_ents,
+             row_number() OVER (
+               ORDER BY count(DISTINCT (em.entity_type, em.entity_id)) DESC, p.year DESC
+             ) AS rank_grnd
+        FROM publications p
+        JOIN entity_mentions em
+          ON em.collection = 'publications' AND em.item_id = p.id
+       WHERE p.year BETWEEN $1 AND $2 AND p.year > 0
+       GROUP BY p.id, p.year
+       ORDER BY count(DISTINCT (em.entity_type, em.entity_id)) DESC, p.year DESC
+       LIMIT 25
+    ),
+    union_ids AS (
+      SELECT id FROM ext
+      UNION SELECT id FROM internal_cites
+      UNION SELECT id FROM grounded
+    )
+    SELECT p.id,
+           p.title,
+           p.year::int AS year,
            (SELECT string_agg(family, '; ' ORDER BY _order)
               FROM publications_authors a WHERE a._parent_id = p.id) AS authors,
-           coalesce(p.external_citation_count, 0) AS citation_count
-      FROM publications p
-     WHERE p.year BETWEEN $1 AND $2 AND p.year > 0
-     ORDER BY coalesce(p.external_citation_count, 0) DESC, p.year DESC
+           coalesce(p.external_citation_count, 0)::int AS citation_count,
+           internal_cites.int_count AS internal_citation_count,
+           grounded.distinct_ents AS distinct_basin_entities,
+           ext.rank_ext::int AS rank_external,
+           internal_cites.rank_int::int AS rank_internal,
+           grounded.rank_grnd::int AS rank_grounded
+      FROM union_ids u
+      JOIN publications p ON p.id = u.id
+      LEFT JOIN ext ON ext.id = u.id
+      LEFT JOIN internal_cites ON internal_cites.id = u.id
+      LEFT JOIN grounded ON grounded.id = u.id
+     ORDER BY
+       -- prioritize papers that appear in more buckets
+       ((CASE WHEN ext.rank_ext IS NULL THEN 0 ELSE 1 END)
+        + (CASE WHEN internal_cites.rank_int IS NULL THEN 0 ELSE 1 END)
+        + (CASE WHEN grounded.rank_grnd IS NULL THEN 0 ELSE 1 END)) DESC,
+       -- then by best rank achieved in any single bucket
+       least(coalesce(ext.rank_ext, 9999),
+             coalesce(internal_cites.rank_int, 9999),
+             coalesce(grounded.rank_grnd, 9999)) ASC
      LIMIT $3
     `,
     [era.start_year, era.end_year, limit],

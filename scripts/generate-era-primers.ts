@@ -90,7 +90,7 @@ Write a 800-1400 word primer covering these sections. Use plain section labels w
    How active was environmental research at RMBL and in the basin during this period? What questions was environmental science broadly pursuing nationally and globally at this point, and how did basin work sit inside those currents? Sketch the wider scientific or policy moment lightly — well-known period currents (the rise of long-term ecological research networks, the maturation of climate science, the post-IPCC era, the remote-sensing revolution, etc.) where they illuminate the basin's work. When broad patterns from BROADER PATTERNS clearly characterize the era — a methodological category steadily rising over multiple eras, a step-change in collaboration norms, the maturation of a discipline — incorporate that context. Do not fabricate specific external events.
 
 2. Research focus (2-3 paragraphs)
-   The intellectual content of basin science in this era — themes, organisms, study sites, and methods that recurred. Anchor the prose on the era's TOP-CITED PUBLICATIONS, weaving in distinctive concepts, species, and places only when they appear in or alongside those cited works. Do not lead with single-distinctive-concept claims that aren't grounded in the actual research.
+   The intellectual content of basin science in this era — themes, organisms, study sites, and methods that recurred. Anchor the prose on the era's LANDMARK CANDIDATES (the publication list below), weaving in distinctive concepts, species, and places only when they appear in or alongside those works. Do not lead with single-distinctive-concept claims that aren't grounded in the actual research.
 
 3. Community and policy context (0-2 paragraphs)
    How RMBL research intersected with land-management and community concerns in the basin during this period. Include this section only if the era has meaningful policy/community content (distinctive policy-lens concepts, documents, or stakeholders). When that signal is thin, replace this section with a single brief sentence noting the era's record is primarily research-side, then move on.
@@ -99,7 +99,7 @@ Write a 800-1400 word primer covering these sections. Use plain section labels w
    What new methods, organisms, or questions were beginning to take shape in this era — but only when they also appear in the era's top-cited publications or alongside them. Do not list trending or new entities for their own sake. The TRAJECTORY lists below are supporting evidence, not independent claims.
 
 5. Landmark works (1-2 paragraphs)
-   A few of the era's most-cited or most-characteristic publications, datasets, or documents, described in terms of what they were about and why they mattered for the basin. Cite explicitly using the format below.
+   A few of the era's landmark publications, datasets, or documents, described in terms of what they were about and why they mattered for the basin. The LANDMARK CANDIDATES list below tags each paper with three signals — global citation rank (ext), basin-internal citation rank (basin), and basin-entity grounding rank (grounded). Prefer papers that score on two or more signals. When canonizing a paper that scores on only one signal, name what kind of landmark it is — globally pivotal, locally foundational, or basin-grounded — rather than implying impact the signals don't support. Cite explicitly using the format below.
 
 6. Connections (1 paragraph)
    How this era related to the period that came before, and the threads it carried forward. Keep this short — one paragraph, not a recap.
@@ -228,8 +228,13 @@ async function assembleContext(pool: pg.Pool, era: Era): Promise<AssembledContex
     ])
 
   // --- Content samples ---
+  // 30 publications spans the union of three 25-candidate buckets (external
+  // citations / basin-internal citations / basin-entity grounding). With
+  // partial overlap the union is typically 35-55; the SQL orders by
+  // bucket-coverage then best per-bucket rank, so the cap keeps the strongest
+  // multi-signal papers.
   const [topPubs, recentDocs, topDatasets] = await Promise.all([
-    getEraTopPublications(pool, era, 12),
+    getEraTopPublications(pool, era, 30),
     getEraRecentDocuments(pool, era, 6),
     getEraTopDatasets(pool, era, 6),
   ])
@@ -321,12 +326,45 @@ async function assembleContext(pool: pg.Pool, era: Era): Promise<AssembledContex
   }
   parts.push('')
 
-  // TOP-CITED PUBLICATIONS — the anchor
-  parts.push(`TOP-CITED PUBLICATIONS (the anchor — primer claims about specific research should ground here)`)
+  // LANDMARK CANDIDATES — the anchor. Three signals identify a paper as a
+  // candidate landmark so we don't only surface what the world cited:
+  //   - ext     external citation rank (global significance, via OpenAlex)
+  //   - basin   internal citation rank (basin colleagues building on it)
+  //   - grounded distinct basin entities mentioned (depth of basin engagement)
+  // Each paper is tagged with which signals it qualified for so the LLM can
+  // name what kind of landmark it is.
+  parts.push(
+    `LANDMARK CANDIDATES (the anchor — primer claims about specific research should ground here)`,
+  )
+  parts.push(
+    `  Each paper is tagged with its rank in three signals: ext = external citations (global significance);`,
+  )
+  parts.push(
+    `  basin = internal citations from other basin publications (locally foundational);`,
+  )
+  parts.push(
+    `  grounded = distinct basin entities (species, places, protocols) the paper mentions (basin-grounded research).`,
+  )
+  parts.push(
+    `  "—" means the paper did not appear in that signal's top bucket. Papers appearing in multiple buckets are listed first.`,
+  )
   topPubs.forEach((p, i) => {
     const c = citationLabels.get(p.id)
+    const tags = [
+      p.rank_external != null ? `ext:#${p.rank_external}` : 'ext:—',
+      p.rank_internal != null ? `basin:#${p.rank_internal}` : 'basin:—',
+      p.rank_grounded != null ? `grounded:#${p.rank_grounded}` : 'grounded:—',
+    ].join(' | ')
+    const evidence: string[] = []
+    if (p.citation_count != null) evidence.push(`${p.citation_count} ext cites`)
+    if (p.internal_citation_count != null && p.internal_citation_count > 0)
+      evidence.push(`${p.internal_citation_count} basin citers`)
+    if (p.distinct_basin_entities != null && p.distinct_basin_entities > 0)
+      evidence.push(`${p.distinct_basin_entities} basin entities`)
     parts.push(
-      `\n[${i + 1}] (${c?.label ?? '?'}) "${p.title}" (${p.citation_count ?? 0} external citations) [pub_id:${p.id}]`,
+      `\n[${i + 1}] (${c?.label ?? '?'}) [${tags}] "${p.title}" — ${
+        evidence.join(', ') || 'no signal counts'
+      } [pub_id:${p.id}]`,
     )
   })
   parts.push('')
