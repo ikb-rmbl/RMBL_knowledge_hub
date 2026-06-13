@@ -1162,6 +1162,450 @@ export async function getEraTrajectorySnapshot(
 }
 
 // ---------------------------------------------------------------------------
+// Era signature — distinctive deltas vs prior era + news summary
+//
+// Built specifically for the era-primer generator to surface era-distinctive
+// facts (deltas, step-changes, new appearances) so the LLM has comparative
+// material to lead with instead of defaulting to a growth narrative on
+// every era. Composed from existing service primitives; the only fresh SQL
+// is the news summary.
+// ---------------------------------------------------------------------------
+
+export interface SignatureDelta {
+  curr: number
+  prior: number | null
+  /** curr - prior; null when prior is unknown. */
+  abs_change: number | null
+  /** (curr - prior) / prior; null when prior is null or zero. */
+  pct_change: number | null
+}
+
+export interface CategoryStepChange {
+  category: string
+  /** Current-era share, 0-1. */
+  curr_share: number
+  /** Prior-era share, 0-1. */
+  prior_share: number
+  /** Percentage-point change in 0-1 units (curr_share - prior_share). */
+  pp_change: number
+}
+
+export interface NewInEraHighlight {
+  name: string
+  entity_type: EntityType
+  first_year: number
+  n_in_era: number
+}
+
+export interface EraNewsSummary {
+  total_curr: number
+  total_prior: number | null
+  national_curr: number
+  national_prior: number | null
+  /**
+   * Coverage classification by raw volume. Drives sparse-era prompt handling.
+   * absent (0-1)  pre-digitization
+   * sparse (2-15) national-press only, no local archive
+   * modest (16-100) digital-archive era beginning
+   * rich   (>100) modern coverage
+   */
+  coverage: 'absent' | 'sparse' | 'modest' | 'rich'
+  /** Top story-type shares in the current era. */
+  type_shares_curr: Array<{ type: string; share: number; n: number }>
+  /** Story types whose share moved >= 5pp vs prior era. */
+  type_step_changes: CategoryStepChange[]
+}
+
+export interface EraSignature {
+  era_id: number
+  era_name: string
+  prior_era_name: string | null
+  // Scale deltas — natural units; abs_change/pct_change derived.
+  n_pubs: SignatureDelta
+  avg_authors: SignatureDelta
+  avg_refs: SignatureDelta
+  /** share_internal_refs in 0-1; abs_change here reads as percentage points. */
+  share_internal_refs: SignatureDelta
+  /** newcomer_share in 0-1; abs_change reads as percentage points. */
+  newcomer_share: SignatureDelta
+  /** Top |pp| step-changes (>= 3pp) for protocol-category dimension. */
+  protocol_step_changes: CategoryStepChange[]
+  /** Top |pp| step-changes (>= 3pp) for concept-scope dimension. */
+  scope_step_changes: CategoryStepChange[]
+  /** First-appearing entities (max 5 per type), sorted by n_in_era DESC. */
+  new_concepts: NewInEraHighlight[]
+  new_protocols: NewInEraHighlight[]
+  new_species: NewInEraHighlight[]
+  news: EraNewsSummary
+}
+
+export async function getEraSignature(
+  pool: pg.Pool,
+  era: Era,
+): Promise<EraSignature> {
+  // Immediately preceding decade-or-bucket calendar era.
+  const { rows: priorRows } = await pool.query<Era>(
+    `SELECT ${ERA_COLS} FROM eras
+      WHERE kind = 'calendar'
+        AND (end_year - start_year) < 50
+        AND end_year < $1
+      ORDER BY start_year DESC
+      LIMIT 1`,
+    [era.start_year],
+  )
+  const priorEra: Era | null = priorRows[0] ?? null
+
+  // Pull cross-era datasets once and pluck focal + prior rows.
+  const allPubContext = await getPublicationContextByEra(pool)
+  const currPC = allPubContext.find((r) => r.era_id === era.id) ?? null
+  const priorPC = priorEra
+    ? allPubContext.find((r) => r.era_id === priorEra.id) ?? null
+    : null
+
+  const allCohorts = await getAuthorCohortsByEra(pool)
+  const currCohort = allCohorts.find((r) => r.era_id === era.id) ?? null
+  const priorCohort = priorEra
+    ? allCohorts.find((r) => r.era_id === priorEra.id) ?? null
+    : null
+
+  function delta(
+    curr: number | null | undefined,
+    prior: number | null | undefined,
+  ): SignatureDelta {
+    const c = typeof curr === 'number' ? curr : 0
+    const p = typeof prior === 'number' ? prior : null
+    if (p === null) {
+      return { curr: c, prior: null, abs_change: null, pct_change: null }
+    }
+    return {
+      curr: c,
+      prior: p,
+      abs_change: c - p,
+      pct_change: p === 0 ? null : (c - p) / p,
+    }
+  }
+
+  const newcomerCurr =
+    currCohort && currCohort.total_active > 0
+      ? currCohort.new_in_era / currCohort.total_active
+      : 0
+  const newcomerPrior =
+    priorCohort && priorCohort.total_active > 0
+      ? priorCohort.new_in_era / priorCohort.total_active
+      : null
+
+  const n_pubs = delta(currPC?.n_pubs ?? 0, priorPC?.n_pubs ?? null)
+  const avg_authors = delta(
+    currPC?.avg_authors ?? 0,
+    priorPC?.avg_authors ?? null,
+  )
+  const avg_refs = delta(currPC?.avg_refs ?? 0, priorPC?.avg_refs ?? null)
+  const share_internal_refs = delta(
+    currPC?.share_internal_refs ?? 0,
+    priorPC?.share_internal_refs ?? null,
+  )
+  const newcomer_share = delta(newcomerCurr, newcomerPrior)
+
+  // Category step-changes — |pp_change| >= 3pp, top 4 by magnitude.
+  function topStepChanges(
+    breakdowns: EraCategoryBreakdown[],
+  ): CategoryStepChange[] {
+    const curr = breakdowns.find((b) => b.era_id === era.id) ?? null
+    if (!curr) return []
+    const prior = priorEra
+      ? breakdowns.find((b) => b.era_id === priorEra.id) ?? null
+      : null
+    if (!prior) return []
+    const priorMap = new Map(prior.categories.map((c) => [c.category, c.share]))
+    const allCats = new Set<string>([
+      ...curr.categories.map((c) => c.category),
+      ...prior.categories.map((c) => c.category),
+    ])
+    const changes: CategoryStepChange[] = []
+    for (const cat of allCats) {
+      const c = curr.categories.find((x) => x.category === cat)?.share ?? 0
+      const p = priorMap.get(cat) ?? 0
+      const pp = c - p
+      if (Math.abs(pp) >= 0.03) {
+        changes.push({
+          category: cat,
+          curr_share: c,
+          prior_share: p,
+          pp_change: pp,
+        })
+      }
+    }
+    changes.sort((a, b) => Math.abs(b.pp_change) - Math.abs(a.pp_change))
+    return changes.slice(0, 4)
+  }
+  const protoBreakdowns = await getDiversityAcrossEras(pool, 'protocol_category')
+  const scopeBreakdowns = await getDiversityAcrossEras(pool, 'scope')
+  const protocol_step_changes = topStepChanges(protoBreakdowns)
+  const scope_step_changes = topStepChanges(scopeBreakdowns)
+
+  // New-in-era highlights via the trajectory snapshot we already compute.
+  const trajectory = await getEraTrajectorySnapshot(pool, era, { limit: 30 })
+  function pickNew(type: EntityType): NewInEraHighlight[] {
+    return trajectory.newInEra
+      .filter((e) => e.entity_type === type)
+      .sort((a, b) => b.n_in_era - a.n_in_era)
+      .slice(0, 5)
+      .map((e) => ({
+        name: e.name,
+        entity_type: e.entity_type,
+        first_year: e.first_year,
+        n_in_era: e.n_in_era,
+      }))
+  }
+  const new_concepts = pickNew('concept')
+  const new_protocols = pickNew('protocol')
+  const new_species = pickNew('species')
+
+  const news = await getEraNewsSummary(pool, era, priorEra)
+
+  return {
+    era_id: era.id,
+    era_name: era.name,
+    prior_era_name: priorEra?.name ?? null,
+    n_pubs,
+    avg_authors,
+    avg_refs,
+    share_internal_refs,
+    newcomer_share,
+    protocol_step_changes,
+    scope_step_changes,
+    new_concepts,
+    new_protocols,
+    new_species,
+    news,
+  }
+}
+
+async function getEraNewsSummary(
+  pool: pg.Pool,
+  era: Era,
+  priorEra: Era | null,
+): Promise<EraNewsSummary> {
+  // Per-era story counts split national/local; both eras in one round-trip.
+  const { rows: countRows } = await pool.query<{
+    era_tag: 'curr' | 'prior'
+    src: 'national' | 'local' | 'other'
+    n: number
+  }>(
+    `
+    WITH dated AS (
+      SELECT extract(year FROM date)::int AS yr,
+             CASE
+               WHEN source_url ILIKE '%lexis%' OR source_url ILIKE '%nexis%' THEN 'national'
+               WHEN source_url ILIKE '%crestedbuttenews%'
+                 OR source_url ILIKE '%gunnison%' THEN 'local'
+               ELSE 'other'
+             END AS src
+        FROM stories WHERE date IS NOT NULL)
+    SELECT 'curr'::text AS era_tag, src::text AS src, count(*)::int AS n
+      FROM dated WHERE yr BETWEEN $1 AND $2 GROUP BY src
+    UNION ALL
+    SELECT 'prior'::text, src::text, count(*)::int
+      FROM dated WHERE yr BETWEEN $3 AND $4 GROUP BY src
+    `,
+    [
+      era.start_year,
+      era.end_year,
+      priorEra?.start_year ?? -1,
+      priorEra?.end_year ?? -1,
+    ],
+  )
+
+  let curr_total = 0
+  let curr_natl = 0
+  let prior_total = 0
+  let prior_natl = 0
+  for (const r of countRows) {
+    if (r.era_tag === 'curr') {
+      curr_total += r.n
+      if (r.src === 'national') curr_natl += r.n
+    } else {
+      prior_total += r.n
+      if (r.src === 'national') prior_natl += r.n
+    }
+  }
+
+  async function typeShares(
+    start: number,
+    end: number,
+  ): Promise<Array<{ type: string; n: number; share: number }>> {
+    const { rows } = await pool.query<{ story_type: string; n: number }>(
+      `SELECT story_type, count(*)::int AS n
+         FROM stories
+        WHERE date IS NOT NULL
+          AND extract(year FROM date) BETWEEN $1 AND $2
+        GROUP BY story_type`,
+      [start, end],
+    )
+    const total = rows.reduce((s, r) => s + r.n, 0)
+    return rows
+      .map((r) => ({
+        type: r.story_type,
+        n: r.n,
+        share: total > 0 ? r.n / total : 0,
+      }))
+      .sort((a, b) => b.share - a.share)
+  }
+  const type_shares_curr = await typeShares(era.start_year, era.end_year)
+  const type_shares_prior = priorEra
+    ? await typeShares(priorEra.start_year, priorEra.end_year)
+    : []
+
+  let type_step_changes: CategoryStepChange[] = []
+  if (priorEra) {
+    const priorMap = new Map(type_shares_prior.map((t) => [t.type, t.share]))
+    const allTypes = new Set([
+      ...type_shares_curr.map((t) => t.type),
+      ...type_shares_prior.map((t) => t.type),
+    ])
+    for (const t of allTypes) {
+      const c = type_shares_curr.find((x) => x.type === t)?.share ?? 0
+      const p = priorMap.get(t) ?? 0
+      if (Math.abs(c - p) >= 0.05) {
+        type_step_changes.push({
+          category: t,
+          curr_share: c,
+          prior_share: p,
+          pp_change: c - p,
+        })
+      }
+    }
+    type_step_changes.sort(
+      (a, b) => Math.abs(b.pp_change) - Math.abs(a.pp_change),
+    )
+    type_step_changes = type_step_changes.slice(0, 4)
+  }
+
+  let coverage: EraNewsSummary['coverage']
+  if (curr_total <= 1) coverage = 'absent'
+  else if (curr_total <= 15) coverage = 'sparse'
+  else if (curr_total <= 100) coverage = 'modest'
+  else coverage = 'rich'
+
+  return {
+    total_curr: curr_total,
+    total_prior: priorEra ? prior_total : null,
+    national_curr: curr_natl,
+    national_prior: priorEra ? prior_natl : null,
+    coverage,
+    type_shares_curr: type_shares_curr.slice(0, 6),
+    type_step_changes,
+  }
+}
+
+export interface EraNewsItem {
+  id: number
+  title: string
+  year: number
+  story_type: string
+  source_class: 'national' | 'local' | 'other'
+  pub_link_count: number
+  /** Composite ranking score (pub_link_count * type_weight). Exposed for debug. */
+  score: number
+}
+
+/**
+ * Top stories of the era, scored as `pub_link_count * story_type_weight` and
+ * balanced across source classes (max half of `limit` from any single class).
+ * Used to feed the NEWS COVERAGE block in the era-primer generator. Returns
+ * titles only — story bodies are copyrighted and never exposed.
+ */
+export async function getEraNewsContext(
+  pool: pg.Pool,
+  era: Era,
+  limit: number = 8,
+): Promise<EraNewsItem[]> {
+  const { rows } = await pool.query<{
+    id: number
+    title: string
+    year: number
+    story_type: string
+    source_url: string | null
+    pub_link_count: number
+  }>(
+    `
+    WITH era_pub_ids AS (
+      SELECT id FROM publications WHERE year BETWEEN $1 AND $2 AND year > 0),
+    story_links AS (
+      SELECT rc.source_story_id AS story_id,
+             count(DISTINCT rc.target_publication_id)::int AS n_links
+        FROM references_cited rc
+        JOIN era_pub_ids p ON p.id = rc.target_publication_id
+       WHERE rc.source_story_id IS NOT NULL
+       GROUP BY rc.source_story_id),
+    candidates AS (
+      SELECT s.id, s.title, extract(year FROM s.date)::int AS year,
+             s.story_type, s.source_url,
+             coalesce(sl.n_links, 0) AS pub_link_count
+        FROM stories s
+        LEFT JOIN story_links sl ON sl.story_id = s.id
+       WHERE s.date IS NOT NULL
+         AND extract(year FROM s.date) BETWEEN $1 AND $2)
+    SELECT id, title, year, story_type, source_url, pub_link_count
+      FROM candidates
+     ORDER BY pub_link_count DESC, year DESC
+     LIMIT 40
+    `,
+    [era.start_year, era.end_year],
+  )
+
+  // Story-type weights favour substantive coverage shapes. Press releases get
+  // a heavy discount because they inflate link counts without proportionate
+  // editorial attention; news_articles a smaller discount; features /
+  // profiles / research_summaries / opinion_editorials carry full weight.
+  const TYPE_WEIGHT: Record<string, number> = {
+    feature: 1.0,
+    profile: 1.0,
+    research_summary: 1.0,
+    opinion_editorial: 1.0,
+    interview: 0.9,
+    legislative: 0.9,
+    event_coverage: 0.7,
+    news_article: 0.7,
+    press_release: 0.5,
+  }
+  function classify(src: string | null): 'national' | 'local' | 'other' {
+    if (!src) return 'other'
+    const s = src.toLowerCase()
+    if (s.includes('lexis') || s.includes('nexis')) return 'national'
+    if (s.includes('crestedbuttenews') || s.includes('gunnison')) return 'local'
+    return 'other'
+  }
+
+  const scored: EraNewsItem[] = rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    year: r.year,
+    story_type: r.story_type,
+    source_class: classify(r.source_url),
+    pub_link_count: r.pub_link_count,
+    score: r.pub_link_count * (TYPE_WEIGHT[r.story_type] ?? 0.6),
+  }))
+  scored.sort((a, b) => b.score - a.score || b.year - a.year)
+
+  // Source-balance cap: prevent one class from monopolizing the block.
+  const CAP = Math.ceil(limit / 2)
+  const picked: EraNewsItem[] = []
+  const counts: Record<'national' | 'local' | 'other', number> = {
+    national: 0,
+    local: 0,
+    other: 0,
+  }
+  for (const s of scored) {
+    if (picked.length >= limit) break
+    if (counts[s.source_class] >= CAP) continue
+    picked.push(s)
+    counts[s.source_class]++
+  }
+  return picked
+}
+
+// ---------------------------------------------------------------------------
 // Era primers (synthesized period portraits)
 // ---------------------------------------------------------------------------
 
