@@ -17,12 +17,15 @@
 
 import { writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import path from 'node:path'
+import pg from 'pg'
 import './lib/config.js'
 import { callClaude } from './lib/claude-api.js'
 import {
   assembleStoryContext,
+  loadFrontierForStory,
   loadStoryDefinitions,
   type AssembledStoryContext,
+  type FrontierForStory,
 } from '../src/services/stories.js'
 
 const args = process.argv.slice(2)
@@ -57,7 +60,62 @@ mkdirSync(OUTPUT_DIR, { recursive: true })
 // PROMPT_STORY
 // ---------------------------------------------------------------------------
 
-function buildPrompt(ctx: AssembledStoryContext): string {
+function protagonistBlock(ctx: AssembledStoryContext): string {
+  const type = ctx.storyInput.protagonist_type ?? 'guest_scientist'
+  if (type === 'rmbl_staff') {
+    return `**Protagonist type: rmbl_staff.** The protagonist is an RMBL staff member — someone whose working life is the institution, year-round. This vantage is reserved (per spec §11.2a) for stories whose subject is an institutional decision only staff can plausibly carry: executive-director bridge calls, hiring choices, year-end planning. The fact that RMBL exists as an institution that can make such choices is itself the scenario's bet; the staff POV is constitutive here.`
+  }
+  if (type === 'partner') {
+    return `**Protagonist type: partner.** The protagonist is a staff scientist or technical lead at a partner organization (Conservancy District, Forest Service, BLM, tribal natural-resources office, county or state agency). Not RMBL staff. The basin's science crosses into their working life because of partnerships the scenario built. They consume basin records and translation work; they are accountable to a different institutional mission than RMBL's. The story should feel from their side of the table.`
+  }
+  return `**Protagonist type: guest_scientist** (the modal vantage for this set, per spec §11.2a). The protagonist visits the basin from a home institution — a university, a peer field station, a research institute — to push a specific frontier. They consume the campaign's investments rather than producing them. They have a home lab, a department, a funding cycle, a career stage, a sabbatical or a postdoc clock. RMBL staff are collaborators they have worked with for years, not their colleagues; Gothic and the East River are deeply known but not where they live year-round. Their POV puts the scenario's infrastructure in relief — they see what was funded and what was forgone.
+
+Career stage and field should be specific (PhD student / postdoc / mid-career assistant or associate professor / senior fellow on sabbatical) and the work mode should be one of: a solo field campaign; an established lab back home with a grad-student cohort; a multi-institutional NSF-funded project; a foundation-funded restoration or applied program; a sabbatical residency; a postdoc rotation; an observational synthesis; a modeling project; a common-garden or reciprocal-transplant experiment; a cross-station comparative study. Pick the one that fits. The reader should feel the specificity of how this person is making their living and where their next paper goes.`
+}
+
+function frontierBlock(frontier: FrontierForStory | null | undefined): string {
+  if (!frontier) return ''
+  const questions = frontier.keyQuestions.length
+    ? frontier.keyQuestions.map((q) => `> - ${q}`).join('\n')
+    : '> (No key questions on file.)'
+  const actions = frontier.keyActions.length
+    ? frontier.keyActions
+        .map(
+          (a) =>
+            `> - **${a.category} / ${a.effort}** — ${a.action}`,
+        )
+        .join('\n')
+    : '> (No specific actions on file.)'
+  const dataGap = frontier.dataGap ? `\n\n**One specific data gap the protagonist is filling, watching, or working around:**\n> ${frontier.dataGap}\n` : ''
+  const tract = frontier.tractability
+    ? ` Tractability: *${frontier.tractability}*.`
+    : ''
+  return `# The frontier this protagonist is pushing (spec §11.2a)
+
+The protagonist is grounded by a specific knowledge frontier from the RMBL Knowledge Commons. Their work in this story is one *concrete action* toward that frontier — drawn from the actions catalog below. They are not the only person in the world pushing this frontier; they are one of perhaps a dozen, scattered across institutions, with their own approach.${tract}
+
+**Frontier title:** ${frontier.title}
+
+**Frontier description:**
+
+> ${frontier.description.replace(/\n+/g, '\n> ')}
+
+**Key open questions:**
+
+${questions}
+
+**Specific actions someone pushing this frontier might be undertaking (the protagonist is in the middle of one of these):**
+
+${actions}${dataGap}
+
+The frontier shapes what the protagonist is *actually doing on the page* — a query they run, an experiment they're checking, a paper they're drafting, a meeting they're leading, a sample they're collecting, a model run they're staring at. The frontier is **not announced**. The reader should recognize the protagonist as someone with a defined intellectual stake without ever being told what the stake is. The protagonist would never say "I am pushing the frontier of ${frontier.title.toLowerCase()}" — they would say what they were doing today.
+
+The frontier is also a **contrastive lever**. A frontier-specific action that the campaign funded the scaffolding for should be possible in this scenario and visibly absent or harder in scenarios that forgo that scaffolding. Use this to satisfy the contrastive test in structural element 3.
+
+`
+}
+
+function buildPrompt(ctx: AssembledStoryContext, frontier: FrontierForStory | null): string {
   const { storyInput, scenario } = ctx
   const modeBlock = (() => {
     if (storyInput.mode === 'stress-overlay') {
@@ -97,7 +155,9 @@ ${scenario.markdown}
 - **Scene anchor:** ${storyInput.scene_anchor}
 - **Target word count:** ~${storyInput.word_count_target} (±15% acceptable)
 
-${modeBlock}
+${protagonistBlock(ctx)}
+
+${frontierBlock(frontier)}${modeBlock}
 
 # Voice and texture (CRITICAL)
 
@@ -111,16 +171,47 @@ If you could substitute "Niwot Ridge" or "H. J. Andrews" for "RMBL" without chan
 
 1. **At least one scene set in a named basin location.** Specific place, not abstract.
 2. **At least one moment where the stress or scenario condition is felt concretely** — someone notices, someone is affected, the texture of a familiar place is changed.
-3. **At least one way the scenario's commitments shape what's possible or impossible** — something the campaign funded matters in the world of the story, OR something the scenario forgoes is missed. Not in campaign-marketing register; just present in the world.
+3. **At least one way the scenario's specific investments shape what's possible or impossible** — something the campaign funded should make a character's action, decision, or option possible, and something forgone should be felt as a constraint, an absence, or a road not taken. Not in campaign-marketing register; just present in the world. **The contrastive test:** if a reader could substitute a sibling scenario's slug at the top of this story without anything material in the plot or texture changing, the scenario's commitment is not yet on the page. The world, the character's options, or the outcome must be visibly different from how they would be under a different campaign bet. Example: in Stewardship, an archivist can run a query across digitized 1948–2039 notebooks because the campaign funded the digitization; in Records-Only, the same archivist would have to physically open three boxes of paper. In Capacity, a data scientist has standing collaborations with tribal natural-resources offices because the campaign funded RMBL365 as a partnership venue; in Records-and-Independence, those partnerships would be informal at best. In Watershed, a piezometer self-diagnoses a calibration drift overnight because the campaign sustained the watershed infrastructure post-SAIL; in Records-Only, that instrument was retired in 2032.
 4. **At least one moment that isn't about science** — characters as people, not as functions. They have weather opinions, family considerations, dinner plans, small angers, brief joys. Working life includes these; their absence reads as portentous.
 5. **An ending that doesn't resolve to triumph or despair.** Things continue. Stakes remain. Sometimes a small choice is made; sometimes not.
 
-# Required tonal moves (spec §11.4)
+# Voice (spec §11.4)
 
-- **One moment of physical specificity** — the smell of woodsmoke; the way light moves across the talus; the cold weight of a marmot in someone's hands; the sound of a pika in late August.
-- **One moment of texture from the work** — running an archival query that returns more than expected; finding a calibration drift; reading a 1979 field notebook in handwriting that has aged toward illegibility; the moment when a sensor fails and a person has to climb to fix it.
-- **One moment of humor or warmth.** Real working life includes these. Their absence is portentous.
-- **One reference to something the campaign funded that now matters** — not in campaign-marketing register, just present in the world of the story.
+Four principles. Honor them in spirit. They are not a checklist of beats to insert. They are the register the story should inhabit. The voice references named above (Robinson, Chambers, Le Guin, Newitz) carry these principles together; a story written in their register will inhabit the four principles naturally.
+
+## Principle 1 — Inhabitation, not observation
+
+Characters belong here. They know what years of being there teach you: the willows turning early like they did only in 2031; the colony of pikas that wasn't there in 2027; the way August light at 6am differs from at 7am at 9,500 feet; the meadow's smell in the first week of July; the year *Boechera* set seed two weeks late and what that meant for the rest of the system. Relationships have visible history — accreted inside jokes, learned rhythms, mutual patience with someone's quirks. The work has texture: archival queries returning more than expected; calibration drifts found; 1979 field notebooks read in handwriting aging toward illegibility.
+
+Place is recognized, not described. Other people are known, not characterized.
+
+## Principle 2 — Pleasure and competence
+
+Characters are good at their work and the goodness is felt, not stated. The query that lands in three seconds and reveals 1998 and 2034 as the only previously-uncombined years. The transect crew with a rhythm built across summers — trap-check, weigh, record, release — that an outsider would have to learn. The senior scientist whose decisions read as decisions because we watch her make them.
+
+Characters also have strong opinions — about methods, instruments, institutions, received wisdom, individual roles. They voice them. KSR's scientists are opinionated. Stories in this register should be too. A character who doesn't have a take has not been drawn fully.
+
+## Principle 3 — Agency under stress
+
+Characters act. They call collaborators, draft paragraphs, open queries, hire people, write memos, send drafts, make decisions in real time on the page. The stress shapes the response; it does not determine it.
+
+The closing 200 words must not collapse into contemplative acceptance, watching-the-light-fade, "they would do this as long as they were able" register (per the §11.3 low-affect-resolution forbidden pattern below). Allowed closings: forward-leaning, charged with curiosity or possibility, animated by a small joy, opening rather than closing. A character writing the first sentence of something they will keep arguing with for the next week is a closing in this register. A character alone on a porch watching dusk fall is not.
+
+## Principle 4 — Why they're up at 4am
+
+Characters do amazing or ridiculous things — drive up at 4am to be at the meadow before the crew starts; sleep in trucks so they're there at first light; carry batteries on snowshoes; rearrange family Christmas to be at Gothic for first snowmelt; walk five miles after dark to fix a sensor; bring breakfast for the trap crew because it's their tenth season together — because of their commitments to the work, the place, and the community. The excess only reads as excess if you don't know what they care about. A story in this register includes at least one such commitment moment, justified by attachment rather than explained. The "amazing and ridiculous" is what makes the commitment visible.
+
+This is the most distinctively RMBL principle: the institutional culture of intense attachment to the basin and to the small community of people who know it. The story should feel that attachment without naming it.
+
+## Principle 5 — A recognizably different ${storyInput.year}
+
+The story is set in ${storyInput.year}, roughly fifteen years after the present. The world has shifted at the texture level in ways characters take for granted but a 2024 reader would notice. **Environmental:** species have moved up in elevation; phenology stacks reorganized further than the v0.10 base assumed; summer rituals retimed to match a shifted season; fire seasons longer and at different times; certain late-season streams now reliably dry; certain plants now common at elevations they weren't. **Technological:** AI is integrated into daily research work in ways that don't yet exist; field instruments self-report and self-diagnose; small daily tools have changed shape (vehicles, communication patterns, lab equipment, the data systems on field tablets); maybe robotics in the field. **Social:** different demographic and career patterns among scientists; community partnerships evolved (co-production with tribal nations, water districts, county schools now established as ongoing); shifted academic and institutional norms; climate-driven migration visible at the edges of the basin.
+
+These shifts are felt sideways, not announced. Characters do not explain to each other that ${storyInput.year} is different from 2024. They take their world as given. The 2024 reader notices the difference; the ${storyInput.year} character does not.
+
+**AI specifically.** By ${storyInput.year} AI is integrated into research work in ways we can only guess at today. It reads entire archives overnight. It shows up to morning meetings with annotations. It has opinions characters argue with. It anticipates queries. It makes some field skills obsolete and creates new ones. Occasionally it does something a 2024 reader would find uncanny — and the character does not remark on the uncanny, because to them it isn't. **Lean into that strangeness.** Not as plot device, not as scary-AI trope, just as world. Some AI-textured moments should be normal in a way that is normalized only in retrospect. The way a 2009 story would have shown someone Googling something without commentary; the way a 1985 story would have shown a cordless phone without commentary. ${storyInput.year} AI is like that.
+
+The test: if you could substitute "2024" for the story's year without changing anything material, the world isn't yet on the page. The shift should be subtle and present, not absent and not announced.
 
 # Forbidden patterns (CRITICAL — spec §11.3)
 
@@ -128,11 +219,53 @@ If you could substitute "Niwot Ridge" or "H. J. Andrews" for "RMBL" without chan
 - **Exposition through dialogue.** Characters do not explain the scenario to each other. They live inside it. They reference it sideways at most.
 - **Didactic endings / "lessons learned" voice.** No final paragraph telling the reader what to take away. No "and so" sentences. No essay-y closing reflection.
 - **Fatalism / nihilism.** The future is not foregone. Characters can act, even under stress, even when their actions don't save things. Action matters even when it doesn't transcend.
+- **Low-affect resolution.** Endings that resolve into quiet acceptance, contemplative melancholy, the "they would do this as long as they were able" register. Allowed endings: forward-leaning, charged with possibility, charged with curiosity, charged with a small joy, genuinely uncertain in a way that opens rather than closes, or — sparingly — quietly accepting. A story whose final beat is a character alone with their feelings, watching light fade, has slipped into the v0.8 failure mode the prompt is designed to prevent.
 - **Generic mountain-lab fiction.** Specifics anchor the story.
 - **Naming real living people.** Characters are roles, not real RMBL staff. No real researcher names in dialogue or attribution.
+- **Default-LLM-naming clusters.** Without instruction, LLM-written ecology fiction gravitates toward names like Mara, Maren, Maya, Mira, Maria, Marisol — short, feminine, beginning with M. The centennial-2027 set already has several of these; do not pick another. Choose a distinctive name appropriate to the protagonist's described background (career stage, region of training, institution, family heritage). Non-Anglo names are welcome where the role description supports them. The point is just that the reader of the whole set should see distinct people, not a roomful of Maras.
 - **Heroic individuals.** No one in the story singlehandedly figures anything out. Work is collaborative, partial, often inconclusive.
 - **Spec vocabulary.** No "distinguishing thesis," "frontier portfolio," "innovation-to-infrastructure flywheel," "in-house catalytic capacity," "campaign deliverables," "bracket position," "load-bearing," etc. The story is not a planning document. The scenario you're grounded in *uses* this vocabulary; the story you write *must not*.
 - **Documentary or scientific-paper voice.** This is fiction, not journalism.
+
+${ctx.setId.endsWith('-upside') ? `# Additional forbidden patterns for upside-set stories (CRITICAL — spec §11.3a)
+
+This story is grounded in an **upside companion scenario** (spec §4.1b). Upside-tail futures have their own failure modes the §11.3 list above does not catch:
+
+- **Utopia.** Things are not better in this future because every problem has been solved. They are better because several favorable conditions stacked and the institution responded well. Characters in this story still have ordinary problems: bad weather, instrument failures, conflicts with collaborators, family obligations, federal-cycle uncertainty (federal cycles remain federal cycles even in a richer funding environment). The texture is **thriving**, not **idyllic**.
+- **Deus-ex-machina policy shift.** The reader should not be told that the policy environment has improved — they should feel it as the texture of how characters work. Do not write a sentence like "since the Western Adaptive Co-Management Act passed in 2034." You may have a character walk into a meeting that exists *because* such a shift happened, without naming it.
+- **Scientists save the world.** RMBL is part of a larger ecosystem — peer field stations, university labs, agencies, tribal natural-resources offices, partner foundations, community partners. Even in this upside future, no individual scientist or institution carries the work alone. The thriving register makes collaborative scope visible; it does not collapse onto a hero.
+- **Triumphalism / "we did it."** Closings still face forward. The world is **more capacious**, not **resolved**. The characters are still working on questions whose answers they will not see.
+- **Glossing the contingency.** This scenario is upside-*tail*, not the central case. The story should occasionally acknowledge — sideways — that the conditions that made this future possible were not the only ones that could have obtained: through a character's offhand reflection, through a peer's situation at a different institution where conditions did not stack as favorably, or simply through a memory of an earlier decade when the texture was thinner. The flourishing is felt as recently-arrived, not as natural.
+- **Documentary register for the favorable conditions.** Do not have characters explain how public attitudes shifted or how federal policy reformed. The shift is the world; characters live in it. If a policy reform must be named at all, name it sideways and once.
+
+The optimism in this story is **structural** (favorable conditions stacked), not **magical**.
+
+` : ''}${ctx.setId.endsWith('-downside') ? `# Additional forbidden patterns for downside-set stories (CRITICAL — spec §11.3b)
+
+This story is grounded in a **downside companion scenario** (spec §4.1c). Constrained-future stories have their own failure modes the §11.3 list above does not catch:
+
+- **Collapse / dystopia / apocalypse register.** The institution exists. The basin exists. Researchers still work. Students still come, though fewer of them. The texture is **hardship and constraint**, not **catastrophe**. A field station running on a tight budget with a smaller staff and harder choices is not a dystopia; it is a small nonprofit having a difficult decade.
+- **"They lose everything" register.** Not every long record can be saved, not every position retained, not every partnership renewed — characters confront real losses. But the story is not about loss-as-totality; it is about the specific things that are still being done, by people who have decided what their constrained options actually allow.
+- **Reactive helplessness.** Characters still act. Their action space is narrower than the central case, much narrower than the upside, but they have agency. Decisions are still being made. The §11.3 agency-under-stress rule applies more strictly here, not less.
+- **Villain attribution.** The conditions are multi-causal — federal contraction *and* foundation appetite contracting *and* climate stress *and* social-political shifts, intersecting. The story does not blame an administration, a party, a federal agency, or any single actor. The conditions are conditions; characters operate inside them.
+- **Nostalgia trap.** Characters live in the present, not in the basin-as-it-was. Memory has its place — a multi-decade observer remembering a colony, a senior scientist recalling a year of better snowpack — but the story's center of gravity is what is being done now, not what was done then. The §11.3 low-affect-resolution forbidden pattern doubles down here.
+- **False equivalence with the central case.** Downside scenarios are downside-*tail*. The story should acknowledge — sideways — that the conditions that produced this future were not the only ones that could have obtained: a character's offhand reflection on a peer institution that fared better, a reference to a different state's choices, a memory of when the conditions could still have gone several ways. The downside is structural and contingent, not foreordained.
+- **Heroism through suffering.** The institution and its people are not ennobled by hardship. They are working scientists having a harder decade than they wanted. They are competent, opinionated, sometimes funny, sometimes tired, and still doing the work.
+- **Documentary register for the unfavorable conditions.** Do not have characters explain how funding contracted or how the political environment changed. The conditions are the world; characters live in them. If conditions must be named at all, name them sideways and once.
+
+The character of this story is **hardship without despair, constraint without collapse, real losses set against real ongoing work**. The §11.3 forward-leaning closing rule is doubly load-bearing.
+
+` : ''}# Factual anchors — long records (CRITICAL — do not get this wrong)
+
+The campaign is named "Centennial" because RMBL was founded in 1928 (2028 is the institutional centennial). This is the *campaign's* centennial, not the *records'*. Use the dates below as ground truth — do not let "centennial" framing leak across.
+
+| Record | Started | Age by 2027 | Age by ${storyInput.year} | Centennial year |
+|---|---|---|---|---|
+| Yellow-bellied marmot demographic study (Barash → Armitage → Blumstein) | 1963 | 64 years | ${storyInput.year - 1963} years | 2063 |
+| Meadow phenology series (Inouye and collaborators) | ~1974 | 53 years | ${storyInput.year - 1974} years | ~2074 |
+| RMBL itself | 1928 | 99 years | ${storyInput.year - 1928} years | 2028 |
+
+The marmot study passes **its 75-year mark in 2038**. Its centennial is 2063, well outside any horizon you should be writing inside. If a character refers to the marmot study's age in dialogue or thought, use the value from this table for the story's year. The phenology series and the snowmelt-driven plant work are similarly grounded — neither is approaching a centennial within your horizon.
 
 # Output
 
@@ -195,6 +328,13 @@ async function main() {
 
   console.log(`  Targeting ${targets.length} stor${targets.length === 1 ? 'y' : 'ies'}`)
 
+  // DB pool for frontier loading (spec §11.2a). Created here once and
+  // closed at the end; loadFrontierForStory is called per-story.
+  const dbPool = new pg.Pool({
+    connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/rmbl_knowledge_hub',
+    max: 2,
+  })
+
   let succeeded = 0
   let skipped = 0
   let costTotal = 0
@@ -211,7 +351,15 @@ async function main() {
     }
 
     const ctx = assembleStoryContext(setArg!, story.story_slug)
-    const prompt = buildPrompt(ctx)
+    const frontier = story.frontier_slug
+      ? await loadFrontierForStory(dbPool, story.frontier_slug)
+      : null
+    if (story.frontier_slug && !frontier) {
+      console.warn(
+        `  ⚠️  Frontier slug "${story.frontier_slug}" not found in Commons — prompt will skip frontier block.`,
+      )
+    }
+    const prompt = buildPrompt(ctx, frontier)
     console.log(`  Context: ${(prompt.length / 1000).toFixed(1)}k chars`)
 
     if (dryRun) {
@@ -242,6 +390,8 @@ async function main() {
     console.log(`    → ${path.relative(REPO_ROOT, outPath)}`)
     succeeded++
   }
+
+  await dbPool.end()
 
   console.log('\n========== Summary ==========')
   console.log(`Processed: ${targets.length}`)

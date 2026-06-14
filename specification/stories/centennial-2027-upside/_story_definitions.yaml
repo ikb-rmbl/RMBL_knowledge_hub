@@ -1,0 +1,180 @@
+# Story definitions for the centennial-2027-upside companion set.
+#
+# Three stories, one per scenario. Set 2040-2042 — slightly later than the
+# centennial-2027 set's 2038-2039 window — to reflect the longer arrival
+# time of upside-tail futures. Each story is a guest scientist or partner
+# pushing a specific frontier from the Commons, in the thriving register
+# the §11.3a forbidden-pattern rules constrain (no utopia, no deus-ex-
+# machina policy shift, no scientists-save-the-world, no triumphalism).
+#
+# The texture is *thriving*, not *idyllic*. Characters in these stories
+# still have ordinary problems — bad weather, instrument failures,
+# conflicts with collaborators, family obligations, federal-cycle
+# uncertainty. The flourishing is felt as recently-arrived and structural,
+# not as natural or magical. Each story should occasionally acknowledge,
+# sideways, that the conditions that made this future possible were not
+# the only ones that could have obtained.
+
+set_id: centennial-2027-upside
+framework_version: "0.15"
+
+stories:
+
+  - story_slug: flourishing-2042-zoonotic-attribution
+    scenario_slug: centennial-flourishing
+    mode: stress-overlay
+    year: 2042
+    stress_overlay: |
+      The basin's long records have become a model dataset for global
+      climate-attribution work — not only ecological but increasingly
+      epidemiological, as zoonotic emergence patterns get traced back to
+      mountain mammal demographic and physiological records. A high-
+      consequence question is sitting in the literature: whether
+      compounding snowpack decline in continental mountain systems has
+      already shifted the conditions under which hantaviruses and tick-
+      borne pathogens establish in shifted alpine mammal communities.
+      The basin's seven decades of marmot data are the deepest single
+      dataset that can speak to this. A senior epidemiologist from a
+      European institution has flown in for three weeks of work with
+      RMBL's integrated synthesis tools — work her home institution has
+      world-class biostatistics for but not the mountain-mammal records
+      to anchor.
+    pov: "third-person limited"
+    protagonist_type: guest_scientist
+    frontier_slug: hibernation-physiology-to-population-dynamics-in-a-warming-alpine
+    primary_character_role: |
+      A senior climate epidemiologist (full professor) at a European
+      research institute, in her late fifties, with thirty years of
+      work at the climate-health interface. Came up through veterinary
+      epidemiology, moved into climate work in the 2020s as the
+      questions converged. Has never been to Gothic before; her work
+      until now has been at the Mediterranean and continental-European
+      mountain scale. Three weeks at RMBL was arranged through a
+      reciprocal-residency program the campaign-funded cross-mountain
+      partnerships set up four years ago. She is in her second week.
+      Her institution's biostatistics group is the strongest in Europe;
+      what they lack is decade-spanning individually-resolved mammal
+      data, which is why she came.
+    scene_anchor: |
+      A late afternoon in early July 2042 at a desk in the upstairs
+      office at RMBL365 that she has been using since June 22. She is
+      running a query the basin's integrated synthesis interface lets
+      her run — overnight body temperature distributions from biologger-
+      tagged marmots in years of contrasting snowpack, cross-referenced
+      against pathogen-screening results from the basin's vet-school
+      collaboration, against the remote-sensed mountain-pika range
+      contraction across the western US, against her own institution's
+      European hantavirus surveillance data. The query took
+      twenty minutes to assemble three years ago; it returns in eleven
+      seconds today. Her PhD student in Lyon is on a video call due in
+      forty minutes. A weather front is coming over the ridge and the
+      cell tower at Gothic has been intermittent since lunch. She has
+      questions for her tomorrow morning meeting with the basin's
+      synthesis lead — questions she cannot fully form yet but can feel
+      the shape of.
+    word_count_target: 1500
+    published: false
+
+  - story_slug: networked-2041-rotation-mid-season
+    scenario_slug: centennial-networked
+    mode: stress-overlay
+    year: 2041
+    stress_overlay: |
+      The Americas Mountain Science Network has been running its rotating
+      graduate-student program for six cohorts now — each PhD student
+      spends roughly six weeks at three of the network's eleven member
+      stations across North, Central, and South America during their
+      dissertation work, building cross-station data fluency and
+      relationships that will outlast their advisors. The program would
+      not exist without the campaign-built network anchor at RMBL. A
+      South American grad student is three weeks into her RMBL stint —
+      her second rotation, after Sierra Nevada Aquatic Research Lab in
+      January-February. Her dissertation is on cross-station synthesis
+      of invertebrate community reassembly under shifting snowmelt; her
+      RMBL collaborator data has just landed and the next two weeks
+      are when she has to make the cross-station comparison work or
+      reframe her chapter.
+    pov: "third-person limited"
+    protagonist_type: guest_scientist
+    frontier_slug: climate-driven-reassembly-of-mountain-invertebrate-communities-and-ecosystem-fun
+    primary_character_role: |
+      A fourth-year PhD student at a Chilean university (Universidad
+      Austral de Chile in Valdivia), in her late twenties. Came to her
+      PhD through an undergraduate degree from Universidad de Chile and
+      two years as a field technician at a Patagonian long-term plot.
+      Her dissertation co-advisors are at her home institution and at
+      Cofre de Perote in Mexico, with informal collaborators at RMBL
+      and Andrews. This is her second rotation through the Americas
+      Mountain Science Network. Her Spanish is native; her English is
+      careful; her work crosses both. She is the second person in her
+      family to attend university.
+    scene_anchor: |
+      A Thursday evening in late September 2041, in the loft at the
+      East River Field Station guesthouse where she has been sleeping
+      since early September. The cohort's group video check-in with all
+      eleven stations' rotating students is at 7 p.m. Mountain — 10 p.m.
+      her parents' time, midnight in Lisbon, 9 a.m. tomorrow in Hokkaido.
+      Before the call she has forty-five minutes of cross-tabulating
+      her RMBL invertebrate data against the Patagonian station's
+      preliminary numbers that came through on the shared platform
+      this morning. The first hard frost of the season was last week.
+      Her phone has been buzzing intermittently with messages from her
+      mother who has been trying to teach herself the time-zone
+      arithmetic and getting it wrong half the time, which is
+      embarrassing for both of them and also funny.
+    word_count_target: 1500
+    published: false
+
+  - story_slug: adaptive-2040-boundary-revision
+    scenario_slug: centennial-adaptive
+    mode: stress-overlay
+    year: 2040
+    stress_overlay: |
+      Under the Western Adaptive Co-Management framework that the eleven
+      Mountain West states, fifteen sovereign tribal nations, and a
+      coalition of federal agencies have built across the late 2030s,
+      seasonal closure boundaries for sage-grouse leks on BLM and
+      Forest Service land are now revised on a three-year cycle keyed
+      to ecological-monitoring inputs rather than the previous decade-
+      long EIS process. The BLM Gunnison field office is in the middle
+      of its 2040 revision. The basin records — population trajectories
+      across the eight Gunnison sage-grouse populations, cumulative
+      stressor maps, restoration outcomes at occupied versus unoccupied
+      leks — are the central inputs. The BLM specialist leading the
+      revision has been working with RMBL's translation team for fifteen
+      months on the shape of the input. This is the work the campaign
+      built. A neighboring field office is doing the same work without
+      a translation team and is two years behind.
+    pov: "third-person limited"
+    protagonist_type: partner
+    frontier_slug: cumulative-landscape-stressors-on-gunnison-basin-wildlife
+    primary_character_role: |
+      A senior wildlife biologist at the BLM Gunnison field office,
+      mid-fifties, twenty-eight years with the agency. Worked the
+      Greater Sage-Grouse listing decision in 2010, the not-warranted
+      finding in 2015, the prolonged litigation across the 2020s, and
+      now this — a working co-management framework that lets the
+      science his agency has accumulated actually shape closures and
+      treatments on a tractable schedule. Came up through the Bureau's
+      old field-and-protocol culture and has carried his ambivalence
+      about the partnership-heavy translation model with him; the work
+      with RMBL's team has only partly resolved that ambivalence. He
+      is the lead author on the boundary-revision proposal that goes
+      out to public comment in November.
+    scene_anchor: |
+      A Tuesday morning in mid-September 2040 at a long table in the
+      partnership room at RMBL365 in Crested Butte. He has driven over
+      from the Gunnison field office for the day. With him: the basin's
+      cumulative-stressors translation lead, the lead wildlife scientist
+      from the Ute Mountain Ute natural-resources office on a video
+      call from Towaoc, a hydrology specialist from the Upper Gunnison
+      Water Conservancy District, and a tribal-elder advisor whose
+      knowledge of historic lek occupancy on the western part of the
+      basin predates the agency's own records. A wall map shows the
+      eleven priority habitat polygons under revision, color-coded by
+      direction of recommended change. They are walking it. The draft
+      out to public comment is in eight weeks. The BLM specialist has
+      learned, over fifteen months, what shape of evidence to ask the
+      basin records for and what shape his agency can actually use.
+    word_count_target: 1500
+    published: false

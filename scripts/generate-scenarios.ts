@@ -111,13 +111,17 @@ function buildPrompt(ctx: AssembledScenarioContext): string {
 
 The spec sections below are authoritative. Honor them strictly.
 
-# Institutional grounding (spec §3.1, §3.2, §3.3)
+# Institutional grounding (spec §3.1, §3.2, §3.2a, §3.3)
 
 ${spec.operating_model}
 
 ${spec.current_moment}
 
+${spec.factual_anchors}
+
 ${spec.llm_implications}
+
+${setDefinitions.set_id.endsWith('-upside') ? `# Upside companion set framing (spec §4.1b)\n\n${spec.upside_sets}\n\nThis set is explicitly an upside companion set. Bracket-bending is expected. Honor the upside-set conventions: name the stacked-favorable conditions on which this scenario depends (the YAML \`upside_conditions\` field is the input), keep \`mattering_in_2040\` honest about which conditions had to hold, and avoid utopian register. The thriving is structural, not magical.\n` : ''}${setDefinitions.set_id.endsWith('-downside') ? `# Downside companion set framing (spec §4.1c)\n\n${spec.downside_sets}\n\nThis set is explicitly a downside companion set. Bracket-bending is expected downward. Honor the downside-set conventions: name the stacked-unfavorable conditions on which this scenario depends (the YAML \`downside_conditions\` field is the input), keep \`mattering_in_2040\` honest about what RMBL still does (not what it has lost), and avoid collapse register. The hardship is real but bounded; the institution is constrained but functioning.\n` : ''}
 
 # Candidate research frontiers (spec §6)
 
@@ -160,6 +164,8 @@ Per spec §2.7, scenarios within a set must rest on distinguishing theses — ce
 
 > ${scenarioInput.mattering_in_2040}
 
+${(scenarioInput as { upside_conditions?: string }).upside_conditions ? `**Upside conditions** (the stacked-favorable conditions on which this upside-tail scenario depends — surface these in plausibility_caveats and in the audience-lens prose; do not pretend the scenario is the central case):\n\n> ${(scenarioInput as { upside_conditions?: string }).upside_conditions}\n` : ''}
+
 Operational requirements for distinctness:
 
 1. **Synopsis must translate the distinguishing_thesis into plain language.** A reader of just the synopsis should understand what makes this scenario different from the others in the set.
@@ -173,6 +179,19 @@ When the sibling-scenario list below shows another scenario already using a mome
 CRITICAL — magnitude framing rule: You receive the magnitude numerically for the structured-fields output (campaign_magnitude.target_m_dollars and range_m_dollars). In the **prose body** of every section (synopsis, setting, phase arc, audience lenses, plausibility caveats, coda), refer to magnitude only via the bracket_position phrase ("${mag.bracket_position}") or equivalent impressionistic framing. Do NOT use dollar figures ($7.5M, $7M, etc.) anywhere in the prose body. Per §7.2 forbidden patterns, this is enforced.
 
 ---
+
+# FACTUAL ANCHORS — long records (CRITICAL — do not get this wrong)
+
+The campaign is named "Centennial" because RMBL was founded in 1928 (2028 is the institutional centennial). This is the *campaign's* centennial, not the *records'*. The long records are decades younger. Use the dates below as ground truth — do not let "centennial" framing leak across.
+
+| Record | Started | Age by 2027 | Age by 2040 | Centennial year |
+|---|---|---|---|---|
+| Yellow-bellied marmot demographic study (Barash → Armitage → Blumstein) | 1963 | 64 years | 77 years | 2063 |
+| Meadow phenology series (Inouye and collaborators) | ~1974 | 53 years | 66 years | ~2074 |
+| Snowmelt-driven plant work | various, ~1970s | ~50 years | ~63 years | ~2070s |
+| RMBL itself | 1928 | 99 years | 112 years | 2028 |
+
+Within any reasonable horizon (extending into the early 2040s), **the marmot study passes its 75-year mark in 2038**. The phenology series is at its half-century in the early 2020s and approaches 65 years by 2040. None of the records reach a centennial within the horizon. If you reference a record's age, milestone, or anniversary, use the actual milestone for the date — not "centennial." Common errors to avoid: "the marmot study reaches its hundredth year in this period" (no — it's at 75 in 2038); "the marmot study, well into its second century" (no — it's at 77 by 2040); "the marmot study's centennial in the early 2040s" (no — 2063).
 
 # VOICE AND ACCESSIBILITY (CRITICAL — readability is the highest-priority constraint after factual accuracy)
 
@@ -581,7 +600,7 @@ async function main() {
         prompt,
         content:
           'Generate the scenario described above. Output JSON only, no code fences.',
-        maxTokens: 16384,
+        maxTokens: 32768,
         model: modelId,
       })
 

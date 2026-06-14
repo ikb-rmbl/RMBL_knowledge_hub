@@ -6,7 +6,7 @@
 
 ## Synopsis
 
-Centennial Records-Only assumes the campaign comes in modest, and that RMBL responds by doing one thing well: protecting the basin's most fragile long records through the next fifteen years. The marmot study reaches its hundredth year in this period. The long meadow phenology series and the snowmelt-driven plant work are entering decades where a single lapse in observation would be irreparable. The campaign organizes at the campaign floor around their stewardship: protocols, plot infrastructure, archival systems, and the small technical staff that supports the guest scientists carrying the records forward. No new directions are launched. The scenario forgoes new atmospheric and watershed instrumentation, AI synthesis programs, broad community partnerships, and the financial reserves that buffer against shocks. It tests something specific about the donor base: whether donors will fund the unglamorous work of stewardship when the campaign promises continuity rather than expansion. It asks the institution to accept a constrained period as the price of intact records.
+Centennial Records-Only assumes the campaign comes in modest, and that RMBL responds by doing one thing well: protecting the basin's most fragile long records through the next fifteen years. The marmot study passes its seventy-fifth year in this period. The long meadow phenology series and the snowmelt-driven plant work are entering decades where a single lapse in observation would be irreparable. The campaign organizes at the campaign floor around their stewardship: protocols, plot infrastructure, archival systems, and the small technical staff that supports the guest scientists carrying the records forward. No new directions are launched. The scenario forgoes new atmospheric and watershed instrumentation, AI synthesis programs, broad community partnerships, and the financial reserves that buffer against shocks. It tests something specific about the donor base: whether donors will fund the unglamorous work of stewardship when the campaign promises continuity rather than expansion. It asks the institution to accept a constrained period as the price of intact records.
 
 ---
 
@@ -25,7 +25,7 @@ Centennial Records-Only assumes the campaign comes in modest, and that RMBL resp
 
 ### Campaign deliverables
 
-- **primary.** Stewardship of the marmot demographic record through its centennial. The campaign protects the trapping protocols, the colony-site access infrastructure, the long-running data systems, and the guest-scientist succession that has carried the study for sixty years. This is the largest single commitment in the scenario, and it is distinctive: no sibling scenario concentrates this share of a campaign on a single record.
+- **primary.** Stewardship of the marmot demographic record through its seventy-fifth-year milestone. The campaign protects the trapping protocols, the colony-site access infrastructure, the long-running data systems, and the guest-scientist succession that has carried the study for over sixty years. This is the largest single commitment in the scenario, and it is distinctive: no sibling scenario concentrates this share of a campaign on a single record.
 - **primary.** Protection of the long meadow phenology plots and the snowmelt-driven plant demography work. The campaign funds plot maintenance, observer training and succession, and the data systems that make the records usable. The bet is that the records themselves are the asset; the campaign sustains them and leaves new questions to the next generation.
 - **supporting.** Archival digitization of paper field notebooks, plot maps, and observer records that currently exist only on paper or in aging digital formats. The aim is preservation rather than re-analysis: the records become safe and findable, ready for whatever later capacity does with them.
 - **supporting.** Protocol stewardship work — written, versioned, transferable documentation of how each long study is actually carried out — so that observer turnover does not silently change what the records mean. This is distinctive to a stewardship-only scenario; richer campaigns tend to fold protocol work into larger data programs.
@@ -34,7 +34,7 @@ Centennial Records-Only assumes the campaign comes in modest, and that RMBL resp
 ### Frontier support strategies
 
 - **F.cont.1.** The campaign treats the basin's longest continuous datasets as the asset to protect. Investment concentrates on protocol stewardship, archival systems, and the plot and instrument infrastructure the records depend on. RMBL's existing data and GIS staff sustain the data side; guest scientists, supported by RMBL's infrastructure, continue to carry the observation.
-- **F.cont.2.** The marmot study reaches its centennial during this period. The campaign protects the colony-site infrastructure, the trapping and marking equipment, the long data record, and the archival access that lets guest scientists keep extending it. No new in-house research roles are added; the work stays where it has been, in partnership with the academic researchers who have carried it.
+- **F.cont.2.** The marmot study passes its seventy-fifth year during this period. The campaign protects the colony-site infrastructure, the trapping and marking equipment, the long data record, and the archival access that lets guest scientists keep extending it. No new in-house research roles are added; the work stays where it has been, in partnership with the academic researchers who have carried it.
 
 ### Forgone
 
@@ -50,7 +50,7 @@ The marmot study at Gothic, begun in the 1960s, is the seed most central to this
 
 This scenario assumes the campaign comes in modest. Donors respond to RMBL's case for stewardship, but not at the scale that would fund new directions. The campaign closes at the campaign floor.
 
-Faced with that result, RMBL chooses focus over breadth. The decisive feature of the next fifteen years is the centennial of the marmot study, which falls inside this window. The long meadow phenology series and the snowmelt-driven plant demography work are entering decades where a single missed season would be irreparable. The institution decides that protecting these records is the most consequential thing it can do with the resources it has.
+Faced with that result, RMBL chooses focus over breadth. The decisive feature of the next fifteen years is the seventy-fifth year of the marmot study, which falls inside this window. The long meadow phenology series and the snowmelt-driven plant demography work are entering decades where a single missed season would be irreparable. The institution decides that protecting these records is the most consequential thing it can do with the resources it has.
 
 Federal funding pressure stays roughly where it is now — neither recovering nor sharply worsening. Guest scientists continue to bring their own grants to the basin, but at lower volume than a decade ago. RMBL's small technical staff stays roughly its current size; no new positions are added. The atmospheric and watershed work that the SAIL campaign opened up continues through individual guest scientists' efforts rather than through new RMBL infrastructure. RMBL365 remains in its current configuration as a year-round building in Crested Butte; it is not renovated for new functions.
 
@@ -64,7 +64,7 @@ The campaign closes at the campaign floor by 2028. RMBL leadership and the board
 
 The first concrete work is unglamorous. Field protocols are written down properly — versioned documents that capture how each study is actually run, so that observer turnover does not silently change what the records mean. Paper notebooks and plot maps from the older decades begin moving into the digital archive. The marmot colony-site infrastructure gets a careful maintenance pass. The meadow plots are re-surveyed and their markers refreshed.
 
-The marmot study's centennial approaches at the end of this phase. RMBL marks it with a modest scientific gathering at Gothic and a public exhibit at RMBL365. The gathering is not a campaign event; it is a working meeting of the researchers who have carried the study, focused on succession planning for the next generation.
+The marmot study's seventy-fifth year approaches at the end of this phase. RMBL marks it with a modest scientific gathering at Gothic and a public exhibit at RMBL365. The gathering is not a campaign event; it is a working meeting of the researchers who have carried the study, focused on succession planning for the next generation.
 
 ### Phase 2: The records held (2031–2035)
 
@@ -78,7 +78,7 @@ A decision point arrives mid-phase about whether to redirect any campaign resour
 
 ### Phase 3: Handing off intact (2036–2040)
 
-The final phase is about transition. The marmot study is past its centennial. The meadow phenology record approaches sixty continuous years. The snowmelt-driven plant demography work is mature. The researchers who have carried these studies for decades are mostly past retirement age; succession is the central question.
+The final phase is about transition. The marmot study is in its ninth decade. The meadow phenology record approaches sixty continuous years. The snowmelt-driven plant demography work is mature. The researchers who have carried these studies for decades are mostly past retirement age; succession is the central question.
 
 RMBL's role is to make the records and the protocols transferable. The careful protocol documentation from the first phase pays off here: new researchers can pick up the studies with confidence about what the data actually mean. The data systems are stable, the archives are complete, and the plot infrastructure is in good condition.
 
@@ -86,7 +86,7 @@ By 2040 the records are intact and usable. The basin's hundred-year archive is t
 
 ## Lines of inquiry
 
-The research that matures in this period is the research the long records make possible. The marmot study, past its centennial, generates a generation of papers asking what a hundred years of demographic data reveal about climate adaptation, social structure, and individual life-history variation in a mammal. Some of this work uses molecular tools — methylation clocks and other markers — that guest scientists bring with their own grants. The meadow phenology record continues to produce work on frost damage, bloom timing, and the consequences of earlier snowmelt for subalpine plants, with the long record now spanning enough decades to separate climate-driven change from year-to-year variation with high confidence. The snowmelt-driven plant demography work matures into a definitive account of which species are declining, which are persisting, and what the mechanisms are.
+The research that matures in this period is the research the long records make possible. The marmot study, past its seventy-fifth year, generates a generation of papers asking what a hundred years of demographic data reveal about climate adaptation, social structure, and individual life-history variation in a mammal. Some of this work uses molecular tools — methylation clocks and other markers — that guest scientists bring with their own grants. The meadow phenology record continues to produce work on frost damage, bloom timing, and the consequences of earlier snowmelt for subalpine plants, with the long record now spanning enough decades to separate climate-driven change from year-to-year variation with high confidence. The snowmelt-driven plant demography work matures into a definitive account of which species are declining, which are persisting, and what the mechanisms are.
 
 What does not mature is everything else. The atmospheric and watershed integration that SAIL opened up does not become permanent RMBL infrastructure. AI-assisted re-reading of the century of records does not happen at scale. Community co-production with water districts and tribal nations does not develop as a basin research line. Mechanistic experimental platforms — common gardens, factorial warming — are not built. These are real losses. The scenario is honest about them: it is a stewardship period, not a research-expansion period.
 
@@ -97,10 +97,10 @@ What does not mature is everything else. The atmospheric and watershed integrati
    - Alternatives: Spread the campaign thinly across stewardship, modest new capacity, and reserve-building; or concentrate on records-only stewardship without building reserves; or hold the campaign open longer in hopes of a larger close
    - Scenario assumption: The campaign closes at the floor and concentrates on records-only stewardship, accepting that no financial buffer is built
 
-2. **2029 — Whether to spend the marmot study's centennial year on a high-profile public celebration or on succession planning** *Distinctive to this scenario.*
+2. **2029 — Whether to spend the marmot study's seventy-fifth year year on a high-profile public celebration or on succession planning** *Distinctive to this scenario.*
    - Actors: RMBL leadership and the principal investigators carrying the long records
    - Alternatives: A public celebration with media outreach and a major scientific gathering; or a working meeting focused on transferring the study to the next generation of researchers; or a combination at smaller scale
-   - Scenario assumption: The centennial is marked quietly with a working meeting on succession and a modest public exhibit, not a campaign event
+   - Scenario assumption: The seventy-fifth-year milestone is marked quietly with a working meeting on succession and a modest public exhibit, not a campaign event
 
 3. **2032 — Whether to hold the records-only focus, or redirect some campaign resources toward AI tools that would let the digitized records be read at scale** *Shared inflection: `stewardship-priority-2032`.*
    - Actors: RMBL leadership and board
@@ -127,7 +127,7 @@ Working at RMBL in this period feels deliberate and small. The Gothic site opera
 
 ## Audience lens — donor
 
-If you give to this scenario, you are part of keeping something alive. The basin's longest records — the marmot study reaching its centennial, the meadow phenology series, the snowmelt-driven plant work — are the kind of asset that is impossible to rebuild once broken. A single missed season can leave a gap that no later research can fill. Your contribution joins others in protecting the protocols, the plots, the archives, and the small staff that make continuity possible. This is not a campaign of new directions. It is a campaign of stewardship, in a constrained period, with deliberate choices about what to set aside. If what moves you is the idea that some things are worth preserving simply because they are rare and old and irreplaceable, this is a scenario you can give to with clear eyes about what you are part of building.
+If you give to this scenario, you are part of keeping something alive. The basin's longest records — the marmot study now in its eighth decade, the meadow phenology series, the snowmelt-driven plant work — are the kind of asset that is impossible to rebuild once broken. A single missed season can leave a gap that no later research can fill. Your contribution joins others in protecting the protocols, the plots, the archives, and the small staff that make continuity possible. This is not a campaign of new directions. It is a campaign of stewardship, in a constrained period, with deliberate choices about what to set aside. If what moves you is the idea that some things are worth preserving simply because they are rare and old and irreplaceable, this is a scenario you can give to with clear eyes about what you are part of building.
 
 ## Overlay robustness
 

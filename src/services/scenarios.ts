@@ -111,8 +111,14 @@ export interface SpecSections {
   operating_model: string
   /** §3.2 Time-bound: the current moment */
   current_moment: string
+  /** §3.2a Factual anchors — long records (added v0.14) */
+  factual_anchors: string
   /** §3.3 Implications for scenario authoring and LLM prompts */
   llm_implications: string
+  /** §4.1b Upside companion sets (added v0.15) */
+  upside_sets: string
+  /** §4.1c Downside companion sets (added v0.16) */
+  downside_sets: string
   /** §6 Candidate research frontiers (entire section). */
   candidate_frontiers: string
   /** §7.1 Required field rules */
@@ -158,7 +164,10 @@ export function parseSpecSections(): SpecSections {
   return {
     operating_model: extractSection(/^### 3\.1 Durable:/),
     current_moment: extractSection(/^### 3\.2 Time-bound:/),
+    factual_anchors: extractSection(/^### 3\.2a Factual anchors/),
     llm_implications: extractSection(/^### 3\.3 Implications for scenario authoring/),
+    upside_sets: extractSection(/^### 4\.1b Upside companion sets/),
+    downside_sets: extractSection(/^### 4\.1c Downside companion sets/),
     candidate_frontiers: extractSection(/^## 6\. Candidate research frontiers/),
     required_rules: extractSection(/^### 7\.1 Required field rules/),
     forbidden_patterns: extractSection(/^### 7\.2 Forbidden patterns/),

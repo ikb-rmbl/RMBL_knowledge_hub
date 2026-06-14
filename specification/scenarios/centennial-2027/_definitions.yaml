@@ -44,9 +44,9 @@ scenarios:
     version: "1.0"
     distinguishing_thesis: |
       The campaign comes in modest, so RMBL does one thing well: protect
-      the most fragile centennial records — the marmot study reaching its
-      centennial, the long meadow phenology series, the snowmelt-driven
-      plant work — through the next fifteen years. No new directions are
+      the most fragile of the basin's long records — the marmot study
+      now in its eighth decade, the long meadow phenology series, the
+      snowmelt-driven plant work — through the next fifteen years. No new directions are
       launched. The scenario tests whether donors will fund the
       unglamorous work of stewardship at floor magnitude.
     mattering_in_2040: |
@@ -222,18 +222,19 @@ scenarios:
     distinguishing_thesis: |
       At target magnitude, the campaign's central bet is that protecting
       the basin's longest continuous records — particularly the marmot
-      study reaching its centennial in the early 2040s — is the highest-
+      study now in its eighth decade, with its seventy-fifth year in 2038 — is the highest-
       leverage thing RMBL can do in the next fifteen years. Every other
       investment serves that bet. The scenario asks donors to value
       continuity over visible expansion: durable protection of a few
       load-bearing things as a more honest expression of mission.
     mattering_in_2040: |
-      In 2040, RMBL matters because its century-long records continued
+      In 2040, RMBL matters because its decades-long records continued
       without interruption through a constrained period, the marmot
-      study passed its centennial, and the small in-house data team made
-      all of it newly readable. The basin remains the rare global asset
-      it has been — not because expansion happened, but because protection
-      did.
+      study passed its seventy-fifth year intact (with its centennial
+      in 2063 now plausible rather than a hope), and the small in-house
+      data team made all of it newly readable. The basin remains the
+      rare global asset it has been — not because expansion happened,
+      but because protection did.
     campaign_magnitude:
       target_m_dollars: 7.5
       range_m_dollars: [7.0, 8.0]
