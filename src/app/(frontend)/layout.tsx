@@ -38,7 +38,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <div className="nav-dropdown">
                 <button className="nav-dropdown-trigger" aria-haspopup="true">Explore</button>
                 <div className="nav-dropdown-menu">
-                  <Link href="/futures">Futures</Link>
+                  {/* Futures hidden from nav while still in review — routes remain live at /futures */}
+                  {/* <Link href="/futures">Futures</Link> */}
                   <Link href="/frontiers">Frontiers</Link>
                   <Link href="/neighborhoods">Neighborhoods</Link>
                   <Link href="/eras">Eras</Link>
