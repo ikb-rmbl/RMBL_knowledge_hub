@@ -148,6 +148,28 @@ ${spec.public_facing}
 - **continuity_innovation_split:** ${split.continuity_pct}% continuity / ${split.innovation_pct}% innovation
 - **frontier_portfolio:** ${scenarioInput.frontier_portfolio.join(', ')}
 
+# STRATEGIC DISTINCTNESS (CRITICAL — this is the organizing principle of the scenario)
+
+Per spec §2.7, scenarios within a set must rest on distinguishing theses — central strategic claims no other scenario makes. Convergence on a shared playbook with different emphasis is a framework failure mode this prompt explicitly rejects. Two inputs anchor the strategic identity of this scenario; every prose section must trace back to them.
+
+**Distinguishing thesis** (the bet this scenario makes that no other scenario in the set makes):
+
+> ${scenarioInput.distinguishing_thesis}
+
+**Mattering in 2040** (forward-looking consequence, consistent with the thesis — completes "In 2040, RMBL matters because..."):
+
+> ${scenarioInput.mattering_in_2040}
+
+Operational requirements for distinctness:
+
+1. **Synopsis must translate the distinguishing_thesis into plain language.** A reader of just the synopsis should understand what makes this scenario different from the others in the set.
+2. **Coda + audience lenses must describe the mattering_in_2040 as the scenario's lasting consequence.** Don't just paraphrase the thesis; surface what the bet produces if it plays out.
+3. **At least 1–2 \`campaign_deliverables\` entries must be distinctive to this scenario** — investments that would not appear at the same magnitude in any sibling scenario. Not just "more emphasis on X"; structurally different commitments traceable to the thesis.
+4. **At least 2 \`moments_of_choice\` entries must have \`shared_inflection_id: null\`** — choices distinctive to this scenario, articulating decisions specific to this scenario's bet rather than generic campaign-design choices.
+5. **\`plausibility_caveats\` must include at least one failure mode specific to this scenario's bet** — not generic risk language. What's the characteristic way this particular scenario could go wrong, given its central claim?
+
+When the sibling-scenario list below shows another scenario already using a moment of choice's shared_inflection_id, REUSE the slug if your scenario faces the same choice; but be alert to whether your scenario faces *different* choices because its thesis is different. Distinctive inflection IDs (no recurrence) are not failures — they are the structural signature of a scenario's strategic identity.
+
 CRITICAL — magnitude framing rule: You receive the magnitude numerically for the structured-fields output (campaign_magnitude.target_m_dollars and range_m_dollars). In the **prose body** of every section (synopsis, setting, phase arc, audience lenses, plausibility caveats, coda), refer to magnitude only via the bracket_position phrase ("${mag.bracket_position}") or equivalent impressionistic framing. Do NOT use dollar figures ($7.5M, $7M, etc.) anywhere in the prose body. Per §7.2 forbidden patterns, this is enforced.
 
 ---
