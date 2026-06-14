@@ -332,6 +332,142 @@ npm install && npm run build`}
             Every scenario and story page shows when it was generated, against which framework version, by which model. The source <code>.md</code> file is linked from each detail page. All artifacts are version-controlled in git; they evolve with the framework. Re-running the pipeline against an updated spec produces a new version stamp without overwriting the prior one.
           </p>
         </details>
+
+        <details style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>View the actual prompts</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            The prompt templates that Claude Opus receives live in the generation scripts:{' '}
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/scripts/generate-scenarios.ts#L86" style={{ color: 'var(--rmbl-orange-deep)' }}>scenario prompt</a>,{' '}
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/scripts/generate-stories.ts#L118" style={{ color: 'var(--rmbl-orange-deep)' }}>story prompt</a>. Each is the full text the model sees, including the spec sections, the YAML inputs, the institutional grounding, and the frontier context. Reading them is the most direct way to verify what the model was asked to do.
+          </p>
+        </details>
+      </div>
+
+      {/* ===== Neighborhood primers methodology ===== */}
+      <div className="detail-section" id="neighborhood-primers-methodology">
+        <h2>Neighborhood primers — how the research-neighborhood summaries were made</h2>
+        <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '16px', maxWidth: '65ch' }}>
+          The research primer at the top of each{' '}
+          <a href="/neighborhoods" style={{ color: 'var(--rmbl-orange-deep)' }}>knowledge neighborhood</a>{' '}
+          is an AI-synthesized literature-review-style narrative. The neighborhood itself is detected algorithmically (Louvain community detection over the knowledge graph); the primer is then drafted by Claude Opus from the publications, datasets, and documents that landed in the neighborhood.
+        </p>
+
+        <details style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>Inputs the model sees</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            The prompt assembles a tiered context: ~15 landmark publications (abstracts + key findings), ~15 frontier publications from the last few years, ~60 breadth publications (one finding each), plus all linked concepts with definitions. For policy-flavored neighborhoods, a parallel prompt includes management documents and federal-register notices. The prompt asks for citation-grounded prose — every claim should be traceable to a specific publication in the input.
+          </p>
+        </details>
+
+        <details style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>How to read it</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            A primer is a synthesized map of what is in this neighborhood and how the work connects, not a peer-reviewed literature review. The cited publications are real and grounded in the Commons; the synthesis itself is the model&apos;s reading. Verification is a click away — every citation links to the publication&apos;s detail page.
+          </p>
+        </details>
+
+        <details style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>View the actual prompt</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            The exact prompt templates Claude Opus receives live in{' '}
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/scripts/generate-primers.ts#L42-L142" style={{ color: 'var(--rmbl-orange-deep)' }}>generate-primers.ts</a>{' '}
+            (RESEARCH_PROMPT at L42, POLICY_PROMPT at L85). Reading them is the most direct way to verify what the model was asked to do.
+          </p>
+        </details>
+      </div>
+
+      {/* ===== Era primers methodology ===== */}
+      <div className="detail-section" id="era-primers-methodology">
+        <h2>Era primers — how the period summaries were made</h2>
+        <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '16px', maxWidth: '65ch' }}>
+          Each entry in the <a href="/eras" style={{ color: 'var(--rmbl-orange-deep)' }}>Eras</a> collection has an AI-synthesized period primer summarizing the dominant research questions, methods, and findings during that window. Two prompt registers are used: one for decade-or-bucket eras and one for the century-scale primer.
+        </p>
+
+        <details style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>Inputs the model sees</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            The prompt assembles publications and documents whose year falls in the era&apos;s window, ranked by citation count and topic-distinctiveness. The model is asked to characterize the period&apos;s questions and methods without pretending to be authoritative — to surface trends, not write a history.
+          </p>
+        </details>
+
+        <details style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>How to read it</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            Read it as a synthesized characterization of a research period, not as an authoritative history. The publications cited are real and linked; the period framing — what was distinctive, what shifted — is the model&apos;s reading of the corpus.
+          </p>
+        </details>
+
+        <details style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>View the actual prompt</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            The exact prompt templates Claude Opus receives live in{' '}
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/scripts/generate-era-primers.ts#L87-L153" style={{ color: 'var(--rmbl-orange-deep)' }}>generate-era-primers.ts</a>{' '}
+            (PROMPT at L87, PROMPT_CENTURY at L154 for the century-scale variant).
+          </p>
+        </details>
+      </div>
+
+      {/* ===== Frontier syntheses methodology ===== */}
+      <div className="detail-section" id="frontier-syntheses-methodology">
+        <h2>Frontier syntheses — how the knowledge boundaries were named</h2>
+        <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '16px', maxWidth: '65ch' }}>
+          Each entry in the <a href="/frontiers" style={{ color: 'var(--rmbl-orange-deep)' }}>Frontiers</a> collection is an AI-synthesized articulation of a knowledge boundary — a coherent gap between what scientists know and what they don&apos;t, with identifiable paths to push the boundary forward. The synthesis sits on top of an algorithmic clustering of gap statements drawn from research-neighborhood primers.
+        </p>
+
+        <details style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>The pipeline</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            The pipeline runs in five stages: (1) extract atomic gap statements from each research-neighborhood primer, (2) embed each statement with Voyage AI, (3) cluster the statements by Louvain detection over the embedding graph, (4) synthesize each cluster into a named frontier with title, description, key questions, concrete actions (categorized + effort-tiered), and data gaps, and (5) derive linked entities structurally from the contributing neighborhoods.
+          </p>
+        </details>
+
+        <details style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>How to read it</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            Read a frontier as a synthesized articulation of where the literature points toward a knowledge boundary, not as an authoritative research agenda. The contributing neighborhoods are listed; readers can verify the gap statements that clustered to form the frontier and decide whether the synthesis reads true.
+          </p>
+        </details>
+
+        <details style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>View the actual prompts</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            The synthesis prompt lives in{' '}
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/scripts/synthesize-frontiers.ts#L93" style={{ color: 'var(--rmbl-orange-deep)' }}>synthesize-frontiers.ts</a>. The gap-statement extraction prompt lives in{' '}
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/scripts/extract-frontiers.ts" style={{ color: 'var(--rmbl-orange-deep)' }}>extract-frontiers.ts</a>.
+          </p>
+        </details>
+      </div>
+
+      {/* ===== Frontier planning methodology ===== */}
+      <div className="detail-section" id="planning-clusters-methodology">
+        <h2>Frontier planning — cluster and theme syntheses</h2>
+        <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '16px', maxWidth: '65ch' }}>
+          The frontier planning pipeline produces several layers of AI-synthesized content that surface in board and leadership planning conversations rather than in the public detail pages — cluster descriptions of related planning items, cross-lens theme syntheses, and long-reach opportunity statements that draw across themes.
+        </p>
+
+        <details style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>Cluster descriptions</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            Each cluster of related planning items (actions, questions, data gaps, barriers, or impacts) gets a title and summary synthesized by Claude Opus. View the prompt:{' '}
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/scripts/describe-frontier-planning-clusters.ts#L45" style={{ color: 'var(--rmbl-orange-deep)' }}>describe-frontier-planning-clusters.ts</a>.
+          </p>
+        </details>
+
+        <details id="planning-themes-methodology" style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>Cross-lens theme syntheses</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            Second-order Louvain over cluster descriptions surfaces twelve cross-lens themes. Each gets an invitational opportunity statement synthesized for planning conversation. View the prompt:{' '}
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/scripts/describe-planning-themes.ts#L44" style={{ color: 'var(--rmbl-orange-deep)' }}>describe-planning-themes.ts</a>.
+          </p>
+        </details>
+
+        <details id="long-reach-opportunities-methodology" style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>Long-reach opportunities</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            A final cross-theme synthesis stage surfaces strategic opportunities that scale beyond the basin. View the prompt:{' '}
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/scripts/synthesize-long-reach-opportunities.ts#L30" style={{ color: 'var(--rmbl-orange-deep)' }}>synthesize-long-reach-opportunities.ts</a>.
+          </p>
+        </details>
       </div>
 
       {/* ===== Technical Deep-Dive ===== */}

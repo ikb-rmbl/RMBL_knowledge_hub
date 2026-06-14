@@ -8,6 +8,8 @@ import { GRAPH_COLORS, ENTITY_TYPE_LABELS, ENTITY_SLUG_MAP, STAKEHOLDER_COLORS }
 import { JsonLd, neighborhoodJsonLd } from '../../lib/json-ld'
 import ExploreEntityGraph from '../../components/ExploreEntityGraph'
 import FlagButton from '../../components/FlagButton'
+import { LlmArtifactDisclaimer } from '../../components/ai-artifact/Disclaimer'
+import { LlmProvenanceSidebar } from '../../components/ai-artifact/ProvenanceSidebar'
 
 export const dynamic = 'force-dynamic'
 
@@ -348,7 +350,15 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
       {neighborhood.primer && (
         <div className="detail-section">
           <h2>Research Primer</h2>
+          <LlmArtifactDisclaimer kind="neighborhood-primer" />
           <PrimerRenderer text={neighborhood.primer} />
+          <div style={{ marginTop: '20px', maxWidth: '420px' }}>
+            <LlmProvenanceSidebar
+              kind="neighborhood-primer"
+              generatedAt={neighborhood.primer_generated_at}
+              model={neighborhood.primer_model}
+            />
+          </div>
         </div>
       )}
 

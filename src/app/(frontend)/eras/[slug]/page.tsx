@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
+import { LlmArtifactDisclaimer } from '../../components/ai-artifact/Disclaimer'
+import { LlmProvenanceSidebar } from '../../components/ai-artifact/ProvenanceSidebar'
 import {
   getEra,
   getEraMemberCounts,
@@ -253,20 +255,15 @@ function SynthesisSection({
   return (
     <section style={sectionWrap}>
       <h3 style={sectionHeading}>Synthesis</h3>
+      <LlmArtifactDisclaimer kind="era-primer" />
       <PrimerRenderer text={primer.primer} />
-      {primer.primer_generated_at && (
-        <p
-          style={{
-            fontSize: '11px',
-            color: 'var(--color-text-muted)',
-            margin: '20px 0 0',
-            fontStyle: 'italic',
-          }}
-        >
-          Generated {new Date(primer.primer_generated_at).toLocaleDateString()}{' '}
-          {primer.primer_model ? `with ${primer.primer_model}` : ''}.
-        </p>
-      )}
+      <div style={{ marginTop: '20px', maxWidth: '420px' }}>
+        <LlmProvenanceSidebar
+          kind="era-primer"
+          generatedAt={primer.primer_generated_at}
+          model={primer.primer_model}
+        />
+      </div>
     </section>
   )
 }
