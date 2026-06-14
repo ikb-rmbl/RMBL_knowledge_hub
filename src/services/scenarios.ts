@@ -37,6 +37,19 @@ export interface ScenarioInput {
   slug: string
   name: string
   version: string
+  /**
+   * 2–4 sentences naming the central strategic claim this scenario makes —
+   * the bet no other scenario in the set makes. Required from spec v0.7
+   * (see §2.7). The thesis is the organizing principle every prose section
+   * must trace back to.
+   */
+  distinguishing_thesis: string
+  /**
+   * 2–4 sentence completion of "In 2040, RMBL matters because..." consistent
+   * with the distinguishing_thesis. Required from spec v0.7 (see §2.7).
+   * Forward-looking statement of consequence.
+   */
+  mattering_in_2040: string
   campaign_magnitude: {
     target_m_dollars: number
     range_m_dollars: [number, number]

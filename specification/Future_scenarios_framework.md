@@ -2,7 +2,7 @@
 
 *A specification for grounded, contingency-honest future-scenario artifacts in the RMBL Knowledge Commons. Initial application: the 2027–2029 Centennial Campaign, with extensibility to subsequent visioning cycles.*
 
-**Status:** Working draft, v0.6
+**Status:** Working draft, v0.7
 **Audience:** RMBL leadership and board (primary), prospective Centennial Campaign donors (secondary), basin scientists and staff (tertiary), Commons developers (implementing the artifact)
 **Companion artifacts:** the Eras collection (decade-or-bucket + century-scale period primers), the Frontiers collection (current knowledge boundaries), the planning-pipeline themes (cross-lens strategic synthesis)
 
@@ -66,6 +66,25 @@ All moments-of-choice must fall within the primary horizon. Coda content is desc
 
 A single scenario is incomplete. The framework requires that scenarios be designed to be read side-by-side. Comparable structured fields (frontier portfolio, support strategies, deliverables, forgone, overlay robustness) are designed for tabular comparison. Donor-facing materials use comparison as the load-bearing rhetorical move ("here are the futures you could be part of"), not single-scenario advocacy.
 
+### 2.7 Strategic distinctness
+
+Scenarios within a set must rest on **distinguishing theses** — central strategic claims that no other scenario in the set makes. Convergence on a shared playbook with different emphasis (same investment categories, same moments of choice, same audience-lens shape, just different mixes) is a framework failure mode that v0.7 explicitly rejects.
+
+Two structured fields enforce distinctness operationally — both are per-scenario, both live in the set's YAML definitions, both are inputs to the generation prompt (not LLM outputs):
+
+- **`distinguishing_thesis`** — 2–4 sentences naming the central strategic claim this scenario makes. The thesis is the organizing principle every prose section must trace back to. The synopsis articulates it. The phase arc enacts it. The audience lenses describe what living it feels like.
+
+- **`mattering_in_2040`** — 2–4 sentence completion of *"In 2040, RMBL matters because..."* that is consistent with the distinguishing_thesis. This is the forward-looking statement of consequence — what the bet produces if the scenario plays out. It guides what the coda surfaces as the scenario's lasting contribution and what the audience lenses describe as the scenario's significance.
+
+The two fields together commit each scenario to (a) a backward-looking claim about what RMBL is choosing to bet on, and (b) a forward-looking claim about what that bet makes possible.
+
+The generation prompt operationally requires that each scenario:
+- Has at least 1–2 `campaign_deliverables` entries that would not appear at the same magnitude in any other scenario in the set
+- Has at least 2 `moments_of_choice` entries with `shared_inflection_id: null` (distinctive to this scenario rather than recurring across the set)
+- Includes at least one failure mode in `plausibility_caveats` specific to *this* scenario's bet, not generic risk language
+
+Without these enforcement points, scenarios converge on a shared playbook with different emphasis. With them, each scenario commits to a distinguishable strategic identity.
+
 ---
 
 ## 3. Institutional grounding
@@ -86,7 +105,7 @@ The time-bound material in §3.2 should be reviewed and revised with each spec v
 - **Campaign structure is the Development & Advancement team's prerogative.** The actual structure of a Capital Campaign — fund vehicles, named-gift opportunities, gift-tier framings, donor-recognition structures, the specific dollar allocations within deliverables, the split between endowment and capital — is tailored to RMBL's actual donor base and is the work of the Development & Advancement team. Strategic-planning scenarios inform that work but do not prescribe it. **Scenarios articulate strategic priorities and required capacities; the Development team translates those into campaign vehicles with planning-process guidance and donor-base intelligence the planning process cannot have.** Scenarios that name specific funds ("the Endowed X Fund"), pin per-deliverable dollar amounts ("$3.5M endowment, $175K/yr draw"), or specify endowment-vs-capital splits at the deliverable level encroach on Development-team territory and should be revised.
 - **Identity.** The combination of these features — guest-scientist research model, small catalytic technical staff, broad responsive infrastructure investment, community-as-institutional-priority, and the boundary between strategic-planning scenarios and campaign-vehicle design — is RMBL's distinctive shape. Scenarios that imply RMBL becoming a directive research institution, a federal-style program-managing organization, or a generic field station miss what's actually being preserved or transformed.
 
-### 3.2 Time-bound: the current moment (as of v0.6, 2026)
+### 3.2 Time-bound: the current moment (as of v0.7, 2026)
 
 - **Federal funding disruption is the current baseline, not a hypothetical.** In the past year, federal funding disruptions have affected some RMBL-associated researchers directly. The contraction is no longer a contingency to model as a future possibility — it is the operating environment from which scenarios depart. The relevant overlay question is not "what if federal funding contracts?" but "how does the already-contracted state evolve from here — stabilize, intensify, partially recover?" Scenario authoring and the `overlay_robustness` field should reflect this.
 - **Diversified funding base as institutional priority.** The disruption has driven RMBL-associated researchers (and RMBL itself) to seek broader funding bases — foundations, private donors, institutional partnerships — at greater urgency than in earlier years. The Centennial Campaign itself is partly motivated by this shift; scenario framing should acknowledge that the campaign exists in a fundraising environment where its scale is more strategically necessary than it would be under sustained federal investment.
@@ -234,7 +253,9 @@ Each scenario instance has the following fields. Required fields are marked **R*
 | `version` | R | string | Semver-ish `MAJOR.MINOR` (e.g. `1.0`, `1.1`, `2.0`). See §10. |
 | `superseded_by` | O | slug | Pointer to a newer scenario that replaces this one; null when current. See §10. |
 | `set_id` | R | string | Identifier of the scenario set this scenario belongs to (e.g. `centennial-2027`). See §10. |
-| `synopsis` | R | string | A paragraph-length (~150–250 word) summary of the scenario's strategic essence — its central contingency, the priorities it advances, what it forgoes, and what it asks of donors and the institution. Designed to convey the scenario's distinctive shape on its own, without requiring readers to engage the full prose body. Used at the top of the detail page (§9.3), in the side-by-side comparison view (§9.6), and as the basis for donor-facing materials (§9.7). |
+| `distinguishing_thesis` | R | string | 2–4 sentences naming the central strategic claim this scenario makes — the bet no other scenario in the set makes. Input to the generation prompt (set in the set's YAML definitions, not produced by the LLM). The thesis anchors every prose section. See §2.7. |
+| `mattering_in_2040` | R | string | 2–4 sentence completion of "In 2040, RMBL matters because..." consistent with `distinguishing_thesis`. Forward-looking statement of consequence. Input to the generation prompt. See §2.7. |
+| `synopsis` | R | string | A paragraph-length (~130–170 word) summary of the scenario's strategic essence — its central contingency, the priorities it advances, what it forgoes, and what it asks of donors and the institution. Designed to convey the scenario's distinctive shape on its own, without requiring readers to engage the full prose body. Used at the top of the detail page (§9.3), in the side-by-side comparison view (§9.6), and as the basis for donor-facing materials (§9.7). |
 | `time_window` | R | object | `{ primary_start, primary_end, coda_end }` — defaults `{2026, 2040, 2050}` |
 | `campaign_magnitude` | R | object | `{ target: $X, range: [floor, ceiling] }` at scenario-level only. Used for cross-scenario comparison and bracket positioning. **The prose body should describe magnitude impressionistically** ("near the upper end of the realistic bracket," "at the campaign floor") rather than pinning to a specific number, because per-scenario campaign-close magnitudes are subject to fundraising dynamics the Development team manages, not planning-process determinations. |
 | `continuity_innovation_split` | R | object | `{ continuity_pct: N, innovation_pct: M }` — must sum to 100; bracketed within 25–75 |
@@ -264,7 +285,8 @@ Each scenario instance has the following fields. Required fields are marked **R*
 - `version` and `set_id` are required from the first authored scenario; the framework does not support unversioned scenarios. See §10.
 - `campaign_deliverables` describes strategic priorities and required capacities, not campaign vehicles. Impressionistic sizing ("primary share," "supporting investment," "modest," "substantial") is used to convey relative weighting within the magnitude bracket; specific fund names, dollar allocations, draw rates, and endowment-vs-capital splits at the deliverable level are omitted (see §3.1 — campaign structure is the Development & Advancement team's prerogative).
 - Magnitude framing in the prose body is impressionistic ("near the upper end of the realistic bracket," "at the campaign floor") rather than dollar-precise; the `campaign_magnitude` structured field carries scenario-level positioning for cross-scenario comparison, but per-scenario campaign-close magnitudes are subject to fundraising dynamics the Development team manages.
-- `synopsis` must be ~150–250 words and must convey the scenario's strategic essence — central contingency, the priorities it advances, what it forgoes, and what it asks of donors and the institution. It must read coherently as a standalone artifact (a reader who never engages the full prose body should still understand what the scenario is and isn't). Written in the public-facing register (§9.1). Required from v0.6 onward.
+- `synopsis` must be ~130–170 words and must convey the scenario's strategic essence — central contingency, the priorities it advances, what it forgoes, and what it asks of donors and the institution. It must read coherently as a standalone artifact (a reader who never engages the full prose body should still understand what the scenario is and isn't). Written in the public-facing register (§9.1). Required from v0.6 onward.
+- `distinguishing_thesis` and `mattering_in_2040` are required from v0.7 onward. Both are inputs to the generation prompt (set in the YAML definitions, not LLM outputs). Each scenario's thesis must be distinguishable from every other scenario's thesis in the set. The synopsis must articulate the thesis in plain language. The coda and audience lenses must describe the mattering_in_2040 as the scenario's consequence. See §2.7.
 
 ### 7.2 Forbidden patterns
 
@@ -447,7 +469,17 @@ To resolve through discussion before the framework reaches v1.0:
 
 ## 12. Revision log
 
-- **v0.6** (this revision): two changes that prepare for pipeline-driven scenario generation.
+- **v0.7** (this revision): introduces **strategic distinctness** as a core principle (new §2.7) to address scenario convergence — the failure mode in which scenarios within a set share a playbook with different emphasis (same investment categories, same moments of choice, same audience-lens shape, just different mixes) rather than committing to distinguishably different strategic identities. Two new required structured fields enforce distinctness:
+
+  **`distinguishing_thesis`** — 2–4 sentences naming the central strategic claim each scenario makes. The thesis is the organizing principle every prose section must trace back to. Input to the generation prompt (set in the YAML, not LLM output).
+
+  **`mattering_in_2040`** — 2–4 sentence completion of "In 2040, RMBL matters because..." consistent with the distinguishing_thesis. Forward-looking statement of consequence. Input to the generation prompt.
+
+  Both fields are required from v0.7 onward and required for every scenario in a set. The generation prompt operationally requires that each scenario also has (a) at least 1–2 deliverables that are distinctive to it at its magnitude, (b) at least 2 moments-of-choice with `shared_inflection_id: null`, and (c) at least one failure mode in `plausibility_caveats` specific to the scenario's bet. §7 field table and §7.1 required field rules updated correspondingly. The pipeline (`scripts/generate-scenarios.ts`) reads the new fields from the YAML and surfaces them prominently in PROMPT_SCENARIO as the scenario's organizing anchor.
+
+  Companion work in the same release: the YAML schema in `src/services/scenarios.ts` extends to support the new fields, and a 12-scenario set (`centennial-2027`) gets drafted theses + mattering statements before any generation.
+
+- **v0.6**: two changes that prepare for pipeline-driven scenario generation.
 
   **Dev-team campaign-structure agency.** Clarifies the boundary between strategic-planning scenarios and campaign-vehicle structure. The actual structure of a Capital Campaign — fund vehicles, named-gift opportunities, gift-tier framings, donor-recognition structures, per-deliverable dollar allocations, endowment-vs-capital splits — is tailored to RMBL's actual donor base and is the Development & Advancement team's prerogative; strategic-planning scenarios inform that work but do not prescribe it. A new §3.1 bullet ("Campaign structure is the Development & Advancement team's prerogative") makes this explicit. `campaign_deliverables` field description (§7) reframed to describe strategic priorities and required capacities (e.g., "primary priority: endowed support for centennial records continuity at substantial scale") rather than campaign vehicles ("Endowed Records Fund of \$3.5M with \$175K annual draw"); impressionistic sizing replaces dollar precision at the deliverable level. `campaign_magnitude` field notes that prose-body magnitude framing should be impressionistic ("near the upper end of the realistic bracket") rather than pinned to a specific number, while the structured field retains numeric values for cross-scenario comparison. New §7.1 required field rules and §7.2 forbidden patterns operationalize the boundary. §9.7 Donor-facing materials clarified.
 
