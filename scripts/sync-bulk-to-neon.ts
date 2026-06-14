@@ -28,7 +28,7 @@ const BATCH = 200
 
 const args = process.argv.slice(2)
 const onlyArg = args.find((a) => a.startsWith('--only='))?.split('=')[1]
-const sections = new Set(onlyArg ? onlyArg.split(',').map((s) => s.trim()) : ['neighborhoods', 'entity_mentions', 'frontiers', 'planning', 'era_primers'])
+const sections = new Set(onlyArg ? onlyArg.split(',').map((s) => s.trim()) : ['neighborhoods', 'entity_mentions', 'frontiers', 'planning', 'era_primers', 'futures'])
 
 async function main() {
   console.log('Sync Bulk Tables to Neon')
@@ -253,6 +253,40 @@ async function main() {
     console.log(`  ${opps.length} long-reach opportunities`)
     }
 
+    if (sections.has('futures')) {
+    // Future Scenarios + companion narratives. Both tables are pure SQL
+    // (no Payload collection), populated by scripts/load-futures.ts from
+    // the markdown artifacts under specification/scenarios/ and stories/.
+    // TRUNCATE+INSERT, mirroring the central-set pattern. The
+    // scenario_stories table has a FK to scenarios(slug) so deletion
+    // must cascade — the truncate handles that.
+    console.log('\n--- Futures (scenarios + scenario_stories) ---')
+    await neon.query('TRUNCATE scenarios, scenario_stories RESTART IDENTITY CASCADE')
+
+    const { rows: scenariosRows } = await local.query('SELECT * FROM scenarios ORDER BY id')
+    const scJsonbCols = new Set(['frontier_portfolio'])
+    if (scenariosRows.length > 0) {
+      const cols = Object.keys(scenariosRows[0])
+      for (const row of scenariosRows) {
+        const vals = cols.map(c => scJsonbCols.has(c) && row[c] != null ? JSON.stringify(row[c]) : row[c] ?? null)
+        const placeholders = cols.map((_, i) => `$${i + 1}`)
+        await neon.query(`INSERT INTO scenarios (${cols.join(',')}) VALUES (${placeholders.join(',')})`, vals)
+      }
+    }
+    console.log(`  ${scenariosRows.length} scenarios`)
+
+    const { rows: storiesRows } = await local.query('SELECT * FROM scenario_stories ORDER BY id')
+    if (storiesRows.length > 0) {
+      const cols = Object.keys(storiesRows[0])
+      for (const row of storiesRows) {
+        const vals = cols.map(c => row[c] ?? null)
+        const placeholders = cols.map((_, i) => `$${i + 1}`)
+        await neon.query(`INSERT INTO scenario_stories (${cols.join(',')}) VALUES (${placeholders.join(',')})`, vals)
+      }
+    }
+    console.log(`  ${storiesRows.length} scenario_stories`)
+    }
+
     if (sections.has('era_primers')) {
     // Era primers — narrow targeted UPDATE by slug.
     //
@@ -304,6 +338,7 @@ async function main() {
       'neighborhoods', 'neighborhood_members', 'frontiers', 'frontier_source_statements',
       'frontier_planning_themes', 'frontier_planning_clusters', 'frontier_planning_items',
       'frontier_long_reach_opportunities',
+      'scenarios', 'scenario_stories',
     ]) {
       try {
         await neon.query(`SELECT setval('${t}_id_seq', (SELECT COALESCE(MAX(id), 1) FROM ${t}))`)
