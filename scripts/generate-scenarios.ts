@@ -150,58 +150,6 @@ ${spec.public_facing}
 
 CRITICAL — magnitude framing rule: You receive the magnitude numerically for the structured-fields output (campaign_magnitude.target_m_dollars and range_m_dollars). In the **prose body** of every section (synopsis, setting, phase arc, audience lenses, plausibility caveats, coda), refer to magnitude only via the bracket_position phrase ("${mag.bracket_position}") or equivalent impressionistic framing. Do NOT use dollar figures ($7.5M, $7M, etc.) anywhere in the prose body. Per §7.2 forbidden patterns, this is enforced.
 
----
-
-# VOICE AND ACCESSIBILITY (CRITICAL — readability is the highest-priority constraint after factual accuracy)
-
-The scenario is a public artifact. Imagine all of these readers reading the same prose: a board member without scientific training; a journalist; a working basin scientist; a high-school student doing a project on RMBL; a prospective donor evaluating their giving. All of them must follow it.
-
-Sentence-level rules (enforce strictly):
-- Average sentence length 15–20 words.
-- **No sentence over 30 words.** Hard cap. Break it into two.
-- Prefer concrete nouns over abstract noun chains. "The marmot study" beats "the basin's longest demographic infrastructure." "RMBL's data scientists" beats "in-house catalytic capacity." "Renovating RMBL365" beats "capital deployed to existing community-facing infrastructure."
-- Prefer active voice. "The campaign protects the records" beats "The records are protected by campaign funding."
-- One claim per sentence. Multi-clause sentences are the exception, not the default.
-
-Forbidden spec-vocabulary in prose (these are developer/strategist vocabulary from the spec; they are not for readers):
-- "central contingency" — say "this scenario assumes" or "the campaign expects"
-- "scenario assumption" — say "this scenario chooses"
-- "contingency-honest", "frontier portfolio", "frontier support strategy" — translate or drop
-- "in-house catalytic capacity", "catalytic infrastructure" — say what these actually are: "RMBL's data scientists and technicians," "the data systems and instruments RMBL maintains"
-- "innovation-to-infrastructure flywheel" — say "the recent pattern where outside grants build RMBL's own tools and capacity, which then attract more grants" if you must name it; do not use as a noun phrase
-- "diversified-funding-base", "operating reserves" (as abstract nouns) — say "less dependence on federal grants," "savings that buffer RMBL against funding shocks"
-- "load-bearing" — say what it actually does
-- "posture of X" — say what RMBL or the campaign actually does
-- "primary share", "secondary share", "supporting investment" — these belong in structured fields, not in prose
-- "bracket position", "magnitude bracket" — say "near the upper end of what the campaign might raise" or simply describe the campaign as substantial / modest / focused
-- "F.cont.1", "F.innov.3", etc. — never reference these IDs in prose; name what the frontier is about
-
-When you find yourself reaching for a phrase from the forbidden list, that is a signal to stop and write the concrete thing the phrase is gesturing at.
-
-Length caps per prose field (hard caps — pipeline rejects scenarios that blow past these):
-- **synopsis**: 130–170 words (was 220 in earlier drafts; tighten)
-- **forgone**: 100–180 words
-- **seeds_in_present**: 100–180 words
-- **setting**: 200–320 words total across all paragraphs
-- each **phase_arc[i].summary**: 130–200 words
-- **lines_of_inquiry**: 200–300 words
-- each **audience_lens_***: 100–150 words
-- **overlay_robustness.central_case**: 60–110 words; each stress case 60–110 words
-- **plausibility_caveats**: 200–300 words
-- **coda**: 100–180 words
-
-Per-section audience reminder:
-- **synopsis**: a reader who reads only this paragraph should understand what the scenario is and isn't; aim for the register of a thoughtful local-news feature
-- **setting**: a journalist re-explaining the scenario in their own words; concrete, evocative, no jargon
-- **phase_arc**: a board member or scientist tracking what concrete things happen by when; specific years, specific events, specific decisions
-- **audience_lens_research**: someone considering whether to bring their research to RMBL during the period
-- **audience_lens_institution**: someone on staff or the board trying to picture what RMBL will feel like to work at
-- **audience_lens_donor**: someone considering whether their gift would matter; invitation register, never promise
-- **plausibility_caveats**: a careful reader checking what the scenario does and doesn't claim
-- **coda**: a reader curious where this could lead but accepting that the further future is hazier
-
----
-
 # Frontier portfolio (resolved)
 
 ${frontierBlock}
@@ -230,7 +178,7 @@ ${siblingBlock}
 
 # Output (JSON only — no code fences, no preamble)
 
-Return a single JSON object with the schema below. Every prose field is written in the public-facing register (§9.1), respects the §7.1 / §7.2 rules, AND honors the VOICE AND ACCESSIBILITY constraints above (length caps, sentence-length rules, forbidden spec-vocabulary). The synopsis (130–170 words) must read coherently as a standalone artifact — a reader who never engages the full prose body should still understand what the scenario is and isn't.
+Return a single JSON object with the schema below. Every prose field is written in the public-facing register (§9.1) and respects the §7.1 / §7.2 rules. The synopsis (150–250 words) must read coherently as a standalone artifact — a reader who never engages the full prose body should still understand what the scenario is and isn't.
 
 Schema:
 
