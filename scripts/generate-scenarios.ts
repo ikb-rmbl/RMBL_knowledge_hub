@@ -111,13 +111,17 @@ function buildPrompt(ctx: AssembledScenarioContext): string {
 
 The spec sections below are authoritative. Honor them strictly.
 
-# Institutional grounding (spec §3.1, §3.2, §3.3)
+# Institutional grounding (spec §3.1, §3.2, §3.2a, §3.3)
 
 ${spec.operating_model}
 
 ${spec.current_moment}
 
+${spec.factual_anchors}
+
 ${spec.llm_implications}
+
+${setDefinitions.set_id.endsWith('-upside') ? `# Upside companion set framing (spec §4.1b)\n\n${spec.upside_sets}\n\nThis set is explicitly an upside companion set. Bracket-bending is expected. Honor the upside-set conventions: name the stacked-favorable conditions on which this scenario depends (the YAML \`upside_conditions\` field is the input), keep \`mattering_in_2040\` honest about which conditions had to hold, and avoid utopian register. The thriving is structural, not magical.\n` : ''}${setDefinitions.set_id.endsWith('-downside') ? `# Downside companion set framing (spec §4.1c)\n\n${spec.downside_sets}\n\nThis set is explicitly a downside companion set. Bracket-bending is expected downward. Honor the downside-set conventions: name the stacked-unfavorable conditions on which this scenario depends (the YAML \`downside_conditions\` field is the input), keep \`mattering_in_2040\` honest about what RMBL still does (not what it has lost), and avoid collapse register. The hardship is real but bounded; the institution is constrained but functioning.\n` : ''}
 
 # Candidate research frontiers (spec §6)
 
@@ -159,6 +163,8 @@ Per spec §2.7, scenarios within a set must rest on distinguishing theses — ce
 **Mattering in 2040** (forward-looking consequence, consistent with the thesis — completes "In 2040, RMBL matters because..."):
 
 > ${scenarioInput.mattering_in_2040}
+
+${(scenarioInput as { upside_conditions?: string }).upside_conditions ? `**Upside conditions** (the stacked-favorable conditions on which this upside-tail scenario depends — surface these in plausibility_caveats and in the audience-lens prose; do not pretend the scenario is the central case):\n\n> ${(scenarioInput as { upside_conditions?: string }).upside_conditions}\n` : ''}
 
 Operational requirements for distinctness:
 
@@ -594,7 +600,7 @@ async function main() {
         prompt,
         content:
           'Generate the scenario described above. Output JSON only, no code fences.',
-        maxTokens: 16384,
+        maxTokens: 32768,
         model: modelId,
       })
 

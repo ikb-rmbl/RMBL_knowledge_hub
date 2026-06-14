@@ -1,0 +1,173 @@
+# Story definitions for the centennial-2027-downside companion set.
+#
+# Three stories, one per scenario. Set 2040-2042 to mirror the upside set's
+# window. Each story is a guest scientist or partner doing real work under
+# diminished conditions, honoring §11.3b downside-forbidden patterns:
+# hardship without despair, constraint without collapse, real losses set
+# against real ongoing work. The §11.3 forward-leaning closing rule is
+# doubly load-bearing — downside stories are most vulnerable to closing on
+# elegy.
+#
+# Each story should occasionally acknowledge, sideways, that the conditions
+# that produced this future were not the only ones that could have obtained.
+
+set_id: centennial-2027-downside
+framework_version: "0.16"
+
+stories:
+
+  - story_slug: hollowed-2041-meadow-phenology
+    scenario_slug: centennial-hollowed
+    mode: stress-overlay
+    year: 2041
+    stress_overlay: |
+      RMBL's data team is two people, down from a peak of five in the
+      mid-2030s. The partnerships coordinator is half-time. RMBL365
+      runs reduced winter hours. Several long records have been
+      handed off to peer institutions or paused. The meadow phenology
+      series and the marmot demographic study continue without lapse —
+      but only because their guest-scientist communities have absorbed
+      what RMBL previously provided. A mid-career guest scientist has
+      been carrying the meadow phenology plots since 2030 on her own
+      NSF and foundation funding, with archival support from one of
+      RMBL's two remaining data scientists. She is making decisions
+      this season about which of her seven plots to maintain at full
+      protocol and which to reduce to bare-minimum measurements. The
+      campaign came in at half the realistic floor, and the consequence
+      has been visible at the plot level for years.
+    pov: "third-person limited"
+    protagonist_type: guest_scientist
+    frontier_slug: phenological-mismatch-and-demographic-fate-of-alpine-communities
+    primary_character_role: |
+      A mid-career plant ecologist (associate professor) at a Pacific
+      Northwest land-grant university, late forties. PhD 2018; first
+      summer at RMBL in 2009 as an undergrad on Inouye's crew. Took
+      over primary observer responsibility for the meadow phenology
+      plots in 2030 when the original team's last graduate-student
+      slot was cut and RMBL could no longer staff the work directly.
+      Has been funding the plots through three successive NSF grants
+      and a private-foundation Climate Resilience award, with her own
+      lab back in Corvallis running adjacent work. Has watched RMBL
+      shrink across the decade. Is not bitter about it; is realistic.
+    scene_anchor: |
+      A late-July morning in 2041 at the upper meadow plot above
+      Gothic, where she has been working the protocol for eleven
+      seasons. The plot is one of seven she has been maintaining;
+      this morning's task is decision-making, not measurement. She
+      has a printout from the data scientist who supports her with
+      what archival capacity remains — colony density at each plot,
+      year-over-year trend, archival completeness — and her own
+      field notebook with the past five years of observer notes.
+      A senior graduate student from her lab is at a neighboring
+      plot. The cell tower at Gothic has been intermittent since
+      RMBL stopped maintaining the secondary repeater in 2038. She
+      has a meeting with one of the two remaining RMBL data
+      scientists at three.
+    word_count_target: 1500
+    published: false
+
+  - story_slug: accelerating-2042-winter-piezometer
+    scenario_slug: centennial-accelerating
+    mode: stress-overlay
+    year: 2042
+    stress_overlay: |
+      The basin has had four anomalous snowpack years in six. The 2042
+      season peaked at 28% of the 1991-2020 baseline; 2040 was 22%.
+      Three lower-elevation snotel sites recorded zero persistent
+      snowpack through January for the first time in the record. The
+      meadow plots above Gothic that anchored the long phenology
+      series are still functioning but the assumptions underneath the
+      protocol — that snowmelt timing would vary within a recognizable
+      envelope — no longer hold. Some marmot colonies have shifted
+      up-drainage to sites the long study had no plots at; others have
+      failed. The East River watershed instrument network has been
+      extended to higher elevations to track where analog systems are
+      now. The basin's records have shifted register, with RMBL
+      working to extend them through the discontinuity rather than
+      paper over it.
+    pov: "third-person limited"
+    protagonist_type: guest_scientist
+    frontier_slug: mountain-watershed-response-to-changing-snow-regimes
+    primary_character_role: |
+      A mid-career biogeochemist (associate professor) at a Canadian
+      research university in British Columbia, late forties, on her
+      fifth multi-week residency at RMBL since 2034. Came to the
+      basin originally because the SAIL atmospheric campaign extended
+      her PhD thesis work; has stayed because the post-SAIL
+      infrastructure is the only place she can ask what becomes of
+      mountain biogeochemistry when snowpack regimes break. Her home
+      institution has a strong climate program; her funding is
+      Canadian federal plus a US-Canada cross-border program. She is
+      one of perhaps two dozen scientists in the world whose research
+      question requires what the basin still maintains.
+    scene_anchor: |
+      A morning in mid-March 2042, after a winter of unprecedented
+      thinness, at the Pumphouse piezometer cluster above the East
+      River confluence. She has come up on skis with two of the basin's
+      remaining technical staff — Devon, who has run the instrument
+      network since 2031, and a younger technician hired three years
+      ago when the network was extended upward. The piezometers
+      installed at three new higher-elevation sites in 2038 have
+      sent diagnostics overnight. The basin is documenting a winter
+      that has no analog in the seventy-five-year record, and they
+      are the ones doing it. Her PhD students at home want a briefing
+      Wednesday. The skiing in is harder than usual because the wind
+      crust is forty centimeters thick over thirty centimeters of
+      depth hoar — texture that the basin would not have produced in
+      the late 2020s.
+    word_count_target: 1500
+    published: false
+
+  - story_slug: politicized-2040-tribal-coproduction
+    scenario_slug: centennial-politicized
+    mode: stress-overlay
+    year: 2040
+    stress_overlay: |
+      Federal climate-relevant programs at USGS, Forest Service climate,
+      EPA, and NOAA have been substantially curtailed across the past
+      four years. Several agency scientists who collaborated with RMBL
+      in the 2020s have left federal service for state, tribal, or
+      academic positions. A guest scientist whose home institution is
+      in a state where the legislature has restricted what climate-
+      attribution research can be done at state universities has moved
+      part of her field program to RMBL specifically because the
+      institutional posture is unrestricted. Conservancy District and
+      tribal-nation partnerships continue and have deepened — they are
+      among the few durable channels for science-policy integration
+      that survive the political pressure. RMBL's translation function
+      is smaller than it was in 2030 but has rebuilt around what
+      remains viable.
+    pov: "third-person limited"
+    protagonist_type: guest_scientist
+    frontier_slug: climate-era-water-rights-and-ecological-flows-in-the-gunnison-basin
+    primary_character_role: |
+      A senior research hydrologist (full professor) at a Mountain West
+      state university, in her mid-fifties, in her third year of
+      operating part of her field program out of the basin rather
+      than her home institution because her state's legislature has
+      restricted what climate-attribution and water-rights research
+      can be done at the state university. Has thirty years of
+      research experience; has been a guest scientist at the basin
+      intermittently since the early 2010s. Came up through tribal-
+      sovereignty-aware hydrology and has been a sustained collaborator
+      with the Ute Mountain Ute natural-resources office for fifteen
+      years. Her work on changed-circumstances claims under Colorado
+      water law is now the kind of work that her home university
+      could not host — and that the basin still can.
+    scene_anchor: |
+      A late-September afternoon in 2040 at RMBL365 in Crested Butte,
+      in the partnership room where most of the work in this
+      institutional moment happens. With her: the Ute Mountain Ute
+      NRO's lead hydrologic ecologist on a video call from Towaoc,
+      RMBL's now-half-time partnership coordinator, and one of the
+      basin's two remaining data scientists. They are working through
+      a draft of a co-authored paper that the tribal NRO will be lead
+      authoring — a study of how snowmelt-timing shifts in the basin's
+      upper drainages affect culturally important plant phenology
+      across the Ute Mountain Ute homeland. The work is politically
+      careful, scientifically rigorous, and is one of the publications
+      coming out of the basin this year that her home institution
+      could not have hosted at all. She is the second author. The
+      paper goes to peer review next week.
+    word_count_target: 1500
+    published: false

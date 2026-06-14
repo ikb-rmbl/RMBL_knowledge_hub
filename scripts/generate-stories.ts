@@ -227,7 +227,35 @@ The test: if you could substitute "2024" for the story's year without changing a
 - **Spec vocabulary.** No "distinguishing thesis," "frontier portfolio," "innovation-to-infrastructure flywheel," "in-house catalytic capacity," "campaign deliverables," "bracket position," "load-bearing," etc. The story is not a planning document. The scenario you're grounded in *uses* this vocabulary; the story you write *must not*.
 - **Documentary or scientific-paper voice.** This is fiction, not journalism.
 
-# Factual anchors — long records (CRITICAL — do not get this wrong)
+${ctx.setId.endsWith('-upside') ? `# Additional forbidden patterns for upside-set stories (CRITICAL — spec §11.3a)
+
+This story is grounded in an **upside companion scenario** (spec §4.1b). Upside-tail futures have their own failure modes the §11.3 list above does not catch:
+
+- **Utopia.** Things are not better in this future because every problem has been solved. They are better because several favorable conditions stacked and the institution responded well. Characters in this story still have ordinary problems: bad weather, instrument failures, conflicts with collaborators, family obligations, federal-cycle uncertainty (federal cycles remain federal cycles even in a richer funding environment). The texture is **thriving**, not **idyllic**.
+- **Deus-ex-machina policy shift.** The reader should not be told that the policy environment has improved — they should feel it as the texture of how characters work. Do not write a sentence like "since the Western Adaptive Co-Management Act passed in 2034." You may have a character walk into a meeting that exists *because* such a shift happened, without naming it.
+- **Scientists save the world.** RMBL is part of a larger ecosystem — peer field stations, university labs, agencies, tribal natural-resources offices, partner foundations, community partners. Even in this upside future, no individual scientist or institution carries the work alone. The thriving register makes collaborative scope visible; it does not collapse onto a hero.
+- **Triumphalism / "we did it."** Closings still face forward. The world is **more capacious**, not **resolved**. The characters are still working on questions whose answers they will not see.
+- **Glossing the contingency.** This scenario is upside-*tail*, not the central case. The story should occasionally acknowledge — sideways — that the conditions that made this future possible were not the only ones that could have obtained: through a character's offhand reflection, through a peer's situation at a different institution where conditions did not stack as favorably, or simply through a memory of an earlier decade when the texture was thinner. The flourishing is felt as recently-arrived, not as natural.
+- **Documentary register for the favorable conditions.** Do not have characters explain how public attitudes shifted or how federal policy reformed. The shift is the world; characters live in it. If a policy reform must be named at all, name it sideways and once.
+
+The optimism in this story is **structural** (favorable conditions stacked), not **magical**.
+
+` : ''}${ctx.setId.endsWith('-downside') ? `# Additional forbidden patterns for downside-set stories (CRITICAL — spec §11.3b)
+
+This story is grounded in a **downside companion scenario** (spec §4.1c). Constrained-future stories have their own failure modes the §11.3 list above does not catch:
+
+- **Collapse / dystopia / apocalypse register.** The institution exists. The basin exists. Researchers still work. Students still come, though fewer of them. The texture is **hardship and constraint**, not **catastrophe**. A field station running on a tight budget with a smaller staff and harder choices is not a dystopia; it is a small nonprofit having a difficult decade.
+- **"They lose everything" register.** Not every long record can be saved, not every position retained, not every partnership renewed — characters confront real losses. But the story is not about loss-as-totality; it is about the specific things that are still being done, by people who have decided what their constrained options actually allow.
+- **Reactive helplessness.** Characters still act. Their action space is narrower than the central case, much narrower than the upside, but they have agency. Decisions are still being made. The §11.3 agency-under-stress rule applies more strictly here, not less.
+- **Villain attribution.** The conditions are multi-causal — federal contraction *and* foundation appetite contracting *and* climate stress *and* social-political shifts, intersecting. The story does not blame an administration, a party, a federal agency, or any single actor. The conditions are conditions; characters operate inside them.
+- **Nostalgia trap.** Characters live in the present, not in the basin-as-it-was. Memory has its place — a multi-decade observer remembering a colony, a senior scientist recalling a year of better snowpack — but the story's center of gravity is what is being done now, not what was done then. The §11.3 low-affect-resolution forbidden pattern doubles down here.
+- **False equivalence with the central case.** Downside scenarios are downside-*tail*. The story should acknowledge — sideways — that the conditions that produced this future were not the only ones that could have obtained: a character's offhand reflection on a peer institution that fared better, a reference to a different state's choices, a memory of when the conditions could still have gone several ways. The downside is structural and contingent, not foreordained.
+- **Heroism through suffering.** The institution and its people are not ennobled by hardship. They are working scientists having a harder decade than they wanted. They are competent, opinionated, sometimes funny, sometimes tired, and still doing the work.
+- **Documentary register for the unfavorable conditions.** Do not have characters explain how funding contracted or how the political environment changed. The conditions are the world; characters live in them. If conditions must be named at all, name them sideways and once.
+
+The character of this story is **hardship without despair, constraint without collapse, real losses set against real ongoing work**. The §11.3 forward-leaning closing rule is doubly load-bearing.
+
+` : ''}# Factual anchors — long records (CRITICAL — do not get this wrong)
 
 The campaign is named "Centennial" because RMBL was founded in 1928 (2028 is the institutional centennial). This is the *campaign's* centennial, not the *records'*. Use the dates below as ground truth — do not let "centennial" framing leak across.
 

@@ -1,0 +1,223 @@
+# Scenario definitions for the centennial-2027-upside companion set.
+#
+# Upside-tail futures for the Centennial Campaign 2027 horizon — what becomes
+# possible when several favorable conditions stack: RMBL fundraising
+# substantially exceeds the realistic ceiling, public and private science
+# funding expands, and a durable shift in public attitudes integrates
+# environmental research into adaptation policy.
+#
+# These scenarios are explicitly upside-tail (per spec §4.1b). They are
+# distinguished by which driver is primary: internal (RMBL fundraising),
+# external (science-funding expansion), or policy-attitude. They are
+# contingency-honest in the upside-set register — each names the favorable
+# conditions on which it depends and what would collapse it — but they do
+# not pretend to be the central case. The central set (`centennial-2027`)
+# remains the strategic-planning artifact.
+#
+# Each scenario uses bracket_position to flag the upside ("well above the
+# realistic ceiling"). Stories grounded in this set must honor the
+# §11.3a upside-forbidden patterns: no utopia, no deus-ex-machina policy
+# shift, no scientists-save-the-world, no triumphalism, no glossing the
+# contingency. The texture is *thriving*, not *idyllic*.
+
+set_id: centennial-2027-upside
+
+set_metadata:
+  name: "Centennial Campaign 2027 — Upside Companion Set"
+  description: |
+    Three upside-tail scenarios for the 2027-2029 Centennial Campaign,
+    sibling to centennial-2027. Distinguished by which favorable driver
+    is primary. Bracket-bending is explicit; each scenario documents the
+    stacked-favorable conditions it depends on. Stories set 2040-2042 to
+    reflect the longer arrival time of upside futures.
+  framework_version: "0.15"
+  time_window: "2027-2042 primary horizon, with 2050 coda"
+
+scenarios:
+
+  # ===========================================================================
+  # INTERNAL-DRIVER UPSIDE — RMBL fundraising over-performance is primary
+  # ===========================================================================
+
+  - slug: centennial-flourishing
+    name: "Centennial Flourishing"
+    version: "1.0"
+    distinguishing_thesis: |
+      The campaign substantially over-performs — coming in roughly three
+      times the realistic ceiling, supported by a confluence of generous
+      donor response, continued mature AI/data tools that make ecological
+      synthesis a generation-defining capability, and steady public
+      science funding. RMBL flourishes inside this envelope. The basin's
+      long records are protected, the data team grows large enough to
+      make basin records a model dataset for global climate-attribution
+      and evolutionary medicine, RMBL365 deepens into a year-round
+      partnership and meeting hub, the cross-mountain network forms with
+      RMBL as anchor, and reserves are built that secure the institution
+      across the next several decades. The scenario tests something
+      specific about institutional growth: can a small place-based field
+      station absorb this kind of expansion without becoming a different
+      institution? The bet is that flourishing along every dimension at
+      once, done carefully, leaves RMBL more itself rather than less.
+    mattering_in_2040: |
+      In 2040, RMBL matters because the basin's long records have been
+      protected AND made globally readable AND integrated into
+      mountain-system synthesis at planetary scale — and because the
+      institutional infrastructure that did all of this was built without
+      breaking what made the basin distinctive in the first place. The
+      marmot study's seventy-fifth year and the meadow phenology series'
+      sixty-fifth year were marked alongside the institution's own
+      twelfth decade. Guest scientists from across the world come to
+      Gothic and to RMBL365 because the integrated tools and the place
+      together have become irreplaceable. RMBL is recognizably the same
+      small basin-anchored nonprofit it was in 2026, with three to four
+      times the operational capacity.
+    upside_conditions: |
+      Depends on: (1) campaign substantially exceeds realistic ceiling
+      via combined major-gift, foundation, and individual giving response
+      to the basin's centennial framing; (2) AI/data tools continue to
+      mature without an AI capability winter; (3) public science funding
+      remains at least flat in real terms; (4) RMBL successfully recruits
+      and retains the data team and partnerships staff this magnitude
+      requires; (5) institutional growth is managed in a way that
+      preserves basin identity — the loudest internal risk in this
+      scenario.
+    campaign_magnitude:
+      target_m_dollars: 25
+      range_m_dollars: [20, 30]
+      bracket_position: "well above the realistic campaign ceiling — an upside-tail outcome"
+    continuity_innovation_split:
+      continuity_pct: 45
+      innovation_pct: 55
+    frontier_portfolio:
+      - F.cont.1
+      - F.cont.2
+      - F.cont.3
+      - F.cont.4
+      - F.innov.1
+      - F.innov.3
+
+  # ===========================================================================
+  # EXTERNAL-DRIVER UPSIDE — Science-funding expansion is primary
+  # ===========================================================================
+
+  - slug: centennial-networked
+    name: "Centennial Networked Mountain Science"
+    version: "1.0"
+    distinguishing_thesis: |
+      The campaign comes in above target, supported by an external shift
+      RMBL did not cause but is well-positioned to operate inside: public
+      science funding pivots substantially toward place-based long-term
+      ecological research as critical climate-adaptation infrastructure
+      (federal mountain-systems initiative, state contributions, NEON-
+      scale expansion, foundation funding for inter-station coordination).
+      RMBL becomes the institutional anchor of a continental mountain
+      field-station consortium — shared instrumentation, shared graduate
+      cohorts that rotate across stations, shared protocols, shared
+      synthesis platforms hosted at RMBL365. Place-based depth remains
+      RMBL's contribution; comparative scope is what the network adds.
+      The scenario tests whether a small place-based station can anchor
+      a hemispheric network without diluting its identity or
+      overstretching its small staff.
+    mattering_in_2040: |
+      In 2040, RMBL matters because the Americas-wide mountain field-
+      station network it anchors has produced comparative climate-
+      adaptation science at hemispheric scale — and because that network's
+      existence has reshaped what mountain ecology can do as a field.
+      Guest scientists at the basin work routinely with comparative data
+      from Niwot, Andrews, Sierra Nevada, the Andes, Cofre de Perote, and
+      half a dozen other stations; their basin findings are read in real
+      comparative context. RMBL itself is recognizably the same place
+      it was — Gothic still small, the basin still the basin — but
+      its place in the broader scientific landscape has shifted. It is
+      the anchor of something larger than itself.
+    upside_conditions: |
+      Depends on: (1) federal commitment to place-based long-term
+      ecological research grows substantially — could come via a NEON-
+      scale expansion, a new mountain-systems initiative, or sustained
+      reauthorization of existing programs at increased magnitude; (2)
+      private foundations match this shift, with at least one major
+      foundation funding inter-station coordination directly; (3) peer
+      mountain field stations across the Americas remain functional and
+      willing partners; (4) RMBL's anchor role does not consume so much
+      of its capacity that basin science suffers — the loudest internal
+      tension in this scenario; (5) federal-international funding
+      mechanisms exist or are built that let cross-border consortium
+      work happen smoothly.
+    campaign_magnitude:
+      target_m_dollars: 15
+      range_m_dollars: [12, 18]
+      bracket_position: "above the realistic campaign ceiling, paired with substantial federal/foundation operating-base growth"
+    continuity_innovation_split:
+      continuity_pct: 35
+      innovation_pct: 65
+    frontier_portfolio:
+      - F.cont.1
+      - F.innov.1
+      - F.innov.3
+      - F.both.3
+
+  # ===========================================================================
+  # POLICY-DRIVER UPSIDE — Adaptive co-management at scale is primary
+  # ===========================================================================
+
+  - slug: centennial-adaptive
+    name: "Centennial Adaptive Co-Management"
+    version: "1.0"
+    distinguishing_thesis: |
+      A durable shift in public attitudes — not a single legislative
+      moment but a compounding decade of climate-driven recognition that
+      adaptive co-management of land, water, and ecosystems requires
+      continuous scientific input — makes environmental research routine
+      input to policy at federal, state, tribal, and local levels.
+      Subnational adaptive co-management becomes the dominant policy
+      paradigm: Western Governors' Association adaptation framework,
+      expanded tribal co-management of public lands under negotiated
+      agreements, real-time integration of ecological data into water
+      and biodiversity markets, BLM and Forest Service planning revisions
+      keyed to multi-year ecological-monitoring inputs rather than
+      decade-long EIS cycles. RMBL becomes a model for translation at
+      scale — a translation function numbering in the dozens of staff,
+      embedded across agency, tribal, and Conservancy District operations.
+      The scenario tests what "basic-research identity" means when
+      translation is the dominant institutional function.
+    mattering_in_2040: |
+      In 2040, RMBL matters because environmental research has become
+      routine input to adaptive co-management of land, water, and
+      ecosystems across the Mountain West — and because the model of
+      place-based translation that RMBL built is being adopted by peer
+      institutions globally. The basin's long records continue to be
+      collected by the same small succession of observers, and continue
+      to inform basic-research questions for guest scientists, but the
+      institution's center of gravity has shifted: the translation
+      function is now the largest single thing RMBL does, and the
+      partnership infrastructure with tribal nations, water districts,
+      and federal agencies is the most visible part of how the
+      institution operates. Basic research continues; it is no longer
+      the institution's primary public face.
+    upside_conditions: |
+      Depends on: (1) a sustained public-attitude shift toward valuing
+      environmental research as routine policy input — driven by
+      compounding climate stress made unignorable by the early 2030s,
+      not by a single political moment; (2) subnational policy reform —
+      states, tribes, and regional compacts adopting adaptive co-
+      management frameworks; this scenario does not depend on federal
+      regulatory reform of the 1970s-Clean-Air-Act variety, which
+      remains politically implausible; (3) sustained foundation and
+      federal funding for translation-and-coproduction work at scale;
+      (4) RMBL successfully scales its partnership infrastructure
+      without losing the basic-research community that draws guest
+      scientists; (5) the basin's identity as a place where basic
+      science is done remains intact even as translation becomes
+      institutionally dominant — the loudest internal tension.
+    campaign_magnitude:
+      target_m_dollars: 20
+      range_m_dollars: [15, 25]
+      bracket_position: "well above the realistic campaign ceiling on the translation and community side"
+    continuity_innovation_split:
+      continuity_pct: 30
+      innovation_pct: 70
+    frontier_portfolio:
+      - F.cont.1
+      - F.innov.2
+      - F.innov.4
+      - F.both.3

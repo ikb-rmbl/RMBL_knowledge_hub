@@ -1,0 +1,239 @@
+# Scenario definitions for the centennial-2027-downside companion set.
+#
+# Downside-tail futures for the Centennial Campaign 2027 horizon — what
+# becomes the texture of basin science when several unfavorable conditions
+# stack: RMBL fundraising significantly under-performs, federal science
+# funding contracts sharply, climate change advances faster than central-
+# case modeling, public attitudes shift away from science legitimacy, or
+# (most commonly) some combination of these.
+#
+# These scenarios are explicitly downside-tail (per spec §4.1c). They are
+# distinguished by configuration of stacked unfavorable conditions — which
+# challenge is primary — rather than by single-driver, because downside
+# futures are usually multi-causal. The central set (`centennial-2027`)
+# remains the strategic-planning artifact; this set serves risk
+# identification, resilience planning, and leadership preparation for
+# the conditions under which constraint becomes the operating reality.
+#
+# Each scenario uses bracket_position to flag the downside ("below the
+# realistic floor" or "under sustained operating pressure"). Stories
+# grounded in this set must honor the §11.3b downside-forbidden patterns:
+# no collapse/dystopia register, no helpless characters, no villain
+# attribution, no nostalgia trap, no false equivalence with the central
+# case. The character is *hardship without despair, constraint without
+# collapse, real losses set against real ongoing work*.
+
+set_id: centennial-2027-downside
+
+set_metadata:
+  name: "Centennial Campaign 2027 — Downside Companion Set"
+  description: |
+    Three downside-tail scenarios for the 2027-2029 Centennial Campaign,
+    sibling to centennial-2027 and parallel to centennial-2027-upside.
+    Distinguished by which configuration of stacked unfavorable conditions
+    is primary: institutional-stress (Hollowed), environmental-acceleration
+    (Accelerating Basin Change), political-legitimacy (Politicized Science).
+    Each involves all three challenge categories; they differ in which is
+    primary. Bracket-bending is explicit downward.
+  framework_version: "0.16"
+  time_window: "2027-2042 primary horizon, with 2050 coda"
+
+scenarios:
+
+  # ===========================================================================
+  # INSTITUTIONAL-STRESS DOMINANT — Hollowed
+  # ===========================================================================
+
+  - slug: centennial-hollowed
+    name: "Centennial Hollowed"
+    version: "1.0"
+    distinguishing_thesis: |
+      The campaign comes in well below the realistic floor, paired with
+      sustained federal funding contraction beyond the central case,
+      operational pressure on Gothic itself (rising lease costs, private
+      development around the gate, climate-driven loss of some usable
+      summer-season land), and donor appetite that contracts as wealth-
+      concentration patterns shift away from environmental science
+      philanthropy. RMBL survives but as a smaller version of itself:
+      data team shrinks rather than grows, partnership work consolidates
+      into a single half-time position, RMBL365 operates on reduced
+      winter hours, several long records lapse or are handed off to
+      peer institutions. The scenario tests something specific about
+      institutional durability — whether RMBL's core identity can be
+      preserved when scope must narrow rather than expand. The bet is
+      that protecting the most fragile records and the institutional
+      core is more important than maintaining surface breadth.
+    mattering_in_2040: |
+      In 2040, RMBL still matters because the marmot demographic study
+      and the meadow phenology series continued without lapse through a
+      difficult decade, because the institutional core was preserved
+      even as scope narrowed, and because the basin remains a place
+      where the most essential long records can still be carried
+      forward. RMBL is smaller — perhaps two-thirds the staff and budget
+      it was in 2026, with several research lines that ran in the 2020s
+      now hosted by peer institutions or paused. It is also still
+      itself. Guest scientists who want continuity of access to the
+      basin's longest records can still find it. What RMBL no longer
+      offers is breadth.
+    downside_conditions: |
+      Depends on: (1) campaign substantially under-performs — fundraising
+      lands roughly half the realistic floor, perhaps driven by sustained
+      donor uncertainty about basin-relevant philanthropy and contracting
+      individual giving for environmental science; (2) federal science
+      funding contracts further than the central case modeled — perhaps
+      a 30-40% sustained real-terms reduction across NSF EAR, BIO, and
+      Polar Programs through the late 2020s and 2030s; (3) Gothic-
+      specific operational pressure — lease, access, and infrastructure
+      costs rise faster than RMBL can absorb at a constrained budget;
+      (4) foundation appetite shifts away from environmental science
+      toward acute crisis response; (5) RMBL leadership manages the
+      contraction without losing core staff or governance integrity —
+      the loudest internal risk in this scenario, because forced choices
+      about what to let go are hardest to make well.
+    campaign_magnitude:
+      target_m_dollars: 2.0
+      range_m_dollars: [1.5, 2.5]
+      bracket_position: "well below the realistic campaign floor — a downside-tail outcome"
+    continuity_innovation_split:
+      continuity_pct: 85
+      innovation_pct: 15
+    frontier_portfolio:
+      - F.cont.1
+      - F.cont.2
+
+  # ===========================================================================
+  # ENVIRONMENTAL-ACCELERATION DOMINANT — Accelerating Basin Change
+  # ===========================================================================
+
+  - slug: centennial-accelerating
+    name: "Centennial Accelerating Basin Change"
+    version: "1.0"
+    distinguishing_thesis: |
+      Climate change advances faster than central-case modeling assumed.
+      By the mid-2030s, snowpack at lower elevations in the basin has
+      collapsed in three of five years rather than every fifth year as
+      modeled in the late 2020s. Subalpine fir dies back across slopes
+      that had been stable. Some marmot colonies move up-drainage to
+      where they have not been recorded; others fail demographically.
+      Phenology stacks no longer compress — they fragment into
+      asynchronies the long records had no analog for. Fire seasons
+      compromise summer fieldwork two years out of three. The very
+      systems the basin records have tracked stop existing as they
+      were. The campaign reorients accordingly: the records are
+      extended through the discontinuity, infrastructure is rebuilt at
+      higher elevations where analog systems have shifted, and the
+      basin's scientific identity becomes documentation of
+      transformation rather than continuity. The bet is that the
+      records of *change*, captured at high resolution through an
+      accelerated decade, become more scientifically valuable than the
+      records of *stability* would have been.
+    mattering_in_2040: |
+      In 2040, RMBL matters because it documented a basin transformation
+      that few field stations were positioned to document at this
+      resolution. The marmot study extended through colony shifts and
+      partial failures; the meadow phenology series tracked
+      fragmenting phenology stacks; the snowmelt-driven plant work
+      captured the years the snowpack regime broke. The basin's
+      science shifted register: from baseline to transformation, from
+      steady-state to dynamics, from describing what is to documenting
+      what was becoming what. The institution adapted with it — not
+      easily, with several research lines reshaped or paused — but
+      durably. What RMBL still offers is what it offered before: the
+      rare ability to study mountain change at sustained resolution.
+      What it now offers is different from what it offered in 2026,
+      because the basin is different.
+    downside_conditions: |
+      Depends on: (1) climate change advances along a higher-end
+      trajectory — snowpack collapse arrives roughly a decade earlier
+      than central modeling assumed, fire frequency increases faster,
+      phenological coupling breaks more widely; (2) campaign comes in
+      at the realistic floor — federal funding remains tight, donor
+      appetite is mixed, but neither collapses; the constraint is in
+      the basin itself, not the budget; (3) leadership and guest-
+      scientist community respond to discontinuity by extending rather
+      than abandoning the records — the loudest internal tension,
+      because the temptation to declare the records ended and pivot to
+      new work is real; (4) some study species are partly extirpated
+      locally; the scenario does not assume basinwide species loss but
+      does assume real losses; (5) public attitudes do not collapse —
+      acute climate events maintain attention, but not sustained
+      policy reform.
+    campaign_magnitude:
+      target_m_dollars: 3.5
+      range_m_dollars: [3.0, 4.5]
+      bracket_position: "at the campaign floor, with operating conditions degraded by faster-than-modeled climate change"
+    continuity_innovation_split:
+      continuity_pct: 60
+      innovation_pct: 40
+    frontier_portfolio:
+      - F.cont.1
+      - F.both.1
+
+  # ===========================================================================
+  # POLITICAL-LEGITIMACY DOMINANT — Politicized Science
+  # ===========================================================================
+
+  - slug: centennial-politicized
+    name: "Centennial Politicized Science"
+    version: "1.0"
+    distinguishing_thesis: |
+      A durable shift in public attitudes against science legitimacy
+      reshapes the conditions of basin work across the period. Climate
+      denial dominant in federal and state politics across multiple
+      administrations delegitimizes environmental research in policy
+      contexts. Federal agencies relevant to basin work — USGS, Forest
+      Service climate programs, EPA, NOAA — face sustained hostility:
+      programs cut, scientists' work suppressed or relocated, agency-
+      RMBL partnerships disrupted. Foundation appetite for environmental
+      science contracts. RMBL's translation work becomes politically
+      vulnerable. The institution responds by leaning into what remains
+      viable: Conservancy District partnerships continue quietly,
+      tribal nation natural-resources offices become one of the few
+      durable channels for science-policy integration (and partnerships
+      deepen accordingly), and basic-research continuity is protected
+      as the asset that political conditions cannot reach. The
+      scenario tests what institutional independence is actually for —
+      and demonstrates that the answer is keeping basin science
+      possible when external conditions narrow.
+    mattering_in_2040: |
+      In 2040, RMBL matters because its nonprofit independence, defended
+      through a politically constrained decade, made it one of the few
+      venues where unrestricted climate-ecology inquiry continued at
+      sustained scale. Guest scientists from institutions facing state
+      or federal restrictions have shifted parts of their programs to
+      the basin specifically because RMBL's institutional posture is
+      unrestricted. The partnerships with tribal nations and water
+      districts that remained viable through the period have become a
+      durable model — basin science that is politically viable
+      because it serves community partners with sovereignty of their
+      own. RMBL is quieter than it was in 2026. It is also more
+      clearly itself. The basic-research foundation continued. The
+      translation function survived, narrowed, by aligning with
+      partners whose authority did not depend on federal continuity.
+    downside_conditions: |
+      Depends on: (1) sustained public-attitude shift against environmental
+      science legitimacy — not driven by a single election, but
+      compounding across multiple cycles; (2) federal hostility to
+      climate-relevant agency work persisting at sufficient scale that
+      USGS, Forest Service climate, EPA, and NOAA partnerships
+      meaningfully degrade; (3) state-level political environments
+      varying — some states remain hospitable to basin science (Colorado
+      itself does), others restrict; (4) tribal nations and water
+      conservancy districts retain their authority and willingness to
+      partner; the scenario depends on these channels remaining viable;
+      (5) foundation funding for environmental science contracts but
+      does not collapse — some foundations sustain support, allowing
+      RMBL to maintain a smaller but viable program; (6) RMBL itself
+      remains politically unencumbered by Colorado's relative
+      hospitability to environmental science — the scenario does not
+      assume Colorado follows a national pattern of restriction.
+    campaign_magnitude:
+      target_m_dollars: 2.5
+      range_m_dollars: [2.0, 3.0]
+      bracket_position: "below the realistic campaign floor, with operating conditions compounded by political and legitimacy pressure"
+    continuity_innovation_split:
+      continuity_pct: 75
+      innovation_pct: 25
+    frontier_portfolio:
+      - F.cont.1
+      - F.innov.5
