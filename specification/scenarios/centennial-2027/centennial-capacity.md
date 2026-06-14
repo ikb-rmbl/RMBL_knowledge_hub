@@ -1,6 +1,6 @@
 # Centennial Capacity
 
-*A Future Scenario in the `centennial-2027` set. Target magnitude, innovation-leaning. v1.0 under [Future Scenarios Framework v0.4](../../Future_scenarios_framework.md).*
+*A Future Scenario in the `centennial-2027` set. Target magnitude, innovation-leaning. v1.1 under [Future Scenarios Framework v0.5](../../Future_scenarios_framework.md).*
 
 ---
 
@@ -10,7 +10,7 @@
 |---|---|
 | `name` | Centennial Capacity |
 | `slug` | centennial-capacity |
-| `version` | 1.0 |
+| `version` | 1.1 |
 | `set_id` | centennial-2027 |
 | `time_window` | primary 2026–2040; coda 2040–2050 |
 | `campaign_magnitude` | target ~$7.5M; range $7M–$8M |
@@ -23,14 +23,14 @@
 - **Endowed Community Engagement Fund (~$1.5M endowment, ~$75K/yr).** Funds approximately 1.5 FTE of dedicated community-engagement and translation staff at scales realistic to a small-staff nonprofit. Their work: sustained relationships with Gunnison County, neighboring counties, tribal natural-resources offices, water districts, and Forest Service planning staff; communicating basin findings in registers those partners can use; co-producing research priorities with community partners; serving the community-priority commitment that is one of RMBL's institutional defining features.
 - **Independence Operating Reserves (~$0.5M endowment, ~$25K/yr).** Unrestricted operating-support endowment that contributes to RMBL's institutional capacity to remain independent of restrictions on inquiry that some peer institutions face. A small dollar amount but a meaningful institutional commitment.
 - **Critical-Path Stewardship Fund (~$1.5M endowment, ~$75K/yr).** Protects only the most fragile centennial records at minimum-viable level — the marmot record and the meadow-warming experiment most directly. Other long-running programs continue to depend on competitive grants; some smaller continuous datasets accept the risk of grant-cycle vulnerability through the period.
-- **Capital — Centennial Hall (~$1M).** A modest purpose-built or refurbished facility combining community-engagement space, visiting-researcher accommodations, archival storage, and offices for the cyberinfrastructure and community-engagement staff. Anchors RMBL's institutional shift toward more visible community presence while staying within nonprofit-realistic scale.
+- **Capital — RMBL365 renovation (~$1M).** RMBL365 — the year-round in-town venue in Crested Butte that RMBL acquired in 2025, currently providing housing, workshop, and community-engagement space — is renovated to add laboratory space, staging space for guest scientists, dedicated rooms for community-engagement programming, and offices for the cyberinfrastructure and community-engagement staff. Capitalizes on an existing institutional asset rather than building new; anchors RMBL's expanded community presence in a venue already designed for year-round operation.
 - **Selective Gothic refurbishment (~$0.5M capital).** Targeted housing and lab improvements at the existing Gothic core, prioritized around what the expanded program in residency requires.
 - **Sensing and instrumentation development support (~$0.5M capital).** Extends the in-house instrumentation flywheel — modest investment in tooling and prototype-stage capabilities that the catalytic technical staff can develop into externally-funded next-stage instrumentation work.
 
 ### Frontier support strategies
 
 - **F.innov.3 AI-assisted retrospective synthesis of long basin records** — primary, load-bearing. The endowed cyberinfrastructure capacity is the mechanism by which this frontier advances. In-house data-science staff develop tools, partner with guest-scientist users, and produce the synthesis work that prior generations could not have undertaken. The Knowledge Commons is the architectural ancestor of what this frontier matures.
-- **F.innov.4 Community-science partnerships and stakeholder co-production** — primary. The endowed Community Engagement Fund is the mechanism. Centennial Hall is its physical anchor. This frontier aligns with RMBL's community-priority commitment directly.
+- **F.innov.4 Community-science partnerships and stakeholder co-production** — primary. The endowed Community Engagement Fund is the mechanism. The renovated RMBL365 is its physical anchor, with the campaign capital adding the dedicated community-engagement programming rooms, lab and staging spaces, and staff offices the function requires. This frontier aligns with RMBL's community-priority commitment directly, and the RMBL365 acquisition is one recent institutional expression of that commitment.
 - **F.innov.5 Institutional independence as platform for inquiry** — explicit. The Independence Operating Reserves, the diversification of the funding base implicit in any successful campaign, and the public visibility of RMBL's independence commitment all contribute. This is a frontier the current moment has elevated, and the campaign engages it directly.
 - **F.cont.1 Centennial-scale ecological observation as global infrastructure** — secondary. The Critical-Path Stewardship Fund protects what's most fragile. Other long-running programs remain grant-dependent — a real tradeoff that public scenarios are required to articulate.
 
@@ -66,13 +66,13 @@ The endowed Cyberinfrastructure and Catalytic Capacity Fund is established in 20
 
 The endowed Community Engagement Fund supports the first dedicated community-engagement and translation staff person from 2030 onward; the second comes online in 2031. Early work focuses on relationship-building with Gunnison County, neighboring counties, and the regional partners that RMBL has worked with on a project basis but now engages systematically — not yet major outputs, but operational infrastructure for the work to come.
 
-Capital projects begin almost immediately on Centennial Hall design and selective Gothic refurbishment. The Centennial Hall timeline runs through 2032. Sensing and instrumentation development support flows to the technical staff to extend the basin's instrumentation flywheel into adjacent measurement capabilities.
+Capital projects begin almost immediately on RMBL365 renovation design and selective Gothic refurbishment. The RMBL365 renovation timeline runs through 2032 — designing and building out the additional functions (laboratory, staging, community programming rooms, staff offices) inside the year-round in-town space the institution acquired in 2025. Sensing and instrumentation development support flows to the technical staff to extend the basin's instrumentation flywheel into adjacent measurement capabilities.
 
-A meaningful early signal arrives in 2030: visiting research teams begin scheduling residencies in anticipation of Centennial Hall opening, attracted by the combination of relatively-good data infrastructure (relative to grant-pressured peer institutions) and the institutional independence the basin offers. The basin's reputation as a hosting site for collaborative work that depends on durable infrastructure begins to consolidate.
+A meaningful early signal arrives in 2030: visiting research teams begin scheduling residencies in anticipation of the renovated RMBL365's expanded functions coming online, attracted by the combination of relatively-good data infrastructure (relative to grant-pressured peer institutions), the institutional independence the basin offers, and a year-round in-town venue that makes residencies workable outside the short Gothic summer. The basin's reputation as a hosting site for collaborative work that depends on durable infrastructure begins to consolidate.
 
 ### Phase 2: Capacity build-out and partnership development (2031–2035)
 
-The campaign's commitments mature during this window. Centennial Hall opens in 2032 — a meaningful institutional milestone that becomes the public face of the campaign's transformation. Selective Gothic refurbishment completes in 2031. The endowed cyberinfrastructure capacity is fully operational from 2031 onward.
+The campaign's commitments mature during this window. The renovated RMBL365 comes online in 2032 — a meaningful institutional milestone that becomes the visible face of the campaign's transformation. The Crested Butte presence transitions from the year-round hostel-style configuration the institution acquired in 2025 into a year-round, multi-function venue serving laboratory, staging, community-engagement, and staff-office roles. Selective Gothic refurbishment completes in 2031. The endowed cyberinfrastructure capacity is fully operational from 2031 onward.
 
 The Community Engagement Fund's staff produce their first major outputs in 2033–2034: a water-management briefing distributed through Colorado River Basin planning channels, an agricultural-adaptation guidance document distributed through Gunnison County extension, an input to a Forest Service planning revision, sustained partnership documentation with one or two tribal natural-resources offices. None of these requires the institution to be larger than it is; they require the institution to be more publicly present than it has been, and the endowed staffing is what makes that present.
 
@@ -130,7 +130,7 @@ A senior guest scientist who has been bringing collaborative work to the basin s
 
 ## Audience lens — institution
 
-RMBL under Centennial Capacity is, by 2040, a materially different institution from RMBL in 2025. It operates expanded in-house data and cyberinfrastructure capacity routinely. It hosts a dedicated community-engagement function that produces outputs reaching Mountain West decisions. It operates Centennial Hall as physical evidence of its more publicly-present role. It maintains a more focused (though sub-comprehensive) portfolio of long-running programs. It manages a more complex donor-relationship structure across more program-specific commitments. Its board navigates more decisions per cycle than during the continuity-only era.
+RMBL under Centennial Capacity is, by 2040, a materially different institution from RMBL in 2025. It operates expanded in-house data and cyberinfrastructure capacity routinely. It hosts a dedicated community-engagement function that produces outputs reaching Mountain West decisions. It operates the renovated RMBL365 as a year-round, multi-function venue and as physical evidence of its more publicly-present role. It maintains a more focused (though sub-comprehensive) portfolio of long-running programs. It manages a more complex donor-relationship structure across more program-specific commitments. Its board navigates more decisions per cycle than during the continuity-only era.
 
 The institution's distinctive shape — small-staff nonprofit, guest-scientist-driven research, catalytic-infrastructure commitments, community-priority — is preserved in core but expanded around. The community-priority commitment, which was real but quiet in 2025, becomes more visibly institutional through the Community Engagement Fund's work. The institutional independence, which the campaign explicitly endows reserves to protect, becomes a more publicly-visible feature of what makes RMBL distinctive.
 
@@ -138,7 +138,7 @@ Whether this transformation is the institution's strongest moment or the prelude
 
 ## Audience lens — donor
 
-A donor contributing to Centennial Capacity joins an institutional transformation in progress. Their gift can be tied to specific commitments with concrete near-term outputs: an endowed position in the Cyberinfrastructure capacity, a Centennial Hall naming opportunity, a portion of the Community Engagement Fund, infrastructure for sensing development. The visible impact of their gift is faster than under Stewardship — Centennial Hall opens in 2032, community-engagement outputs reach decisions by 2034, in-house capacity is endowed by 2031.
+A donor contributing to Centennial Capacity joins an institutional transformation in progress. Their gift can be tied to specific commitments with concrete near-term outputs: an endowed position in the Cyberinfrastructure capacity, a portion of the RMBL365 renovation (e.g., a named lab or community-engagement space), a portion of the Community Engagement Fund, infrastructure for sensing development. The visible impact of their gift is faster than under Stewardship — the renovated RMBL365 comes online in 2032, community-engagement outputs reach decisions by 2034, in-house capacity is endowed by 2031.
 
 The tradeoff donors should understand: more execution risk, more dependence on RMBL's ability to manage multi-emphasis well, less of the durable-quietude that Stewardship offers. A donor to Capacity is part of building something at greater scale than RMBL has previously inhabited, whose successful operation depends on institutional capacities the small-staff nonprofit is developing in real time. Donors whose values lead them to bet on transformation will find Capacity their natural campaign. Donors whose values lead them to preserve what has been built will find Stewardship more comfortable.
 
@@ -166,7 +166,7 @@ The Community Engagement Fund's policy impact depends on partnerships, political
 
 The Critical-Path Stewardship Fund at $1.5M endowment provides meaningful but not comprehensive continuity protection. Some long-running programs may lapse over the period. This is a real tradeoff donors and staff should understand: Capacity funds transformation at the cost of less comprehensive continuity protection than Stewardship provides.
 
-The scenario does not model: a federal funding catastrophe of a scale that overwhelms both endowment protection and partnership infrastructure; a wildfire that destroys Gothic facilities including Centennial Hall; AI-driven disruption that fundamentally changes the economics of small-nonprofit field stations. Any of these would require adaptation. Capacity's resilience against major shocks is somewhat lower than Stewardship's because its commitments are more operationally complex and its institutional capacity more stretched.
+The scenario does not model: a federal funding catastrophe of a scale that overwhelms both endowment protection and partnership infrastructure; a wildfire that destroys Gothic facilities; significant damage to RMBL365 in Crested Butte (a separate-site risk profile from Gothic); AI-driven disruption that fundamentally changes the economics of small-nonprofit field stations. Any of these would require adaptation. Capacity's resilience against major shocks is somewhat lower than Stewardship's because its commitments are more operationally complex and its institutional capacity more stretched.
 
 ---
 
