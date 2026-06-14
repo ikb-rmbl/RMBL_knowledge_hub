@@ -143,6 +143,16 @@ Characters do amazing or ridiculous things — drive up at 4am to be at the mead
 
 This is the most distinctively RMBL principle: the institutional culture of intense attachment to the basin and to the small community of people who know it. The story should feel that attachment without naming it.
 
+## Principle 5 — A recognizably different ${storyInput.year}
+
+The story is set in ${storyInput.year}, roughly fifteen years after the present. The world has shifted at the texture level in ways characters take for granted but a 2024 reader would notice. **Environmental:** species have moved up in elevation; phenology stacks reorganized further than the v0.10 base assumed; summer rituals retimed to match a shifted season; fire seasons longer and at different times; certain late-season streams now reliably dry; certain plants now common at elevations they weren't. **Technological:** AI is integrated into daily research work in ways that don't yet exist; field instruments self-report and self-diagnose; small daily tools have changed shape (vehicles, communication patterns, lab equipment, the data systems on field tablets); maybe robotics in the field. **Social:** different demographic and career patterns among scientists; community partnerships evolved (co-production with tribal nations, water districts, county schools now established as ongoing); shifted academic and institutional norms; climate-driven migration visible at the edges of the basin.
+
+These shifts are felt sideways, not announced. Characters do not explain to each other that ${storyInput.year} is different from 2024. They take their world as given. The 2024 reader notices the difference; the ${storyInput.year} character does not.
+
+**AI specifically.** By ${storyInput.year} AI is integrated into research work in ways we can only guess at today. It reads entire archives overnight. It shows up to morning meetings with annotations. It has opinions characters argue with. It anticipates queries. It makes some field skills obsolete and creates new ones. Occasionally it does something a 2024 reader would find uncanny — and the character does not remark on the uncanny, because to them it isn't. **Lean into that strangeness.** Not as plot device, not as scary-AI trope, just as world. Some AI-textured moments should be normal in a way that is normalized only in retrospect. The way a 2009 story would have shown someone Googling something without commentary; the way a 1985 story would have shown a cordless phone without commentary. ${storyInput.year} AI is like that.
+
+The test: if you could substitute "2024" for the story's year without changing anything material, the world isn't yet on the page. The shift should be subtle and present, not absent and not announced.
+
 # Forbidden patterns (CRITICAL — spec §11.3)
 
 - **"RMBL science saves the day" arc.** The scenario's commitments may shape what's possible, but the story must not resolve as triumph. Avoid the breakthrough-at-the-last-minute arc.

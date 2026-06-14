@@ -1,96 +1,106 @@
-*Story grounded in [Centennial Records-Only](../../scenarios/centennial-2027/centennial-records-only.md). Mode: Stress-overlay. Year: 2039. Word count: 1454. Published: internal-only.*
+*Story grounded in [Centennial Records-Only](../../scenarios/centennial-2027/centennial-records-only.md). Mode: Stress-overlay. Year: 2039. Word count: 1528. Published: internal-only.*
 
 ---
 # The Shared Position
 
-The second interview was at three on a Friday, which Maren had not chosen well. By three on a Friday in late September her brain was already migrating toward the weekend — toward the irrigation memo she still owed the board, toward whether her daughter's soccer game in Almont would actually happen given the forecast, toward the bottle of decent rye in her bottom drawer that she had been saving for after Lena's interview without quite admitting it.
+Marisol got to the office early to print the candidate's materials on actual paper, because she still read better that way and because Devon had asked, once, whether they could meet without screens. It was a small request. She liked him more for it.
 
-Lena came in carrying a travel mug and a folder, which Maren approved of. The folder was thin. That was also good. People who showed up for second interviews with binders had usually misread something.
+The district office sat at the south end of Gunnison in a low brick building that had been a feed store before the seventies. The maple by the parking lot had turned already — early again, like last year, like the year before that. She'd stopped being surprised. She watched a magpie work a wrapper across the asphalt and drank her coffee standing up.
 
-"I drove down from Gothic this morning," Lena said. "The road's already greasy in the shaded stretches."
+Devon arrived at one-fifty, ten minutes early, in the same Tacoma she remembered from the transect summers. He'd cut his hair. He brought her a jar of rosehip syrup his partner had put up. "From the bushes behind our place," he said. "There's a lot this year."
 
-"You stayed up?"
+"There's a lot of everything this year that isn't water," she said, and he laughed, because it was true and because they had the kind of acquaintance where you could say something like that without it sitting heavy.
 
-"Through last night. I wanted to walk the lower transect one more time before the snow."
+They went to the small conference room. The window looked west toward the Palisades. She had spread the materials on the table: his field record, the position description, the protocol binders she'd printed from the RMBL archive for the bee work and the *Ipomopsis* counts and the late-season *Boechera* checks. Three binders. Eight years of patches.
 
-Maren nodded. She had walked the lower transect in late September herself, eight years running now, the first three of them with the original PI before he retired and the next five on her own and with whoever she could borrow. The willows along the East River turned gold at different rates depending on the year. This year they had turned a week early, which was either meaningful or wasn't, and Maren had stopped pretending she knew which.
+"I want to start with the hard one," she said. "I want to know what you'd do in the third week of July if the truck's in the shop and the *aggregata* peak is happening and you have one person available."
 
-"Tell me about the *Bombus* counts from August."
+He didn't answer right away. That was one of the things she had noticed about him over the seasons — he treated her questions like they were actually questions. He looked out the window for a second.
 
-Lena set the folder down but didn't open it. "Down again on *flavifrons*. Up a little on *bifarius*, which is what you'd expect. The *Ipomopsis* patches above the Copper Lake trail are still producing, but the bloom was compressed — I'd say nine days from first to last open flower on the marked stems, versus thirteen in the protocol baseline." She paused. "That's eyeball. I haven't run it."
+"Triage by site," he said. "Avery Picnic and Kettle Ponds first because they're closest and because the dataset there is the longest continuous. The upper transect I'd let slip a week if I had to. The protocol says don't, but I'd document the gap and call it. I'd rather have an honest gap than a panicked count."
 
-"You don't need to run it for me. I just want to know if you saw it."
+"The protocol says don't," she repeated. "But you'd call it."
 
-"I saw it."
+"Yes."
 
-Maren had asked the same question of the other two candidates. Neither had said *nine days*. One had said *the season felt short, which is consistent with the trend*, which was a sentence you could have generated from a press release. The other had given her a thoughtful answer about phenological mismatch that did not appear to be based on having looked at anything in particular.
+"Good answer."
 
-"Okay," Maren said. "Walk me through how you'd handle the split."
+He smiled a little. "Was it a test of whether I'd follow the protocol?"
 
-This was the real question. The position was three days at the district, two at RMBL, in principle. In practice it was going to be whatever the season demanded, and the two institutions had different ideas about whose emergencies counted. Maren had spent eight years being the membrane between them. She was tired of being the membrane.
+"It was a test of whether you understood it." She slid the bee binder toward him. "These were written in the late twenties. They're good. They're also from a period when there was someone in Gothic with budget to fix the truck the same afternoon. You're being hired into a different period."
 
-Lena had clearly thought about it. "The district work is mostly the piezometer network and the irrigation-return monitoring on the lower East. That's predictable. I can batch it. The RMBL side is the pollinator transect and whatever pieces of the meadow phenology work they need a body for — that's seasonal, weighted toward late June through August. So my proposal would be: I'm mostly district from October through May, mostly Gothic from June through August, and we negotiate September."
+He nodded. He had worked the transect for three summers as a seasonal, two of those under her and one under the postdoc from Logan who had finished her degree and gone to the state of Washington and not come back. He knew the period.
 
-"What happens when the piezometer at the Almont diversion craps out in July?"
+She walked him through the position the way she had walked herself through it for the last two months: forty percent district, sixty percent RMBL, but the percentages were a fiction and they both knew it. The work was the work. The district cared about the pollination data because the alfalfa growers cared, and the alfalfa growers cared because the bee picture in the upper basin was the bee picture in the lower basin two years later. RMBL cared because the transect was one of the last continuous pollinator records in the southern Rockies, and because the two researchers who had carried it were both past seventy now, and because Gothic had not been able to fund a staff position to hold it.
 
-"I drive down."
+"They tried, right?" Devon said. "During the campaign."
 
-"What happens when the trap line needs to be run on a morning you're scheduled at the district?"
+"They protected the protocols and the plots," Marisol said. "Not the people. That part has been us. It's still going to be us. The district is the employer of record. RMBL gives you bench space and housing in summer and access to the archive. Lila in the Knowledge Commons will be your closest collaborator on the data side. You've met her."
 
-"I — " Lena thought about it. "I'd want a protocol for that. Written down. Who calls who, what gets bumped. Because otherwise it's just me feeling guilty in two directions."
+"Twice."
 
-Maren let herself smile. "Yes."
+"She's good. She'll have opinions about your file structure within the first week. Let her have them."
 
-They talked through the rest of it. Lena had questions about housing in winter — Crested Butte was impossible, Gunnison was tight, she had a partner who taught at Western and they were living in a converted garage in Riverwalk that she was hoping to leave. Maren had the same conversation with herself every November. She didn't have good news to offer.
+He laughed.
 
-"The district can't help with housing directly," she said. "I wish we could. We've talked about a stipend, the board won't go there. RMBL has the dorms in summer but nothing year-round that would work for two people."
+She let a silence sit. She had thought she would want to ask him about the molecular side, about whether he'd consider running the DNA barcoding on the bowl-trap catches if a grant came through, but she found she didn't. Those were questions for later. The question now was simpler.
 
-"I know," Lena said. "I wasn't asking. I was just — telling you it's part of the decision."
+"Why do you want it," she said.
 
-"It should be."
+He took a breath. "I was going to say something about the long record."
 
-There was a pause. Outside, the cottonwoods along Tomichi Creek were doing the thing they did in late September where half the tree was green and half was already bare, like they couldn't agree with themselves. Maren had a strong opinion that this was new behavior, post-2032 or so, and that nobody had written it down properly because nobody was paid to write down what cottonwoods did. The meadow plots had observers. The marmot colonies had observers. The river corridor had her, and her piezometer network, and a pollinator transect she had kept alive by stealing hours from her actual job.
+"Don't."
 
-She thought: this is why we are hiring you. She did not say it.
+"Okay." He looked at her, then at the window. "My grandmother had a place in Almont. We came up summers when I was a kid. The river was different then. I know everybody says that. But it was. There were caddis hatches in June you could read a book by. I learned the bees because of an undergrad class but I stayed because of — this." He gestured vaguely west. "I don't want to leave. The seasonal work has been one foot out the door every September. I'm tired of it. I want to be somebody who lives here and does this work and gets to be married and have a dog."
 
-"One more thing," she said instead. "The transect protocol is in good shape. RMBL did the protocol work back in the late twenties — versioned, annotated, the whole thing. You'll inherit that. What you won't inherit is the institutional memory of why we kept the lower transect alive when the upper one paused in 2031. That's me, and Jim before he retired, and a couple of grad students who are now assistant professors who don't answer email. Part of this job is writing that down before I forget it."
+"Do you have a dog?"
 
-"I'd want to," Lena said. "I've been trying to read the old field notebooks in the RMBL archive. Some of the nineties handwriting is — "
+"Not yet. Sam is allergic to the idea of one until we have a yard."
 
-"Catastrophic, I know."
+"Get the yard," she said. "There are houses in Almont still, if you're willing to drive."
 
-"There's one observer from '97 who I think used a calligraphy pen."
+"That's what we're thinking."
 
-"Tess. She did. She also recorded barometric pressure that no one asked her to record, which turned out to be the only continuous record of summer storm frequency in the upper basin for that decade. So."
+She liked him. She had liked him for three years. The question was not whether to hire him; the question was what she was hiring him into, and whether she could be honest about it.
 
-Lena laughed, which was the right response. Maren liked her. She had liked her in the first interview too, and had been suspicious of liking her, and had spent the intervening two weeks looking for the reason she should not like her, and had not found one.
+Erin came in at two-forty with her laptop under her arm and a tea in a steel cup. She was the district director and she had been since 2034 and she had the specific tiredness of a person who spent her weeks talking to ranchers about water and her evenings talking to a board about money. She sat down and pulled up Devon's file on her screen and then closed the laptop again, which Marisol took as a kindness.
 
-Diane came in at three-forty, exactly on time, with her coat still on and a sheaf of board minutes under her arm. The district director did not do small talk well and did not pretend to. She sat down, looked at Lena, and said: "Has Maren told you the position is contingent on the partnership agreement, which we have not actually signed yet?"
+"Marisol speaks well of you," Erin said. "I'm going to ask you the thing I ask everybody. We can fund this position for three years out of the reserve and the ag-extension match. After that it's grants and prayer. Are you comfortable with that?"
 
-"She mentioned it."
+Devon thought about it. "Is it more or less stable than seasonal?"
 
-"It will get signed. RMBL's side is ready. Our board is ready. It's a question of language about liability when you're driving a district vehicle on RMBL business and vice versa. Boring. But real."
+"More."
 
-"Okay."
+"Then yes."
 
-"What I want to know from you," Diane said, "is whether you'll stay. We have had — " she glanced at Maren " — we have had bad luck with hires who treated the district as a stepping stone to academic work. If you want to go do a PhD in three years, tell me now and I will still consider you, but I'll consider you differently."
+"Good." Erin half-smiled. "I had a longer version of that question prepared."
 
-Lena took a breath. Maren watched her decide how much to say.
+They talked logistics for ten minutes — start date, the federal background check that had gotten faster lately, the shared vehicle, the question of whether the district truck or the RMBL truck would be primary in summer (the RMBL truck, they agreed, because it had the rack already). Erin asked about his references and he gave them. She wrote two names down on the legal pad she still carried into every meeting.
 
-"I don't want a PhD," Lena said. "I want to run the transect for twenty years. I want to be the person who knows what the willows did in 2039. I have watched my advisor's generation try to hand off their long studies and mostly fail at it, and I think the reason is that nobody trained for the handoff. I would like to be trained for the handoff. That's what this job is, isn't it?"
+Then Erin said, "I want to say one thing before I leave you two. The board approved this position in July because the alfalfa report this spring scared them. It was not because they finally understood the science. I want you to know that. The reason you have a job is that the bees are visibly in trouble in a way that hits a balance sheet. The reason the job is worth having is different. I'm not going to pretend those are the same reason."
 
-Diane looked at Maren. Maren looked back.
+Devon nodded slowly. "Understood."
 
-"That's what we're trying to make it be," Diane said.
+"All right." Erin stood. "I'll be in my office. Marisol, swing by before you go."
 
-After Lena left, Maren and Diane sat in the conference room for a minute without speaking. The light through the west window was doing the thing it did in late September where everything went slightly orange and then slightly pink and then was gone. Maren did not watch it. She opened her laptop.
+When she left, the room felt larger.
 
-"I'll draft the offer tonight," she said. "Start date November first?"
+"You're going to offer me the job," Devon said.
 
-"October fifteenth if she can. I want her in the field with you before the snow closes things."
+"I'm going to recommend you to Erin and she's going to offer you the job on Monday, probably late morning. Is there anything you need to think about over the weekend?"
 
-"She'll say yes."
+"Salary," he said. "I'd like a thousand more than the posting. Sam and I ran the numbers."
 
-"I know."
+"I'll ask. I think she'll say yes."
 
-Maren was already typing. The first sentence of the offer letter was going to be wrong, and she was going to argue with it for a week, and that was fine. She wrote it anyway.
+He stood up and gathered the binders into a stack and then set them back down because they weren't his yet. They walked out into the parking lot together. The maple had dropped more leaves in the last two hours. The light was the long west light of late September, the kind that made the Palisades look closer than they were.
+
+"Tell Sam thanks for the syrup," Marisol said.
+
+"I will." He opened the truck door. "Hey — the upper transect. The protocol binder. Whose handwriting is that, in the margins of the 2029 section?"
+
+"Billie's."
+
+"I thought so. I wanted to be sure."
+
+He drove away. Marisol stood in the lot a moment longer, then went back inside to find Erin, because she wanted to argue for the thousand dollars before the weekend started and she had a draft of the argument already half-written in her head.

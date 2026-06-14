@@ -12,7 +12,7 @@
 # melancholy.
 
 set_id: centennial-2027
-framework_version: "0.10"
+framework_version: "0.11"
 
 stories:
 

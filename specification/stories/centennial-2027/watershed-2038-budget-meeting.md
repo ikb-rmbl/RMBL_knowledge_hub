@@ -1,84 +1,108 @@
-*Story grounded in [Centennial Watershed](../../scenarios/centennial-2027/centennial-watershed.md). Mode: Stress-overlay. Year: 2038. Word count: 1438. Published: internal-only.*
+*Story grounded in [Centennial Watershed](../../scenarios/centennial-2027/centennial-watershed.md). Mode: Stress-overlay. Year: 2038. Word count: 1487. Published: internal-only.*
 
 ---
 # The Replacement List
 
-The aspens along Sopris had gone by the weekend before, all at once, the way they sometimes did when a hard frost arrived without preamble. Maren had driven up from Boulder on Monday afternoon and noticed the basin already locked into that particular October stillness — yellow at the lower elevations, gray-brown higher, the willows along the East River bleached to straw. She had stopped at the pullout above Almont to call her daughter back about Thanksgiving. Yes, she'd be there. No, she would not bring the dog this time.
+The aspens on Kebler had turned the week before and were already past, which Mara had not expected. She had driven up from Fort Collins on Sunday and the gold she'd been promising herself was scattered brown across the road, six days early or two weeks, depending which baseline you wanted. The drive had given her time to think about the list. By the time she pulled into Crested Butte the list had rearranged itself three times in her head and she'd lost confidence in the version she'd sent to Iris on Friday.
 
-Tuesday morning, the meeting room at RMBL365 smelled like coffee and the particular dust that old baseboard heaters put into the air when they came on for the first time in fall. Maren had been in this building enough times to know which chair tilted. She took a different one.
+RMBL365's upstairs room smelled like coffee and the particular dust that came off the building's old wood when the heat first turned on in fall. Iris had the window cracked anyway. Mara took the chair by the radiator because her hip had stiffened on the drive and Iris, who had known her since 2023 and remembered things like that, had left it open for her without saying anything.
 
-Devi, the watershed data engineer, had the inventory open on the wall screen. It was a spreadsheet the size of a small novel. Forty-seven rows highlighted in three colors: green for instruments still inside design life, yellow for instruments past nominal but operating, red for instruments that had failed since June or would fail before spring.
+"Sierra's on in two minutes," Iris said. "Devon's bringing the tablet."
 
-Eleven red rows.
+"How's the connection up there today?"
 
-"Walk me through the reds again," said Anya from the small box in the corner of the screen. Sierra Nevada, calling in from her own slightly different October. She had her glasses pushed up into her hair. "Not the spec sheets. The actual situation."
+"Better than yours will be on the way home."
 
-"The actual situation," said Tom, the senior instrument tech, "is that the K-band radar at the upper site has been throwing a calibration drift since the August storm and I can patch it through one more winter but I would not want to publish off it after March." He paused. "The two piezometers in the lower bog are full of water. I mean inside the housings. I mean they are no longer instruments, they are tubes."
+Devon came in with the tablet and a paper printout that he set down between them like a peace offering. The printout was the inventory — every instrument across the East River, color-coded by physical condition, by replacement cost, by what the model thought it contributed to coupled questions in the last three years. The model's column was new this year. Mara had argued against including it at first and then changed her mind in August when it flagged the upper Avery piezometer cluster as carrying more weight in the synthesis questions than anyone on the team had assigned it. She still didn't fully trust the column. She used it anyway.
 
-"And the cosmic-ray neutron sensor," said Devi.
+Karen, the administrative director, came in last with her laptop open. "Sierra's calling."
 
-"And that," said Tom. "Which we knew."
+The peer from the Sierra observatory came up on the screen — Tomás, a hydrologist Mara had known since a 2029 AGU session — with the gray light of a Bishop morning behind him. He waved. "You all look warm."
 
-Maren had been turning a pen over in her hand. She put it down. "Let's do this in tiers. What can't lapse. What can lapse for one season. What we partner out. What we retire."
+"It snowed Sunday night," Devon said. "Six inches at Gothic. Gone by Monday afternoon."
 
-Sasha, the administrative director, had a paper notebook open in front of her, the kind with graph paper. She was old-school about meetings where money got decided. "Before tiers," she said, "the number. We have one-point-three for replacement-and-repair through 2042. That assumes no further draw on reserves. The board is firm on that part."
+"We're still in fire watch down here."
 
-"One-point-three," said Anya. "For all eleven."
+"In October," Iris said, not quite a question.
 
-"For all eleven, plus whatever we don't know about yet that breaks before the snow flies in 2040."
+"In October."
 
-Tom made a small noise that wasn't quite a laugh.
+They got to it. Karen had the spreadsheet on the larger screen and walked them through the reserves position first, which was where Mara had asked her to start. The number was lower than Mara had braced for. The 2034 contraction had cost more than the model predicted because the operating costs of the radar suite had risen faster than the operating costs of anything else, and the 2036 shock had come before the buffer recovered. They had enough for one of two things: a full replacement of the upper basin atmospheric package, or a full replacement of the lower groundwater array. Not both. Possibly partial on each, with the gaps filled by partnership or by acceptance.
 
-Maren looked at the inventory again. She had been coming to this basin since 2021, when the SAIL trailers had first appeared on the meadow above Gothic and everyone had argued about whether the radar dish would scare the marmots. (It had not. The marmots had treated it the way they treated everything — with brief curiosity, then indifference, then the occasional attempt to chew its cabling.) She had watched these instruments be installed. She had watched several of them be transferred to RMBL ownership in 2028, in a series of meetings much like this one, except that the mood had been different then — an undertone of taking on something new. This was the other end of that arc. The instruments she had helped argue for were now the instruments she was helping argue about retiring.
+"Walk me through which piezometers are actually at end of life," Tomás said. "Not the sticker date. The physical state."
 
-"The K-band stays," she said. "Non-negotiable for me. We lose the K-band, we lose vertical resolution on the snow microphysics, and the whole upper-watershed coupling becomes a soil-moisture story with weather attached. I can't do the 2039 analyses without it. Nobody can."
+Devon pulled up the diagnostic summary. The instruments self-reported now; had since the 2032 refit. The summary read like a medical chart — drift trends, recovery latency, the number of times the sensor had auto-flagged in the last quarter. Devon had taught Mara to read it like a nurse reads vitals. You looked for the patterns the instrument itself didn't yet know to call.
 
-"Agreed," said Devi.
+"Avery 3 is gone," Devon said. "It's calling clean data but the recovery curve is wrong. I'd retire it before the spring melt and run the cluster on Avery 1 and 2 until we decide."
 
-"Agreed," said Tom. "Cost on replacement is two-twenty. Six-month lead time if we order this week. I have a refurb option from the Finnish group at one-forty, ten-month lead."
+"And Avery 1 and 2 are?"
 
-"Order the new one," said Sasha. She wrote something in her notebook. "We don't gamble on the anchor instrument."
+"Tired. Two, three more seasons. Maybe four."
 
-Anya cleared her throat from the screen. "On the piezometers. I want to make a case. We have four in the Sierra that are functionally identical to your lower-bog set. We are recapitalizing next year. If you let us host the groundwater chemistry stream for two field seasons, we'll send you the displaced units. They're 2029 vintage, fully calibrated, with documentation. You'd be sharing the chemistry record with us during the gap."
+Mara reached for the printout. "What about Copper?"
 
-A silence.
+"Copper's fine for now."
 
-"Sharing how," said Maren. She kept her voice even. The basin's groundwater chemistry record was not a thing she gave away lightly. It was one of the streams that gave the coupled story its teeth — the one that let you trace a snowmelt pulse from the radar all the way down through the bedrock weathering and out into the stream, on the same plots, in the same year. Nobody else had that.
+She found the row anyway. Copper Lake piezometer, installed 2024, refit 2032, currently reading. The talus slope above Copper was where she had taken her first graduate student in 2025 and where, last July, she had stopped to catch her breath on the way up and noticed bumble bees on a stand of *Ipomopsis aggregata* growing at an elevation where in 2023 she would not have looked for *Ipomopsis* at all. The instrument and the flower and her own slower lungs were all parts of the same record now. This was what they had spent the campaign to make possible. It did not feel like triumph. It felt like a thing she was responsible for, the way you were responsible for an aging parent.
 
-"Joint custody during the gap," said Anya. "Both institutions on the metadata. We don't publish without you, you don't publish without us. After the new units come online here, the stream returns fully to RMBL. We get a Sierra-East River comparison out of the period, which honestly we both want."
+"Tomás," she said. "What's your interest, concretely."
 
-"That's a real offer," said Devi quietly.
+He nodded; he had been waiting for this. "We have two atmospheric profilers we're decommissioning next year. They're not new. They're calibrated and they have three to five seasons in them depending on how you treat them. We can't keep running them. We're trying to figure out whether to mothball them or place them somewhere that can use them. If you took them, we'd want shared data access through 2042 and co-authorship on synthesis work that draws on them. We're not trying to sell you something. We're trying to keep them running."
 
-It was. Maren could feel it being a real offer. She also felt the small bright resistance that came from twelve years of fighting to keep the basin's distinctiveness intact. The thing the campaign had bought, the thing the technical staff in this room had built, was integration on one landscape. Partnering out was not the same as losing the data, but it was not nothing, either.
+Iris was already nodding. Mara watched her. Iris had been the one to say, in the August call, that she would not accept a partnership that compromised the coupling. The integration was the point. A profiler from somewhere else that didn't talk cleanly to the rest of the stack was a piece of equipment, not part of the observatory.
 
-"Two seasons," she said.
+"Which models," Iris said.
 
-"Two seasons."
+Tomás named them. Devon's face did a small thing — a relaxation Mara caught because she'd been watching for it. They would talk to the stack. They had talked to the stack before; Devon had run a pilot in 2035.
 
-"And I want the comparison paper led from here."
+"That gets us the upper atmospheric coverage," Iris said slowly. "If they hold. If they don't, we're worse off than retiring our own and replacing nothing."
 
-"Co-led," said Anya. "Don't push me. I have a postdoc who needs first-author."
+"They'll hold," Tomás said. "I won't promise four years. I'll promise two."
 
-"Co-led," said Maren. She caught Tom's eye. He was smiling slightly, the way he did when something was working that he hadn't expected to work.
+Karen was already running numbers. "Two years of operating support against the capital we save lets us do most of the groundwater replacement. Not Avery 3. The cluster."
 
-They went through the list. The K-band would be replaced. The piezometers would go to the Sierra arrangement. The cosmic-ray sensor would be retired — its function partly covered by the soil-moisture network, partly accepted as a loss, and Maren did not pretend that was painless. The flux tower at the south site needed a new sonic anemometer and they would buy it. Two of the snow-pillow sites would be consolidated to one. The upper-meadow radiometer would limp through one more winter on Tom's patches and they would revisit in April.
+"Avery 3 is going to retire whether we replace it or not," Devon said.
 
-By eleven-thirty they had spent one-point-one of the one-point-three. Sasha drew a line under the number in her notebook and underlined it twice.
+"Then we retire it."
 
-"The remaining two hundred," she said.
+There was a pause. Mara realized she had been holding the printout hard enough that the edge had crumpled. She set it down.
 
-"Reserve," said Devi. "Please. For the thing we haven't found yet."
+"I want to caveat something," she said. "I don't want us to decide today that Avery 3 stays retired permanently. I want us to decide today that we retire it for the 2039 season and revisit in 2040 with the integrated record showing us what we lost."
 
-"Reserve," said Sasha, and wrote it down.
+"Agreed," Iris said.
 
-Anya, from her box, was already typing something. "I'll send the piezometer MOU draft by Friday. My program officer will want language about the data embargo. We can argue about it next week."
+"Agreed," Devon said.
 
-"We can argue about it next week," Maren agreed.
+Karen typed. "Recorded as conditional."
 
-The meeting broke. Tom stood up and stretched and said something about needing to drive a battery up to the upper site before the road froze in earnest, which it would do any night now, and Devi said she'd come along because she wanted to check a logger that had been throwing odd timestamps. Sasha gathered her notebook and her coffee cup and went to her office to call the board chair.
+Tomás was smiling on the screen, the small smile of someone who had come into a meeting expecting to leave with less. "I'll send the transfer paperwork this week. We'll need to coordinate the move before the passes close."
 
-Maren stayed in the room for a minute after they left. She opened her laptop and started a document. She titled it *East River coupled record, 2038–2042: what we kept and why.* She wrote one sentence — *The K-band stays because the upper watershed cannot be read without it* — and then stopped, because she wasn't sure yet whether the document was a memo to herself, a paragraph for the next proposal, or the opening of something longer that she would argue with through the winter.
+"They've been closing later," Devon said.
 
-She left the sentence on the screen and went to find her jacket. If she drove up to Gothic now she could be at the lower bog by one, look at the piezometer housings herself, and see exactly what she was sending away. She wanted to see them first. She wanted to know, before Friday, what the two seasons would actually cost.
+"They've been closing weirder," Iris said. "Last year was November 18. Year before was October 9."
 
-Outside, the wind off Gothic Mountain had picked up. Down in town it smelled of woodsmoke and the cold metal of a season turning.
+They worked through another forty minutes — the calibration schedule, who would drive down to Bishop to inspect the profilers, whether Devon's team had the bandwidth to absorb two new instruments before spring melt or whether they needed to push the integration to summer. Mara watched Iris run the meeting and thought about the fact that Iris had been a postdoc when Mara first met her and was now the person Mara called when she needed to know whether a decision was real or aspirational. The transition had happened without ceremony, the way most things at RMBL happened.
+
+At eleven they broke. Karen had another meeting. Tomás signed off. Mara stood, slowly, and Iris noticed and pretended not to.
+
+"Lunch?" Iris said.
+
+"Yes. Then I want to walk up to the meadow before I drive back. The light's been strange this week and I want to see what it looks like at the upper plots."
+
+"It's cold up there."
+
+"I have the jacket."
+
+"You always say you have the jacket."
+
+"I have the jacket *this time.*"
+
+Iris laughed. Devon was already at the door, tablet under his arm, half out into the hallway and the rest of his afternoon. He stopped.
+
+"I'm going to draft the Avery memo tonight," he said. "I'll send it before I leave. You'll hate the first version."
+
+"I'll hate the first three versions."
+
+"I know."
+
+He went. Mara picked up the printout — the crumpled corner, the model's column she still did not fully trust — and folded it into her bag. She had a sentence she wanted to write before she forgot it. She would write it in the car if she had to. She would argue with it for a week.
