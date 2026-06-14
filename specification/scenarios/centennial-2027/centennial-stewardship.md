@@ -1,6 +1,6 @@
 # Centennial Stewardship
 
-*A Future Scenario in the `centennial-2027` set. Target magnitude, continuity-leaning. v1.0 under [Future Scenarios Framework v0.4](../../Future_scenarios_framework.md).*
+*A Future Scenario in the `centennial-2027` set. Target magnitude, continuity-leaning. v1.1 under [Future Scenarios Framework v0.5](../../Future_scenarios_framework.md).*
 
 ---
 
@@ -10,7 +10,7 @@
 |---|---|
 | `name` | Centennial Stewardship |
 | `slug` | centennial-stewardship |
-| `version` | 1.0 |
+| `version` | 1.1 |
 | `set_id` | centennial-2027 |
 | `time_window` | primary 2026–2040; coda 2040–2050 |
 | `campaign_magnitude` | target ~$7.5M; range $7M–$8M |
@@ -34,7 +34,7 @@
 
 ### Forgone
 
-The campaign does not fund: a Translation Function at staffed scale (F.innov.2 not in this portfolio); new partnership infrastructure for hosting visiting research teams; significant expansion of in-house data-science or cyberinfrastructure capacity beyond preservation; new sensing or instrumentation development capability (the existing instrumentation suite is maintained but not extended into new measurement domains); community-science partnerships at the F.innov.4 scale. The atmosphere-to-bedrock integration work begun in 2021–25 (F.innov.1) continues at its current rate of growth — funded by external grants on the existing trajectory — rather than accelerating through campaign-funded permanent positions.
+The campaign does not fund: a Translation Function at staffed scale (F.innov.2 not in this portfolio); new partnership infrastructure for hosting visiting research teams; significant expansion of in-house data-science or cyberinfrastructure capacity beyond preservation; new sensing or instrumentation development capability (the existing instrumentation suite is maintained but not extended into new measurement domains); community-science partnerships at the F.innov.4 scale; substantial renovation of RMBL365 (the year-round Crested Butte facility RMBL acquired in 2025 continues operating in its current configuration rather than being built out into expanded laboratory, staging, and community-engagement functions — the Capacity scenario allocates capital to that renovation; Stewardship does not). The atmosphere-to-bedrock integration work begun in 2021–25 (F.innov.1) continues at its current rate of growth — funded by external grants on the existing trajectory — rather than accelerating through campaign-funded permanent positions.
 
 ### Seeds in the present
 
