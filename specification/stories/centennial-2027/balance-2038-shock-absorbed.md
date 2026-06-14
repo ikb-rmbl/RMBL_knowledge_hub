@@ -109,9 +109,9 @@ She told him. The bridge fund, the eleven projects, the lapse list, the referral
 
 "What's the marmot study look like."
 
-This was the question he always asked. She had stopped being surprised by it. "Intact. Ninety-ninth year wrapping up. The succession plan we wrote in twenty-nine is holding — we've got three observers on the colony now, the youngest is twenty-six and the oldest is sixty-one, and the field protocols transfer cleanly between them. The centennial event in July is going to be small. We're not making a thing of it."
+This was the question he always asked. She had stopped being surprised by it. "Intact. Seventy-fifth year wrapping up. The succession plan we wrote in twenty-nine is holding — we've got three observers on the colony now, the youngest is twenty-six and the oldest is sixty-one, and the field protocols transfer cleanly between them. The seventy-fifth-year event in July is going to be small. We're not making a thing of it — the centennial is twenty-five years out and we'd rather mark it then."
 
-"You should make a thing of it."
+"You should make a thing of seventy-five."
 
 "Maybe."
 

@@ -69,11 +69,11 @@ Cara made a small sound that was not quite a laugh. "So we lock in the reduced y
 
 "Yes."
 
-"And the centennial happens at the reduced scale."
+"And the seventy-fifth-year milestone passes at the reduced scale. Last summer. We marked it small."
 
 "Yes."
 
-The hummingbirds came back. The male did the dive display — the J-shape, the wing-trill at the bottom — and Maren watched Cara watch him with the particular stillness Cara had when something was happening she did not want to interrupt by reacting to. After a moment Cara said, almost to herself, "I had the model run the demographic projection on the reduced sampling last week. It loses resolution on the dispersal estimates around year one-oh-three. Everything else holds."
+The hummingbirds came back. The male did the dive display — the J-shape, the wing-trill at the bottom — and Maren watched Cara watch him with the particular stillness Cara had when something was happening she did not want to interrupt by reacting to. After a moment Cara said, almost to herself, "I had the model run the demographic projection on the reduced sampling last week. It loses resolution on the dispersal estimates around year ninety. Everything else holds. The centennial is twenty-four years out — I'd like to be alive for it, but I can hand the question off if I'm not."
 
 "It told you that unprompted?"
 

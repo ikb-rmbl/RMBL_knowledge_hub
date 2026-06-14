@@ -227,6 +227,18 @@ The test: if you could substitute "2024" for the story's year without changing a
 - **Spec vocabulary.** No "distinguishing thesis," "frontier portfolio," "innovation-to-infrastructure flywheel," "in-house catalytic capacity," "campaign deliverables," "bracket position," "load-bearing," etc. The story is not a planning document. The scenario you're grounded in *uses* this vocabulary; the story you write *must not*.
 - **Documentary or scientific-paper voice.** This is fiction, not journalism.
 
+# Factual anchors — long records (CRITICAL — do not get this wrong)
+
+The campaign is named "Centennial" because RMBL was founded in 1928 (2028 is the institutional centennial). This is the *campaign's* centennial, not the *records'*. Use the dates below as ground truth — do not let "centennial" framing leak across.
+
+| Record | Started | Age by 2027 | Age by ${storyInput.year} | Centennial year |
+|---|---|---|---|---|
+| Yellow-bellied marmot demographic study (Barash → Armitage → Blumstein) | 1963 | 64 years | ${storyInput.year - 1963} years | 2063 |
+| Meadow phenology series (Inouye and collaborators) | ~1974 | 53 years | ${storyInput.year - 1974} years | ~2074 |
+| RMBL itself | 1928 | 99 years | ${storyInput.year - 1928} years | 2028 |
+
+The marmot study passes **its 75-year mark in 2038**. Its centennial is 2063, well outside any horizon you should be writing inside. If a character refers to the marmot study's age in dialogue or thought, use the value from this table for the story's year. The phenology series and the snowmelt-driven plant work are similarly grounded — neither is approaching a centennial within your horizon.
+
 # Output
 
 Begin with a short evocative title on its own line, prefixed with "# ". Then the story prose. No frontmatter (the YAML metadata is added separately). No "(Story by ...)" attribution. No "The End." No author's notes. Just the title and the prose.

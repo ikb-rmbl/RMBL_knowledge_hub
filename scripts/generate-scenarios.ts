@@ -174,6 +174,19 @@ CRITICAL — magnitude framing rule: You receive the magnitude numerically for t
 
 ---
 
+# FACTUAL ANCHORS — long records (CRITICAL — do not get this wrong)
+
+The campaign is named "Centennial" because RMBL was founded in 1928 (2028 is the institutional centennial). This is the *campaign's* centennial, not the *records'*. The long records are decades younger. Use the dates below as ground truth — do not let "centennial" framing leak across.
+
+| Record | Started | Age by 2027 | Age by 2040 | Centennial year |
+|---|---|---|---|---|
+| Yellow-bellied marmot demographic study (Barash → Armitage → Blumstein) | 1963 | 64 years | 77 years | 2063 |
+| Meadow phenology series (Inouye and collaborators) | ~1974 | 53 years | 66 years | ~2074 |
+| Snowmelt-driven plant work | various, ~1970s | ~50 years | ~63 years | ~2070s |
+| RMBL itself | 1928 | 99 years | 112 years | 2028 |
+
+Within any reasonable horizon (extending into the early 2040s), **the marmot study passes its 75-year mark in 2038**. The phenology series is at its half-century in the early 2020s and approaches 65 years by 2040. None of the records reach a centennial within the horizon. If you reference a record's age, milestone, or anniversary, use the actual milestone for the date — not "centennial." Common errors to avoid: "the marmot study reaches its hundredth year in this period" (no — it's at 75 in 2038); "the marmot study, well into its second century" (no — it's at 77 by 2040); "the marmot study's centennial in the early 2040s" (no — 2063).
+
 # VOICE AND ACCESSIBILITY (CRITICAL — readability is the highest-priority constraint after factual accuracy)
 
 The scenario is a public artifact. Imagine all of these readers reading the same prose: a board member without scientific training; a journalist; a working basin scientist; a high-school student doing a project on RMBL; a prospective donor evaluating their giving. All of them must follow it.
