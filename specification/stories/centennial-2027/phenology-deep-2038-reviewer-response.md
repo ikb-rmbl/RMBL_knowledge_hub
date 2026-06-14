@@ -1,86 +1,98 @@
-*Story grounded in [Centennial Phenology-Deep](../../scenarios/centennial-2027/centennial-phenology-deep.md). Mode: Stress-overlay. Year: 2038. Word count: 1414. Published: internal-only.*
+*Story grounded in [Centennial Phenology-Deep](../../scenarios/centennial-2027/centennial-phenology-deep.md). Mode: Stress-overlay. Year: 2038. Word count: 1508. Published: internal-only.*
 
 ---
 # The Shape of the Answer
 
-The office on the third floor of RMBL365 had been a supply closet until 2031 and still smelled, faintly, of the cardboard that had lived there. Maya had wedged a desk under the dormer, a second monitor on a stack of two books and an inverted milk crate, and a space heater she didn't trust pointed at her feet. Through the dormer window she could see down Elk Avenue, where the last of the dirty snow was retreating into the gutters and a man in shorts was walking a dog past the brewery sign. Late March. The first locals-are-back energy. Two restaurants reopening this weekend.
+The radiator in the third-floor office at RMBL365 made a sound like someone tapping a wrench against a pipe, which was, Mira had learned on Monday, exactly what it was: the building manager came through twice a day and bled the line. He waved at her through the door's small window now, on his way down, and she waved back without lifting her eyes from the screen.
 
-She had been in this office since November and the building had learned her. The motion lights in the third-floor hallway no longer surprised when she came back from coffee. The espresso machine downstairs knew her cup.
+"—the partition is cleaner if we drop the 2031 cohort," Lena was saying from State College, her voice thin through the laptop speakers. "I know. I know what you're going to say."
 
-"Okay," Joon said from Pennsylvania, his face filling her left monitor. "Show me what Ada gave you overnight."
+"I'm not going to say anything," Mira said. "I'm going to think for a second."
 
-She shared her screen. The cross-tab was open in the third window — the AI-assisted partition of variance, the one she'd asked Ada to redo with the 2034 and 2036 common-garden cohorts weighted separately because of the late-frost event. The output was clean. Cleaner than she'd expected. The plasticity component for *Boechera stricta* flowering time held at forty-one percent across all four garden sites; the additive genetic variance partition tightened by a third when you let the snowmelt covariate go nonlinear above the threshold Ada had flagged in February.
+She'd been thinking for a second for about forty minutes. On the left screen the digitized phenology record sat open from 1934, the early years in a Cooper hand she'd come to recognize the way you recognize a friend's voice on the phone, the more recent years in clean keystrokes from observers whose names she also knew. On the right screen the common-garden output for *Boechera stricta* across four sites and eight years, with the Schofield plots in red because they'd been the first to go in, in 2028, and had the longest run. In the middle, the cross-tab the basin tools had assembled overnight while she slept in the loft of the apartment her PI kept for visiting lab people, the one with the broken blind that let the moon in.
 
-"Huh," Joon said. He was wearing the gray sweater. He always wore the gray sweater on Fridays. "That's better than the December run."
+"Drop 2031 and the heritability estimate for flowering time goes up by twelve percent," Mira said. "Which is what Reviewer 2 wants, basically. But then we can't say anything about the 2031–2032 snowmelt anomaly, which is the cleanest natural experiment we have for the plasticity contrast."
 
-"It's better because she finally has the Schofield gauge record back to 1934 stitched in properly. The handwriting model got another pass in February."
+"Reviewer 2 doesn't care about the plasticity contrast."
 
-"Which notebooks?"
+"Reviewer 2 is wrong to not care about the plasticity contrast."
 
-"The 1937 to 1952 box. The ones where the observer changed three times. Ada flagged a systematic offset in the April readings under the third observer — she was reading the gauge at 7 a.m. instead of 6, and we hadn't caught it. So the snowmelt-onset estimates for those fifteen years shifted by an average of two and a half days."
+"Reviewer 2 is the one writing the review."
 
-"Toward earlier or later?"
+Mira laughed, which surprised her — she hadn't laughed since Tuesday — and then she pulled up the cross-tab and ran her finger down the column where the AI had flagged what it called *coupled signal candidates*, eleven of them, ranked. It had also written a short paragraph at the top explaining its ranking, the way it did, which Mira read with the mild annoyance she always felt when the tool's prose came out cleaner than her own drafts.
 
-"Later. Which actually tightens the variance partition because it makes the mid-century baseline less anomalous."
+"Okay," she said. "What if we don't drop 2031. What if we use the gardens to show what the heritability estimate would have looked like *without* the 2031 cohort, and put that as a supplementary panel, and then in the main figure we keep the full data and explain why."
 
-Joon made a face she had learned to interpret as *that's going to be a supplementary figure I have to defend.* "Reviewer 2 will eat that."
+A pause from State College. Lena was the kind of collaborator who paused before she agreed; Mira had learned in her first year of the PhD that the pauses were not skepticism but a habit of actually thinking, which was rarer than it should have been.
 
-"Reviewer 2 wants to eat everything."
+"That's three figures," Lena said. "Reviewer 2 wanted one."
 
-"Reviewer 2 is not wrong, though. That's the annoying part."
+"Reviewer 2 wanted *mechanism*. We can give them mechanism in three figures or we can give them a clean number that's wrong."
 
-She pulled up the review again on the right monitor, even though she had it memorized. *The authors have assembled a remarkable dataset and the descriptive results are compelling. However, the leap from observed phenological shift to mechanistic partition of plasticity and microevolution remains under-supported. In particular, the common-garden results from Sites 2 and 3 are presented in aggregate, and the reader cannot evaluate whether the apparent G×E signature is consistent across snowmelt regimes or driven by Site 2 alone.*
+"You're going to have to write the legend."
 
-"He wants the site-by-site breakdown," Maya said. "Which we have. We just didn't put it in because it makes Figure 3 unreadable."
+"I'm going to write the whole thing."
 
-"So it's a new figure."
+Outside, the snow was coming down in the absent-minded way it did in late March, more memory than weather. Mira had driven up from Boulder on Sunday in the truck the lab kept for basin trips, the one with the seat warmer that worked only on the passenger side, and she'd had to clear a foot of new powder off the windshield in the RMBL365 lot before she could see to back in. The plows had been through twice since. By the weekend the road to Gothic would be navigable on snowmobile but not much else. She wasn't going up this trip. The common-garden plots at Schofield were under three feet of snow and would be until the end of May; the questions she needed to answer about them were all already on her screen.
 
-"It's a new figure."
+"I need to look at the heritability estimates for the East River population again," she said. "The one we have only six years on."
 
-"Which one comes out?"
+"That's the one I'm worried about."
 
-This was the question. They had three candidate mechanistic figures and room, realistically, for one more before the paper became the kind of thing reviewers complained was *sprawling*. Figure A was the site-by-site G×E panel that Reviewer 2 was implicitly asking for. Figure B was the AI-assisted retrodiction — Ada's reconstruction of predicted flowering dates from 1934 to 2038 using the genetic architecture they'd inferred from the common gardens, overlaid against the actual observed record. Figure C was the pollinator-coupling figure: *Bombus* network-position data from the long census, mapped against the *Boechera* flowering-time variance.
+"Me too."
 
-She loved Figure C. Figure C was the one that had made her come here.
+She pulled the population-specific estimates into the cross-tab and asked the tool to flag any source population where the standard error was wider than the central estimate. Three flags came up immediately, which was about what she'd expected; the East River population was one of them. She'd known it would be. They had six years on it because the plot had gone in late, in 2032, after a long argument she had not been part of about whether the site was too low for the gradient they wanted. She'd inherited the data and the argument both. Six years was not enough. Six years was what she had.
 
-"I think it has to be A," she said.
+"Can I ask you something not about the paper," Lena said.
 
-"Yeah."
+"Sure."
 
-"I hate it."
+"Are you coming to the wedding?"
+
+It took Mira a second to remember which wedding. Lena's sister, late June, in Bucks County. She had been invited in December and had said yes in January and had then forgotten about it entirely under the weight of the revision.
+
+"Yes," she said. "I am coming to the wedding. I bought the dress already."
+
+"You did not."
+
+"I did. It's green."
+
+"Tom will be glad. He thinks you don't like him."
+
+"I like Tom. I just don't talk to him because every time I see him I'm thinking about *Boechera*."
+
+"That's what he thinks not liking him looks like."
+
+Mira filed this away to think about later and pulled up the third figure draft. The AI had sketched a version overnight that she had asked it to sketch — the partition between plastic and evolutionary components of flowering-time change across the four garden sites, with the snowmelt covariate broken out — and she stared at it now with the half-recognition you have for a sentence someone else wrote that says what you were trying to say. It was not quite right. The y-axis was wrong; the tool always wanted to put effect size on a log scale and she always wanted it linear for this kind of thing because the audience was going to be evolutionary ecologists who thought in linear effects. She fixed the axis. The figure improved. She asked the tool to regenerate with the new specification and it came back in under a minute with three variants, and she picked the second one, and then she sat back in the office chair, which had a wonky lumbar, and looked at it.
+
+"Lena," she said. "I think this is the figure."
+
+"Send it."
+
+She sent it. The little progress bar on the file transfer hung for a second on the building's slow uplink — RMBL365 had good wiring on the first two floors and patchy wiring on the third, the renovation had run out of money at the staircase — and then it went through.
+
+A long pause. Mira could hear Lena's coffeemaker in State College, the one Lena had bought when she got tenure and was unreasonably proud of.
+
+"Okay," Lena said. "Okay. This is the figure. Reviewer 2 is going to hate this."
+
+"Reviewer 2 is going to *love* this. Reviewer 2 wanted mechanism."
+
+"Reviewer 2 wanted *one figure*."
+
+"Reviewer 2 is going to get over it."
+
+They worked for another hour on the legend, which was the part Mira always found hardest, the compression of an actual argument into the eighty words that ran under a panel. At eleven-thirty she stood up and stretched and looked out the window. The snow had stopped. Across the street, in the upstairs window of the coffee shop, she could see two people she half-recognized from the basin community — a hydrologist she'd met at a barbecue last August, and someone she thought might be his teenage daughter — eating sandwiches.
+
+"I have to go eat something," she said. "I haven't eaten since yesterday."
+
+"Mira."
 
 "I know."
 
-"Figure C is the whole reason this paper matters."
+"Eat something. Then start the response letter. We can do the response letter Monday."
 
-"Figure C is the next paper," Joon said. "Figure A is the one that gets this paper through."
+"I'll start it tonight."
 
-She knew he was right. She had known he was right since 6 a.m. when she'd first opened the review and seen what Reviewer 2 wanted. But she had needed someone else to say it, and she had needed not to be the only person who'd been awake when the sun came over Whetstone.
+"Of course you will."
 
-"Can Ada generate A from the existing garden data, or do we need a re-run?"
-
-"No re-run. The data are there. It's a presentation problem, not an analysis problem. I asked her last night to mock up three versions. Want to see?"
-
-"Show me."
-
-She pulled up Ada's mock-ups. The middle one was the cleanest — four panels, one per site, with the snowmelt-regime classification in a strip across the top. Ada had annotated the upper-right panel with a small flag: *Site 3, 2036 cohort: cohort size n=43 below pre-specified n=60 due to vole damage; CI widened accordingly.* Maya hadn't told her to add that. Ada had read the lab notebook entry from August 2036 and remembered.
-
-"That's good," Joon said.
-
-"That's good," Maya agreed.
-
-They worked through the rest of the response for forty minutes. Joon had to leave at ten his time for a thesis defense; she had until noon to push a revised draft to him and Karen, who was driving back from Boulder and would read it on the road. The plan was: rewrite the methods paragraph on the garden site selection, add Figure A with Ada's mock-up as the basis, add three sentences to the discussion about the limits of the partition, and let Figure C live in the supplementary for now.
-
-After Joon dropped, the office was quiet except for the heater clicking. She stood up and stretched and looked out the dormer. The snow was definitely going. There would be a glacier-lily window in the meadows above Gothic in nine or ten weeks, earlier than even five years ago. She had been planning to drive up Friday afternoon if the road was open, to walk the common-garden plots before the rest of the summer crew arrived. Her boyfriend wanted to come. He had never seen the gardens with snow still on them.
-
-She sat back down. She opened the draft. She wrote:
-
-*To address Reviewer 2's concern regarding the aggregation of common-garden results across sites, we have added a new Figure 3 that presents the genotype-by-environment interaction separately for each of the four garden sites, stratified by snowmelt regime. This presentation makes visible a pattern that was obscured in the aggregate analysis: the plasticity-evolution partition for* Boechera stricta *flowering time is not constant across the snowmelt-timing gradient, but shifts toward a greater contribution of standing genetic variation under the latest-melt regime (Site 3).*
-
-She stopped. Read it back. The shifts toward a greater contribution of standing genetic variation under the latest-melt regime was either the most important sentence in the paper or it was wrong. She would not know which for another two months. Karen would push back on it. Joon would push back on it differently. Reviewer 2, if they were the reviewer she suspected, would push back on it most of all.
-
-She thought about the 1937 observer, reading the snow gauge an hour late, and how it had taken Ada and seventy years of subsequent observers and four common-garden sites and a postdoc in a converted closet on Elk Avenue to notice. She thought about the next paper, the *Bombus* one, and whether Figure C could become its own argument if she gave it enough room. She thought about her boyfriend, who had asked last weekend whether she would stay at RMBL after the postdoc, and how she had said *I don't know yet* and meant it, and how this morning, with the snow going and the paper alive on her screen, she could feel the shape of the answer forming, not the one to him, not yet, but the one to the question of why she had come here in the first place, which was that there was nowhere else where the data and the gardens and the tools all sat in the same valley.
-
-She left the sentence in. She'd argue with it next week.
-
-Downstairs someone laughed; the espresso machine made its small grinding noise. She put on her headphones and opened the figure file.
+She closed the laptop and put on her coat, the one with the broken zipper she kept meaning to replace, and went down the stairs past the building manager, who was now bleeding the second-floor radiator, and who told her that the forecast for Sunday looked clear if she was driving back to Boulder. She thanked him. She crossed the street to the coffee shop. She ordered a sandwich and ate half of it standing up at the counter, thinking about the East River population and the six years of data, and whether she could get a seed-transfer pilot in this summer if she emailed the right person on Monday morning. The other half of the sandwich she wrapped in a napkin and took back across the street with her, because she was going to need it at three.

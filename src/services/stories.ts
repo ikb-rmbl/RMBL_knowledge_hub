@@ -13,6 +13,7 @@ import { readFileSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import yaml from 'js-yaml'
+import type pg from 'pg'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -25,6 +26,7 @@ const STORIES_ROOT = path.join(REPO_ROOT, 'specification', 'stories')
 // ---------------------------------------------------------------------------
 
 export type StoryMode = 'inhabitation' | 'inflection-point' | 'stress-overlay'
+export type ProtagonistType = 'guest_scientist' | 'rmbl_staff' | 'partner'
 
 export interface StoryInput {
   story_slug: string
@@ -37,10 +39,21 @@ export interface StoryInput {
   inflection_point?: string
   /** Free-text POV directive. Typical: "third-person limited" or "first-person". */
   pov: string
+  /**
+   * Protagonist category (spec §11.2a). Defaults to `guest_scientist` —
+   * see spec for when `partner` or `rmbl_staff` is the right call.
+   */
+  protagonist_type?: ProtagonistType
   /** A role-level description of the primary character. Not a real person. */
   primary_character_role: string
   /** A specific situation/event the story turns on. */
   scene_anchor: string
+  /**
+   * Slug of a frontier from the Commons (`frontiers` table). The protagonist
+   * is pushing this frontier through a specific action drawn from
+   * `pushing_the_frontier`. See spec §11.2a. Loaded at context-assembly time.
+   */
+  frontier_slug?: string
   /** Target word count for the story prose (±15% acceptable). */
   word_count_target: number
   /**
@@ -116,6 +129,8 @@ export interface AssembledStoryContext {
   setId: string
   storyInput: StoryInput
   scenario: LoadedScenario
+  /** Loaded from the Commons when storyInput.frontier_slug is set (spec §11.2a). */
+  frontier?: FrontierForStory
 }
 
 export function assembleStoryContext(
@@ -140,4 +155,60 @@ export function assembleStoryContext(
   }
   const scenario = loadScenarioForStory(setId, storyInput.scenario_slug)
   return { setId, storyInput, scenario }
+}
+
+// ---------------------------------------------------------------------------
+// Frontier loading (spec §11.2a)
+// ---------------------------------------------------------------------------
+
+/**
+ * Compact frontier representation surfaced to PROMPT_STORY. Picks the first
+ * 3 key questions, first 2 pushing-actions, and first 1 data gap from the
+ * frontier row — the LLM-synthesized order in the Commons is already
+ * roughly importance-ranked.
+ */
+export interface FrontierForStory {
+  slug: string
+  title: string
+  description: string
+  tractability: string | null
+  keyQuestions: string[]
+  keyActions: { category: string; effort: string; action: string }[]
+  dataGap: string | null
+}
+
+/**
+ * Load a frontier from the Commons for use as a story's organizing question.
+ * Returns null if the slug is not found (so a malformed YAML doesn't fail
+ * the whole generation — the prompt simply skips the frontier block).
+ */
+export async function loadFrontierForStory(
+  pool: pg.Pool,
+  frontierSlug: string,
+): Promise<FrontierForStory | null> {
+  const { rows } = await pool.query<{
+    slug: string
+    title: string
+    frontier_description: string | null
+    tractability: string | null
+    key_questions: string[] | null
+    pushing_the_frontier: { category: string; effort: string; action: string }[] | null
+    data_gaps: string[] | null
+  }>(
+    `SELECT slug, title, frontier_description, tractability,
+            key_questions, pushing_the_frontier, data_gaps
+       FROM frontiers WHERE slug = $1`,
+    [frontierSlug],
+  )
+  const row = rows[0]
+  if (!row) return null
+  return {
+    slug: row.slug,
+    title: row.title,
+    description: row.frontier_description ?? '',
+    tractability: row.tractability,
+    keyQuestions: (row.key_questions ?? []).slice(0, 3),
+    keyActions: (row.pushing_the_frontier ?? []).slice(0, 2),
+    dataGap: (row.data_gaps ?? [])[0] ?? null,
+  }
 }

@@ -1,126 +1,100 @@
-*Story grounded in [Centennial Capacity](../../scenarios/centennial-2027/centennial-capacity.md). Mode: Stress-overlay. Year: 2039. Word count: 1535. Published: internal-only.*
+*Story grounded in [Centennial Capacity](../../scenarios/centennial-2027/centennial-capacity.md). Mode: Stress-overlay. Year: 2039. Word count: 1464. Published: internal-only.*
 
 ---
-# The Basin Knows Itself
+# The Distance a Bee Will Fly
 
-The talk was due at four and Mira had three paragraphs she liked and two she didn't. The didn't-like ones sat at the top of the document, blinking accusingly under the cursor. She had been calling them the *throat-clearing*, which the assistant had quietly flagged twice as redundant. She had ignored it both times.
+The query had been running since 4:47 a.m., which Maya knew because she had woken at 4:47, looked at her tablet, started it, and gone back to sleep for ninety minutes. When she came back down to the kitchen at RMBL365 the kettle was warm — someone had been through earlier — and the synthesis interface was waiting for her with the foraging-trip distributions stacked in a way she hadn't asked for but immediately wanted.
 
-From the kitchen, RMBL365 made its morning sounds: the espresso machine, the new kid in archival — Davi — humming something that might be a Brazilian pop song from when Mira was still in grad school, and the soft tick of the building thinking about heat. The Crested Butte sky was that particular blue you got in the third week of September, when the aspens were going and the mornings carried the news of the first hard freeze that hadn't quite arrived. Last year it had come on the eighth. This year, nothing yet.
+It had grouped 2034, 2037, and 2039 together against the 1998–2022 baseline and broken out 2011 as a fourth panel. The annotation said: *2011 included as nearest-analog low-snowpack year in the pre-warming distribution; suggest checking whether grouping is appropriate.*
 
-She had a flight at three.
+"You're showing off," she said to the tablet, and made coffee.
 
-"Mira." Davi, leaning in the doorway with two cups. "You want this, or do you want me to drink it and ascend."
+The kitchen at RMBL365 in mid-September was a quiet place. The summer cohort had cleared out three weeks ago. Renata, the schools coordinator, came through on Tuesdays and Thursdays; the water-districts coordinator was in Montrose this week. Upstairs Maya had the small room with the slanted ceiling that had been hers in August and September for two seasons now. The aspens above town were turning — not the full burn yet, just the high stands going first, the way they did now in early September instead of late. She had stopped registering this as strange.
 
-"Both." She took it. "Has Jolene called in?"
+She brought her coffee to the table and looked at the four panels.
 
-"Twenty minutes. She's driving back from Towaoc."
+The 2011 grouping was the right call. It bothered her that the tool had made it before she had. She added a note to the methods slide — *low-snowpack analog years; 2011 included on pre-warming community composition* — and pulled up the visitation records.
 
-"Good. Tell the model to pull every *Ipomopsis* transect record we have north of Schofield Pass, all years, all observers, separated by who annotated. Don't merge yet."
+Here was the question she had come for. Her home lab on Sapelo had pollinator-network work going back a decade, but it was salt marsh, *Spartina* and solitary bees and the wrong axis of stress. The mechanistic hypothesis she wanted to test — that *Bombus* foraging distance distributions would broaden in low-snowpack years not through a shift in the mean but through a fattening of the right tail, individual workers ranging farther because nectar reward density at any single patch had dropped below some threshold — required paired records of forage trips, floral density, and nectar standing crop at the inflorescence level, across more than a decade, in a system where snowpack varied. Three places on Earth had this. RMBL was one. The basin synthesis tools could pull it in an afternoon.
 
-"It'll want to merge."
+She had spent four years getting to a place where she could ask the question in an afternoon. The afternoon felt deserved.
 
-"Tell it not to."
+The right tail had fattened. She zoomed in. The 2039 distribution had a small but real population of trip-distance estimates above 1.4 kilometers — almost twice the long-baseline maximum — and the tool flagged that thirteen of those trips were from workers tagged in a colony above the Copper Lake talus, where *Ipomopsis* density had crashed in the July dry-down. She had not asked the tool to make that connection. It had made it.
 
-Davi made a small gesture at the air — the building's interface picked it up — and went back to the kitchen.
+She sat with it.
 
-Mira read what she had.
+The slide for her job talk was open in another window. *Mechanistic coupling of snowpack, floral reward density, and Bombus foraging behavior in subalpine meadows.* Below it, the placeholder figure she had drawn last week, which she was about to replace with the real one. She did not replace it yet.
 
-*The basin is not a dataset. The basin is what a dataset is for.*
+At 9:40 her phone vibrated. A text from her advisor on Sapelo: *Heard back from Davis search committee. They want a second talk, virtual, mid-October. Congrats.*
 
-That was the line she liked. She had written it at six that morning, before the assistant was awake, in pen, on the back of a printed page. She had typed it in afterward and the assistant had said, in its small text box: *strong opening; do you want to develop this thematically or move to evidence?* She had typed back: *neither yet,* and it had gone quiet, the way it did when she meant *let me think*.
+Maya breathed out. She wrote back *thanks, will call later*, and put the phone down and looked out the window at the aspens, and then she let herself say *fuck yes* in the empty kitchen, quietly, because the upstairs room above her had a renter she hadn't met yet who had come in late last night.
 
-The conference was at the new convention hall in Denver, the one built into the old warehouse district that had finally been zoned for water-credit transfer. She had been twice. The first time, four years ago, she had given a methods talk about pollinator-network reconstruction from the digitized 1979–2003 notebooks, and three people had come up afterward to say they had never seen handwriting parsing done that cleanly. The second time, last year, she had sat in the audience and watched a VP from one of the synthesis startups — Verdance, the one with the lavender logo — demo a model that produced what looked like a credible phenology synthesis for the Wasatch in eleven minutes. Live. From a public archive.
+She had ten minutes before the call.
 
-It had been credible. That was the thing. It had been wrong in places she could see and right in places she couldn't have predicted, and the room had clapped, and she had gone back to her hotel and sat on the bed for a while with her shoes still on.
+She opened the methods note. She and Daniel Whitebear at the Ute Mountain Ute natural-resources office had been working on this draft for fourteen months — a paper about how the basin pollinator records could be cross-referenced with traditional knowledge about plant timing, what counted as evidence on each side, how to write a methods section that didn't pretend the two epistemologies collapsed into one. The methods note was a precursor. Three pages. They had gone back and forth on the second paragraph for six weeks.
 
-This year's talk was the answer to that demo. She was trying to write it without sounding defensive, because being defensive was the worst possible posture and also because she didn't, actually, feel defensive. She felt something more like impatient.
+Renata came in the back door carrying a box. "Maya. Hi. Sorry. I'm dropping these and going. The fifth graders made them."
 
-The call window opened. Jolene's truck cab, sun across the dashboard, the high desert moving behind her.
+"Made what?"
 
-"Hey. You writing?"
+"Phenology cards. For the corner display. They've been tracking serviceberry since March."
 
-"Trying. How was the drive?"
+"How are they?"
 
-"Long. The cottonwoods down by Dolores are still green, which is weird. I want to talk about the *Ligusticum* before you go."
+"Better than the grad student last year." Renata set the box down and looked at the tablet. "You getting your tail?"
 
-"Go."
+"I got my tail."
 
-Jolene was the Ute Mountain Ute natural-resources office's lead on the co-published phenology paper. They had been working together since 2034, when the co-design protocol was still being argued about in the all-hands. Mira remembered the first meeting — Jolene had brought her uncle, who had asked, very politely, why RMBL thought it owned the records of when plants flowered. It had been a real question. It had taken Mira about two years to be able to answer it without flinching.
+"Good. I have to go pick up Joaquin from the bus. He's home with something."
 
-"The model is pushing back on the lineage segmentation," Jolene said. "It wants to lump the upper Beaver Creek population with the Hartman Rocks population because they covary on flowering onset. I don't want to lump them."
+"Tell him I'm sorry."
 
-"They're not the same population."
+"He's playing Minecraft. He's fine." Renata paused at the door. "Are you here Friday?"
 
-"I know that. You know that. The model doesn't, because nobody told it. We need to tell it."
+"Flying Thursday."
 
-"Okay. We add a constraint. Davi can do that this morning. Do you want to be a co-author on the methods note or just the main paper?"
+"Atlanta?"
 
-"Both, but the methods note is the one that matters. If Verdance picks our paper up to retrain on, I want our names on the part that says *don't lump these*."
+"Atlanta."
 
-Mira smiled at that. "You think they will."
+Renata made a face Maya had seen a lot of basin people make about Atlanta in September, and then she was gone.
 
-"They scrape everything. You know they scrape everything." Jolene paused, watched the road. "Are you going to say their name in the talk?"
+At 9:58 Maya pulled up the call. Daniel came on at 10:01 from an office she recognized — the window behind him showed the Sleeping Ute, and a corner of a poster about uranium-mill tailings she had been meaning to ask him about. He was holding a coffee.
 
-"No."
+"You saw the redline?"
 
-"Good."
+"I saw it. I want to push back on one thing."
 
-They talked for another six minutes about the figure order, and about whether the *Ligusticum* lineage tree should run left-to-right or top-to-bottom, and about whether Jolene's daughter, who was eleven, could come to RMBL365 for the November school program even though she was technically a grade below the cutoff. Mira said yes. Jolene said she'd bring tamales. They hung up.
+"Push."
 
-Mira deleted the throat-clearing paragraphs.
+She talked him through the second paragraph — her concern that the language he had drafted made the basin records sound like they were *checking* the traditional observations, rather than the other way around, or rather than neither. He listened. He was quiet for a long time and then he said, "Yes. I felt that too. I couldn't get to what was wrong."
 
-She wrote: *A foundation model can read every digitized field notebook in the world in an afternoon. What it cannot do is sit across a table from someone whose grandmother gathered* osha *on a slope that no longer holds snow in March, and decide together what question to ask of the record.*
+"What if we drop *validate* entirely and say *the two sets of observations are placed in conversation*?"
 
-She read it back. She didn't love it. She kept it.
+"*Placed in conversation* is bloodless."
 
-The assistant flagged: *consider whether "decide together" is doing the work you want. Co-design is more specific.*
+"Yeah."
 
-She typed: *I know. I'm leaving it loose on purpose.*
+"*Read against each other*."
 
-It went quiet.
+"Better."
 
-Davi came back in with the *Ipomopsis* pull on his tablet, laid it on the table, and they looked at it together for a while. The 2017 records were a mess — that was the year the observer had been new — and the 2031 records had a four-day gap that Mira remembered because it was the week the Lake Irwin fire had closed the road. The model had flagged the gap, in its small box, with the note: *consistent with regional fire-closure event; suggest imputation from neighboring transects.* Davi snorted.
+They worked on it for thirty-five minutes. At one point Daniel's daughter came in and asked for the car keys and Daniel said, in Ute, something that made her laugh, and then in English: "Sorry, Maya. Saturday. Ask me Saturday."
 
-"It thinks it knows."
+When they hung up Maya had a paragraph she could live with and a feeling she recognized from the good days, which was that the work was a little bit further along than it had been at breakfast.
 
-"It does know. That's the problem." Mira tapped the gap. "It knows the fire closed the road. It doesn't know that Annie was the one who would have walked in anyway, and didn't, because her dog was dying."
+She went back to the foraging distributions.
 
-"Are you going to put that in the talk?"
+She thought about the search committee at Davis, and about the talk she would give, and about the fact that one of the questions she would certainly get was: *can't a foundation model do this synthesis now? what's the basin-specific value-add?* She had been thinking about this question for months. The startups had launched in the spring; her postdoc cohort had a group chat where they traded screenshots of the more egregious commercial syntheses, the ones that confidently misidentified subalpine species or invented references. But the better commercial tools were getting better. She had used one in July to check her own pipeline against and it had been — fine. Wrong about two things she cared about, right about a third she hadn't noticed.
 
-"No." She thought about it. "Maybe."
+What she would say at Davis: the value was not in the synthesis. The value was in the paired records that no general model could synthesize because they did not exist anywhere else. The thirteen long-trip workers above Copper Lake had been tagged by a field crew that had been working the same slope for nineteen summers. The methods note she had just edited would not exist without a relationship the basin had built over a decade of standing meetings in a room she could see from where she was sitting. The general tools were good at the readable surface. The basin was where the surface got made.
 
-She wrote a paragraph about provenance — about what it meant for a record to carry the texture of the observer's life — and the assistant, reading along, surfaced a quote from a 2032 essay by one of the marmot people that she hadn't been thinking of but that fit so exactly she laughed out loud. Davi looked up.
+She thought this might be a slide.
 
-"It found me a Blumstein quote."
+She drafted, on a napkin from the kitchen counter:
 
-"Of course it did."
+*What general models can do: read everything ever written.*
 
-She used the quote. She would credit it. The assistant was good at this, the small connective work, the citation she would have spent twenty minutes hunting for. It was good in the way a very fast graduate student was good, except it never got tired and never asked for a recommendation letter. She had stopped finding this remarkable around 2036.
+*What general models cannot do: be in the room when the question is asked.*
 
-Her phone buzzed. Theo, from Niwot, returning her call from yesterday.
-
-"Are you going to say anything about the open-archive consortium?"
-
-"Probably. Where are you on it?"
-
-"We're in if you're in. We talked to H.J. Andrews last week, they're interested but slow. Sevilleta's a maybe."
-
-"What about the tribal data sovereignty piece?"
-
-"That's the whole thing. That's why it has to be us and not Verdance." Theo paused. "Are you going to commit to it in the talk?"
-
-She looked at the time. She looked at the document. She looked out the window at the aspens, which were further along than they had been even on Monday, the gold creeping down toward the road.
-
-"I'm going to commit to it in the talk."
-
-"Good," Theo said. "Don't miss your flight."
-
-She wouldn't. She had forty minutes. She wrote the consortium paragraph, fast, and then a closing she didn't entirely trust, and then she stood up to pack and realized she had been wearing her hiking boots all morning. She changed into the other shoes. Davi was already on the *Ligusticum* constraint, his head bent, the model murmuring to him in its small textual voice.
-
-"Bring me back something terrible from the airport," he said, not looking up.
-
-"Define terrible."
-
-"Surprise me."
-
-She zipped the bag. The talk was in the cloud. The first sentence of the closing paragraph said: *What the basin offers is not a better archive but a thicker one,* and she was already, walking down the stairs to the truck, arguing with it.
+It was not quite right. She would argue with it for a week. She pulled the napkin closer and crossed out *be in the room* and wrote *help decide what counts as the question*, and then she crossed that out too, and then she stopped and laughed at herself and got up to make more coffee, because the kettle had gone cold again and Joaquin's fifth-grade phenology cards were still in the box by the door, and she had not looked at them yet, and she wanted to.

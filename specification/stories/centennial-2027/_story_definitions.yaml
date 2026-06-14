@@ -12,7 +12,7 @@
 # melancholy.
 
 set_id: centennial-2027
-framework_version: "0.12"
+framework_version: "0.13"
 
 stories:
 
@@ -31,23 +31,33 @@ stories:
       RMBL leadership now takes as institutional. The marmot
       demographic study sits two years from its centennial.
     pov: "third-person limited"
+    protagonist_type: guest_scientist
+    frontier_slug: hibernation-physiology-to-population-dynamics-in-a-warming-alpine
     primary_character_role: |
-      A mid-career RMBL data archivist who has been at the institution
-      for seventeen years. Hired originally as a postdoc on a marmot-
-      genetics project, drifted into data work, was one of the first
-      positions the campaign endowed in 2030. Now half archive, half
-      synthesis support for guest scientists, and increasingly a
-      mentor to younger staff.
+      A mid-career evolutionary biologist (associate professor) at a
+      western state university, on sabbatical at RMBL for the summer
+      and fall of 2039. PhD in 2018; first summer in Gothic was 2014
+      as an undergrad on the marmot crew. Her home lab works on
+      hibernation physiology, body composition, and survival in
+      yellow-bellied marmots; she has been a guest researcher in the
+      basin every summer since 2026 except 2030. The sabbatical
+      proposal she submitted to her university promised "a synthesis
+      paper using the digitized marmot demographic record cross-
+      referenced against the basin's century of snowpack records,"
+      enabled by the campaign-funded archive and synthesis tools.
     scene_anchor: |
       A late-August day at the meadow site above Gothic where the
-      marmot weighing crew is wrapping its season. The archivist has
-      come up with a new query she wants to test against the now-
-      complete digitized record going back to 1948 — and she wants
-      the field crew's input on which species comparisons would
-      matter. A new postdoc is on her first season. There is a
-      decision pending about whether to fund a new long-term plot
-      five kilometers up-drainage to capture the changed snowmelt
-      regime.
+      RMBL-coordinated marmot weighing crew is wrapping its season.
+      She has come up with the morning crew because she wants to
+      ground-truth the digitized 2034 and 2037 cohort weights against
+      the crew's institutional memory — and because she has a query
+      she wants to run against the archive that crosses 91 years of
+      data and she wants to talk through which comparison axes the
+      crew thinks would carry signal. A new RMBL postdoc is on her
+      first season. There is conversation about whether her sabbatical
+      paper should propose a new long-term plot five kilometers
+      up-drainage; she has been turning the question over and is
+      finally writing it down.
     word_count_target: 1500
     published: false
 
@@ -60,26 +70,35 @@ stories:
       assumed. Foundation models now produce credible ecological
       syntheses from any digitized archive in hours. Several startups
       offer commercial services that overlap with RMBL's specialized
-      basin tools. The data team's value proposition rests on what
-      basin-specific knowledge they can encode that general models
+      basin tools. The basin's value proposition rests on what
+      basin-specific knowledge can be encoded that general models
       cannot — and on the community partnerships the campaign built,
       which the commercial services have no access to.
     pov: "third-person limited"
+    protagonist_type: guest_scientist
+    frontier_slug: mechanistic-drivers-of-subalpine-pollination-under-global-change
     primary_character_role: |
-      An early-career-now-mid-career data scientist who joined RMBL
-      in 2030 fresh out of a PhD. Built much of the basin's
-      pollinator-network synthesis tooling. By 2039 she is one of
-      the senior technical leads at RMBL and is preparing remarks
-      for an applied AI for ecology conference in Denver — not
-      defensive remarks but a forward-looking framing of what the
-      basin offers that general AI tools structurally cannot.
+      An early-career postdoc (third year out of PhD) on a private-
+      foundation Climate Adaptation Fellowship that requires her to
+      split residency between her postdoctoral host institution
+      (Sapelo Island, GA — a marine lab, oddly) and a field site.
+      She picked RMBL for the field side because the campaign-built
+      pollinator-network synthesis tools let her test a mechanistic
+      hypothesis about pollinator-floral-trait coupling that her
+      home lab does not have the basin records to support. She is on
+      the tenure-track interview cycle this fall. The paper she is
+      using basin tools to write is the centerpiece of her job talk.
     scene_anchor: |
-      The morning of the conference at RMBL365 in Crested Butte —
-      she is writing the talk and calling collaborators to test
-      the framing. A working session with a tribal natural-resources
-      partner about phenology data they want to co-publish. A short
-      call with a peer institution's data lead. The position is
-      coming into focus as she writes. She has a flight at three.
+      A morning at RMBL365 in mid-September 2039, where she has been
+      staying in the upstairs room for six weeks of focused work
+      with the synthesis tools. The morning's work: she is using the
+      basin pollinator-network synthesis interface to test how
+      *Bombus* foraging-trip-distance distributions in low-snowpack
+      years (2034, 2037, 2039) compare to the long baseline — a
+      question her home institution literally cannot ask. A scheduled
+      call at 10 a.m. with a Ute Mountain Ute natural-resources
+      office co-author on a methods note. A draft job-talk slide
+      open in another window. A flight back to Atlanta on Thursday.
     word_count_target: 1500
     published: false
 
@@ -167,31 +186,42 @@ stories:
       National Forest is revising its five-year vegetation-
       treatment plan a year early, after a 2038 burn that ran
       through subalpine fir at elevations agency models did not
-      predict. The Forest Service planner has asked RMBL's
-      translation team to bring the basin's records to the
-      polygon-by-polygon decisions: which units to treat,
-      which to leave, which to monitor. This is not a paper
-      exchange. It is a working partnership the campaign built.
+      predict. The Forest Service has co-developed this revision
+      with RMBL's translation team for eight months. This is the
+      first revision in the agency's history where basin records
+      have been worked into polygon-level decisions from the
+      start, not consulted after the fact. The partnership
+      exists because the campaign built it.
     pov: "third-person limited"
+    protagonist_type: partner
+    frontier_slug: cumulative-landscape-stressors-on-gunnison-basin-wildlife
     primary_character_role: |
-      A mid-career member of the RMBL translation team, hired in
-      2031 as part of the campaign's first translation cohort.
-      Trained as a fire ecologist; spent five years at a Forest
-      Service research station before RMBL. Has worked with this
-      particular Forest Service planner for six years now and
-      knows what shape of evidence the agency's planning process
-      can actually absorb.
+      A senior staff ecologist at the GMUG National Forest's
+      supervisor's office in Delta. PhD in fire ecology 2019;
+      sixteen years with the Forest Service across three districts.
+      Has been the lead ecologist on this fuels-plan revision since
+      January 2039, and is the agency staff member who pushed for
+      the integrated RMBL collaboration over agency-only modeling.
+      Drives over Kebler regularly. Has spent the period learning
+      what shape of evidence the basin record can supply that the
+      agency's own data layers cannot — and learning which RMBL
+      staff to call about what.
     scene_anchor: |
       A working session in the meeting room at RMBL365 in
       Crested Butte on a Thursday morning in late October 2039.
-      Two Forest Service planners are in the room; a tribal
-      natural-resources liaison is on a video call; the basin's
-      lead phenology PI has come over from Gothic for the
-      morning. A wall-sized map of the GMUG is up. They are
-      walking it polygon by polygon. The translation lead is
-      pulling century-scale snowmelt-and-fire records on demand
-      from a tablet linked to the digitized archive — material
-      that until this campaign existed only as paper.
+      She has driven down from Delta the night before and slept
+      in her truck because the Forest Service per diem was cut
+      again in March. With her: her junior planner, an RMBL
+      translation-team lead, RMBL's phenology PI in from Gothic
+      for the morning, and on a video call a tribal natural-
+      resources liaison from the Ute Mountain Ute office in
+      Towaoc. A wall-sized GMUG map is up. They are walking
+      polygons together: treat, leave, monitor. The agency
+      needs a draft revision out to public comment by December.
+      What she is pushing forward in this session is what her
+      training and her seventeen years have prepared her for —
+      a fuels plan that is finally trying to think across
+      cumulative stressors, not just one driver.
     word_count_target: 1500
     published: false
 
@@ -231,45 +261,51 @@ stories:
     word_count_target: 1500
     published: false
 
-  - story_slug: community-mid-2039-water-court-prep
+  - story_slug: community-mid-2039-beaver-walkthrough
     scenario_slug: centennial-community-mid
     mode: stress-overlay
     year: 2039
     stress_overlay: |
-      The Upper Gunnison River Water Conservancy District is
-      preparing testimony for an October 2039 water-court case
-      that turns on whether long-term shifts in snowmelt timing
-      and basin phenology constitute a "changed circumstances"
-      claim under Colorado water law. The basin's century of
-      records is at the center of the testimony. The Conservancy
-      District has worked with RMBL's partnership team for nine
-      years through the campaign-funded coproduction work —
-      which is why the records can enter the legal record this
-      way. A neighboring district without those relationships is
-      watching the case closely.
+      Low-snowpack autumns in three of the last five years have
+      shortened the riparian growing season at the lower reaches
+      of the East River and Ohio Creek. The Upper Gunnison Water
+      Conservancy District, in partnership with RMBL and a Ute
+      Indian Tribe natural-resources office, has been coproducing
+      a basin-wide riparian-restoration strategy that leans on
+      beaver-engineering as the principal tool. The strategy is at
+      the point where site selection for the next four installations
+      must be made jointly by the district, the agency partners,
+      and the science team. The campaign-built coproduction
+      infrastructure is what makes this kind of joint site-selection
+      meeting possible at all; a neighboring basin without these
+      relationships is doing the same work through separate channels
+      and getting nowhere.
     pov: "third-person limited"
+    protagonist_type: guest_scientist
+    frontier_slug: beaver-engineering-as-a-watershed-scale-restoration-lever
     primary_character_role: |
-      A member of the RMBL community-partnership team, hired in
-      2030 as the first dedicated community-coordination position
-      the campaign endowed. Trained in environmental social
-      science; came to RMBL after eight years coordinating
-      tribal-federal water-quality work on the Colorado Plateau.
-      Has spent the decade learning what kinds of evidence the
-      water-court process can use and what shape the records
-      need to be in.
+      A mid-career restoration ecologist (research associate
+      professor) at a Pacific Northwest university, on a
+      Walton-funded multi-year grant to test beaver-engineering
+      outcomes across snowpack-stressed mountain basins. She runs
+      a small lab — two PhD students, a research tech — and spends
+      April-November traveling between sites. Her Gunnison sites
+      are in the third year of an eight-year campaign she co-
+      designed with the district hydrologist and the basin's
+      riparian PI. Beavers (and humans) reshape stream reaches
+      faster than the literature predicted; she now finds her
+      methods being adopted at other basins, which she has
+      complicated feelings about.
     scene_anchor: |
-      A Wednesday morning in early September 2039 at RMBL365 in
-      Crested Butte. A working session at the long table in the
-      partnership room: the partnership coordinator, the
-      Conservancy District's lead hydrologist, RMBL's lead
-      phenology PI, and the district's outside water lawyer on a
-      video call. They are preparing the lawyer to question the
-      phenology PI on the stand. Records are being assembled into
-      legal exhibits. The phenology PI is uncomfortable with the
-      register; the partnership coordinator is translating between
-      the languages. The basin's records have been in this room
-      for two years, building toward this. They could not have
-      gotten here without it.
+      A Wednesday morning in mid-September 2039 at a riparian
+      reach above the confluence of Ohio Creek and the East River,
+      walking the proposed site for installation #5 with the
+      district hydrologist, an RMBL partnership coordinator, a
+      tribal NRO ecologist (driven up from Towaoc that morning),
+      and the basin's riparian PI. She has the site-selection
+      decision matrix on her tablet and is using it as much to
+      structure conversation as to record one. They are making the
+      call jointly — she will not be the one with the final word.
     word_count_target: 1500
     published: false
 
@@ -279,37 +315,45 @@ stories:
     year: 2039
     stress_overlay: |
       A consortium of mountain field stations across western
-      North America — Niwot Ridge, H. J. Andrews, Sierra Nevada
-      Aquatic Research Lab, Mountain Research Station, two
-      Canadian stations, two Mexican — is meeting at RMBL365 to
+      North America and Latin America is meeting at RMBL365 to
       assemble the first decadal cross-station synthesis on
-      shifting snowmelt-driven plant phenology. RMBL is the
-      anchor: the basin's records are the longest, the shared
-      data tools were built in the basin, the synthesis platform
-      is hosted at RMBL365. The campaign made this possible.
-      Without the cross-mountain network bet, the synthesis would
-      be eight separate papers and no shared protocol.
+      climate-driven invertebrate community reassembly. RMBL is
+      the anchor: the basin's invertebrate records are the
+      longest, the shared data tools were built in the basin,
+      the synthesis platform is hosted at RMBL365. The campaign
+      built this. Without the cross-mountain network bet, the
+      synthesis would be eight separate papers and no shared
+      protocol.
     pov: "third-person limited"
+    protagonist_type: guest_scientist
+    frontier_slug: climate-driven-reassembly-of-mountain-invertebrate-communities-and-ecosystem-fun
     primary_character_role: |
-      A senior RMBL data scientist who joined in 2028, originally
-      to build the basin-specific phenology pipeline, and who has
-      spent the last seven years building the shared cross-
-      station tools the network depends on. She is the technical
-      lead for the synthesis meeting and the person the visiting
-      station leads want to talk to about protocol questions
-      between sessions.
+      A senior research ecologist (tenured professor) at the
+      Instituto de Ecología, A.C. in Xalapa, Mexico, who runs
+      the long-term invertebrate monitoring program at a high-
+      elevation station on Cofre de Perote. Came to her current
+      role from a postdoc at Andrews in 2009; has run her station's
+      monitoring program for eighteen years. Speaks Spanish,
+      English, and Nahuatl. First time at RMBL was 2026; this is
+      her fourth visit. She is in the United States this week
+      specifically for this meeting, on her own dime because her
+      institution's travel budget was cut in March, then partially
+      reimbursed by the RMBL network fund — a fund that did not
+      exist before the campaign.
     scene_anchor: |
       A Tuesday in mid-February 2039 at RMBL365 in Crested Butte,
-      midway through the four-day synthesis meeting. The data
-      scientist has just finished a working session with the
-      Andrews and Niwot leads on how to harmonize their elevation-
-      band classifications with the basin's. The meeting room
-      smells of coffee and dry-erase markers. A side conversation
-      with the lead from the Mexican high-elevation station is
-      forming around what kinds of phenology shifts are visible
-      at lower latitudes where snowmelt isn't the dominant cue.
-      The data scientist's afternoon is filling with people who
-      want fifteen minutes — which is what an anchor means.
+      midway through the four-day synthesis meeting. She has just
+      come out of a working session on harmonizing taxonomic
+      treatments across sites — a session she pushed for because
+      the differences matter more at her latitude than the
+      Mountain Research Station and Niwot leads initially assumed.
+      A side conversation is forming about whether her data can
+      contribute a low-latitude anchor to the network's synthesis
+      paper. The afternoon session is about the question her
+      station is uniquely positioned to address: what happens to
+      community reassembly when snowmelt isn't the dominant cue.
+      She has fifteen minutes with the Andrews lead between
+      sessions and needs to use them.
     word_count_target: 1500
     published: false
 
@@ -319,39 +363,46 @@ stories:
     year: 2038
     stress_overlay: |
       A high-profile paper from the basin's phenology-deep
-      program — the first integrated answer to plasticity-versus-
-      evolution in *Boechera stricta* under shifting snowmelt
+      program — the first integrated answer to evolutionary
+      rescue limits in *Boechera stricta* under shifting snowmelt
       regimes, drawing on a century of phenology records, eight
       years of common-garden experiments, and quantitative
-      genetics partnership with a sister institution — is at
-      first revision. Reviewer 2 wants more mechanistic depth
-      than the draft provides. The common-garden plots and the
-      quantitative-genetics partnership the campaign funded are
-      what make the revision feasible at all; without those, the
-      paper would have been a phenology description with a
-      modeling appendix.
+      genetics — is at first revision. Reviewer 2 wants more
+      mechanistic depth than the draft provides. The common-garden
+      plots and the quantitative-genetics partnership the
+      campaign funded are what make the revision feasible at all;
+      without those, the paper would have been a phenology
+      description with a modeling appendix.
     pov: "third-person limited"
+    protagonist_type: guest_scientist
+    frontier_slug: evolutionary-rescue-limits-in-subalpine-plants
     primary_character_role: |
-      A postdoc on the phenology-deep program, second-year, who
-      did her PhD in evolutionary biology with the partnering
-      quantitative-genetics lab. Came to RMBL specifically because
-      the basin's century of records combined with the campaign's
-      common-garden investments made this specific question
-      addressable for the first time. She is first author on the
-      paper.
+      A second-year postdoc on a joint appointment between the
+      basin's phenology-deep program PI's lab (in Boulder) and a
+      quantitative-genetics lab at Penn State. PhD 2036 in
+      evolutionary biology from the Penn State lab; came to the
+      Boulder lab in 2037 specifically because the basin's
+      century of records combined with the campaign-funded
+      common-garden network made evolutionary rescue limits in
+      *Boechera* addressable for the first time. Splits the year
+      roughly: summers in Gothic and at the common-garden sites,
+      academic year in Boulder, occasional weeks in Pennsylvania.
+      First author on the paper that is now in revision.
     scene_anchor: |
       A Friday morning in late March 2038 at RMBL365 in Crested
-      Butte. The postdoc is working out the reviewer response in
-      the small office on the third floor she's been camping in
-      since November. Her PI is in Boulder for the morning; the
-      quantitative geneticist is on a video call from Pennsylvania.
-      They are deciding which of three mechanistic figures to add
-      and what additional analyses the common-garden data can
-      support without re-running the experiments. The campaign's
-      investments are visible on her screen: the digitized 1934–
-      2038 phenology record open in one window, the common-
-      garden multi-site results open in another, an AI-assisted
-      cross-tab pulling them together in a third.
+      Butte, where she came up from Boulder for the week to use
+      the basin synthesis tools the response requires. She is in
+      the small third-floor office she has been camping in since
+      Monday. Her phenology PI is at a meeting in San Francisco;
+      her quantitative geneticist co-author is on a video call
+      from State College. They are deciding which of three
+      mechanistic figures to add and what additional analyses
+      the common-garden data can support without re-running the
+      experiments. The campaign's investments are visible on her
+      screen: the digitized 1934–2038 phenology record open in
+      one window, the common-garden multi-site results in
+      another, an AI-assisted cross-tab pulling them together in
+      a third.
     word_count_target: 1500
     published: false
 
@@ -447,33 +498,41 @@ stories:
       as permanent RMBL infrastructure for nine winters now,
       since the SAIL handoff completed in 2030. A guest-scientist
       project that depends on a continuous groundwater record
-      from one of the basin's piezometers is at the three-year
-      mark; if a calibration drift the instrument flagged
-      overnight is real, the project's last year of data are at
-      risk. Without the campaign's watershed bet, the piezometer
-      would have been decommissioned in 2032 with the rest of
-      SAIL's infrastructure; the guest-scientist project would
-      not exist; the question being asked would be unaskable.
+      from a single piezometer is at the three-year mark; the
+      instrument flagged a calibration drift overnight. If the
+      drift is real, the project's last year of data are at risk.
+      Without the campaign's watershed bet, the piezometer would
+      have been decommissioned in 2032 with the rest of SAIL's
+      infrastructure; the project would not exist; the question
+      being asked would be unaskable.
     pov: "third-person limited"
+    protagonist_type: guest_scientist
+    frontier_slug: snowmelt-timing-as-driver-of-carbon-and-nutrient-fluxes
     primary_character_role: |
-      A mid-career RMBL technical staff member who has run the
-      East River watershed instrument network since 2031. Trained
-      as a hydrologic technician at a peer site; came to RMBL
-      because the post-SAIL permanent-infrastructure bet
-      promised the kind of decade-scale work she wanted to do.
-      Has worked with this particular piezometer's data through
-      seven winters.
+      A senior biogeochemist (full professor) at an east-coast
+      research university, on a partially-remote sabbatical year
+      with seven weeks of basin residency in late winter and
+      spring. Has been a guest scientist at RMBL since 2014; the
+      East River coupled-systems testbed has been the spine of
+      her last twelve years of work. Her current NSF grant
+      (2036-2040) is on snowmelt timing as a driver of dissolved
+      organic carbon and nitrate flux out of subalpine soils — a
+      question that requires the East River piezometer network
+      plus the long phenology series plus the snowpack record.
+      In Iceland this week for a sister-site fieldwork stint.
     scene_anchor: |
-      A Tuesday in mid-January 2039, mid-morning, on the snow
-      below the Pumphouse plot at the East River testbed. The
-      technical staff member is on skis with a field tablet, a
-      multimeter, and a thermos of coffee. The instrument has
-      sent its overnight diagnostic by satellite; she is here to
-      confirm the drift in person before deciding whether to
-      flag the last three months of data for review or
-      recalibration. The sky is the kind of clear that means
-      cold. The guest scientist whose project depends on this
-      instrument is on a sabbatical in Iceland and will check in
-      by message in the afternoon. The skiing back will be good.
+      A Tuesday in mid-January 2039, mid-morning local time, on
+      a video call from a guesthouse in Hveragerði. The piezometer
+      diagnostic landed in her inbox overnight; the RMBL technical
+      staff member who manages the East River instrument network
+      messaged her at 6 a.m. her time saying she'd ski out to
+      ground-truth and would be back in cell range by noon
+      Mountain. Her morning is structured around two questions:
+      what to do with the previous three months of data if the
+      drift is real, and what to write to her two PhD students at
+      home who are using this exact instrument's record for their
+      chapter 2 analyses. There is coffee, and weak hotel wi-fi,
+      and an Icelandic field crew waiting on her for an
+      afternoon site visit.
     word_count_target: 1500
     published: false

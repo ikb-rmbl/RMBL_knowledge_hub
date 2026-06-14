@@ -17,12 +17,15 @@
 
 import { writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import path from 'node:path'
+import pg from 'pg'
 import './lib/config.js'
 import { callClaude } from './lib/claude-api.js'
 import {
   assembleStoryContext,
+  loadFrontierForStory,
   loadStoryDefinitions,
   type AssembledStoryContext,
+  type FrontierForStory,
 } from '../src/services/stories.js'
 
 const args = process.argv.slice(2)
@@ -57,7 +60,62 @@ mkdirSync(OUTPUT_DIR, { recursive: true })
 // PROMPT_STORY
 // ---------------------------------------------------------------------------
 
-function buildPrompt(ctx: AssembledStoryContext): string {
+function protagonistBlock(ctx: AssembledStoryContext): string {
+  const type = ctx.storyInput.protagonist_type ?? 'guest_scientist'
+  if (type === 'rmbl_staff') {
+    return `**Protagonist type: rmbl_staff.** The protagonist is an RMBL staff member — someone whose working life is the institution, year-round. This vantage is reserved (per spec §11.2a) for stories whose subject is an institutional decision only staff can plausibly carry: executive-director bridge calls, hiring choices, year-end planning. The fact that RMBL exists as an institution that can make such choices is itself the scenario's bet; the staff POV is constitutive here.`
+  }
+  if (type === 'partner') {
+    return `**Protagonist type: partner.** The protagonist is a staff scientist or technical lead at a partner organization (Conservancy District, Forest Service, BLM, tribal natural-resources office, county or state agency). Not RMBL staff. The basin's science crosses into their working life because of partnerships the scenario built. They consume basin records and translation work; they are accountable to a different institutional mission than RMBL's. The story should feel from their side of the table.`
+  }
+  return `**Protagonist type: guest_scientist** (the modal vantage for this set, per spec §11.2a). The protagonist visits the basin from a home institution — a university, a peer field station, a research institute — to push a specific frontier. They consume the campaign's investments rather than producing them. They have a home lab, a department, a funding cycle, a career stage, a sabbatical or a postdoc clock. RMBL staff are collaborators they have worked with for years, not their colleagues; Gothic and the East River are deeply known but not where they live year-round. Their POV puts the scenario's infrastructure in relief — they see what was funded and what was forgone.
+
+Career stage and field should be specific (PhD student / postdoc / mid-career assistant or associate professor / senior fellow on sabbatical) and the work mode should be one of: a solo field campaign; an established lab back home with a grad-student cohort; a multi-institutional NSF-funded project; a foundation-funded restoration or applied program; a sabbatical residency; a postdoc rotation; an observational synthesis; a modeling project; a common-garden or reciprocal-transplant experiment; a cross-station comparative study. Pick the one that fits. The reader should feel the specificity of how this person is making their living and where their next paper goes.`
+}
+
+function frontierBlock(frontier: FrontierForStory | null | undefined): string {
+  if (!frontier) return ''
+  const questions = frontier.keyQuestions.length
+    ? frontier.keyQuestions.map((q) => `> - ${q}`).join('\n')
+    : '> (No key questions on file.)'
+  const actions = frontier.keyActions.length
+    ? frontier.keyActions
+        .map(
+          (a) =>
+            `> - **${a.category} / ${a.effort}** — ${a.action}`,
+        )
+        .join('\n')
+    : '> (No specific actions on file.)'
+  const dataGap = frontier.dataGap ? `\n\n**One specific data gap the protagonist is filling, watching, or working around:**\n> ${frontier.dataGap}\n` : ''
+  const tract = frontier.tractability
+    ? ` Tractability: *${frontier.tractability}*.`
+    : ''
+  return `# The frontier this protagonist is pushing (spec §11.2a)
+
+The protagonist is grounded by a specific knowledge frontier from the RMBL Knowledge Commons. Their work in this story is one *concrete action* toward that frontier — drawn from the actions catalog below. They are not the only person in the world pushing this frontier; they are one of perhaps a dozen, scattered across institutions, with their own approach.${tract}
+
+**Frontier title:** ${frontier.title}
+
+**Frontier description:**
+
+> ${frontier.description.replace(/\n+/g, '\n> ')}
+
+**Key open questions:**
+
+${questions}
+
+**Specific actions someone pushing this frontier might be undertaking (the protagonist is in the middle of one of these):**
+
+${actions}${dataGap}
+
+The frontier shapes what the protagonist is *actually doing on the page* — a query they run, an experiment they're checking, a paper they're drafting, a meeting they're leading, a sample they're collecting, a model run they're staring at. The frontier is **not announced**. The reader should recognize the protagonist as someone with a defined intellectual stake without ever being told what the stake is. The protagonist would never say "I am pushing the frontier of ${frontier.title.toLowerCase()}" — they would say what they were doing today.
+
+The frontier is also a **contrastive lever**. A frontier-specific action that the campaign funded the scaffolding for should be possible in this scenario and visibly absent or harder in scenarios that forgo that scaffolding. Use this to satisfy the contrastive test in structural element 3.
+
+`
+}
+
+function buildPrompt(ctx: AssembledStoryContext, frontier: FrontierForStory | null): string {
   const { storyInput, scenario } = ctx
   const modeBlock = (() => {
     if (storyInput.mode === 'stress-overlay') {
@@ -97,7 +155,9 @@ ${scenario.markdown}
 - **Scene anchor:** ${storyInput.scene_anchor}
 - **Target word count:** ~${storyInput.word_count_target} (±15% acceptable)
 
-${modeBlock}
+${protagonistBlock(ctx)}
+
+${frontierBlock(frontier)}${modeBlock}
 
 # Voice and texture (CRITICAL)
 
@@ -162,6 +222,7 @@ The test: if you could substitute "2024" for the story's year without changing a
 - **Low-affect resolution.** Endings that resolve into quiet acceptance, contemplative melancholy, the "they would do this as long as they were able" register. Allowed endings: forward-leaning, charged with possibility, charged with curiosity, charged with a small joy, genuinely uncertain in a way that opens rather than closes, or — sparingly — quietly accepting. A story whose final beat is a character alone with their feelings, watching light fade, has slipped into the v0.8 failure mode the prompt is designed to prevent.
 - **Generic mountain-lab fiction.** Specifics anchor the story.
 - **Naming real living people.** Characters are roles, not real RMBL staff. No real researcher names in dialogue or attribution.
+- **Default-LLM-naming clusters.** Without instruction, LLM-written ecology fiction gravitates toward names like Mara, Maren, Maya, Mira, Maria, Marisol — short, feminine, beginning with M. The centennial-2027 set already has several of these; do not pick another. Choose a distinctive name appropriate to the protagonist's described background (career stage, region of training, institution, family heritage). Non-Anglo names are welcome where the role description supports them. The point is just that the reader of the whole set should see distinct people, not a roomful of Maras.
 - **Heroic individuals.** No one in the story singlehandedly figures anything out. Work is collaborative, partial, often inconclusive.
 - **Spec vocabulary.** No "distinguishing thesis," "frontier portfolio," "innovation-to-infrastructure flywheel," "in-house catalytic capacity," "campaign deliverables," "bracket position," "load-bearing," etc. The story is not a planning document. The scenario you're grounded in *uses* this vocabulary; the story you write *must not*.
 - **Documentary or scientific-paper voice.** This is fiction, not journalism.
@@ -227,6 +288,13 @@ async function main() {
 
   console.log(`  Targeting ${targets.length} stor${targets.length === 1 ? 'y' : 'ies'}`)
 
+  // DB pool for frontier loading (spec §11.2a). Created here once and
+  // closed at the end; loadFrontierForStory is called per-story.
+  const dbPool = new pg.Pool({
+    connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/rmbl_knowledge_hub',
+    max: 2,
+  })
+
   let succeeded = 0
   let skipped = 0
   let costTotal = 0
@@ -243,7 +311,15 @@ async function main() {
     }
 
     const ctx = assembleStoryContext(setArg!, story.story_slug)
-    const prompt = buildPrompt(ctx)
+    const frontier = story.frontier_slug
+      ? await loadFrontierForStory(dbPool, story.frontier_slug)
+      : null
+    if (story.frontier_slug && !frontier) {
+      console.warn(
+        `  ⚠️  Frontier slug "${story.frontier_slug}" not found in Commons — prompt will skip frontier block.`,
+      )
+    }
+    const prompt = buildPrompt(ctx, frontier)
     console.log(`  Context: ${(prompt.length / 1000).toFixed(1)}k chars`)
 
     if (dryRun) {
@@ -274,6 +350,8 @@ async function main() {
     console.log(`    → ${path.relative(REPO_ROOT, outPath)}`)
     succeeded++
   }
+
+  await dbPool.end()
 
   console.log('\n========== Summary ==========')
   console.log(`Processed: ${targets.length}`)

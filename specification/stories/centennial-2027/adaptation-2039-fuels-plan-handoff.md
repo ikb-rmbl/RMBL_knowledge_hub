@@ -1,86 +1,118 @@
-*Story grounded in [Centennial Adaptation](../../scenarios/centennial-2027/centennial-adaptation.md). Mode: Stress-overlay. Year: 2039. Word count: 1508. Published: internal-only.*
+*Story grounded in [Centennial Adaptation](../../scenarios/centennial-2027/centennial-adaptation.md). Mode: Stress-overlay. Year: 2039. Word count: 1496. Published: internal-only.*
 
 ---
-# The Polygon Walk
+# Polygon 14
 
-The propane heater in the corner of the RMBL365 meeting room had a click in it that Mara had stopped hearing in 2034 and started hearing again last winter. It clicked now, three times in a row, and Dave from the GMUG looked up from the map without breaking his sentence.
+Renata Vigil-Archuleta had slept badly in the back of the truck, parked behind the brewery off Elk Avenue where the streetlight came through the canopy window at the exact angle of her left eye. By five she had given up and walked the two blocks to RMBL365 with her thermos and a Forest Service-issued tablet that had begun, in the last six months, to anticipate which folders she wanted open. This morning it had guessed correctly: the 2038 burn perimeter, the draft polygons, the phenology overlay the translation team had sent on Tuesday. She set the tablet face-down on the long table and watched her breath in the meeting room until the heat came on.
 
-"—because the 2038 burn ran through this unit here." His pen hovered over a polygon east of Ohio Pass, in the dark green that meant subalpine fir, mapped as climate-refugial when the layer was made. "And that's the one we did not see coming."
+Crested Butte in late October had become a different town than the one she had first driven into in 2024. The shoulder season was longer now, dustier, and the aspens above Mt. Crested Butte had gone the rusted color they used to go in mid-September, three weeks back on the calendar. She could remember when October felt like winter waiting. Now it felt like a long pause.
 
-"Nobody saw it coming," said Renate, the other GMUG planner, who had driven down from Delta the night before and slept in her truck because the Forest Service per diem had been cut again in March. She was on her second coffee. "I want to be clear with the room that this is not a blame conversation. This is a learning conversation."
+Brett came in at seven-fifteen with two coffees and the apologetic look of a junior planner who had also slept poorly but in an actual bed. "Per diem still off?"
 
-On the wall screen, Sage Cuthair from the Ute Mountain Ute natural-resources office nodded. He was in his office in Towaoc; behind him a window showed flat hard light. "Appreciated," he said. "Let's walk the map."
+"Per diem still off."
 
-Mara pulled the tablet closer. The polygon Dave had marked sat at 10,400 feet, north aspect, in a stand that had last burned — she'd already asked — in 1879. The archive answered before she'd finished framing the query, the way it had been doing for about eighteen months now; she still hadn't decided whether she trusted that or whether trusting it was the point.
+"My couch is open next time."
 
-"Snowmelt-out for that drainage," she said. "Median across the record is June 11. Last decade median is May 19. 2038 was April 28."
+"Your couch is in Montrose."
 
-"April 28," Dave said. He wrote it on a sticky note and put it on the polygon. "Forty-four days early."
+"My couch is open next time you're in Montrose."
 
-"It's the May part that gets you," said Lila, the phenology PI, who had come over from Gothic that morning and was sitting with her boots off because the cabin she was staying in had no working dryer. "Once you're melting out in April you've got six weeks of cured fuel before the monsoon, in a year the monsoon shows up at all."
+She took the coffee. The translation team lead — Inés Quispe-Bertelsen, hired in 2031 out of a Wyoming water district and now the person Renata called first about almost everything — came in at seven-thirty with a roll of plots under her arm and the phenology PI, Doc Halloran, behind her. Doc had driven down from Gothic before light. He looked like someone who had been outside since four and was pleased about it.
 
-"The monsoon showed up in 2038," Renate said.
+"The willows above Copper Lake," he said, before any of them had sat down. "I want to talk about the willows above Copper Lake before we get into the polygons."
 
-"It showed up on August 4."
+"Good morning to you too," Inés said.
 
-Renate nodded slowly. "Right."
+"Good morning. The willows are doing the thing again. Earlier than last year."
 
-They moved to the next polygon. This was the work: Dave naming a unit, Renate adding the management history, Lila offering what the meadow plots above it had been doing, Mara pulling the long record. The wall map was the GMUG's working layer for the five-year vegetation treatment revision, which they were doing a year early because of 2038, and the polygons were colored by Dave's first-pass recommendation. Treat. Leave. Monitor. The colors had been assigned in September. They were now revising them in October because of what the basin records were telling them about the assumptions underneath.
+Renata pulled out a chair. "Hold that. Let me get Daryl on."
 
-Sage said, from Towaoc: "Can you pull fire return for the Anthracite drainage? I'm interested in the pre-1880 piece."
+The wall screen woke up. Daryl Whyte, the natural-resources liaison out of Towaoc, was already there, a mug in his hand and a window behind him showing the flat south light that meant his morning had started even earlier than Doc's. "I've got till ten-thirty," he said. "Council meeting at eleven my time. Where are we starting?"
 
-Mara asked. The tablet hummed; the archive — a hundred and twelve years of paper notebooks, plus Forest Service fire atlases, plus the tree-ring work the Laboratory of Tree-Ring Research had deposited in 2029 — answered in a structured table with a confidence flag on the early decades. She read the numbers out. Sage wrote them down on his end. She could hear his pen.
+"Willows above Copper Lake," Renata said. "Apparently."
 
-"That tracks with what our elders have been saying," he said. "Thank you."
+"Of course we are."
 
-"Can you share the elder accounts back?" Mara asked. "Not for the plan document. For our side. If you're willing."
+The thing about working at this table for eight months was that you stopped narrating to each other what you were doing. Inés unrolled the plots. Doc was already pulling something up on his own tablet, muttering, and the tablet — Renata noticed without quite registering it — had filled in the rest of his sentence on the shared display: a sixty-year curve of willow leaf-out at the Copper Lake cluster, with the last seven years bolded and the 2038 outlier circled. Doc had not asked for the bolding. The system had inferred it from how he was talking.
 
-"I'll send what we have cleared to share."
+"So this is the thing," Doc said. "What burned last August at 11,200 — that's not just a fire-season-lengthening story. That's a subalpine fir story that's been three decades in the making, and our willows are telling us the moisture pulse is moving up the drainage faster than I would have predicted in 2030."
 
-This had taken six years. The asking had taken six years. Mara remembered the first meeting in this room, in early 2033, when the renovation paint still smelled and the chairs were the wrong height and she had not yet learned to wait through Sage's silences without filling them. She had filled them then. She did not fill them now.
+Renata set her hands flat on the table. "Which means treat-or-leave on Polygon 14 isn't actually a fuels question."
 
-Dave had moved to a polygon on the south flank of Crested Butte Mountain, a stand of Engelmann spruce that the 2036 spruce beetle wave had left half-dead. "This one is the one I lose sleep over," he said. "If it goes, it runs north into the resort. If we treat it, we're cutting a lot of standing dead at a price point I cannot defend at the District."
+"It's a fuels question and a corridor question."
 
-"What's the question for us?" Lila asked.
+"It's both."
 
-"Whether the basin records tell me anything about how fast the regeneration comes back after a stand-replacing event up there. Because if it comes back as aspen I have one problem and if it comes back as nothing I have a different problem."
+"It's both, yes."
 
-Mara asked the tablet. The answer this time was less clean. There were two analogous events in the record — 1956 and 2019 — and the regen trajectories diverged. She showed Dave both. He looked at them for a long time.
+Brett was the one who said the quiet part. "The agency model doesn't do both."
 
-"That's honest," he said.
+"The agency model doesn't do both," Renata agreed. "Which is why we're here."
 
-"It's what we have."
+She walked them through what she had. The GMUG map was up on the long wall, polygons hand-numbered, with the 2038 burn shaded in a color Brett had chosen because it didn't shout. Polygons 11 through 17 were the contested ones: a band of subalpine fir and aspen running northwest from the burn scar toward the divide, intersecting two lynx linkage zones from the 2019 boundaries and one sage-grouse seasonal-use area that had been mapped — Renata had spent August on this — when no sage-grouse had been seen in that polygon since 2026.
 
-"It's what you have because somebody wrote it down in 1956," Renate said, which was a thing she said in most meetings and which Mara had stopped finding sentimental. It was just true. Somebody had written it down in 1956 and somebody had typed it into the system in 2032 and somebody — the tablet, or whatever was inside the tablet — had read it last night and was offering it now.
+The boundaries had not moved. The birds had.
 
-The heater clicked. Outside the window the aspens above town were past gold and into the rust phase, three weeks later than Mara's first year here. She had stopped expecting them to be on the old calendar. Her mother, who lived in Albuquerque and was eighty-one this year, had asked on the phone last week whether Mara was coming down for Thanksgiving. Mara had said yes and then remembered the GMUG draft was due November 30 and had not yet called back to revise. She would call tonight. Her mother would be annoyed and would forgive her by Sunday.
+"Daryl," she said. "What I want from your office, if you can, is the seasonal-use information you mentioned in September. The PHMA boundary on 14 is wrong in a way that matters for what we do with the fir."
 
-They worked through eleven more polygons before lunch. Dave changed four colors. Renate changed two. One polygon — a north-facing bench above Copper Lake where the tree-ring record showed a 380-year fire-free interval that the climate envelope said could not hold another fifty — Dave left as monitor, against his own first instinct, because Lila said the meadow plots below it had been holding their composition better than any other site in the upper basin and she wanted another decade before anyone touched it.
+"I can share what we've cleared to share. There's a piece I have to hold."
 
-"You're asking me to bet on that meadow," Dave said.
+"Understood."
 
-"I'm asking you to bet on the data from that meadow," Lila said. "Which I read this morning."
+"What you'll see is consistent with what Inés's team modeled in the spring."
 
-"Fine."
+Inés nodded without looking up. "It's consistent."
 
-At noon Renate stood up and stretched and said she needed to walk down to the bakery before her blood sugar killed someone. Sage said he'd drop off for forty minutes and come back. Lila put her boots on and went out to make a call. Dave stayed at the map, looking at the four polygons he had changed.
+Renata watched the polygon on the wall. Polygon 14 was eight hundred and forty acres of fir-aspen-meadow mosaic that the agency had been planning to treat — mechanical thinning, prescribed burn in year three — based on a 2034 modeling run that had not known about the moisture pulse, the sage-grouse that had moved, or the lynx that had started using the south face after the 2031 winter. The treatment would reduce fuels. It would also, if you laid the corridor data over it, sever a connection that had reorganized itself in the last eight years without anyone with authority noticing.
 
-Mara stayed too. She looked at the tablet, which had — without being asked — pulled a small cluster of related queries to the side of the screen, things it had noticed while answering the morning's questions. *Anthracite fire-return, pre-1880, comparison with Slate.* *Engelmann regeneration trajectories, basin-wide, post-disturbance.* *North-aspect snowmelt anomaly 2038, drainage-by-drainage.* She would look at them tonight. She would argue with two of them. The third she'd send to Lila.
+"What I want," she said, "is to draft a version of 14 where we treat the eastern third, leave the central band, and monitor the western edge for three years before we decide. And I want the rationale to cite the phenology curve and the corridor reorganization, not just the fuel load."
 
-She thought about the SAIL towers, which had come down in 2028, and about the atmospheric piece of this morning's conversation that they did not have and could not get — the question of whether the April 28 melt-out was a one-off or the new floor. She thought about what she would have asked the SAIL data if it were still being collected, and about the fact that nobody in this room was asking, because they had built a meeting that worked with what they had.
+"Cite both," Inés said.
 
-Dave said, without looking up, "I'm going to need you in the room at the District on the eighteenth."
+"Cite all three. Fuel load, phenology, corridors. That's the revision."
+
+Brett was already typing. The tablet was suggesting language. Renata watched it propose a paragraph that was almost — but not quite — what she wanted, and she rewrote the second sentence by hand on the tablet's surface with a stylus, because the system had used the word *integrated* and she had been fighting that word in agency documents for two years. *Integrated* meant nothing. She wrote *cumulative*. The tablet absorbed the correction without complaint.
+
+Doc was looking at the willow curve. "The 1979 notebooks," he said. "You'd want to see the 1979 notebooks for the comparable year. Henley's handwriting. I can pull them this afternoon. The archive has them scanned but they're easier in the original — the marginalia didn't make it across."
+
+"Tomorrow morning?"
+
+"Tomorrow morning."
+
+Daryl, on the screen: "I can be on at seven your time tomorrow if Renata's still here."
+
+"I'm still here. Per diem or no per diem."
+
+"Stay at my sister's," Inés said. "She's in Mount Crested Butte. She has a futon and she likes Forest Service people."
+
+"Does she."
+
+"She likes you specifically. From the August session."
+
+"I'll take the futon."
+
+They worked through the rest of Polygon 14, then 15, and by ten Renata had a draft paragraph for the December public-comment document that she did not hate. The paragraph said that the treatment design on Polygon 14 had been revised in light of basin-scale phenology and corridor data developed in collaboration with the Rocky Mountain Biological Laboratory and tribal natural-resources partners, and that the revised design reflected cumulative stressors rather than fuel load alone. It was a single paragraph. It would generate, Renata estimated, between forty and two hundred public comments, half of them furious. Inés had read it twice.
+
+"The agency's never said it like that before," Inés said.
+
+"The agency's never had the data before. The data's been here. The agency's never had the data."
+
+"Different sentence."
+
+"Different sentence."
+
+Daryl signed off at ten-twenty. Doc left for Gothic before lunch, because he wanted to see the willows in afternoon light, and because he had a graduate student arriving on Saturday and the cabin needed firewood. Brett went to find sandwiches. Inés and Renata stayed at the table.
+
+"The parcel layer," Renata said. "The county records. I still don't have a clean time series for the eastern subdivisions."
 
 "I know."
 
-"I'm going to need Lila too."
+"I need it for the next revision. Not this one. The next one."
 
-"She'll come if you ask her in writing and copy the Director."
+"I know. We're working on it. The county's cooperating now in a way they weren't in 2035. It's slow."
 
-"I know how to ask Lila."
+"It's slow."
 
-"You do," Mara said, and meant it.
+"It'll be ready before the 2042 cycle."
 
-Renate came back with a paper bag of pastries and put one in front of Mara without asking. The heater clicked. Sage came back on the screen, holding a sandwich. They started on the next set of polygons, the ones along the East River that they had been saving for after lunch because Lila had the most to say about them and would say it best when she'd eaten.
-
-Mara opened a fresh page on the tablet and wrote, at the top: *Anthracite, north flank — what would we need to know by spring.* Then she wrote a question under it. Then another. The list would be long by Sunday. She would argue with it for a week.
+Renata picked up her stylus. The tablet had pulled up Polygon 15 on its own. She looked at it for a moment — the fir mosaic, the burn edge, the seasonal-use boundary that she suspected was also wrong — and started writing the next paragraph, the one she would argue with for the rest of the week, and probably the rest of the year.

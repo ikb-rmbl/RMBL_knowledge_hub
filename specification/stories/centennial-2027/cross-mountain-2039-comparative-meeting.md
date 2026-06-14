@@ -1,100 +1,82 @@
-*Story grounded in [Centennial Cross-Mountain](../../scenarios/centennial-2027/centennial-cross-mountain.md). Mode: Stress-overlay. Year: 2039. Word count: 1549. Published: internal-only.*
+*Story grounded in [Centennial Cross-Mountain](../../scenarios/centennial-2027/centennial-cross-mountain.md). Mode: Stress-overlay. Year: 2039. Word count: 1377. Published: internal-only.*
 
 ---
-# The Harmonization Problem
+# The Latitude Argument
 
-The Andrews lead wanted coffee before they went back in. Maya did too, though what she wanted was twenty minutes in a room with no people in it, and that was not on offer today.
+Mariana stepped out of the small conference room on the second floor of RMBL365 and stood for a moment in the hallway, letting her ears ring down. The Niwot lead had not exactly conceded, but she had stopped saying "the *Hesperophylax* clade" as though it were one thing, which was what Mariana had come for. Two hours of taxonomic argument before lunch, and her Spanish-language slides had loaded without complaint on the shared platform, the genus names underlined where the synthesis engine had flagged a treatment conflict with Andrews, with Niwot, with the H. J. Andrews lead's 2031 revision. The system had pulled her old INECOL records into the same view without her asking. She would never get used to that, even though by now she should.
 
-"We can live with five bands," he was saying, in the hallway outside the meeting room, gesturing with an empty mug. "What we can't live with is recategorizing the 1985–2010 data. There's no one left who took those measurements."
+In the hallway the heating ticked. Outside, Crested Butte was in one of its bright cold February stretches: nine degrees Fahrenheit at the thermometer by the door, sun strong enough that the south-facing snowbanks were already cupping. Someone had propped open a window at the far end of the corridor and she could smell woodsmoke and the dry mineral smell of plowed snow. She thought of Cofre de Perote, where this morning the cloud forest would be wet to the knees and her field assistant Tonalli would be netting at the upper pool with cold hands. She had texted him before the session: *Encontré aliados. La latitud sí importa.* He had not yet answered. He would be driving back down to Xalapa, probably, with no signal on the switchbacks.
 
-"Nobody's asking you to recategorize," Maya said. "We're asking the crosswalk to do it, and to flag the uncertainty."
+She had fifteen minutes before the Andrews lead disappeared into the next working group. She had been thinking about how to use them since Sunday.
 
-"The crosswalk has opinions."
+Down the stairs, past the wall where someone had hung a print of the Gothic meadows in late June, glacier lilies thick as foam — except they wouldn't be that thick now, not in late June, the lily window had crept into the second week of May at lower plots and the print was from 2009, she'd checked. Print as artifact. Past the kitchen where the lunch trays were stacked: chile verde, a tray of those small bowls of stewed greens someone in the kitchen made on Tuesdays, a thermos of coffee with a hand-lettered sign saying *fresh at 12:40*. She poured a cup. The Andrews lead was at one of the small tables by the south windows, looking at a tablet, eating a tamale with one hand.
 
-"The crosswalk has *priors*. There's a difference."
+"Diego."
 
-He laughed. The Niwot lead came out behind them and went straight for the carafe without speaking, which Maya took as a good sign — Eli only got quiet when he was thinking, and he'd been loud all morning. Through the window above the coffee table she could see Whetstone, its south face bare to the rock in patches that would have been unthinkable in February when she'd arrived in 2028. The snowpack down here in town was thin enough this winter that the willows along Coal Creek had stayed visible all season.
+He looked up and smiled. "I was hoping you'd find me. Sit."
 
-She topped off her own mug. The room smelled the way these rooms always smelled: old coffee, dry-erase markers, the faint chemical tang of the new carpet RMBL365 had put in two years ago, after the renovation that had carved this whole floor into working rooms with movable walls. The walls were currently arranged for eight stations plus the synthesis team plus the two postdocs from UNAM who'd flown up Sunday. There were too many people. There had been too many people every day since the meeting started.
+He had been at RMBL since Sunday too, and they had known each other since her postdoc year at Andrews in 2009 — she had been a confused thirty-year-old in his lab meetings, he had been a fourth-year grad student who took pity on her English. Now he was a full professor and the lead on the Andrews caddisfly time series and she ran a station and they were both, by some shared bureaucratic miracle, here.
 
-"Maya." The Sierra Nevada lead was in the doorway. "Fifteen minutes? Before lunch. The aquatic stuff doesn't quite fit your phenology schema and I want to walk you through where."
+"I want to talk about the synthesis paper," she said. "Specifically figure three."
 
-"After lunch," she said. "Iris has me at 11:30."
+"I knew you did. Sit, please."
 
-"After lunch."
+She sat. She set the tablet down between them and woke the synthesis platform. The platform pulled up the draft figure — a multipanel showing community composition trajectories from 1998 to 2038 across the partner stations, currently with five panels, none of them below 36 degrees north. The empty space at the bottom of the latitudinal axis was, to her eye, very loud.
 
-She wrote it on her tablet. The afternoon was now full. The afternoon had been full at 9:14 this morning, and it had refilled twice since.
+"You don't have a low-latitude anchor," she said.
 
----
+"We don't. We were going to caveat it."
 
-In the meeting room Iris from the high-elevation Mexican station — Nevado de Toluca, four thousand meters, no real winter snowpack to speak of — was at the whiteboard with two of the Canadians, sketching something. Maya came in and stood at the back. The sketch was a kind of decision tree, branching on whether the dominant phenological cue at a given site was snowmelt or photoperiod or soil-moisture release after a dry season.
+"Don't caveat it. Use mine."
 
-"This is the problem," Iris said, when she saw Maya. "Your protocol assumes snowmelt. Mine has no snowmelt. The protocol still has fields for snowmelt date, and we leave them null, but null isn't no-snow, null is no-data, and the crosswalk treats them the same."
+He chewed for a moment. The platform, sensing her gesture, populated a sixth tentative panel from her INECOL Cofre series — eighteen years, not forty, but at 19 degrees north latitude and 4,000 meters elevation, with a hydroperiod regime where snowmelt was not the dominant cue and the question of community reassembly looked, frankly, different. The platform had been ingesting her data since November, since she had loaded it under the new shared schema. She had spent three weeks of evenings doing the loading. It had been worth it for this moment alone.
 
-"It shouldn't."
+"The Trichoptera composition shift," Diego said, looking at her panel.
 
-"It does."
+"Starts in 2026. Accelerates after the 2031 drought year. We lose two limnephilids by 2034 — gone, not reduced, gone — and we gain a hydropsychid I had to send to Costa Rica to confirm because nobody at INECOL had seen it above 3,500 meters before. The pattern is the same as yours in shape but the driver isn't snowmelt. It's dry-season pool persistence."
 
-"I know. We — " She caught herself. *We* meant the basin data team. "We knew about this in 2034. We thought we'd solved it with the latitude band. We didn't."
+"Which means your panel does work mine can't do."
 
-"You solved it for Andrews. You didn't solve it for me."
+"Which means my panel does work yours can't do."
 
-Maya sat down at the table, set her coffee down, and pulled the federation console up on her tablet. It was the version they'd shipped in November — the one with the cross-station query layer the synthesis postdocs were already using to push real comparisons through, sometimes faster than the senior scientists wanted them pushed.
+He was quiet for a moment. She watched him think. He was, she remembered, slow in this particular way — not slow at understanding, slow at committing. She had learned in 2009 to let him be slow.
 
-"Show me a record where it matters."
+"The MRS lead is going to want it framed as confirmation," he said finally. "That the pattern is general. I don't want it framed that way."
 
-Iris leaned over. "*Lupinus montanus*, west slope, 2032 through 2038. First-flower. The crosswalk says it shifted earlier by nine days, and it didn't, it shifted later by four because the rains came late three of those years."
+"Neither do I. I want it framed as: where snowmelt isn't the cue, the reassembly takes a different shape, and the difference tells us about the mechanism." She tapped her panel. "Look at the recovery years. 2032, 2036. The community doesn't reassemble back toward the old composition. It reassembles toward a new one, and the functional rates" — she swiped to a second tab, where the platform had pulled detritus-processing data from her colleague's parallel project — "don't track composition the way the basin's do. Not yet, anyway. That's a paper. That's not a caveat."
 
-Maya opened the record. The federated query ran across her own console and the Nevado plot archive in Toluca — twenty seconds, which still felt fast to her even after seven years of building toward exactly this. The crosswalk's flag was sitting right there in the metadata: *snowmelt-cued / null source / interpolated*. The interpolation had been wrong in a way that was, she could see now, structural rather than accidental.
+Diego set down his tamale. "Send me the panel as a working draft tonight. I'll talk to the MRS lead before the four o'clock. The framing argument we can have over dinner."
 
-"Okay," she said. "That's an ontology bug, not a data bug. We can fix it. I want to do it with you in the room because I want to do it right this time."
+"Tonight I'm eating with Rosa and the Sierra Nevada people. Tomorrow."
 
-"I have a flight Friday morning."
+"Tomorrow then."
 
-"Tomorrow afternoon. After the plenary."
+She let herself smile. The coffee was bitter and very hot. Outside the window two ravens were doing something idiotic on the snowbank, one of them trying to carry off what looked like a glove.
 
-Iris nodded. The Canadians had stopped sketching and were watching. One of them — Maya had forgotten her name, which she found mortifying but it was day three and there were thirty-two people and she had slept badly — said, "We have something similar with the photoperiod sites. Could we sit in?"
+"Mariana," he said. "I'm sorry the travel reimbursement was so late."
 
-"Yes," Maya said. "Yes. Bring your data."
+"It came through Friday. Maite already used it to pay the dentist."
 
----
+"I heard your institution cut everything in March."
 
-At lunch she didn't eat with the scientists. She walked four blocks down Elk Avenue to the place her wife liked and got a sandwich to go, and stood outside in the thin February sun reading messages. Her son's school had called. He'd been sent home with what the nurse thought was strep, and Daniel was working from home anyway so it wasn't a crisis, but Maya read the message twice and felt her shoulders drop in the particular way they only did when someone she loved was sick. *Tell him I'll come read to him after the dinner thing,* she wrote back. *Late. Don't wait up.*
+"Everything except salaries. So far." She shrugged. The shrug was, she felt, the most honest gesture she had made all week. "The network fund covered the flight and three nights. I covered the fourth. I would have come anyway."
 
-A truck went by — one of the new electric ones the county had been buying since the inversions got bad — almost silent on the cleared pavement. The light off Mount Crested Butte was sharp and southern. She thought about the meadow plots above Gothic, six miles up the closed road, buried under what snow there was. The glacier lilies that would push up there in late June, three weeks earlier than they had in her first summer in the basin. The marmots — somewhere up there, asleep, in their hundredth recorded year, though Maya had not actually seen a marmot since August.
+"I know you would have."
 
-She ate half the sandwich on the walk back.
+She thought about telling him about Tonalli, who was twenty-six and brilliant and had been quietly applying to Canadian postdocs because he was tired of running a field program on someone else's emergency funding. She thought about telling him that she had decided, on the flight up, that if the synthesis paper went well — if her panel went in as a panel, not a caveat — she would write Tonalli a letter for the Andrews postdoc call in the fall and not feel guilty about losing him. The platform had a tab for postdoc exchanges across the partner stations now. She had looked at it twice on the plane.
 
----
+She didn't tell him. There would be time tomorrow.
 
-The afternoon session was the synthesis postdocs presenting the draft figures. The figures were good. They were also, Maya could see, going to need to be redone, because the Toluca correction was going to ripple. The lupine result was the cleanest comparative phenology signal in the draft, and it was wrong in exactly the way Iris had just shown her, and probably wrong in three other ways nobody had found yet.
+"Three o'clock session," he said, glancing at the tablet. "You're presenting first."
 
-She caught the lead postdoc's eye across the table and made a small gesture — *come find me, not now, later.* He nodded.
+"I'm presenting the question about cue substitution. You should heckle me."
 
-Eli leaned over. "How bad."
+"I will heckle you."
 
-"Not bad. It's a fix. But the figure changes."
+"Good."
 
-"Decadal pattern still holds?"
+She stood, picked up her coffee, and walked back toward the conference room. Halfway down the hall her phone buzzed: Tonalli, finally. *Llegué. La carretera estaba cerrada por un derrumbe pequeño. Mañana voy al sitio 4 a checar las trampas. Cuídese, doctora.* She read it twice. Sitio 4 was the upper pool, the one where the limnephilids had been gone since 2034 and where she suspected, this dry season, the hydropsychid was establishing. She thumbed back: *Mándame fotos del agua. Y de las trampas. Estoy en una pelea aquí y voy ganando.*
 
-"I think so. Magnitude's different."
+The reply came as she reached the door of the conference room: a thumbs-up, and then, a second later, *Va.*
 
-He grunted. "That's going to be a long Friday."
-
-"Friday's going to be long regardless."
-
-He didn't disagree. He'd been one of the people, back in 2029, who'd argued hardest against the federated architecture — wanted RMBL to just host everything, faster, simpler, control the schema, ship the platform. Maya had been on the other side of that argument. She had won, in the sense that the federated build was what got built; she had also spent every working day since then maintaining a reference implementation that other stations could fork, which was harder than hosting would have been, by a factor she sometimes calculated when she was tired. The thing it bought them was sitting across the table from her right now in the form of Iris, who would not be in this room at all if her station's data had to live on a server in Gothic.
-
-The argument had been worth winning. Most days she remembered that.
-
----
-
-At 4:30 she finally got the twenty minutes. She closed her office door and sat with her tablet and pulled up the working notes from Iris's session and started drafting the ontology revision. The federation had a process for this — every station director had to sign off, which took weeks, which was the price of distributed governance. She wrote the proposal carefully. *Null in a snowmelt-date field should not be interpreted as "snowmelt absent." A separate flag should distinguish.* She had written something like this in 2034 and not pushed it through because the workaround had seemed good enough. It had not been good enough. She wrote the sentence she would keep arguing with for the next week:
-
-*The crosswalk has been treating absence of snow as absence of information, and this is wrong in ways that get worse as the network reaches lower latitudes.*
-
-She read it back. It would do as a starting point. She sent it to Iris and to the two Canadians and to Eli, with a note: *tomorrow, after plenary, room 4, bring records.*
-
-Through the window the light was already going. There was an event in the lobby downstairs at six that she was supposed to be at. Daniel had texted a photo of their son asleep on the couch with the cat. She put her tablet down, picked it up again, and forwarded Iris's lupine plot to the synthesis postdoc with three words: *we have to talk.*
-
-Then she went downstairs to find more coffee.
+She slipped her phone into her pocket and went in to set up her slides.
