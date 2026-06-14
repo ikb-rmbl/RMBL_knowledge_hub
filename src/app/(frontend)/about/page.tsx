@@ -289,6 +289,29 @@ npm install && npm run build`}
         </details>
       </div>
 
+      {/* ===== Futures methodology ===== */}
+      <div className="detail-section" id="futures-methodology">
+        <h2>Futures methodology — how the scenarios and stories were made</h2>
+        <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '12px', maxWidth: '65ch' }}>
+          The <a href="/futures" style={{ color: 'var(--rmbl-orange-deep)' }}>Futures</a> collection is a set of <strong>planning artifacts</strong>, not forecasts or RMBL institutional commitments. They are produced through a structured pipeline that pairs a human-authored specification with an AI model that drafts the prose.
+        </p>
+        <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '12px', maxWidth: '65ch' }}>
+          <strong>The specification.</strong> The Future Scenarios Framework (currently v0.16, version-controlled at <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/specification/Future_scenarios_framework.md" style={{ color: 'var(--rmbl-orange-deep)' }}>specification/Future_scenarios_framework.md</a>) sets the rules: what a scenario is, what fields it must include, what register the prose should be in, what is forbidden, and how multiple scenarios within a set must be distinguishable from each other. Each scenario starts as a structured YAML entry with a distinguishing thesis, a magnitude bracket, a frontier portfolio, and (for upside/downside sets) the favorable or unfavorable conditions it depends on. RMBL staff write these inputs.
+        </p>
+        <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '12px', maxWidth: '65ch' }}>
+          <strong>The drafting.</strong> Claude Opus drafts each scenario by reading the spec sections, the YAML inputs, the RMBL institutional grounding, the candidate research frontiers from the Commons, and the existing era primers. The model's output is the prose body of each scenario .md file. Stories are drafted the same way against a separate story-prompt that reads the scenario as context plus a linked Commons frontier the protagonist is pushing.
+        </p>
+        <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '12px', maxWidth: '65ch' }}>
+          <strong>Three sets.</strong> The central set (<code>centennial-2027</code>, twelve scenarios) is contingency-honest about realistic-bracket campaign outcomes — each scenario names what would invalidate it and what other scenarios exist as alternatives. The upside companion set (<code>centennial-2027-upside</code>, three scenarios) explores what becomes possible when several favorable conditions stack. The downside companion set (<code>centennial-2027-downside</code>, three scenarios) explores what becomes the texture when unfavorable conditions stack. Each set has its own forbidden-pattern rules — the upside set must avoid utopian register, the downside set must avoid collapse register.
+        </p>
+        <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '12px', maxWidth: '65ch' }}>
+          <strong>Stories as companions, not documentary.</strong> Each scenario has at least one companion story — short literary fiction (1,400–1,600 words) grounded in the scenario. Characters are fictional roles, not real RMBL staff or guest scientists. The fictional voice helps readers inhabit possibilities at a register the strategic-planning artifacts cannot reach.
+        </p>
+        <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '0', maxWidth: '65ch' }}>
+          <strong>Provenance.</strong> Every scenario and story page shows when it was generated, against which framework version, by which model. The source <code>.md</code> file is linked from each detail page. All artifacts are version-controlled in git; they evolve with the framework.
+        </p>
+      </div>
+
       {/* ===== Technical Deep-Dive ===== */}
       <div className="detail-section">
         <h2>Technical Deep-Dive</h2>
