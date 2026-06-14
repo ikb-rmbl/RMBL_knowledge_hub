@@ -115,24 +115,33 @@ If you could substitute "Niwot Ridge" or "H. J. Andrews" for "RMBL" without chan
 4. **At least one moment that isn't about science** — characters as people, not as functions. They have weather opinions, family considerations, dinner plans, small angers, brief joys. Working life includes these; their absence reads as portentous.
 5. **An ending that doesn't resolve to triumph or despair.** Things continue. Stakes remain. Sometimes a small choice is made; sometimes not.
 
-# Required tonal moves (spec §11.4)
+# Voice (spec §11.4)
 
-The v0.8 prompt asked for "humor or warmth" and "physical specificity," and the LLM honored both in their quiet register exclusively — every first-batch story closed in contemplative melancholy. The v0.9 prompt explicitly distinguishes **texture moves** (sensory and material; can be quiet) from **dynamism moves** (which must be present so the story isn't only elegiac).
+Four principles. Honor them in spirit. They are not a checklist of beats to insert. They are the register the story should inhabit. The voice references named above (Robinson, Chambers, Le Guin, Newitz) carry these principles together; a story written in their register will inhabit the four principles naturally.
 
-**Texture moves (sensory, material — can be quiet):**
+## Principle 1 — Inhabitation, not observation
 
-- **One moment of physical specificity** — the smell of woodsmoke; the way light moves across the talus; the cold weight of a marmot in someone's hands; the sound of a pika in late August.
-- **One moment of texture from the work** — running an archival query that returns more than expected; finding a calibration drift; reading a 1979 field notebook; the moment a sensor fails and a person has to climb to fix it.
-- **One reference to something the campaign funded that now matters** — not in campaign-marketing register, just present in the world.
+Characters belong here. They know what years of being there teach you: the willows turning early like they did only in 2031; the colony of pikas that wasn't there in 2027; the way August light at 6am differs from at 7am at 9,500 feet; the meadow's smell in the first week of July; the year *Boechera* set seed two weeks late and what that meant for the rest of the system. Relationships have visible history — accreted inside jokes, learned rhythms, mutual patience with someone's quirks. The work has texture: archival queries returning more than expected; calibration drifts found; 1979 field notebooks read in handwriting aging toward illegibility.
 
-**Dynamism moves (REQUIRED — these are how we prevent the story from collapsing into uniform melancholy):**
+Place is recognized, not described. Other people are known, not characterized.
 
-- **A moment of active possibility opening** — someone notices something they hadn't seen, asks a question that hadn't been askable before, has an idea that might or might not pan out. Not solving the crisis; expanding what's thinkable.
-- **A moment of agency** — a character makes a choice and acts on it. Sends an email, makes a call, writes a memo, says yes to a meeting, hires someone, picks up the phone, drafts a paragraph. Working life is full of small agencies. If your story has none, it has slipped into elegy.
-- **A moment of visible competence** — someone is good at their work and we see it land. Not "she was the best at" — actual skilled work happening on the page, in present-tense narrative.
-- **A forward-leaning beat in the closing** — a planned next step, an invitation extended, a phone number written down, an idea to follow up on, a return scheduled. The story does not need to end on this beat exclusively, but the closing should not be contemplative acceptance alone.
-- **A moment of warmth that has energy, not grief** — a shared joke that's genuinely funny, mutual ribbing, mentorship landing in real time, professional respect made explicit, someone teaching someone something well. Distinct from the texture-move "humor or warmth" — this is warmth-as-energy, not warmth-as-acknowledgment-of-loss.
-- **A moment of unambiguous good** — a clean measurement, a flower opening on schedule, a pika seen, a query returning something surprising, a trap well-set, a student understanding something. No "but" attached. The world contains pleasure even under stress; good fiction in this register lets it through.
+## Principle 2 — Pleasure and competence
+
+Characters are good at their work and the goodness is felt, not stated. The query that lands in three seconds and reveals 1998 and 2034 as the only previously-uncombined years. The transect crew with a rhythm built across summers — trap-check, weigh, record, release — that an outsider would have to learn. The senior scientist whose decisions read as decisions because we watch her make them.
+
+Characters also have strong opinions — about methods, instruments, institutions, received wisdom, individual roles. They voice them. KSR's scientists are opinionated. Stories in this register should be too. A character who doesn't have a take has not been drawn fully.
+
+## Principle 3 — Agency under stress
+
+Characters act. They call collaborators, draft paragraphs, open queries, hire people, write memos, send drafts, make decisions in real time on the page. The stress shapes the response; it does not determine it.
+
+The closing 200 words must not collapse into contemplative acceptance, watching-the-light-fade, "they would do this as long as they were able" register (per the §11.3 low-affect-resolution forbidden pattern below). Allowed closings: forward-leaning, charged with curiosity or possibility, animated by a small joy, opening rather than closing. A character writing the first sentence of something they will keep arguing with for the next week is a closing in this register. A character alone on a porch watching dusk fall is not.
+
+## Principle 4 — Why they're up at 4am
+
+Characters do amazing or ridiculous things — drive up at 4am to be at the meadow before the crew starts; sleep in trucks so they're there at first light; carry batteries on snowshoes; rearrange family Christmas to be at Gothic for first snowmelt; walk five miles after dark to fix a sensor; bring breakfast for the trap crew because it's their tenth season together — because of their commitments to the work, the place, and the community. The excess only reads as excess if you don't know what they care about. A story in this register includes at least one such commitment moment, justified by attachment rather than explained. The "amazing and ridiculous" is what makes the commitment visible.
+
+This is the most distinctively RMBL principle: the institutional culture of intense attachment to the basin and to the small community of people who know it. The story should feel that attachment without naming it.
 
 # Forbidden patterns (CRITICAL — spec §11.3)
 

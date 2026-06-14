@@ -1,146 +1,84 @@
-*Story grounded in [Centennial Watershed](../../scenarios/centennial-2027/centennial-watershed.md). Mode: Stress-overlay. Year: 2038. Word count: 1802. Published: internal-only.*
+*Story grounded in [Centennial Watershed](../../scenarios/centennial-2027/centennial-watershed.md). Mode: Stress-overlay. Year: 2038. Word count: 1438. Published: internal-only.*
 
 ---
-# The Replacement Question
+# The Replacement List
 
-The conference room at RMBL365 had heat now, which was the small mercy of October meetings in Crested Butte. Diane set her coffee down on the laminate and pulled out the inventory. Eighty-three line items. She had printed it because she still thought better on paper, a habit she had stopped apologizing for around the time her hair went fully gray.
+The aspens along Sopris had gone by the weekend before, all at once, the way they sometimes did when a hard frost arrived without preamble. Maren had driven up from Boulder on Monday afternoon and noticed the basin already locked into that particular October stillness — yellow at the lower elevations, gray-brown higher, the willows along the East River bleached to straw. She had stopped at the pullout above Almont to call her daughter back about Thanksgiving. Yes, she'd be there. No, she would not bring the dog this time.
 
-"Hannah's joining at nine-fifteen," said Pilar, the administrative director, glancing at her laptop. "She had a thing with her kid's school."
+Tuesday morning, the meeting room at RMBL365 smelled like coffee and the particular dust that old baseboard heaters put into the air when they came on for the first time in fall. Maren had been in this building enough times to know which chair tilted. She took a different one.
 
-"What's the thing?" Diane asked.
+Devi, the watershed data engineer, had the inventory open on the wall screen. It was a spreadsheet the size of a small novel. Forty-seven rows highlighted in three colors: green for instruments still inside design life, yellow for instruments past nominal but operating, red for instruments that had failed since June or would fail before spring.
 
-"Conjunctivitis, I think."
+Eleven red rows.
 
-"Both eyes?"
+"Walk me through the reds again," said Anya from the small box in the corner of the screen. Sierra Nevada, calling in from her own slightly different October. She had her glasses pushed up into her hair. "Not the spec sheets. The actual situation."
 
-"She didn't specify."
+"The actual situation," said Tom, the senior instrument tech, "is that the K-band radar at the upper site has been throwing a calibration drift since the August storm and I can patch it through one more winter but I would not want to publish off it after March." He paused. "The two piezometers in the lower bog are full of water. I mean inside the housings. I mean they are no longer instruments, they are tubes."
 
-Marcus, the watershed data engineer, snorted into his thermos. He had hiked down from Gothic yesterday before the road closed for the season, and he had the particular pinched-tired look of someone who had spent the past week pulling cards from a flux tower in weather that couldn't decide what it was. Beside him, Jess — instrument lead, six years in now, the one who actually knew where every cable went — was scrolling through the spreadsheet on a tablet, frowning.
+"And the cosmic-ray neutron sensor," said Devi.
 
-"The Campbell at the Pumphouse site is done," Jess said, without preamble. "I'm not going to pretend otherwise. I pulled it Thursday and the board is just — it's just done. We can keep it limping till spring if we cannibalize from the redundant one upslope, but that's a six-month answer."
+"And that," said Tom. "Which we knew."
 
-"How many of these are six-month answers," Diane said.
+Maren had been turning a pen over in her hand. She put it down. "Let's do this in tiers. What can't lapse. What can lapse for one season. What we partner out. What we retire."
 
-Jess made a small unhappy sound. "Eleven. Maybe thirteen if I'm being honest about the radiometers."
+Sasha, the administrative director, had a paper notebook open in front of her, the kind with graph paper. She was old-school about meetings where money got decided. "Before tiers," she said, "the number. We have one-point-three for replacement-and-repair through 2042. That assumes no further draw on reserves. The board is firm on that part."
 
-Pilar wrote a number on a sticky note and turned it around for Diane to see. It was the number Diane had been expecting, give or take, but it was still bracing in pencil on yellow paper. The reserves the campaign had built in the late twenties had absorbed the 2033 cut and most of the 2036 one. This number was what was left, against thirteen instruments that needed replacing now and a winter of operating cost that would not pause for them to think.
+"One-point-three," said Anya. "For all eleven."
 
-The laptop chimed. Hannah's face came up on the wall screen, slightly pixelated, her office at the Sierra observatory visible behind her — the same beige institutional shelving that Diane had at her own university, which was somehow comforting.
+"For all eleven, plus whatever we don't know about yet that breaks before the snow flies in 2040."
 
-"Sorry," Hannah said. "Pinkeye. One eye. The other one is fine, allegedly."
+Tom made a small noise that wasn't quite a laugh.
 
-"We were just getting to the bad part," Pilar said.
+Maren looked at the inventory again. She had been coming to this basin since 2021, when the SAIL trailers had first appeared on the meadow above Gothic and everyone had argued about whether the radar dish would scare the marmots. (It had not. The marmots had treated it the way they treated everything — with brief curiosity, then indifference, then the occasional attempt to chew its cabling.) She had watched these instruments be installed. She had watched several of them be transferred to RMBL ownership in 2028, in a series of meetings much like this one, except that the mood had been different then — an undertone of taking on something new. This was the other end of that arc. The instruments she had helped argue for were now the instruments she was helping argue about retiring.
 
-"Oh good, I love the bad part."
+"The K-band stays," she said. "Non-negotiable for me. We lose the K-band, we lose vertical resolution on the snow microphysics, and the whole upper-watershed coupling becomes a soil-moisture story with weather attached. I can't do the 2039 analyses without it. Nobody can."
 
-Diane laughed despite herself. She had known Hannah since a 2024 AGU session on snow-vegetation coupling, back when they were both younger and the basin still had SAIL radars humming on the ridges like patient animals. Hannah had been one of the first people Diane called when the SAIL handoff started in earnest, and they had talked, on and off across years, about whether the Sierra and the East River might share a backbone — common calibration, shared technicians on rotation, a real network rather than two observatories politely citing each other.
+"Agreed," said Devi.
 
-The talking had never quite become doing. Today it might.
+"Agreed," said Tom. "Cost on replacement is two-twenty. Six-month lead time if we order this week. I have a refurb option from the Finnish group at one-forty, ten-month lead."
 
-"Walk me through the thirteen," Hannah said.
+"Order the new one," said Sasha. She wrote something in her notebook. "We don't gamble on the anchor instrument."
 
-Jess walked her through the thirteen. Two flux-tower sonic anemometers at end of life. Three soil moisture stations whose loggers had been bought in 2026 and were now obsolete in the way only mid-2020s electronics could be — not broken, exactly, but no longer speaking to anything younger than themselves. A pair of groundwater piezometers near the lower meadow that had been heaving with frost for fourteen seasons and were finally going. The two radiometers at the Pumphouse cluster. A snow-pillow controller. The Campbell. And the radar receiver up on the saddle, which Marcus had been nursing through summer with what he cheerfully called "vibes and silicone."
+Anya cleared her throat from the screen. "On the piezometers. I want to make a case. We have four in the Sierra that are functionally identical to your lower-bog set. We are recapitalizing next year. If you let us host the groundwater chemistry stream for two field seasons, we'll send you the displaced units. They're 2029 vintage, fully calibrated, with documentation. You'd be sharing the chemistry record with us during the gap."
 
-"The radar receiver is the expensive one," Marcus said.
+A silence.
 
-"It's the one I would partner out," Hannah said. "We're decommissioning a comparable unit at Sagehen in March. If your timing was right, you could have ours for the cost of shipping and a calibration trip. It's been on a roof, but it's been on a *good* roof."
+"Sharing how," said Maren. She kept her voice even. The basin's groundwater chemistry record was not a thing she gave away lightly. It was one of the streams that gave the coupled story its teeth — the one that let you trace a snowmelt pulse from the radar all the way down through the bedrock weathering and out into the stream, on the same plots, in the same year. Nobody else had that.
 
-"What do you want in return," Pilar said.
+"Joint custody during the gap," said Anya. "Both institutions on the metadata. We don't publish without you, you don't publish without us. After the new units come online here, the stream returns fully to RMBL. We get a Sierra-East River comparison out of the period, which honestly we both want."
 
-"Honestly? Access to your flux record back to 2022 in a form my postdocs can actually query, and somebody from your data team on a standing call once a month so we can stop building the same wheel in parallel."
+"That's a real offer," said Devi quietly.
 
-Marcus was already nodding. He had been building the wheel in parallel for two years and had complained about it to Diane in July over bad pizza at the Brick Oven; he had said, with feeling, that he would trade a kidney for a peer to argue with about schema design. He probably remembered saying it. He had the look of someone trying not to look too pleased.
+It was. Maren could feel it being a real offer. She also felt the small bright resistance that came from twelve years of fighting to keep the basin's distinctiveness intact. The thing the campaign had bought, the thing the technical staff in this room had built, was integration on one landscape. Partnering out was not the same as losing the data, but it was not nothing, either.
 
-"That's a yes from data," he said.
+"Two seasons," she said.
 
-"That's a yes from data conditional on me actually having time," Pilar said, mildly. "But noted."
+"Two seasons."
 
-Diane was looking at the inventory again. Outside, the aspens on Snodgrass were almost done, the last gold edges going to rust, and the light through the window had the particular thin clarity of mid-October at eight thousand feet. She thought about the lower meadow piezometers. She had helped install one of them in 2024 with a graduate student who was now an assistant professor at Davis. The student had dropped a wrench into the auger hole and they had spent forty minutes fishing it out with bent rebar and swearing.
+"And I want the comparison paper led from here."
 
-"The piezometers," she said. "Leave them."
+"Co-led," said Anya. "Don't push me. I have a postdoc who needs first-author."
 
-Everyone looked at her.
+"Co-led," said Maren. She caught Tom's eye. He was smiling slightly, the way he did when something was working that he hadn't expected to work.
 
-"Leave them?"
+They went through the list. The K-band would be replaced. The piezometers would go to the Sierra arrangement. The cosmic-ray sensor would be retired — its function partly covered by the soil-moisture network, partly accepted as a loss, and Maren did not pretend that was painless. The flux tower at the south site needed a new sonic anemometer and they would buy it. Two of the snow-pillow sites would be consolidated to one. The upper-meadow radiometer would limp through one more winter on Tom's patches and they would revisit in April.
 
-"The lower-meadow pair. Don't replace. We have eleven years of record on that hillslope and the gradient question is mostly answered for that footprint. If we let them go, we free what — fourteen, sixteen thousand?"
+By eleven-thirty they had spent one-point-one of the one-point-three. Sasha drew a line under the number in her notebook and underlined it twice.
 
-"Eighteen with install," Jess said.
+"The remaining two hundred," she said.
 
-"Eighteen. And we still have the upslope pair and the Avery Picnic transect. We're not blind there. We're just less redundant."
+"Reserve," said Devi. "Please. For the thing we haven't found yet."
 
-Jess looked unhappy in the specific way of a technician asked to accept the loss of a working sensor for budget reasons. Diane respected it. She had felt it herself, on her own grants, and she knew the shape of the unhappiness was correct.
+"Reserve," said Sasha, and wrote it down.
 
-"I want it on the record I don't love it," Jess said.
+Anya, from her box, was already typing something. "I'll send the piezometer MOU draft by Friday. My program officer will want language about the data embargo. We can argue about it next week."
 
-"On the record," Pilar said, writing.
+"We can argue about it next week," Maren agreed.
 
-"But the radar receiver is the right place to spend," Jess went on. "If Hannah's serious."
+The meeting broke. Tom stood up and stretched and said something about needing to drive a battery up to the upper site before the road froze in earnest, which it would do any night now, and Devi said she'd come along because she wanted to check a logger that had been throwing odd timestamps. Sasha gathered her notebook and her coffee cup and went to her office to call the board chair.
 
-"I'm serious."
+Maren stayed in the room for a minute after they left. She opened her laptop and started a document. She titled it *East River coupled record, 2038–2042: what we kept and why.* She wrote one sentence — *The K-band stays because the upper watershed cannot be read without it* — and then stopped, because she wasn't sure yet whether the document was a memo to herself, a paragraph for the next proposal, or the opening of something longer that she would argue with through the winter.
 
-"Then we take Sagehen's. We retire the piezometers — formally, with a write-up — and we use the savings against the Campbell and one of the radiometers."
+She left the sentence on the screen and went to find her jacket. If she drove up to Gothic now she could be at the lower bog by one, look at the piezometer housings herself, and see exactly what she was sending away. She wanted to see them first. She wanted to know, before Friday, what the two seasons would actually cost.
 
-"What about the soil moisture loggers," Marcus said.
-
-This was the part Diane had been turning over since September. She set her pen down.
-
-"I want to ask something," she said. "The marmot census last summer — the late-emergence cohort up by the talus above Copper. Billy's group flagged it. The animals that came out three weeks behind the meadow cohort and then bred anyway."
-
-"Yeah," Jess said, slowly. She was watching Diane the way you watched someone about to say something that might be smart or might be tired.
-
-"We have soil temperature on that slope from the 2029 install. We have phenology from the long plots. We do not have soil moisture up there. We have it everywhere else and not there."
-
-"That's a fifteen-thousand-dollar install," Marcus said.
-
-"I know."
-
-"Plus the logger."
-
-"I know."
-
-A silence. Hannah, on the screen, leaned forward.
-
-"What would you ask with it," she said.
-
-"Whether the late cohort is tracking something in the subsurface that the meadow record can't see. Whether the talus is doing something the meadow isn't. Whether we've been calling that population an outlier when it's actually a different system. I don't know. I'd want a season of data before I knew what I was asking."
-
-"That's an NSF proposal," Hannah said.
-
-"That's an NSF proposal that writes itself if we have the install in by July."
-
-Pilar was already pulling up a different spreadsheet. She did this without being asked, which was one of the things Diane had come to recognize as her particular competence — she ran the numbers before the conversation needed them, so that when the conversation arrived, the numbers were waiting.
-
-"If we take Sagehen's receiver," Pilar said, "and we let the piezometers go, and we defer one of the three soil moisture loggers to spring — not retire, defer — we could fund the talus install. Just barely. It would put us under our winter operating margin by about four percent."
-
-"Four percent is a hard winter," Marcus said.
-
-"Four percent is a hard winter," Pilar agreed.
-
-Diane looked at Jess. Jess was the one who would have to install in July, on a slope that did not want a piezometer in it, with whatever student labor they could scrape together.
-
-"Could you do it," Diane said.
-
-Jess thought about it. Really thought, the way she did, running the install in her head — access, anchor points, where to bury cable, what the talus would do in a wet July.
-
-"Yes," she said. "If you get me a strong field tech and we go in the second week of July when the lilies are done and before the *Ipomopsis* really starts."
-
-"I have a strong field tech," Hannah said. "She's looking for two weeks of work."
-
-"Send me her CV," Jess said.
-
-"Sending."
-
-Pilar wrote four things on the sticky note and turned it around. The numbers had shifted. They were not better, exactly. They were differently arranged.
-
-"I'll draft the piezometer retirement memo this afternoon," she said. "Diane, can you write the talus proposal scope before you fly out Thursday?"
-
-"I can write a draft by tomorrow night."
-
-"Hannah, send me your standard MOU template and I'll redline it by Monday."
-
-"On it."
-
-The meeting did not end so much as shift into the part where people gathered their cups. Marcus said he was going to walk down to the bakery and asked if anyone wanted anything. Jess wanted a ham and cheese. Pilar wanted nothing, then changed her mind and wanted a cookie. Hannah, on the screen, said she was going to go put drops in her kid's eye and would email later.
-
-Diane stayed at the table a moment after the others moved. The inventory was still in front of her, eighty-three line items, two of them now crossed through in pencil and one circled. Through the window the aspens were doing what aspens did in October, which was hold on to the last light a little longer than seemed reasonable. She pulled her laptop closer and opened a blank document and wrote *Talus moisture install — scoping* at the top, and then, underneath, the first sentence of something she would keep arguing with for the next week.
+Outside, the wind off Gothic Mountain had picked up. Down in town it smelled of woodsmoke and the cold metal of a season turning.

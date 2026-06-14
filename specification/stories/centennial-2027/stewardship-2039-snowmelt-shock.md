@@ -1,120 +1,108 @@
-*Story grounded in [Centennial Stewardship](../../scenarios/centennial-2027/centennial-stewardship.md). Mode: Stress-overlay. Year: 2039. Word count: 1552. Published: internal-only.*
+*Story grounded in [Centennial Stewardship](../../scenarios/centennial-2027/centennial-stewardship.md). Mode: Stress-overlay. Year: 2039. Word count: 1473. Published: internal-only.*
 
 ---
-# The Light Year
+# The Light Years
 
-Maren came up the trail behind Billy's Cabin a little after seven, the air still cold enough to bite, and found the meadow already in motion. The weighing crew had set up near the lower burrow complex, the platform unfolded on its tripod legs, the spring scale swinging slightly in the morning. Two figures crouched over a Tomahawk trap. A third, taller, stood writing on a clipboard with a gloved hand. The avalanche lilies were long since done. The corn lilies along the seep were already going yellow at the tips, three weeks early by the old reckoning, on time by the new.
+Maren came up the road at quarter past five with a thermos of coffee that was already half gone and a query she'd been arguing with since Tuesday. The Gothic road was dry in a way August roads shouldn't be — dust kicking up behind the truck, the willows along the creek going yellow at the tips already, two weeks early. She'd noticed it from the porch of the cabin yesterday and decided not to write it down anywhere. Some observations she was hoarding until she trusted them.
 
-She set her pack down on the granite slab they'd been using as an office since the eighties.
+The crew was already at the upper meadow when she got there, three of them moving between traps with the quiet efficiency of people who had done this many mornings in a row. Devi, who ran the trapping these days, raised a hand without looking up from the scale. The new postdoc — Hannah, second week in the basin — was hunched over the field tablet, transcribing. The third was Marco, up from his own dissertation work for the morning because Devi had asked and because Marco said yes to mornings on the slope above Gothic.
 
-"You're early," said Ren, the crew lead, without looking up. "We told you nine."
+"You're early," Devi said.
 
-"I wanted the walk."
+"I have a thing."
 
-"You wanted to see Pepper before we let him go."
+"You always have a thing."
 
-"That too."
+Maren set the thermos on the rock they used as a table and poured a second cup for Devi, who took it without comment. The light at this hour, at 9,500 feet, came in flat and silver across the meadow, throwing the talus above into relief. Marmot 4471 was in the trap on the near side — Maren recognized the ear tag, a granddaughter of a female she'd helped collar in her postdoc years, back when she still thought her career was about methylation clocks. The pup beside her was small. Visibly small. Maren didn't say anything.
 
-Ren grinned. Pepper was a four-year-old male with a torn ear and a habit of biting through gloves; the crew had named him three seasons back and the name had stuck through two database migrations, which Maren considered a small institutional victory. She crouched by the trap. The marmot inside was not Pepper. It was a yearling female, dark-bibbed, breathing fast, eyes wide and steady on her.
+"Mass?" Devi said to Hannah.
 
-"This is 2039-G-114," said the postdoc, straightening from the trap. "First catch of her life. I'm Soraya."
+"Two-eighty-five."
 
-"Maren. Archive. I came up to ask you all something, but go ahead. Don't let me slow you."
+"Note it. Tag, please."
 
-Soraya was maybe twenty-eight, hair pulled back under a sun-faded RMBL cap that looked older than she was. She had the careful hands of someone who had been trained well and recently. She lifted 2039-G-114 from the trap into the cone, pinning her gently while Ren read out the mass.
+Hannah read the tag number off, fingers a little stiff with cold even in August, and Devi released the marmot, which moved across the rocks with the heavy gait of an animal whose summer had not gone well. The meadow was already browning in patches that wouldn't have browned in 2019. The *Ipomopsis* stalks along the edge had set seed three weeks ago. The bumble bees were doing what they could.
 
-"Six-forty," Ren said.
+"What's the thing," Devi said.
 
-"Light," said Soraya.
+Maren pulled out her tablet. "I rebuilt the phenology stack overnight. We have all the meadow plots clean back to '74 now, and the marmot emergence dates back to '62. I can finally cross them properly. I want to ask which species pairs have decoupled the most since 2030, controlling for SWE."
 
-"Light," Ren agreed. "Light all summer."
+"And?"
 
-Maren wrote the number down on her own pad even though it was going straight into the tablet at Ren's elbow. Old habit. The crew measured, scored the pelage, took the cheek swab, dabbed dye on the flank — a smear of dark green that would mark this animal as handled through the rest of the season — and let her go. She bolted for the rocks and was gone before the dye had set.
+"And I have a list. But I don't trust the list. I want to know which pairs you'd predict from being out here. Before I show you mine."
 
-"Okay," Ren said. "Your question."
+Devi made the face she made when she was about to be generous with her time and pretend she wasn't. "Marco. Hannah. Coffee break. Maren wants to play a game."
 
-Maren pulled the tablet from her pack and woke it. The interface was the new one — the synthesis layer the data team had spent two winters building on top of the archive — and she still felt a small private pleasure every time it loaded clean. Nine years ago she had been hand-keying field notebooks from 1962, squinting at a graduate student's pencil marks under a desk lamp in the basement of the old barn. The barn was still the barn. The notebooks were now light on a screen.
+They sat on the rocks. The sun had cleared the ridge and the light was starting to come gold, not silver. Hannah pulled her jacket tighter and looked from face to face with the careful attention of someone who knew she was about to learn something but didn't yet know what.
 
-"I want to run mass-at-emergence against snow-off date across the full record," she said. "Not the marmot record alone. I want to overlay the *Boechera* demography and the glacier lily phenology and the bumble bee transect counts. I think there's a signal in the compression — when phenology stacks, the bees pick a winner and the others lose a year. I think it's been happening since at least '37. Maybe earlier. I want to know which species comparisons you'd trust."
+"Glacier lily and the early *Bombus*," Marco said. "That's a freebie."
 
-Ren considered the ridge for a long moment. The sun had cleared the shoulder of Gothic Mountain and was working its way down the talus.
+"Sure," Maren said.
 
-"*Ipomopsis*," he said. "If you've got it. The hummingbird timing is the cleanest. And the bombus counts from the East River transects — those are paired with the phenology plots on the same days, so the temporal grain matches."
+"*Boechera stricta* and whatever's pollinating it that week, which has gotten weird," Devi said. "Used to be reliable. The last three years I couldn't tell you."
 
-"I have *Ipomopsis* back to 1971. Bombus back to 1974, with a gap in '83 to '85."
+"Reliable in what sense?"
 
-"What happened in '83?"
+"In the sense that I used to know without looking." Devi sipped her coffee. "Marmot emergence and forb green-up at the colony slope. Used to be tight. The pups this year — you can see them. The mothers came up to nothing."
 
-"Funding. The transect lapsed. Someone picked it up in '86 with a slightly different protocol and we have a calibration note from the original PI explaining how to bridge."
+"That's the one I'm chasing," Maren said.
 
-"Of course we do," Ren said. He was smiling.
+"I figured."
 
-Soraya had been listening with the attentive stillness of someone trying to absorb a working culture without interrupting it. "Can I ask," she said, "how the calibration note got into the system? Was it in the notebook?"
+Hannah was looking at the marmot on the rocks, who had not gone far. "Is she going to make it through hibernation?"
 
-"Margin note. 1986. Pencil. I transcribed it myself, in" — Maren thought — "2032? '33? Flagged it as a bridging record. The synthesis layer pulls it automatically when you query across the gap."
+"Probably," Devi said. "The pup, less sure."
 
-"That's —" Soraya started, and stopped.
+There was a silence in which nobody said the obvious thing about three light snow years in five, because everyone present knew it and saying it out loud at six in the morning above Gothic felt like inviting it to stay. Marco filled his cup again. Hannah wrote something in the tablet that wasn't a measurement.
 
-"It's nice when it works," Maren said.
+"Show us the list," Devi said.
 
-"It's nice when it works," Ren agreed.
+Maren turned the tablet. Her query had run in two seconds against the full archive — which still gave her a small, embarrassing pleasure every time, because she remembered 2026, when getting from a question to an answer like this would have taken three weeks and a graduate student. The funded position she sat in, the archive she'd built out with Tomas and the two data scientists who'd come in '32 and '34 — she could feel the shape of it under her fingers when she ran a query like this. It worked because they'd made it work. She tried not to be sentimental about infrastructure.
 
-They worked through three more traps. The morning warmed. Maren took notes, asked occasional questions — *did the '37 cohort show this? do you remember? — *and let the crew run their rhythm. A Clark's nutcracker yelled from a krummholz spruce. Somewhere down toward the creek a marmot whistled, then another, the alarm passing along the slope and dying out.
+The list had glacier lily and *Bombus* at the top. *Boechera* and its visitors third. Marmot emergence and forb green-up second, with a confidence interval that did something interesting at the 2034 break.
 
-Around eleven Ren straightened, set down the clipboard, and said: "We need to talk about the upper site."
+"Huh," Devi said.
 
-Maren had known this was coming. The proposal for the new plot — five kilometers up-drainage, above where the snowmelt regime was now reliably different from Gothic itself — had been moving through the science committee all summer. The director wanted a recommendation by Labor Day. The argument for was straightforward: the snow conditions the long records were calibrated against no longer existed at this elevation, and if they wanted to keep asking the questions the records were built to ask, they needed a reference site where those conditions still held. The argument against was that any new plot pulled crew time from the established ones, and the established ones were the point.
+"The 2034 break is what I want to talk about."
 
-"I'm not going to tell the committee what to do," Maren said.
+"I want to talk about something else first," Devi said. She set her cup down. "The up-drainage plot."
 
-"No, but they'll ask you. Because of the archive."
+Maren waited.
 
-"They'll ask me whether starting a new series now is consistent with what the institution committed to in '27. And I'll say: a new plot tied to the existing protocols, set up to extend the comparison, isn't a new program. It's the same program reaching for the conditions that made it legible."
+"If we're going to do it, we should do it next summer. We've been pretending the question is whether to do it. The question is whether we can staff it."
 
-"You've rehearsed that."
+"That's a board question."
 
-"I've been thinking about it on the trail."
+"It's a board question that the board is going to ask us. Me and you. Probably in October."
 
-Ren laughed. Soraya looked between them, taking it in.
+"I know."
 
-"I'd write it down before you forget it," Ren said.
+"I'm going to say yes."
 
-Maren pulled out her phone. There was, surprisingly, signal up here, two bars, the new repeater on Snodgrass doing its work. She opened a note and typed the sentence about the same program reaching for the conditions. Then she added: *Send to S. and J. before Friday committee. Cc Ren if he'll cosign.* She put the phone away.
+"I know that too."
 
-Around noon they broke for lunch. Soraya had brought a sandwich wrapped in a bandana, which Ren teased her about — *very 1973 of you* — and she said she'd left her tupperware at the cabin and the bandana was what was clean, and would he like her to throw a sandwich at him, and he said no thank you, and they ate. Maren had a bagel from the bakery in town that was three days old. She ate it anyway.
+Devi smiled, just a little. They had been having versions of this conversation since June. The up-drainage plot would catch the changed snowmelt regime in a way the existing meadow couldn't — higher, later-melting in the years there was snow to melt, more exposed in the years there wasn't. It would mean another field tech, another set of plots to maintain, another small commitment that would have to be carried for thirty years before it told anyone anything useful. Maren had been against it in May and for it in July and was now in the state of being neither, which was the state she actually trusted.
 
-"You live up here?" Soraya asked her.
+"I'll write the data side of the proposal," she said. "If you write the field side."
 
-"Crested Butte. I've got a kid starting eighth grade. The bus is — it's a whole thing. My partner is a nurse at the clinic. We trade days."
+"Deal."
 
-"What's the kid into?"
+Hannah said, carefully, "Can I ask a stupid question?"
 
-"Mountain biking. And, this summer, complaining about mountain biking."
+"Yes," Devi and Maren said together.
 
-"That's a phase," Ren said.
+"Why now? If the snow is doing what it's doing — why start a thirty-year plot now?"
 
-"I know it's a phase. I'm enjoying it."
+Marco laughed, not unkindly. "Because in thirty years someone is going to want the data from 2040, and there's only one way to have it."
 
-After lunch Maren ran the first version of her query on the tablet, sitting on the granite slab with the screen tilted against the sun. The synthesis layer chewed for a long moment — the marmot record alone was big now, ninety-one years of it, and the cross-taxon join was not light — and then it returned a plot. Maren looked at it. She did not say anything for a while.
+"That's the whole answer?"
 
-"What?" Soraya said.
+"That's the whole answer," Devi said.
 
-"There's a year in here I wasn't expecting. 1977. Mass-at-emergence drop, phenology compression, *Ipomopsis* late, bombus counts down. I didn't know '77 was like that."
+Maren thought about her mother, who had called Sunday to ask whether she was coming home for Thanksgiving and had been disappointed when Maren said probably, not certainly. Her mother was seventy-four and tired of probably. Maren had promised to decide by Labor Day. She had not decided.
 
-"Was it a low snow year?"
+They went back to trapping. Maren stayed for the next two traps, which were empty, and then for the one after that, which held a yearling male with a healthier mass than 4471's pup. Hannah recorded. Devi released. Marco walked the upper line and came back to say the trap near the boulder had been sprung by something that wasn't a marmot, probably the same coyote as last week. The sun was fully up. The meadow smelled like dust and the sharp green of *Veratrum* gone to seed, which was a smell Maren associated with the end of things, even though the end of things at this elevation was still six weeks out.
 
-"It was a low snow year. I just — I'd never seen the cross-taxon picture of it. Nobody had. The data weren't joined."
+She walked down to the truck around eight. Before she left she opened the query on her tablet again and changed one parameter — restricted the comparison to the three light-snow years and the four heaviest years on record, ignoring everything in between. The result came back in three seconds. She looked at it for a long time. Then she opened a draft document and wrote one sentence: *The decoupling is not monotone with SWE; it is asymmetric, and the asymmetry began before 2030.*
 
-She sat with that for a moment. Then she took a screenshot, marked it up with two arrows and a question, and sent it to the archivist she'd hired in May.
-
-"What now?" Ren said.
-
-"Now I go home and find out what else 1977 looked like. And tomorrow I draft the upper-site memo."
-
-"And the bee transects?"
-
-"I want the full overlay by the AGU abstract deadline. Will you read a draft?"
-
-"Send it."
-
-She packed up. The crew had three more traps to check before the afternoon got too warm and the marmots stopped moving. Soraya waved from the platform; Ren was already crouched by the next trap. Maren started down the trail toward Gothic, the meadow yellow around her, the talus warming on the slope above, and the question of 1977 turning over in her mind like a stone she had not known was there.
+She would argue with the sentence for the next week. She would send it to Devi tonight, and Devi would tell her she was wrong about the timing, and they would go back and forth until one of them was less wrong. Maren put the tablet on the passenger seat, started the truck, and drove down to Gothic with the windows open, already drafting the next sentence in her head.
