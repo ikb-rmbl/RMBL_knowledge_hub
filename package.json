@@ -48,6 +48,7 @@
     "graphology-communities-louvain": "^2.0.2",
     "graphology-layout-forceatlas2": "^0.10.1",
     "graphql": "^16.8.1",
+    "js-yaml": "^4.2.0",
     "leaflet": "^1.9.4",
     "next": "^16.2.1",
     "payload": "^3.80.0",
@@ -59,6 +60,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/jsdom": "^28.0.1",
     "@types/node": "^22.15.0",
     "@types/react": "^19.1.0",

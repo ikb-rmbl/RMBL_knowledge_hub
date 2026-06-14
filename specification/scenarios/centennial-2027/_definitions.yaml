@@ -1,0 +1,62 @@
+# Scenario definitions for the Centennial Campaign 2027 visioning set.
+#
+# This YAML is the canonical input to scripts/generate-scenarios.ts. Editing
+# this file and re-running the pipeline regenerates the corresponding .md
+# scenario files in this directory. Per-scenario `version` drives the
+# generated artifact's version stamp; bumping the version and regenerating
+# produces a new version per spec §10.
+#
+# Schema follows Future_scenarios_framework.md §7. Scenarios are authored
+# at representative points within the §5 bracket (magnitude $3M-$8M,
+# emphasis 25/75 to 75/25).
+
+set_id: centennial-2027
+
+set_metadata:
+  name: "Centennial Campaign 2027 visioning"
+  description: |
+    Strategic-planning scenarios for the 2027-2029 Centennial Campaign,
+    spanning the realistic magnitude bracket ($3M-$8M) and the realistic
+    continuity/innovation emphasis bracket (25/75 to 75/25). Scenarios
+    are organized around frontier portfolios (§6); continuity/innovation
+    mix is derived from frontier choice and per-frontier support needs.
+  framework_version: "0.6"
+  time_window:
+    primary_start: 2026
+    primary_end: 2040
+    coda_end: 2050
+
+scenarios:
+  # Target magnitude — continuity-leaning
+  - slug: centennial-stewardship
+    name: "Centennial Stewardship"
+    version: "2.0"
+    campaign_magnitude:
+      target_m_dollars: 7.5
+      range_m_dollars: [7.0, 8.0]
+      bracket_position: "near the upper end of the realistic bracket"
+    continuity_innovation_split:
+      continuity_pct: 65
+      innovation_pct: 35
+    frontier_portfolio:
+      - F.cont.1
+      - F.cont.2
+      - F.innov.3
+      - F.innov.5
+
+  # Target magnitude — innovation-leaning
+  - slug: centennial-capacity
+    name: "Centennial Capacity"
+    version: "2.0"
+    campaign_magnitude:
+      target_m_dollars: 7.5
+      range_m_dollars: [7.0, 8.0]
+      bracket_position: "near the upper end of the realistic bracket"
+    continuity_innovation_split:
+      continuity_pct: 35
+      innovation_pct: 65
+    frontier_portfolio:
+      - F.cont.1
+      - F.innov.3
+      - F.innov.4
+      - F.innov.5
