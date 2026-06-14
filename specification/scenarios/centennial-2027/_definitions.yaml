@@ -30,7 +30,7 @@ scenarios:
   # Target magnitude — continuity-leaning
   - slug: centennial-stewardship
     name: "Centennial Stewardship"
-    version: "2.0"
+    version: "2.1"
     campaign_magnitude:
       target_m_dollars: 7.5
       range_m_dollars: [7.0, 8.0]
@@ -47,7 +47,7 @@ scenarios:
   # Target magnitude — innovation-leaning
   - slug: centennial-capacity
     name: "Centennial Capacity"
-    version: "2.0"
+    version: "2.1"
     campaign_magnitude:
       target_m_dollars: 7.5
       range_m_dollars: [7.0, 8.0]
