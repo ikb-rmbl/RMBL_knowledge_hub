@@ -45,39 +45,68 @@ const noteStyle: React.CSSProperties = {
   margin: '24px 0',
 }
 
-/** Browse page (`/futures`) — full three-paragraph framing at the top. */
+/** Browse page (`/futures`) — collapsible "About these futures" framing. */
 export function BrowseDisclaimer() {
+  const paraStyle: React.CSSProperties = { margin: '8px 0', lineHeight: 1.55 }
+  const summaryStyle: React.CSSProperties = {
+    cursor: 'pointer',
+    fontWeight: 600,
+    fontSize: '14px',
+    padding: '6px 0',
+    color: 'var(--rmbl-orange-deep)',
+    listStyle: 'revert',
+  }
   return (
     <div style={wrapStyle} role="note" aria-label="About these futures">
       <h2 style={headingStyle}>About these futures</h2>
       <p style={{ margin: '0 0 12px' }}>
-        The scenarios and stories in this collection are <strong>planning
-        artifacts</strong>, not forecasts or RMBL institutional commitments.
-        They were generated using a structured specification (the Future
-        Scenarios Framework) and an AI model (Claude Opus); the choices about
-        what to explore — which contingencies, which strategic options, which
-        time horizons — were made by RMBL staff and embedded in the spec.
+        <strong>Planning artifacts — not forecasts or RMBL institutional
+        commitments.</strong> Generated using a structured specification and
+        an AI model (Claude Opus); inputs and constraints are human-authored.
       </p>
-      <p style={{ margin: '0 0 12px' }}>
-        Each scenario describes <em>one plausible state</em> of basin science
-        roughly fifteen years from now, given specified conditions. Together
-        they map the strategic decision space the Centennial Campaign will
-        navigate. They are not predictions of what will happen, nor statements
-        of what RMBL plans to do. The framework deliberately makes plurality
-        (multiple scenarios), contingency-honesty (each scenario names what
-        would invalidate it), and what-is-forgone explicit.
-      </p>
-      <p style={{ margin: '0 0 12px' }}>
-        The companion stories are short literary fiction grounded in specific
-        scenarios. Characters are fictional roles, not real people. The
-        fictional voice helps readers inhabit possibilities the
-        strategic-planning register cannot reach. They are not documentary.
-      </p>
-      <p style={{ margin: '12px 0 0', fontSize: '13px' }}>
-        <Link href="/about#futures-methodology" style={{ color: 'var(--rmbl-orange-deep)' }}>
-          How these were made →
-        </Link>
-      </p>
+
+      <details>
+        <summary style={summaryStyle}>How the scenarios work</summary>
+        <p style={paraStyle}>
+          Each scenario describes <em>one plausible state</em> of basin
+          science roughly fifteen years from now, given specified conditions.
+          Together they map the strategic decision space the Centennial
+          Campaign will navigate. They are not predictions of what will
+          happen, nor statements of what RMBL plans to do. The framework
+          deliberately makes plurality (multiple scenarios), contingency-
+          honesty (each scenario names what would invalidate it), and
+          what-is-forgone explicit.
+        </p>
+      </details>
+
+      <details>
+        <summary style={summaryStyle}>What the companion stories are</summary>
+        <p style={paraStyle}>
+          The companion stories are short literary fiction grounded in
+          specific scenarios. Characters are fictional roles, not real
+          people. The fictional voice helps readers inhabit possibilities
+          the strategic-planning register cannot reach. They are not
+          documentary.
+        </p>
+      </details>
+
+      <details>
+        <summary style={summaryStyle}>How these were made</summary>
+        <p style={paraStyle}>
+          The choices about what to explore — which contingencies, which
+          strategic options, which time horizons, which sets — were made by
+          RMBL staff and embedded in the Future Scenarios Framework
+          specification. Claude Opus drafts the prose from those structured
+          inputs. Every artifact links to its source <code>.md</code> file on
+          GitHub. Full pipeline:{' '}
+          <Link
+            href="/about#futures-methodology"
+            style={{ color: 'var(--rmbl-orange-deep)' }}
+          >
+            Futures methodology on the About page →
+          </Link>
+        </p>
+      </details>
     </div>
   )
 }
