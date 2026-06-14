@@ -6,9 +6,16 @@
 # generated artifact's version stamp; bumping the version and regenerating
 # produces a new version per spec §10.
 #
-# Schema follows Future_scenarios_framework.md §7. Scenarios are authored
-# at representative points within the §5 bracket (magnitude $3M-$8M,
-# emphasis 25/75 to 75/25).
+# Schema follows Future_scenarios_framework.md §7. From spec v0.7 onward,
+# every scenario must include `distinguishing_thesis` and `mattering_in_2040`
+# (see spec §2.7 Strategic distinctness). These are inputs to the prompt,
+# not LLM outputs. Each scenario's thesis must be distinguishable from
+# every other scenario's thesis in the set.
+#
+# This set is laid out across three magnitude tiers (floor, mid-range, target)
+# with anchor framings designed to cover the strategic decision space:
+# records, capacity, community, watershed/Earth-systems, cross-mountain,
+# adaptation/translation, independence-first, phenology-deep.
 
 set_id: centennial-2027
 
@@ -17,20 +24,216 @@ set_metadata:
   description: |
     Strategic-planning scenarios for the 2027-2029 Centennial Campaign,
     spanning the realistic magnitude bracket ($3M-$8M) and the realistic
-    continuity/innovation emphasis bracket (25/75 to 75/25). Scenarios
-    are organized around frontier portfolios (§6); continuity/innovation
-    mix is derived from frontier choice and per-frontier support needs.
-  framework_version: "0.6"
+    continuity/innovation emphasis bracket (25/75 to 75/25). 12 scenarios
+    across three magnitude tiers, each anchored on a distinct strategic
+    thesis per spec v0.7 §2.7.
+  framework_version: "0.7"
   time_window:
     primary_start: 2026
     primary_end: 2040
     coda_end: 2050
 
 scenarios:
-  # Target magnitude — continuity-leaning
+
+  # ===========================================================================
+  # FLOOR TIER (~$3-4M) — 3 scenarios, tight 2-frontier portfolios
+  # ===========================================================================
+
+  - slug: centennial-records-only
+    name: "Centennial Records-Only"
+    version: "1.0"
+    distinguishing_thesis: |
+      The campaign comes in modest, so RMBL does one thing well: protect
+      the most fragile centennial records — the marmot study reaching its
+      centennial, the long meadow phenology series, the snowmelt-driven
+      plant work — through the next fifteen years. No new directions are
+      launched. The scenario tests whether donors will fund the
+      unglamorous work of stewardship at floor magnitude.
+    mattering_in_2040: |
+      In 2040, RMBL matters because its hundred-year records are intact and
+      usable, and the institution survived a constrained period with its
+      core research mission protected. The basin's archive of long
+      observations remains the rare global asset it has always been —
+      preserved when it could have lapsed.
+    campaign_magnitude:
+      target_m_dollars: 3.5
+      range_m_dollars: [3.0, 4.0]
+      bracket_position: "at the campaign floor"
+    continuity_innovation_split:
+      continuity_pct: 80
+      innovation_pct: 20
+    frontier_portfolio:
+      - F.cont.1
+      - F.cont.2
+
+  - slug: centennial-records-and-data
+    name: "Centennial Records and Data"
+    version: "1.0"
+    distinguishing_thesis: |
+      The campaign comes in modest, but RMBL bets that growing in-house
+      data-science capacity is the highest-leverage thing a small budget
+      can do alongside continuity. The marmot, meadow, and snowmelt records
+      are protected; the digitization and AI work makes them newly readable.
+      The scenario tests whether a focused two-frontier bet at floor
+      magnitude can be more impactful than spreading thinly across more.
+    mattering_in_2040: |
+      In 2040, RMBL matters because a century of basin records have been
+      made readable and analyzable at scales prior generations could not
+      attempt. The small data team that did this work is one of the most
+      consequential additions to RMBL's small-scale infrastructure in
+      decades — turning archival depth into living research.
+    campaign_magnitude:
+      target_m_dollars: 3.5
+      range_m_dollars: [3.0, 4.0]
+      bracket_position: "at the campaign floor"
+    continuity_innovation_split:
+      continuity_pct: 65
+      innovation_pct: 35
+    frontier_portfolio:
+      - F.cont.1
+      - F.innov.3
+
+  - slug: centennial-records-and-independence
+    name: "Centennial Records and Independence"
+    version: "1.0"
+    distinguishing_thesis: |
+      The campaign comes in modest, so it focuses on what's most durable:
+      continuity of the long records, and the institutional independence
+      that protects them from external constraint. The scenario tests
+      whether independence-as-strategic-asset can be a campaign anchor at
+      floor magnitude — building the savings, governance, and diversified-
+      funding capacity that let RMBL keep doing this work whatever happens
+      federally.
+    mattering_in_2040: |
+      In 2040, RMBL matters because the long records have continued through
+      a constrained period, and RMBL's nonprofit independence — increasingly
+      rare in the broader research landscape — has become one of the
+      institution's defining attractions for guest scientists seeking
+      unrestricted inquiry.
+    campaign_magnitude:
+      target_m_dollars: 3.5
+      range_m_dollars: [3.0, 4.0]
+      bracket_position: "at the campaign floor"
+    continuity_innovation_split:
+      continuity_pct: 70
+      innovation_pct: 30
+    frontier_portfolio:
+      - F.cont.1
+      - F.innov.5
+
+  # ===========================================================================
+  # MID-RANGE TIER (~$5M) — 3 scenarios, 3-frontier portfolios
+  # ===========================================================================
+
+  - slug: centennial-balance
+    name: "Centennial Balance"
+    version: "1.0"
+    distinguishing_thesis: |
+      At mid-range magnitude, the campaign doesn't have to choose: it
+      protects the long records, grows in-house capacity to read them, and
+      builds the institutional savings that protect independence. The
+      scenario tests whether a balanced three-frontier portfolio at mid-
+      magnitude is more strategically coherent than a single-anchor
+      commitment — and whether donors respond to "do several things
+      moderately well" as a campaign thesis.
+    mattering_in_2040: |
+      In 2040, RMBL matters because it remained the field station it had
+      been — continuity at its core — while quietly becoming better at
+      extracting meaning from a century of records and more financially
+      resilient than at the start of the period. None of these changes are
+      dramatic, but together they leave RMBL stronger.
+    campaign_magnitude:
+      target_m_dollars: 5.0
+      range_m_dollars: [4.5, 5.5]
+      bracket_position: "in the mid-range of the realistic bracket"
+    continuity_innovation_split:
+      continuity_pct: 55
+      innovation_pct: 45
+    frontier_portfolio:
+      - F.cont.1
+      - F.innov.3
+      - F.innov.5
+
+  - slug: centennial-community-mid
+    name: "Centennial Community-Anchored"
+    version: "1.0"
+    distinguishing_thesis: |
+      At mid-range magnitude, the campaign anchors on community
+      partnership as a defining feature. Records are protected; data
+      capacity grows; but the strategic direction is RMBL365 as the
+      anchor for ongoing partnerships with the Ute Indian Tribe, Gunnison
+      Valley water districts, and county schools. The scenario tests
+      whether community priority — long an institutional commitment —
+      can become a campaign-defining feature at mid-magnitude.
+    mattering_in_2040: |
+      In 2040, RMBL matters because the basin is studied with the
+      surrounding community rather than from a distance. The institution's
+      place in the region — as scientific home, as community resource, as
+      a working partner of tribes and water districts — has deepened from
+      periodic visibility into ongoing presence.
+    campaign_magnitude:
+      target_m_dollars: 5.0
+      range_m_dollars: [4.5, 5.5]
+      bracket_position: "in the mid-range of the realistic bracket"
+    continuity_innovation_split:
+      continuity_pct: 50
+      innovation_pct: 50
+    frontier_portfolio:
+      - F.cont.1
+      - F.innov.3
+      - F.innov.4
+
+  - slug: centennial-watershed-mid
+    name: "Centennial Watershed-Anchored"
+    version: "1.0"
+    distinguishing_thesis: |
+      At mid-range magnitude, the campaign anchors on the watershed-Earth-
+      systems work the SAIL campaign opened. Records are protected; data
+      capacity grows; and the campaign keeps the East River atmospheric
+      and biogeochemical measurement systems operational past the campaign
+      window. The scenario tests whether the watershed turn can be made
+      permanent at mid-magnitude rather than requiring target-level
+      investment.
+    mattering_in_2040: |
+      In 2040, RMBL matters because the East River has continued operating
+      as a coupled-systems testbed where guest scientists ask integrated
+      questions about snow, water, soil, microbes, and biology that no
+      other site supports at this depth. The SAIL era is no longer a
+      campaign; it is permanent basin infrastructure.
+    campaign_magnitude:
+      target_m_dollars: 5.0
+      range_m_dollars: [4.5, 5.5]
+      bracket_position: "in the mid-range of the realistic bracket"
+    continuity_innovation_split:
+      continuity_pct: 50
+      innovation_pct: 50
+    frontier_portfolio:
+      - F.cont.1
+      - F.innov.1
+      - F.innov.3
+
+  # ===========================================================================
+  # TARGET TIER (~$7-8M) — 6 scenarios, 4-frontier portfolios
+  # ===========================================================================
+
   - slug: centennial-stewardship
     name: "Centennial Stewardship"
-    version: "2.1"
+    version: "3.0"
+    distinguishing_thesis: |
+      At target magnitude, the campaign's central bet is that protecting
+      the basin's longest continuous records — particularly the marmot
+      study reaching its centennial in the early 2040s — is the highest-
+      leverage thing RMBL can do in the next fifteen years. Every other
+      investment serves that bet. The scenario asks donors to value
+      continuity over visible expansion: durable protection of a few
+      load-bearing things as a more honest expression of mission.
+    mattering_in_2040: |
+      In 2040, RMBL matters because its century-long records continued
+      without interruption through a constrained period, the marmot
+      study passed its centennial, and the small in-house data team made
+      all of it newly readable. The basin remains the rare global asset
+      it has been — not because expansion happened, but because protection
+      did.
     campaign_magnitude:
       target_m_dollars: 7.5
       range_m_dollars: [7.0, 8.0]
@@ -44,10 +247,24 @@ scenarios:
       - F.innov.3
       - F.innov.5
 
-  # Target magnitude — innovation-leaning
   - slug: centennial-capacity
     name: "Centennial Capacity"
-    version: "2.1"
+    version: "3.0"
+    distinguishing_thesis: |
+      At target magnitude, the campaign's central bet is that the next
+      fifteen years are when RMBL's in-house data-science capacity and
+      its community partnerships either consolidate as defining
+      institutional assets or fail to develop. Records are protected at
+      critical-path level; the major investments grow data capacity and
+      community partnership work. The scenario asks donors to value
+      building durable connective tissue rather than protecting it.
+    mattering_in_2040: |
+      In 2040, RMBL matters because a century of basin records have been
+      re-read at scales prior generations could not attempt, and the
+      institution has become a partner of the surrounding community —
+      water districts, tribal nations, schools — rather than only a
+      research presence. The basin's contribution is bigger than the
+      basin itself.
     campaign_magnitude:
       target_m_dollars: 7.5
       range_m_dollars: [7.0, 8.0]
@@ -60,3 +277,130 @@ scenarios:
       - F.innov.3
       - F.innov.4
       - F.innov.5
+
+  - slug: centennial-watershed
+    name: "Centennial Watershed"
+    version: "1.0"
+    distinguishing_thesis: |
+      At target magnitude, the campaign's central bet is that the SAIL-era
+      atmosphere-to-bedrock integration work at the East River needs to
+      become permanent rather than campaign-bounded. The basin's
+      distinctive contribution to global mountain Earth-systems science is
+      this coupled-systems capability; the campaign locks it in. Records
+      and independence work serve this anchor, not the reverse.
+    mattering_in_2040: |
+      In 2040, RMBL matters because the East River has run continuously as
+      one of the world's defining mountain Earth-systems sites, producing
+      integrated science on snow, water, soil, microbes, and biology that
+      no other place has at this depth. The basin's century of biological
+      records sit inside that coupled-systems context — and that pairing
+      is the basin's distinctive global contribution.
+    campaign_magnitude:
+      target_m_dollars: 7.5
+      range_m_dollars: [7.0, 8.0]
+      bracket_position: "near the upper end of the realistic bracket"
+    continuity_innovation_split:
+      continuity_pct: 45
+      innovation_pct: 55
+    frontier_portfolio:
+      - F.cont.1
+      - F.innov.1
+      - F.innov.3
+      - F.innov.5
+
+  - slug: centennial-cross-mountain
+    name: "Centennial Cross-Mountain"
+    version: "1.0"
+    distinguishing_thesis: |
+      At target magnitude, the campaign's central bet is that the basin's
+      distinctive contribution requires positioning RMBL as a deliberately
+      networked node — sharing data infrastructure, methods, and protocols
+      with peer mountain field stations across western North America and
+      beyond. The scenario asks whether RMBL's identity as a place-based
+      institution can coexist with — and be strengthened by — a network-
+      anchor role.
+    mattering_in_2040: |
+      In 2040, RMBL matters because the basin's century-long records are
+      read in comparative context with other mountain sites globally,
+      RMBL's data infrastructure is shared with peer stations, and the
+      network of mountain field stations is itself stronger because the
+      basin chose to anchor it. Place identity and network identity
+      reinforce rather than compete.
+    campaign_magnitude:
+      target_m_dollars: 7.5
+      range_m_dollars: [7.0, 8.0]
+      bracket_position: "near the upper end of the realistic bracket"
+    continuity_innovation_split:
+      continuity_pct: 40
+      innovation_pct: 60
+    frontier_portfolio:
+      - F.cont.1
+      - F.innov.3
+      - F.both.3
+      - F.innov.5
+
+  - slug: centennial-adaptation
+    name: "Centennial Adaptation"
+    version: "1.0"
+    distinguishing_thesis: |
+      At target magnitude, the campaign's central bet is that climate
+      change has crossed thresholds in the basin that demand sustained
+      translation of basin science into water-management, land-management,
+      and adaptation decisions. The campaign builds a standing translation
+      function and connects basin science to Mountain West climate
+      adaptation. The scenario tests whether RMBL can take on this role
+      without compromising its basic-research identity and guest-scientist
+      appeal.
+    mattering_in_2040: |
+      In 2040, RMBL matters because basin science has become directly
+      useful to Mountain West water management, agricultural adaptation,
+      and Forest Service planning at scale. The institution has shown
+      that a small nonprofit can translate long-term ecological observation
+      into practical decision-support without losing its scientific
+      independence — and that doing so makes basic research more valuable,
+      not less.
+    campaign_magnitude:
+      target_m_dollars: 7.5
+      range_m_dollars: [7.0, 8.0]
+      bracket_position: "near the upper end of the realistic bracket"
+    continuity_innovation_split:
+      continuity_pct: 50
+      innovation_pct: 50
+    frontier_portfolio:
+      - F.cont.1
+      - F.cont.3
+      - F.innov.2
+      - F.both.1
+
+  - slug: centennial-phenology-deep
+    name: "Centennial Phenology-Deep"
+    version: "1.0"
+    distinguishing_thesis: |
+      At target magnitude, the campaign's central bet is that the basin's
+      century of phenology and plant-pollinator observations, combined
+      with AI-assisted retrospective analysis, can finally resolve the
+      mismatch question — whether plasticity or evolution dominates
+      ecological response to climate change — at mechanistic scale. The
+      scenario anchors on intellectual depth rather than scope expansion:
+      committing to be the place where one of the field's defining
+      questions gets answered.
+    mattering_in_2040: |
+      In 2040, RMBL matters because the longest pollinator and plant
+      phenology records in North American mountains have been read
+      mechanistically, the plasticity-vs-evolution question is meaningfully
+      resolved for the systems the basin studies, and the work has
+      reshaped how phenology under climate change is understood globally.
+      The basin's contribution is intellectual depth on a defining
+      question.
+    campaign_magnitude:
+      target_m_dollars: 7.5
+      range_m_dollars: [7.0, 8.0]
+      bracket_position: "near the upper end of the realistic bracket"
+    continuity_innovation_split:
+      continuity_pct: 55
+      innovation_pct: 45
+    frontier_portfolio:
+      - F.cont.1
+      - F.cont.4
+      - F.both.2
+      - F.innov.3
