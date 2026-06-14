@@ -383,6 +383,10 @@ The admin curation workflow is three connected pieces:
   DELETE FROM duplicate_tombstones WHERE id = <n>;  -- lets the pipeline reintroduce
   ```
 
+## Git Workflow
+
+See `docs/git-workflow.md` for branching, stacking, and merging patterns. Short version: one PR per craft arc (not per spec micro-version), squash earlier commits before opening a dependent PR, retarget descendants before merging the base or they'll auto-close. Always `--force-with-lease`, never `--force`.
+
 ## Common Pitfalls
 
 - Scripts that write to Payload (`load-to-payload.ts`, `manage-topics.ts`, `build-authors.ts`, `load-fulltext.ts`, `crosslink-datasets.ts`, `seed-projects.ts`, `assign-projects.ts`) require `npm run dev` running

@@ -12,7 +12,7 @@
 # melancholy.
 
 set_id: centennial-2027
-framework_version: "0.11"
+framework_version: "0.12"
 
 stories:
 
@@ -146,5 +146,334 @@ stories:
       seasonally on the transect, and wants the job. The district
       director joins for the last twenty minutes. A decision is
       being made — and shaped, and made — across the conversation.
+    word_count_target: 1500
+    published: false
+
+  # ---------------- second batch (v0.12) -----------------
+  # Adds one story per remaining scenario in the set, so the
+  # twelve scenarios each have a story. v0.12 strengthens §11.2
+  # element 3 with the contrastive test: each scene anchor below
+  # is locked to its scenario's specific investments such that the
+  # plot, the character's options, or the texture would be visibly
+  # different under any sibling scenario's bet.
+
+  - story_slug: adaptation-2039-fuels-plan-handoff
+    scenario_slug: centennial-adaptation
+    mode: stress-overlay
+    year: 2039
+    stress_overlay: |
+      Fire seasons in the Gunnison Basin have lengthened and
+      shifted earlier. The Grand Mesa-Uncompahgre-Gunnison
+      National Forest is revising its five-year vegetation-
+      treatment plan a year early, after a 2038 burn that ran
+      through subalpine fir at elevations agency models did not
+      predict. The Forest Service planner has asked RMBL's
+      translation team to bring the basin's records to the
+      polygon-by-polygon decisions: which units to treat,
+      which to leave, which to monitor. This is not a paper
+      exchange. It is a working partnership the campaign built.
+    pov: "third-person limited"
+    primary_character_role: |
+      A mid-career member of the RMBL translation team, hired in
+      2031 as part of the campaign's first translation cohort.
+      Trained as a fire ecologist; spent five years at a Forest
+      Service research station before RMBL. Has worked with this
+      particular Forest Service planner for six years now and
+      knows what shape of evidence the agency's planning process
+      can actually absorb.
+    scene_anchor: |
+      A working session in the meeting room at RMBL365 in
+      Crested Butte on a Thursday morning in late October 2039.
+      Two Forest Service planners are in the room; a tribal
+      natural-resources liaison is on a video call; the basin's
+      lead phenology PI has come over from Gothic for the
+      morning. A wall-sized map of the GMUG is up. They are
+      walking it polygon by polygon. The translation lead is
+      pulling century-scale snowmelt-and-fire records on demand
+      from a tablet linked to the digitized archive — material
+      that until this campaign existed only as paper.
+    word_count_target: 1500
+    published: false
+
+  - story_slug: balance-2038-shock-absorbed
+    scenario_slug: centennial-balance
+    mode: stress-overlay
+    year: 2038
+    stress_overlay: |
+      NSF's Earth Sciences division has just announced a 30%
+      cut to standing awards for FY2039, the sharpest single-
+      year contraction since the 1980s. Peer field stations are
+      losing studies. RMBL's marmot study, meadow phenology
+      series, and snowmelt plant work continue without lapse —
+      because the campaign's balanced bet built reserves
+      precisely for this case. The bridge decisions are being
+      made this week: which guest-scientist projects to bridge
+      from reserves, which to let lapse, which to refer to the
+      broadened development network.
+    pov: "third-person limited"
+    primary_character_role: |
+      RMBL's executive director, in her fifth year in the role.
+      Came from a peer field station's deputy directorship. Was
+      hired in 2034 partly because she could speak fluently to
+      donors about institutional independence — a skill the
+      Balance scenario asked of leadership. She does not enjoy
+      this part of the work but is good at it.
+    scene_anchor: |
+      A Tuesday afternoon in mid-November 2038 at RMBL365 in
+      Crested Butte. A working session with the deputy director,
+      the development director, and the data team lead on
+      bridge prioritization. Three sticky-noted lists on the
+      whiteboard: bridge, let lapse, refer. They are moving
+      names between lists. A donor call is scheduled for four
+      o'clock. The bridge fund exists because the campaign
+      built it; the broader funding base exists because the
+      campaign built it. Both are being drawn on this week.
+    word_count_target: 1500
+    published: false
+
+  - story_slug: community-mid-2039-water-court-prep
+    scenario_slug: centennial-community-mid
+    mode: stress-overlay
+    year: 2039
+    stress_overlay: |
+      The Upper Gunnison River Water Conservancy District is
+      preparing testimony for an October 2039 water-court case
+      that turns on whether long-term shifts in snowmelt timing
+      and basin phenology constitute a "changed circumstances"
+      claim under Colorado water law. The basin's century of
+      records is at the center of the testimony. The Conservancy
+      District has worked with RMBL's partnership team for nine
+      years through the campaign-funded coproduction work —
+      which is why the records can enter the legal record this
+      way. A neighboring district without those relationships is
+      watching the case closely.
+    pov: "third-person limited"
+    primary_character_role: |
+      A member of the RMBL community-partnership team, hired in
+      2030 as the first dedicated community-coordination position
+      the campaign endowed. Trained in environmental social
+      science; came to RMBL after eight years coordinating
+      tribal-federal water-quality work on the Colorado Plateau.
+      Has spent the decade learning what kinds of evidence the
+      water-court process can use and what shape the records
+      need to be in.
+    scene_anchor: |
+      A Wednesday morning in early September 2039 at RMBL365 in
+      Crested Butte. A working session at the long table in the
+      partnership room: the partnership coordinator, the
+      Conservancy District's lead hydrologist, RMBL's lead
+      phenology PI, and the district's outside water lawyer on a
+      video call. They are preparing the lawyer to question the
+      phenology PI on the stand. Records are being assembled into
+      legal exhibits. The phenology PI is uncomfortable with the
+      register; the partnership coordinator is translating between
+      the languages. The basin's records have been in this room
+      for two years, building toward this. They could not have
+      gotten here without it.
+    word_count_target: 1500
+    published: false
+
+  - story_slug: cross-mountain-2039-comparative-meeting
+    scenario_slug: centennial-cross-mountain
+    mode: stress-overlay
+    year: 2039
+    stress_overlay: |
+      A consortium of mountain field stations across western
+      North America — Niwot Ridge, H. J. Andrews, Sierra Nevada
+      Aquatic Research Lab, Mountain Research Station, two
+      Canadian stations, two Mexican — is meeting at RMBL365 to
+      assemble the first decadal cross-station synthesis on
+      shifting snowmelt-driven plant phenology. RMBL is the
+      anchor: the basin's records are the longest, the shared
+      data tools were built in the basin, the synthesis platform
+      is hosted at RMBL365. The campaign made this possible.
+      Without the cross-mountain network bet, the synthesis would
+      be eight separate papers and no shared protocol.
+    pov: "third-person limited"
+    primary_character_role: |
+      A senior RMBL data scientist who joined in 2028, originally
+      to build the basin-specific phenology pipeline, and who has
+      spent the last seven years building the shared cross-
+      station tools the network depends on. She is the technical
+      lead for the synthesis meeting and the person the visiting
+      station leads want to talk to about protocol questions
+      between sessions.
+    scene_anchor: |
+      A Tuesday in mid-February 2039 at RMBL365 in Crested Butte,
+      midway through the four-day synthesis meeting. The data
+      scientist has just finished a working session with the
+      Andrews and Niwot leads on how to harmonize their elevation-
+      band classifications with the basin's. The meeting room
+      smells of coffee and dry-erase markers. A side conversation
+      with the lead from the Mexican high-elevation station is
+      forming around what kinds of phenology shifts are visible
+      at lower latitudes where snowmelt isn't the dominant cue.
+      The data scientist's afternoon is filling with people who
+      want fifteen minutes — which is what an anchor means.
+    word_count_target: 1500
+    published: false
+
+  - story_slug: phenology-deep-2038-reviewer-response
+    scenario_slug: centennial-phenology-deep
+    mode: stress-overlay
+    year: 2038
+    stress_overlay: |
+      A high-profile paper from the basin's phenology-deep
+      program — the first integrated answer to plasticity-versus-
+      evolution in *Boechera stricta* under shifting snowmelt
+      regimes, drawing on a century of phenology records, eight
+      years of common-garden experiments, and quantitative
+      genetics partnership with a sister institution — is at
+      first revision. Reviewer 2 wants more mechanistic depth
+      than the draft provides. The common-garden plots and the
+      quantitative-genetics partnership the campaign funded are
+      what make the revision feasible at all; without those, the
+      paper would have been a phenology description with a
+      modeling appendix.
+    pov: "third-person limited"
+    primary_character_role: |
+      A postdoc on the phenology-deep program, second-year, who
+      did her PhD in evolutionary biology with the partnering
+      quantitative-genetics lab. Came to RMBL specifically because
+      the basin's century of records combined with the campaign's
+      common-garden investments made this specific question
+      addressable for the first time. She is first author on the
+      paper.
+    scene_anchor: |
+      A Friday morning in late March 2038 at RMBL365 in Crested
+      Butte. The postdoc is working out the reviewer response in
+      the small office on the third floor she's been camping in
+      since November. Her PI is in Boulder for the morning; the
+      quantitative geneticist is on a video call from Pennsylvania.
+      They are deciding which of three mechanistic figures to add
+      and what additional analyses the common-garden data can
+      support without re-running the experiments. The campaign's
+      investments are visible on her screen: the digitized 1934–
+      2038 phenology record open in one window, the common-
+      garden multi-site results open in another, an AI-assisted
+      cross-tab pulling them together in a third.
+    word_count_target: 1500
+    published: false
+
+  - story_slug: records-and-data-2039-grad-student-summer
+    scenario_slug: centennial-records-and-data
+    mode: stress-overlay
+    year: 2039
+    stress_overlay: |
+      The campaign came in at the modest end of the bracket;
+      Records-and-Data was the chosen bet. The digitized
+      archive is now the dominant artifact for guest-scientist
+      work on the basin's deep records. RMBL365 was not
+      renovated; there is no in-town venue for the campaign
+      portfolio. A graduate student finishing her thesis chapter
+      on snowpack-driven *Mertensia* phenology has had her
+      advisor's federal grant fall mid-season; she has six weeks
+      and is finishing the chapter from a sublet apartment in
+      Crested Butte. The chapter is possible because of the
+      digitized cross-linked archive. It would not have been
+      possible in Records-Only; it would have been more
+      comfortable in Stewardship or Balance, where she would
+      have had a desk and a community.
+    pov: "third-person limited"
+    primary_character_role: |
+      A fourth-year PhD student at a state university in the
+      Mountain West. First time at RMBL was as an undergrad in
+      2034. Comfortable with the archive, less comfortable with
+      writing alone. Her advisor is a guest scientist who has
+      worked in the basin for fifteen years; the funding shock is
+      a federal-cycle issue, not a relationship issue.
+    scene_anchor: |
+      A Sunday afternoon in late August 2039 in a sublet
+      apartment on Sopris Avenue in Crested Butte. The graduate
+      student is at the kitchen table with the archive open on a
+      laptop and a printed draft chapter beside it. She has run
+      a query the archive offers to "expand" — pulling in
+      previously-unconnected pollinator records that change the
+      shape of one of her arguments. The expansion is helpful
+      and slightly disorienting. She walks to the bakery for
+      coffee, comes back, and starts the revision. Her advisor
+      will be on a call at six. There is no RMBL building she
+      can walk to today.
+    word_count_target: 1500
+    published: false
+
+  - story_slug: records-and-independence-2039-bridge-offer
+    scenario_slug: centennial-records-and-independence
+    mode: stress-overlay
+    year: 2039
+    stress_overlay: |
+      Federal funding cycles in 2039 are erratic in the way
+      that has become normal across the decade. A senior guest
+      scientist whose marmot-genetics work has run continuously
+      since 2008 has had her grant renewal slip a year — the
+      shape of slip that ends some studies and survives others.
+      The campaign's Records-and-Independence bet built the
+      reserves that let RMBL make multi-year bridge commitments;
+      it did not build an in-town community center or a
+      translation function. The bridge offer being made today
+      could not have been made in any scenario that forgoes
+      the reserves.
+    pov: "third-person limited"
+    primary_character_role: |
+      RMBL's executive director, in her fourth year in the role.
+      A trained ecologist who moved into administration through
+      a peer institution's deputy directorship. Cares about the
+      marmot study at the level of someone who has read a
+      decade of its papers. She is making the bridge offer in
+      person because of what the study means and because of
+      what the offer represents.
+    scene_anchor: |
+      A Wednesday afternoon in early June 2039 at the senior
+      guest scientist's house in Crested Butte, where she has
+      been a summer resident for thirty-one years. They are on
+      the back porch with coffee. The director has driven over
+      from Gunnison and brought the formal letter — three years
+      of bridge funding from the campaign's stewardship
+      reserves, contingent on resubmission of the federal grant
+      in the next cycle. The senior scientist is reading it. A
+      pair of broad-tailed hummingbirds is at the feeder. The
+      two of them are talking about how the marmot study, two
+      years from its centennial, will go on either way — and
+      what either way means.
+    word_count_target: 1500
+    published: false
+
+  - story_slug: watershed-mid-2039-piezometer-check
+    scenario_slug: centennial-watershed-mid
+    mode: stress-overlay
+    year: 2039
+    stress_overlay: |
+      The East River coupled-systems testbed has been operating
+      as permanent RMBL infrastructure for nine winters now,
+      since the SAIL handoff completed in 2030. A guest-scientist
+      project that depends on a continuous groundwater record
+      from one of the basin's piezometers is at the three-year
+      mark; if a calibration drift the instrument flagged
+      overnight is real, the project's last year of data are at
+      risk. Without the campaign's watershed bet, the piezometer
+      would have been decommissioned in 2032 with the rest of
+      SAIL's infrastructure; the guest-scientist project would
+      not exist; the question being asked would be unaskable.
+    pov: "third-person limited"
+    primary_character_role: |
+      A mid-career RMBL technical staff member who has run the
+      East River watershed instrument network since 2031. Trained
+      as a hydrologic technician at a peer site; came to RMBL
+      because the post-SAIL permanent-infrastructure bet
+      promised the kind of decade-scale work she wanted to do.
+      Has worked with this particular piezometer's data through
+      seven winters.
+    scene_anchor: |
+      A Tuesday in mid-January 2039, mid-morning, on the snow
+      below the Pumphouse plot at the East River testbed. The
+      technical staff member is on skis with a field tablet, a
+      multimeter, and a thermos of coffee. The instrument has
+      sent its overnight diagnostic by satellite; she is here to
+      confirm the drift in person before deciding whether to
+      flag the last three months of data for review or
+      recalibration. The sky is the kind of clear that means
+      cold. The guest scientist whose project depends on this
+      instrument is on a sabbatical in Iceland and will check in
+      by message in the afternoon. The skiing back will be good.
     word_count_target: 1500
     published: false
