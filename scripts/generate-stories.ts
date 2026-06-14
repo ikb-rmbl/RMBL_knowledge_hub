@@ -117,10 +117,22 @@ If you could substitute "Niwot Ridge" or "H. J. Andrews" for "RMBL" without chan
 
 # Required tonal moves (spec §11.4)
 
+The v0.8 prompt asked for "humor or warmth" and "physical specificity," and the LLM honored both in their quiet register exclusively — every first-batch story closed in contemplative melancholy. The v0.9 prompt explicitly distinguishes **texture moves** (sensory and material; can be quiet) from **dynamism moves** (which must be present so the story isn't only elegiac).
+
+**Texture moves (sensory, material — can be quiet):**
+
 - **One moment of physical specificity** — the smell of woodsmoke; the way light moves across the talus; the cold weight of a marmot in someone's hands; the sound of a pika in late August.
-- **One moment of texture from the work** — running an archival query that returns more than expected; finding a calibration drift; reading a 1979 field notebook in handwriting that has aged toward illegibility; the moment when a sensor fails and a person has to climb to fix it.
-- **One moment of humor or warmth.** Real working life includes these. Their absence is portentous.
-- **One reference to something the campaign funded that now matters** — not in campaign-marketing register, just present in the world of the story.
+- **One moment of texture from the work** — running an archival query that returns more than expected; finding a calibration drift; reading a 1979 field notebook; the moment a sensor fails and a person has to climb to fix it.
+- **One reference to something the campaign funded that now matters** — not in campaign-marketing register, just present in the world.
+
+**Dynamism moves (REQUIRED — these are how we prevent the story from collapsing into uniform melancholy):**
+
+- **A moment of active possibility opening** — someone notices something they hadn't seen, asks a question that hadn't been askable before, has an idea that might or might not pan out. Not solving the crisis; expanding what's thinkable.
+- **A moment of agency** — a character makes a choice and acts on it. Sends an email, makes a call, writes a memo, says yes to a meeting, hires someone, picks up the phone, drafts a paragraph. Working life is full of small agencies. If your story has none, it has slipped into elegy.
+- **A moment of visible competence** — someone is good at their work and we see it land. Not "she was the best at" — actual skilled work happening on the page, in present-tense narrative.
+- **A forward-leaning beat in the closing** — a planned next step, an invitation extended, a phone number written down, an idea to follow up on, a return scheduled. The story does not need to end on this beat exclusively, but the closing should not be contemplative acceptance alone.
+- **A moment of warmth that has energy, not grief** — a shared joke that's genuinely funny, mutual ribbing, mentorship landing in real time, professional respect made explicit, someone teaching someone something well. Distinct from the texture-move "humor or warmth" — this is warmth-as-energy, not warmth-as-acknowledgment-of-loss.
+- **A moment of unambiguous good** — a clean measurement, a flower opening on schedule, a pika seen, a query returning something surprising, a trap well-set, a student understanding something. No "but" attached. The world contains pleasure even under stress; good fiction in this register lets it through.
 
 # Forbidden patterns (CRITICAL — spec §11.3)
 
@@ -128,6 +140,7 @@ If you could substitute "Niwot Ridge" or "H. J. Andrews" for "RMBL" without chan
 - **Exposition through dialogue.** Characters do not explain the scenario to each other. They live inside it. They reference it sideways at most.
 - **Didactic endings / "lessons learned" voice.** No final paragraph telling the reader what to take away. No "and so" sentences. No essay-y closing reflection.
 - **Fatalism / nihilism.** The future is not foregone. Characters can act, even under stress, even when their actions don't save things. Action matters even when it doesn't transcend.
+- **Low-affect resolution.** Endings that resolve into quiet acceptance, contemplative melancholy, the "they would do this as long as they were able" register. Allowed endings: forward-leaning, charged with possibility, charged with curiosity, charged with a small joy, genuinely uncertain in a way that opens rather than closes, or — sparingly — quietly accepting. A story whose final beat is a character alone with their feelings, watching light fade, has slipped into the v0.8 failure mode the prompt is designed to prevent.
 - **Generic mountain-lab fiction.** Specifics anchor the story.
 - **Naming real living people.** Characters are roles, not real RMBL staff. No real researcher names in dialogue or attribution.
 - **Heroic individuals.** No one in the story singlehandedly figures anything out. Work is collaborative, partial, often inconclusive.

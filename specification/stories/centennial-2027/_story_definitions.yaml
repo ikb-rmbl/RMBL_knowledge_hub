@@ -2,136 +2,149 @@
 #
 # Stories are short literary fiction grounded in specific scenarios from
 # specification/scenarios/centennial-2027/. Schema follows
-# Future_scenarios_framework.md §11.
+# Future_scenarios_framework.md §11 (v0.9 rules in effect).
 #
-# Initial audience: internal. published: false by default. Stories cleared
-# for Commons publication get published: true and surface at
-# /futures/<scenario>/stories/<story>.
-#
-# This first batch tests 4 scenarios spanning the strategic anchors:
-#   - centennial-stewardship (target tier, records-focused) — severe climate stress
-#   - centennial-capacity (target tier, capacity + community) — AI displacement stress
-#   - centennial-watershed (target tier, atmosphere-to-bedrock) — sharp federal withdrawal
-#   - centennial-records-only (floor tier, pure stewardship) — sharp federal contraction
+# v0.9 changes: years shifted to 2038-2039 (where scenarios have most
+# diverged); Capacity and Watershed scene anchors rewritten toward dynamic
+# situations rather than after-action contemplation. The v0.9 prompt adds
+# six dynamism moves (§11.4) and a new forbidden pattern (low-affect
+# resolution, §11.3) to prevent the v0.8 failure mode of uniform quiet
+# melancholy.
 
 set_id: centennial-2027
-framework_version: "0.8"
+framework_version: "0.9"
 
 stories:
 
-  - story_slug: stewardship-2034-snowmelt-shock
+  - story_slug: stewardship-2039-snowmelt-shock
     scenario_slug: centennial-stewardship
     mode: stress-overlay
-    year: 2034
+    year: 2039
     stress_overlay: |
-      An anomalous snowpack year: by early April, snow-water equivalent
-      across the basin sits at roughly 30% of the 1991-2020 baseline.
-      The kind of season researchers had modeled but never lived through.
-      The summer ahead is dry, hot, and short; phenology runs early
-      across nearly every monitored species. The climate trajectory is
-      visibly steeper than the central case the campaign assumed in
-      2028.
+      The third anomalous snow year in five: by early April 2039, the
+      basin's snow-water equivalent again sits at roughly 30% of the
+      1991-2020 baseline, after similar shocks in 2034 and 2037. The
+      pattern has shifted from anomaly to plausible new normal.
+      Phenology stacks compress. Marmot pup mass runs light. The
+      campaign's archive-and-data investments have been operational
+      for nine years; the small data team has matured into something
+      RMBL leadership now takes as institutional. The marmot
+      demographic study sits two years from its centennial.
     pov: "third-person limited"
     primary_character_role: |
       A mid-career RMBL data archivist who has been at the institution
-      for twelve years. They came in as a postdoc on a marmot-genetics
-      project, drifted into data work, and were one of the first
-      positions the Centennial Campaign endowed. Their role is now
-      half archive, half synthesis support for guest scientists.
+      for seventeen years. Hired originally as a postdoc on a marmot-
+      genetics project, drifted into data work, was one of the first
+      positions the campaign endowed in 2030. Now half archive, half
+      synthesis support for guest scientists, and increasingly a
+      mentor to younger staff.
     scene_anchor: |
-      The annual late-summer day when the marmot weighing crew finishes
-      its season at the meadow site above Gothic. The archivist is up
-      from RMBL365 to help carry equipment, run a quick query against
-      a 1934-drought-year baseline they've been wondering about, and
-      eat dinner with the crew at the dining hall.
+      A late-August day at the meadow site above Gothic where the
+      marmot weighing crew is wrapping its season. The archivist has
+      come up with a new query she wants to test against the now-
+      complete digitized record going back to 1948 — and she wants
+      the field crew's input on which species comparisons would
+      matter. A new postdoc is on her first season. There is a
+      decision pending about whether to fund a new long-term plot
+      five kilometers up-drainage to capture the changed snowmelt
+      regime.
     word_count_target: 1500
     published: false
 
-  - story_slug: capacity-2036-ai-commoditization
+  - story_slug: capacity-2039-position-paper-morning
     scenario_slug: centennial-capacity
     mode: stress-overlay
-    year: 2036
+    year: 2039
     stress_overlay: |
-      AI capability surge: through 2034-2035, several large-scale
-      foundation models reach a level where the kinds of retrospective
-      synthesis the RMBL data team has built tools for become
-      commodified — a startup launches a service that does in a
-      weekend, on any digitized ecological archive, what the basin's
-      team spent five years building specialized tools for. The team's
-      tools are still better in basin context; the value proposition
-      to outside scientists is harder to articulate.
+      AI capability has matured further than the central case
+      assumed. Foundation models now produce credible ecological
+      syntheses from any digitized archive in hours. Several startups
+      offer commercial services that overlap with RMBL's specialized
+      basin tools. The data team's value proposition rests on what
+      basin-specific knowledge they can encode that general models
+      cannot — and on the community partnerships the campaign built,
+      which the commercial services have no access to.
     pov: "third-person limited"
     primary_character_role: |
-      An early-career data scientist who joined RMBL in 2030 fresh out
-      of a PhD. They built much of the basin's pollinator-network
-      synthesis tooling. By 2036 they're senior enough to be invited
-      to conferences but young enough to feel the displacement of
-      their work personally.
+      An early-career-now-mid-career data scientist who joined RMBL
+      in 2030 fresh out of a PhD. Built much of the basin's
+      pollinator-network synthesis tooling. By 2039 she is one of
+      the senior technical leads at RMBL and is preparing remarks
+      for an applied AI for ecology conference in Denver — not
+      defensive remarks but a forward-looking framing of what the
+      basin offers that general AI tools structurally cannot.
     scene_anchor: |
-      A workshop in Denver in late September 2036 — an applied AI for
-      ecology gathering, where a competing startup is demoing tools
-      that overlap with theirs. The data scientist is on a panel,
-      and afterward has dinner with a longtime guest scientist who
-      has used both the basin's tools and the new commercial ones.
+      The morning of the conference at RMBL365 in Crested Butte —
+      she is writing the talk and calling collaborators to test
+      the framing. A working session with a tribal natural-resources
+      partner about phenology data they want to co-publish. A short
+      call with a peer institution's data lead. The position is
+      coming into focus as she writes. She has a flight at three.
     word_count_target: 1500
     published: false
 
-  - story_slug: watershed-2032-sail-handoff
+  - story_slug: watershed-2038-budget-meeting
     scenario_slug: centennial-watershed
     mode: stress-overlay
-    year: 2032
+    year: 2038
     stress_overlay: |
-      Sharper federal earth-systems funding withdrawal than the
-      central case assumed: the post-SAIL handoff that the campaign
-      planned to make smooth has become rougher, with several
-      atmospheric and groundwater instrument sites slated for
-      decommission unless RMBL takes them on directly. A reserves
-      decision looms — pull harder on the campaign savings to keep
-      everything running, or accept a thinner instrumentation
-      footprint going into the second half of the horizon.
+      Federal earth-systems funding has contracted sharper than the
+      central case assumed. The post-SAIL handoff completed in 2031
+      but several long-running atmospheric and groundwater
+      instruments are now at end of physical life, and the
+      replacement question crystallizes. The campaign's reserves
+      have been drawn down through two earlier shocks. A genuine
+      budget choice sits on the table: which instruments get
+      replaced, which get retired, which get partnered out to peer
+      institutions.
     pov: "third-person limited"
     primary_character_role: |
       A senior guest scientist who has been coming to the East River
-      site since the original SAIL campaign in 2021-2023. Their own
-      lab is at a state university, their grants are tightening, and
-      they have a stake in which instruments stay funded — but no
-      formal role in the RMBL decision.
+      site since the original SAIL campaign in 2021-2023. Her own
+      lab is at a state university. She has been quietly co-managing
+      the East River observatory's scientific strategy with RMBL
+      technical staff for years and is now at the table for the
+      replacement-question meeting.
     scene_anchor: |
-      An October morning at the East River testbed: the scientist
-      walks the riparian transect with a younger RMBL technician
-      who's been asked to make a quiet inventory of which instruments
-      could go offline with the least scientific cost. The
-      conversation is half about the instruments and half about
-      everything else.
+      A working budget meeting at RMBL365 in Crested Butte on a
+      Tuesday morning in mid-October 2038. Five people in a small
+      room: the senior scientist, two RMBL technical staff, a
+      RMBL administrative director, and on a video call a colleague
+      from a peer Sierra Nevada observatory who has joined to
+      explore an instrument-sharing arrangement. The meeting is
+      where the inventory becomes a plan. Decisions are being made.
     word_count_target: 1500
     published: false
 
-  - story_slug: records-only-2031-pollinator-handoff
+  - story_slug: records-only-2039-hiring-decision
     scenario_slug: centennial-records-only
     mode: stress-overlay
-    year: 2031
+    year: 2039
     stress_overlay: |
-      Sharp federal contraction has hit harder than the central case
-      assumed. Several long-running studies have lost their lead
-      researchers without obvious successors; one of the long
-      pollinator transects, run by the same guest scientist since
-      the early 1990s, is at risk of lapsing because no academic lab
-      is willing to take it on. The campaign protected the protocols
-      and the plot infrastructure, but not the human continuity.
+      Federal contraction has compounded over the decade. Several
+      long-running studies have lost their lead researchers without
+      successors. The pollinator transect that survived through 2031
+      via a Water Conservancy District partnership has been
+      sustained on patched-together funding for eight years; now the
+      partnership coordinator is ready to make it more permanent —
+      hiring a full-time technician shared between the district and
+      RMBL. The hire is happening in this story. The campaign
+      protected protocols and plots; what's being built now is the
+      human continuity it didn't fund directly.
     pov: "third-person limited"
     primary_character_role: |
       A staff scientist at the Upper Gunnison River Water
-      Conservancy District in Gunnison. They've worked with RMBL on
-      groundwater questions for fifteen years and know the pollinator
-      transect researcher socially. They've been asked, informally,
-      whether the district might fund a part-time technician to run
-      the transect for a few years — a kind of partnership that
-      doesn't fit any existing category at either institution.
+      Conservancy District in Gunnison. Has worked with RMBL on
+      groundwater questions for over twenty years now. Has spent
+      eight years patching together the pollinator transect's
+      operations; is now interviewing for the shared technician
+      position the district board approved in July.
     scene_anchor: |
-      A late-July afternoon at the Crested Butte Wildflower Festival,
-      where the district staffer is staffing a water-conservation
-      booth across from the long-running RMBL outreach table. The
-      transect researcher stops by. The conversation that follows is
-      the one the staffer has been bracing for.
+      The second interview with the leading candidate, on a Friday
+      afternoon in late September at the district office in
+      Gunnison. The candidate has a strong field record, has worked
+      seasonally on the transect, and wants the job. The district
+      director joins for the last twenty minutes. A decision is
+      being made — and shaped, and made — across the conversation.
     word_count_target: 1500
     published: false
