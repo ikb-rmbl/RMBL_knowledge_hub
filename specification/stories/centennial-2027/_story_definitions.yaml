@@ -1,0 +1,137 @@
+# Story definitions for the centennial-2027 set.
+#
+# Stories are short literary fiction grounded in specific scenarios from
+# specification/scenarios/centennial-2027/. Schema follows
+# Future_scenarios_framework.md §11.
+#
+# Initial audience: internal. published: false by default. Stories cleared
+# for Commons publication get published: true and surface at
+# /futures/<scenario>/stories/<story>.
+#
+# This first batch tests 4 scenarios spanning the strategic anchors:
+#   - centennial-stewardship (target tier, records-focused) — severe climate stress
+#   - centennial-capacity (target tier, capacity + community) — AI displacement stress
+#   - centennial-watershed (target tier, atmosphere-to-bedrock) — sharp federal withdrawal
+#   - centennial-records-only (floor tier, pure stewardship) — sharp federal contraction
+
+set_id: centennial-2027
+framework_version: "0.8"
+
+stories:
+
+  - story_slug: stewardship-2034-snowmelt-shock
+    scenario_slug: centennial-stewardship
+    mode: stress-overlay
+    year: 2034
+    stress_overlay: |
+      An anomalous snowpack year: by early April, snow-water equivalent
+      across the basin sits at roughly 30% of the 1991-2020 baseline.
+      The kind of season researchers had modeled but never lived through.
+      The summer ahead is dry, hot, and short; phenology runs early
+      across nearly every monitored species. The climate trajectory is
+      visibly steeper than the central case the campaign assumed in
+      2028.
+    pov: "third-person limited"
+    primary_character_role: |
+      A mid-career RMBL data archivist who has been at the institution
+      for twelve years. They came in as a postdoc on a marmot-genetics
+      project, drifted into data work, and were one of the first
+      positions the Centennial Campaign endowed. Their role is now
+      half archive, half synthesis support for guest scientists.
+    scene_anchor: |
+      The annual late-summer day when the marmot weighing crew finishes
+      its season at the meadow site above Gothic. The archivist is up
+      from RMBL365 to help carry equipment, run a quick query against
+      a 1934-drought-year baseline they've been wondering about, and
+      eat dinner with the crew at the dining hall.
+    word_count_target: 1500
+    published: false
+
+  - story_slug: capacity-2036-ai-commoditization
+    scenario_slug: centennial-capacity
+    mode: stress-overlay
+    year: 2036
+    stress_overlay: |
+      AI capability surge: through 2034-2035, several large-scale
+      foundation models reach a level where the kinds of retrospective
+      synthesis the RMBL data team has built tools for become
+      commodified — a startup launches a service that does in a
+      weekend, on any digitized ecological archive, what the basin's
+      team spent five years building specialized tools for. The team's
+      tools are still better in basin context; the value proposition
+      to outside scientists is harder to articulate.
+    pov: "third-person limited"
+    primary_character_role: |
+      An early-career data scientist who joined RMBL in 2030 fresh out
+      of a PhD. They built much of the basin's pollinator-network
+      synthesis tooling. By 2036 they're senior enough to be invited
+      to conferences but young enough to feel the displacement of
+      their work personally.
+    scene_anchor: |
+      A workshop in Denver in late September 2036 — an applied AI for
+      ecology gathering, where a competing startup is demoing tools
+      that overlap with theirs. The data scientist is on a panel,
+      and afterward has dinner with a longtime guest scientist who
+      has used both the basin's tools and the new commercial ones.
+    word_count_target: 1500
+    published: false
+
+  - story_slug: watershed-2032-sail-handoff
+    scenario_slug: centennial-watershed
+    mode: stress-overlay
+    year: 2032
+    stress_overlay: |
+      Sharper federal earth-systems funding withdrawal than the
+      central case assumed: the post-SAIL handoff that the campaign
+      planned to make smooth has become rougher, with several
+      atmospheric and groundwater instrument sites slated for
+      decommission unless RMBL takes them on directly. A reserves
+      decision looms — pull harder on the campaign savings to keep
+      everything running, or accept a thinner instrumentation
+      footprint going into the second half of the horizon.
+    pov: "third-person limited"
+    primary_character_role: |
+      A senior guest scientist who has been coming to the East River
+      site since the original SAIL campaign in 2021-2023. Their own
+      lab is at a state university, their grants are tightening, and
+      they have a stake in which instruments stay funded — but no
+      formal role in the RMBL decision.
+    scene_anchor: |
+      An October morning at the East River testbed: the scientist
+      walks the riparian transect with a younger RMBL technician
+      who's been asked to make a quiet inventory of which instruments
+      could go offline with the least scientific cost. The
+      conversation is half about the instruments and half about
+      everything else.
+    word_count_target: 1500
+    published: false
+
+  - story_slug: records-only-2031-pollinator-handoff
+    scenario_slug: centennial-records-only
+    mode: stress-overlay
+    year: 2031
+    stress_overlay: |
+      Sharp federal contraction has hit harder than the central case
+      assumed. Several long-running studies have lost their lead
+      researchers without obvious successors; one of the long
+      pollinator transects, run by the same guest scientist since
+      the early 1990s, is at risk of lapsing because no academic lab
+      is willing to take it on. The campaign protected the protocols
+      and the plot infrastructure, but not the human continuity.
+    pov: "third-person limited"
+    primary_character_role: |
+      A staff scientist at the Upper Gunnison River Water
+      Conservancy District in Gunnison. They've worked with RMBL on
+      groundwater questions for fifteen years and know the pollinator
+      transect researcher socially. They've been asked, informally,
+      whether the district might fund a part-time technician to run
+      the transect for a few years — a kind of partnership that
+      doesn't fit any existing category at either institution.
+    scene_anchor: |
+      A late-July afternoon at the Crested Butte Wildflower Festival,
+      where the district staffer is staffing a water-conservation
+      booth across from the long-running RMBL outreach table. The
+      transect researcher stops by. The conversation that follows is
+      the one the staffer has been bracing for.
+    word_count_target: 1500
+    published: false

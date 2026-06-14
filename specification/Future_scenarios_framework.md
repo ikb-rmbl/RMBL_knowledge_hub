@@ -2,7 +2,7 @@
 
 *A specification for grounded, contingency-honest future-scenario artifacts in the RMBL Knowledge Commons. Initial application: the 2027–2029 Centennial Campaign, with extensibility to subsequent visioning cycles.*
 
-**Status:** Working draft, v0.7
+**Status:** Working draft, v0.8
 **Audience:** RMBL leadership and board (primary), prospective Centennial Campaign donors (secondary), basin scientists and staff (tertiary), Commons developers (implementing the artifact)
 **Companion artifacts:** the Eras collection (decade-or-bucket + century-scale period primers), the Frontiers collection (current knowledge boundaries), the planning-pipeline themes (cross-lens strategic synthesis)
 
@@ -105,7 +105,7 @@ The time-bound material in §3.2 should be reviewed and revised with each spec v
 - **Campaign structure is the Development & Advancement team's prerogative.** The actual structure of a Capital Campaign — fund vehicles, named-gift opportunities, gift-tier framings, donor-recognition structures, the specific dollar allocations within deliverables, the split between endowment and capital — is tailored to RMBL's actual donor base and is the work of the Development & Advancement team. Strategic-planning scenarios inform that work but do not prescribe it. **Scenarios articulate strategic priorities and required capacities; the Development team translates those into campaign vehicles with planning-process guidance and donor-base intelligence the planning process cannot have.** Scenarios that name specific funds ("the Endowed X Fund"), pin per-deliverable dollar amounts ("$3.5M endowment, $175K/yr draw"), or specify endowment-vs-capital splits at the deliverable level encroach on Development-team territory and should be revised.
 - **Identity.** The combination of these features — guest-scientist research model, small catalytic technical staff, broad responsive infrastructure investment, community-as-institutional-priority, and the boundary between strategic-planning scenarios and campaign-vehicle design — is RMBL's distinctive shape. Scenarios that imply RMBL becoming a directive research institution, a federal-style program-managing organization, or a generic field station miss what's actually being preserved or transformed.
 
-### 3.2 Time-bound: the current moment (as of v0.7, 2026)
+### 3.2 Time-bound: the current moment (as of v0.8, 2026)
 
 - **Federal funding disruption is the current baseline, not a hypothetical.** In the past year, federal funding disruptions have affected some RMBL-associated researchers directly. The contraction is no longer a contingency to model as a future possibility — it is the operating environment from which scenarios depart. The relevant overlay question is not "what if federal funding contracts?" but "how does the already-contracted state evolve from here — stabilize, intensify, partially recover?" Scenario authoring and the `overlay_robustness` field should reflect this.
 - **Diversified funding base as institutional priority.** The disruption has driven RMBL-associated researchers (and RMBL itself) to seek broader funding bases — foundations, private donors, institutional partnerships — at greater urgency than in earlier years. The Centennial Campaign itself is partly motivated by this shift; scenario framing should acknowledge that the campaign exists in a fundraising environment where its scale is more strategically necessary than it would be under sustained federal investment.
@@ -458,7 +458,68 @@ A scenario should be **replaced by a wholly new set** (new `set_id`) when:
 
 ---
 
-## 11. Open questions
+## 11. Stories — narrative companions to scenarios
+
+Stories are short literary fiction (target 1,200–1,800 words) grounded in specific scenarios, designed to help readers inhabit the futures the scenarios describe. They are companion artifacts, not replacements for scenarios — the scenarios remain the strategic-planning ground truth; stories provide vivid, concrete texture that scenarios deliberately do not.
+
+The audience for stories is scientists and those who think science is important — a sophisticated reader who can spot inauthentic working-life details and recognizes hero-scientist tropes as condescending. Stories should read in the register of literary science fiction (Kim Stanley Robinson's *Antarctica* / *Ministry for the Future*; Becky Chambers; Ursula K. Le Guin's *Always Coming Home*; Annalee Newitz's *The Terraformers*), not science journalism, not hagiography, not didactic essay.
+
+### 11.1 Modes
+
+Three story modes, chosen per story in the YAML definition:
+
+- **Inhabitation** — slice-of-life: what daily working life feels like in the basin in a given year under the scenario. Quiet, character-anchored. Useful for helping readers picture an institution day-to-day.
+- **Inflection-point** — dramatizes one specific `moment_of_choice` from the scenario; the decision being made, alternatives present as real options, characters with conflicting views. Useful for making the agency-and-contingency principle felt rather than abstract.
+- **Stress-overlay** — the scenario's commitments are tested by an external stress (federal contraction, severe climate, AI disruption); sometimes the scenario holds, sometimes it doesn't. Useful for making stress cases concrete rather than analytical.
+
+### 11.2 Required structural elements
+
+Every story must include:
+
+- At least one scene set in a named basin location (Gothic, RMBL365, the East River, a specific meadow site, etc.)
+- At least one moment where the stress overlay (or scenario condition) is felt concretely — someone notices, someone is affected, the texture of a familiar place is changed
+- At least one way the scenario's commitments shape what's possible or impossible — something that was funded matters; something that was forgone is missed
+- At least one moment that isn't about science — characters as people, not as functions
+- An ending that doesn't resolve to triumph or despair. Things continue. Stakes remain.
+
+### 11.3 Forbidden patterns
+
+- **"RMBL science saves the day" arc.** The scenario's commitments may shape what's possible, but the story must not resolve as triumph.
+- **Exposition through dialogue.** Characters do not explain the scenario to each other. They live inside it; they reference it sideways at most.
+- **Didactic endings.** No "lessons learned" voice. No final paragraph telling the reader what to take away.
+- **Fatalism.** The future is not foregone; characters can act, even under stress, even when their actions don't save things.
+- **Generic mountain-lab fiction.** If you could substitute "Niwot Ridge" or "H. J. Andrews" for "RMBL" without changing anything, you've written generic fiction. Specifics anchor the story.
+- **Naming real living people.** Characters are roles, not real RMBL staff.
+- **Heroic individuals.** No one in the story singlehandedly figures anything out. Work is collaborative, partial, often inconclusive.
+- **Spec vocabulary.** No "distinguishing thesis," "frontier portfolio," "innovation-to-infrastructure flywheel," "in-house catalytic capacity," etc. — the story is not a planning document.
+
+### 11.4 Required tonal moves
+
+- **One moment of physical specificity** — the smell of woodsmoke; the way light moves across the talus; the weight of a marmot in someone's hands. Sensory detail anchors fiction.
+- **One moment of texture from the work** — running an archival query that returns more than expected; finding a calibration drift; reading a 1979 field notebook. The work has its own granularity.
+- **One moment of humor or warmth.** Working life includes these. Their absence reads as portentous.
+- **One reference to something the campaign funded that now matters** — *not* in a campaign-marketing register; just present in the world.
+
+### 11.5 Storage and audience
+
+Storage:
+```
+specification/stories/<set_id>/<story_slug>.md
+```
+
+Plus `_story_definitions.yaml` per set listing which stories exist. Each story's YAML entry includes `scenario_slug` (the scenario the story is grounded in), `mode`, `year`, the stress overlay or inflection-point or inhabitation parameters, POV, primary character role, scene anchor, word count target, and a `published` flag.
+
+**Initial audience: internal.** Stories are easier to misread than planning artifacts and can age in ways scenarios cannot. Default `published: false` until reviewed. Stories cleared for Commons publication get `published: true` and surface at `/futures/<scenario>/stories/<story>` paired with the scenario they ground in.
+
+### 11.6 Authoring model
+
+LLM-assisted human authoring: humans choose the stress overlay, year, character role, and scene anchor in the YAML (the strategic and dramatic choices); the LLM produces the prose. Pipeline analogous to scenarios: `scripts/generate-stories.ts` + `src/services/stories.ts`. PROMPT_STORY inlines the full scenario as context and applies the §11.2–11.4 rules as enforcement.
+
+The forbidden patterns (§11.3) are operationally enforced in the prompt; the lint sweep on generated stories checks for violations as a final gate.
+
+---
+
+## 12. Open questions
 
 To resolve through discussion before the framework reaches v1.0:
 
@@ -467,9 +528,10 @@ To resolve through discussion before the framework reaches v1.0:
 
 ---
 
-## 12. Revision log
+## 13. Revision log
 
-- **v0.7** (this revision): introduces **strategic distinctness** as a core principle (new §2.7) to address scenario convergence — the failure mode in which scenarios within a set share a playbook with different emphasis (same investment categories, same moments of choice, same audience-lens shape, just different mixes) rather than committing to distinguishably different strategic identities. Two new required structured fields enforce distinctness:
+- **v0.8** (this revision): introduces **Stories** as a new artifact type (new §11), companion to scenarios. Stories are short literary fiction (~1,200–1,800 words) grounded in a specific scenario, designed to help readers inhabit the futures the scenarios describe in a register scenarios deliberately can't reach. Three modes (inhabitation / inflection-point / stress-overlay) chosen per story; stress-overlay is the primary mode for the centennial-2027 set, making external stress cases concrete rather than analytical. §11 documents required structural elements (named basin location, stress felt concretely, scenario commitment shaping possibility, a moment that isn't about science, ending that doesn't resolve to triumph or despair), required tonal moves (physical specificity, texture of work, humor or warmth, campaign-funded element present in the world), and forbidden patterns (RMBL-saves-the-day arc, exposition through dialogue, didactic endings, fatalism, generic mountain-lab fiction, naming real living people, heroic individuals, spec vocabulary). Authoring model parallel to scenarios: YAML-driven inputs, LLM-generated prose, `scripts/generate-stories.ts` + `src/services/stories.ts`. Storage at `specification/stories/<set_id>/<story_slug>.md` with `published: false` by default; stories cleared for Commons publication surface at `/futures/<scenario>/stories/<story>`. The §11.2–11.4 rules are operationally enforced in PROMPT_STORY and lint-checked on output.
+- **v0.7**: introduces **strategic distinctness** as a core principle (new §2.7) to address scenario convergence — the failure mode in which scenarios within a set share a playbook with different emphasis (same investment categories, same moments of choice, same audience-lens shape, just different mixes) rather than committing to distinguishably different strategic identities. Two new required structured fields enforce distinctness:
 
   **`distinguishing_thesis`** — 2–4 sentences naming the central strategic claim each scenario makes. The thesis is the organizing principle every prose section must trace back to. Input to the generation prompt (set in the YAML, not LLM output).
 
