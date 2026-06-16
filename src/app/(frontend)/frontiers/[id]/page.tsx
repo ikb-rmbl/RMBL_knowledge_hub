@@ -3,6 +3,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import { ENTITY_SLUG_MAP } from '../../lib/graph-colors'
+import { LlmArtifactDisclaimer } from '../../components/ai-artifact/Disclaimer'
+import { LlmProvenanceSidebar } from '../../components/ai-artifact/ProvenanceSidebar'
 
 export const dynamic = 'force-dynamic'
 
@@ -231,9 +233,17 @@ export default async function FrontierDetailPage({ params }: { params: Promise<{
       {frontier.frontier_description && (
         <section style={{ marginBottom: '24px' }}>
           <h2 style={{ fontSize: '17px', fontWeight: 600, margin: '0 0 8px' }}>Frontier</h2>
+          <LlmArtifactDisclaimer kind="frontier-synthesis" />
           {frontier.frontier_description.split(/\n\n+/).map((para, i) => (
             <p key={i} style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--color-text-primary)', maxWidth: '70ch', margin: '0 0 12px' }}>{para}</p>
           ))}
+          <div style={{ marginTop: '20px', maxWidth: '420px' }}>
+            <LlmProvenanceSidebar
+              kind="frontier-synthesis"
+              generatedAt={frontier.generated_at as string | undefined}
+              model={(frontier as { synthesis_model?: string | null }).synthesis_model}
+            />
+          </div>
         </section>
       )}
 
