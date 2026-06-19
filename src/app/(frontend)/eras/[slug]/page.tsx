@@ -226,9 +226,11 @@ function PrimerRenderer({ text }: { text: string }) {
 function SynthesisSection({
   primer,
   eraName,
+  eraId,
 }: {
   primer: EraPrimer | null
   eraName: string
+  eraId: number
 }) {
   if (!primer) {
     return (
@@ -263,6 +265,8 @@ function SynthesisSection({
           kind="era-primer"
           generatedAt={primer.primer_generated_at}
           model={primer.primer_model}
+          collection="eras"
+          itemId={eraId}
         />
       </div>
     </section>
@@ -667,7 +671,7 @@ export default async function EraDetailPage({
           <CountBadge label="stories" n={counts.stories} />
         </div>
 
-      <SynthesisSection primer={primer} eraName={era.name} />
+      <SynthesisSection primer={primer} eraName={era.name} eraId={era.id} />
 
       <WhatChangedPanel trajectory={trajectory} eraName={era.name} />
 

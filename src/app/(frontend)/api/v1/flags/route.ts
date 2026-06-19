@@ -20,12 +20,22 @@ const VALID_COLLECTIONS = new Set([
 ])
 
 const VALID_REASONS = new Set([
-  'incorrect_data', 'duplicate', 'missing_info', 'outdated',
+  'incorrect_data',
+  // Split off from incorrect_data so admins can triage author-conflation
+  // reports (see #46) separately from generic data errors.
+  'attribution_issue',
+  // For reports on LLM-generated artifacts (primers, frontier syntheses,
+  // neighborhood descriptions). Pre-filled by the link in
+  // LlmProvenanceSidebar so the reporter doesn't have to identify it.
+  'ai_quality_issue',
+  'duplicate', 'missing_info', 'outdated',
   'inappropriate', 'broken_link', 'other',
 ])
 
 const REASON_LABELS: Record<string, string> = {
   incorrect_data: 'Incorrect data',
+  attribution_issue: 'Attribution issue',
+  ai_quality_issue: 'AI-quality issue',
   duplicate: 'Duplicate',
   missing_info: 'Missing information',
   outdated: 'Outdated',

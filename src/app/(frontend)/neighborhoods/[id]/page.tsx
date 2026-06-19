@@ -357,6 +357,8 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
               kind="neighborhood-primer"
               generatedAt={neighborhood.primer_generated_at}
               model={neighborhood.primer_model}
+              collection="neighborhoods"
+              itemId={parseInt(id)}
             />
           </div>
         </div>
