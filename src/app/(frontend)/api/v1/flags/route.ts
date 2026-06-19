@@ -14,6 +14,9 @@ const VALID_COLLECTIONS = new Set([
   'publications', 'datasets', 'documents', 'stories',
   'species', 'concepts', 'protocols', 'places',
   'neighborhoods', 'authors',
+  // SQL-only tables (no Payload admin edit page; flag admin UI links to
+  // the public detail page instead — see admin/components/FlaggedItemLink.tsx).
+  'frontiers', 'eras',
 ])
 
 const VALID_REASONS = new Set([
@@ -121,6 +124,8 @@ export async function POST(request: NextRequest) {
       places: { table: 'places', titleCol: 'name' },
       neighborhoods: { table: 'neighborhoods', titleCol: 'title' },
       authors: { table: 'authors', titleCol: 'display_name' },
+      frontiers: { table: 'frontiers', titleCol: 'title' },
+      eras: { table: 'eras', titleCol: 'name' },
     }
     const mapping = TABLE_MAP[collection]
     if (!mapping) {
