@@ -5,6 +5,8 @@ import { getDb } from '../../lib/db'
 import { ENTITY_SLUG_MAP } from '../../lib/graph-colors'
 import { LlmArtifactDisclaimer } from '../../components/ai-artifact/Disclaimer'
 import { LlmProvenanceSidebar } from '../../components/ai-artifact/ProvenanceSidebar'
+import { LlmProvenanceBadge } from '../../components/ai-artifact/ProvenanceBadge'
+import { hasCuratedField } from '../../components/ai-artifact/curation'
 import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
@@ -193,7 +195,17 @@ export default async function FrontierDetailPage({ params }: { params: Promise<{
         <h1 style={{ fontSize: '28px', fontWeight: 600, margin: '0 0 10px', lineHeight: 1.25 }}>
           {frontier.title}
         </h1>
-        <FlagButton collection="frontiers" itemId={fid} />
+        {/* Page metadata bar: AI-provenance + flag button live together —
+            issue #49. */}
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px', margin: '4px 0 8px' }}>
+          <LlmProvenanceBadge
+            kind="frontier-synthesis"
+            generatedAt={frontier.generated_at ?? undefined}
+            model={frontier.synthesis_model ?? undefined}
+            curated={hasCuratedField(frontier, 'frontierDescription')}
+          />
+          <FlagButton collection="frontiers" itemId={fid} />
+        </div>
         {frontier.cross_cutting_summary && (
           <p style={{ fontSize: '15px', lineHeight: 1.5, color: 'var(--color-text-secondary)', fontStyle: 'italic', maxWidth: '70ch', margin: 0 }}>
             {frontier.cross_cutting_summary}

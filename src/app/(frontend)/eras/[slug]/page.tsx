@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import { LlmArtifactDisclaimer } from '../../components/ai-artifact/Disclaimer'
 import { LlmProvenanceSidebar } from '../../components/ai-artifact/ProvenanceSidebar'
+import { LlmProvenanceBadge } from '../../components/ai-artifact/ProvenanceBadge'
+import { hasCuratedField } from '../../components/ai-artifact/curation'
 import FlagButton from '../../components/FlagButton'
 import {
   getEra,
@@ -621,7 +623,20 @@ export default async function EraDetailPage({
       </Link>
 
       <h1>{era.name}</h1>
-      <FlagButton collection="eras" itemId={era.id} />
+      {/* Page metadata bar: AI-provenance + flag button live together —
+          issue #49. Era primer is the main AI artifact; the badge keys
+          off it. */}
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px', margin: '4px 0 8px' }}>
+        {primer && (
+          <LlmProvenanceBadge
+            kind="era-primer"
+            generatedAt={primer.primer_generated_at}
+            model={primer.primer_model}
+            curated={hasCuratedField(era, 'primer')}
+          />
+        )}
+        <FlagButton collection="eras" itemId={era.id} />
+      </div>
 
         <div
           style={{
