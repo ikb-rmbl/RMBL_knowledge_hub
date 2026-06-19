@@ -197,7 +197,7 @@ export default async function FuturesBrowse({
       <div className="search-layout">
         <aside className="filters">
           <div className="filter-group">
-            <h4>Sort by</h4>
+            <h2 className="filter-label">Sort by</h2>
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}>
                 <Link
@@ -211,7 +211,7 @@ export default async function FuturesBrowse({
           </div>
 
           <div className="filter-group">
-            <h4>Tail</h4>
+            <h2 className="filter-label">Tail</h2>
             <label>
               <Link
                 href={buildUrl(current, { tail: undefined })}
@@ -233,7 +233,7 @@ export default async function FuturesBrowse({
           </div>
 
           <div className="filter-group">
-            <h4>Set</h4>
+            <h2 className="filter-label">Set</h2>
             <label>
               <Link
                 href={buildUrl(current, { set: undefined })}

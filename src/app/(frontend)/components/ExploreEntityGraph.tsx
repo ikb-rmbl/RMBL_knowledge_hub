@@ -407,6 +407,7 @@ export default function ExploreEntityGraph({ data: initialData, dataUrl, detailS
     <div style={{ position: 'relative' }}>
       <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
         <input type="text" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)}
+          aria-label="Search the graph by node label"
           style={{ padding: '6px 12px', fontSize: '13px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', width: '220px' }} />
         <label style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
           Min papers:

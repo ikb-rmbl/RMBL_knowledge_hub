@@ -148,7 +148,7 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
       <div className="search-layout">
         <aside className="filters">
           <div className="filter-group">
-            <h4>Sort By</h4>
+            <h2 className="filter-label">Sort By</h2>
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}>
                 <Link href={buildUrl({ sort: opt.value, page: '1' })}
@@ -160,7 +160,7 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
           </div>
 
           <div className="filter-group">
-            <h4>Kingdom</h4>
+            <h2 className="filter-label">Kingdom</h2>
             <label><Link href={buildUrl({ kingdom: undefined, page: '1' })} style={!kingdomFilter ? activeStyle : inactiveStyle}>All</Link></label>
             {KINGDOM_OPTIONS.map((k) => (
               <label key={k}><Link href={buildUrl({ kingdom: k, page: '1' })} style={kingdomFilter === k ? activeStyle : inactiveStyle}>{k}</Link></label>
@@ -168,7 +168,7 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
           </div>
 
           <div className="filter-group">
-            <h4>Family</h4>
+            <h2 className="filter-label">Family</h2>
             <label><Link href={buildUrl({ family: undefined, page: '1' })} style={!familyFilter ? activeStyle : inactiveStyle}>All</Link></label>
             {families.map((f: any) => (
               <label key={f.family}><Link href={buildUrl({ family: f.family, page: '1' })} style={familyFilter === f.family ? activeStyle : inactiveStyle}>{f.family} ({f.cnt})</Link></label>

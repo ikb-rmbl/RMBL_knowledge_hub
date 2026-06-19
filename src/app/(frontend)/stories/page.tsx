@@ -150,7 +150,7 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
       <div className="search-layout">
         <aside className="filters">
           <div className="filter-group">
-            <h4>Sort By</h4>
+            <h2 className="filter-label">Sort By</h2>
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}>
                 <Link href={buildUrl({ sort: opt.value, page: undefined })} style={sortParam === opt.value ? activeStyle : inactiveStyle}>
@@ -161,7 +161,7 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
           </div>
 
           <div className="filter-group">
-            <h4>Date Range</h4>
+            <h2 className="filter-label">Date Range</h2>
             <form action="/stories" method="GET" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {query && <input type="hidden" name="q" value={query} />}
               {typeFilter && <input type="hidden" name="type" value={typeFilter} />}
@@ -185,7 +185,7 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
           </div>
 
           <div className="filter-group">
-            <h4>Story Type</h4>
+            <h2 className="filter-label">Story Type</h2>
             <label><Link href={buildUrl({ type: undefined, page: undefined })} style={!typeFilter ? activeStyle : inactiveStyle}>All types</Link></label>
             {typeCounts.map((tc: any) => (
               <label key={tc.story_type}>
@@ -197,7 +197,7 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
           </div>
 
           <div className="filter-group">
-            <h4>By Decade</h4>
+            <h2 className="filter-label">By Decade</h2>
             {decadeCounts.map((dc: any) => (
               <label key={dc.decade}>
                 <Link href={buildUrl({ yearFrom: String(dc.decade), yearTo: String(dc.decade + 9), page: undefined })} style={yearFrom === dc.decade ? activeStyle : inactiveStyle}>

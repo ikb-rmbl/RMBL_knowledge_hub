@@ -598,7 +598,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         <aside className="filters">
           {/* Sort */}
           <div className="filter-group">
-            <h4>Sort By</h4>
+            <h2 className="filter-label">Sort By</h2>
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}>
                 <Link
@@ -617,7 +617,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           {/* Publication type (only when viewing publications or all) */}
           {(!typeFilter || typeFilter === 'publications') && (
             <div className="filter-group">
-              <h4>Publication Type</h4>
+              <h2 className="filter-label">Publication Type</h2>
               {PUB_TYPE_OPTIONS.map((opt) => (
                 <label key={opt.value}>
                   <Link
@@ -645,7 +645,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
           {/* Date range */}
           <div className="filter-group">
-            <h4>Date Range</h4>
+            <h2 className="filter-label">Date Range</h2>
             <form action="/search" method="GET" className="date-filter-form">
               {/* Carry forward all current params */}
               {query && <input type="hidden" name="q" value={query} />}
@@ -705,7 +705,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           {/* Topics */}
           {SIDEBAR_TOPIC_GROUPS.map((g) => (
             <div className="filter-group" key={g.group}>
-              <h4>{g.group}</h4>
+              <h3>{g.group}</h3>
               {g.topics.map((name) => (
                 <label key={name}>
                   <Link

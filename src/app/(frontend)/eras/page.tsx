@@ -196,7 +196,7 @@ export default async function ErasPage({
       <div className="search-layout">
         <aside className="filters">
           <div className="filter-group">
-            <h4>Sort By</h4>
+            <h2 className="filter-label">Sort By</h2>
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}>
                 <Link
@@ -210,7 +210,7 @@ export default async function ErasPage({
           </div>
 
           <div className="filter-group">
-            <h4>Show</h4>
+            <h2 className="filter-label">Show</h2>
             {SHOW_OPTIONS.map((opt) => (
               <label key={opt.value}>
                 <Link
@@ -224,7 +224,7 @@ export default async function ErasPage({
           </div>
 
           <div className="filter-group">
-            <h4>About</h4>
+            <h2 className="filter-label">About</h2>
             <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '4px 0', lineHeight: 1.5 }}>
               Centuries anchor their child decades. <em>Pre-1950</em> is a
               single bucket because per-decade sample sizes before then are too

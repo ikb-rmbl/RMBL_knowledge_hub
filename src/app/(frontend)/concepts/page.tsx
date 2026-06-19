@@ -164,14 +164,14 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
       <div className="search-layout">
         <aside className="filters">
           <div className="filter-group">
-            <h4>Sort By</h4>
+            <h2 className="filter-label">Sort By</h2>
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}><Link href={buildUrl({ sort: opt.value, page: '1' })} style={sortParam === opt.value ? activeStyle : inactiveStyle}>{opt.label}</Link></label>
             ))}
           </div>
 
           <div className="filter-group">
-            <h4>Type</h4>
+            <h2 className="filter-label">Type</h2>
             <label><Link href={buildUrl({ type: undefined, page: '1' })} style={!typeFilter ? activeStyle : inactiveStyle}>All</Link></label>
             {typeCounts.map((tc: any) => (
               <label key={tc.concept_type}><Link href={buildUrl({ type: tc.concept_type, page: '1' })} style={typeFilter === tc.concept_type ? activeStyle : inactiveStyle}>{tc.concept_type.replace(/_/g, ' ')} ({tc.cnt})</Link></label>
@@ -179,7 +179,7 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
           </div>
 
           <div className="filter-group">
-            <h4>Scope</h4>
+            <h2 className="filter-label">Scope</h2>
             <label><Link href={buildUrl({ scope: undefined, page: '1' })} style={!scopeFilter ? activeStyle : inactiveStyle}>All</Link></label>
             {scopeCounts.map((sc: any) => (
               <label key={sc.scope}><Link href={buildUrl({ scope: sc.scope, page: '1' })} style={scopeFilter === sc.scope ? activeStyle : inactiveStyle}>{sc.scope.replace(/_/g, ' ')} ({sc.cnt})</Link></label>

@@ -157,14 +157,14 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
       <div className="search-layout">
         <aside className="filters">
           <div className="filter-group">
-            <h4>Sort By</h4>
+            <h2 className="filter-label">Sort By</h2>
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}><Link href={buildUrl({ sort: opt.value, page: '1' })} style={sortParam === opt.value ? activeStyle : inactiveStyle}>{opt.label}</Link></label>
             ))}
           </div>
 
           <div className="filter-group">
-            <h4>Category</h4>
+            <h2 className="filter-label">Category</h2>
             <label><Link href={buildUrl({ category: undefined, page: '1' })} style={!categoryFilter ? activeStyle : inactiveStyle}>All</Link></label>
             {catCounts.map((cc: any) => (
               <label key={cc.category}><Link href={buildUrl({ category: cc.category, page: '1' })} style={categoryFilter === cc.category ? activeStyle : inactiveStyle}>{cc.category} ({cc.cnt})</Link></label>
