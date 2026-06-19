@@ -163,13 +163,9 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
         {doc.sourceUrl && <div><strong>Source:</strong> Sustainable Living Library</div>}
       </div>
 
-      {doc.summary && (
-        <div className="detail-section">
-          <h2>Summary</h2>
-          <p>{typeof doc.summary === 'string' ? doc.summary : 'See document for details.'}</p>
-        </div>
-      )}
-
+      {/* Actions live above the summary so the primary action (View PDF)
+          stays above the fold on documents with long summaries.
+          See issue #44. */}
       <div className="detail-actions">
         {!doc.pdfRestricted && isHttpUrl(doc.pdfLink as string) && (
           <a className="detail-action-primary" href={doc.pdfLink as string} target="_blank" rel="noopener noreferrer">View PDF</a>
@@ -178,6 +174,13 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
           <a className="detail-action-secondary" href={doc.sourceUrl as string} target="_blank" rel="noopener noreferrer">View on Source Site</a>
         )}
       </div>
+
+      {doc.summary && (
+        <div className="detail-section">
+          <h2>Summary</h2>
+          <p>{typeof doc.summary === 'string' ? doc.summary : 'See document for details.'}</p>
+        </div>
+      )}
 
       {/* Local Knowledge Graph */}
       {await (async () => {
