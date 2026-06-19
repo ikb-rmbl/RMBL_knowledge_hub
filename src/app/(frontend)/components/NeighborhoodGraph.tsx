@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import type { GraphNode, GraphEdge } from '../lib/graph-data'
 import { GRAPH_COLORS, ENTITY_TYPE_LABELS } from '../lib/graph-colors'
+import { useClickToActivateZoom } from './useClickToActivateZoom'
 
 interface Props {
   nodes: GraphNode[]
@@ -13,6 +14,7 @@ interface Props {
 
 export default function NeighborhoodGraph({ nodes, edges, focalId }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const { active: zoomActive, activate: activateZoom } = useClickToActivateZoom(containerRef)
   const sigmaRef = useRef<any>(null)
   const graphRef = useRef<any>(null)
   const [tooltip, setTooltip] = useState<{ x: number; y: number; label: string; type: string; degree: number } | null>(null)
@@ -276,6 +278,7 @@ export default function NeighborhoodGraph({ nodes, edges, focalId }: Props) {
     <div style={{ position: 'relative' }}>
       <div
         ref={containerRef}
+        onMouseDown={activateZoom}
         style={{
           aspectRatio: '1',
           maxHeight: '700px',
@@ -285,6 +288,20 @@ export default function NeighborhoodGraph({ nodes, edges, focalId }: Props) {
           borderRadius: 'var(--radius)',
         }}
       />
+      {!zoomActive && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute', bottom: 10, right: 10, pointerEvents: 'none',
+            padding: '4px 10px', borderRadius: '999px',
+            background: 'rgba(255,255,255,0.85)', color: 'var(--color-text-secondary)',
+            fontSize: '11px', fontWeight: 500, letterSpacing: '0.02em',
+            border: '1px solid var(--color-border)',
+          }}
+        >
+          Click to enable scroll-zoom
+        </div>
+      )}
       {tooltip && (
         <div style={{
           position: 'absolute',
