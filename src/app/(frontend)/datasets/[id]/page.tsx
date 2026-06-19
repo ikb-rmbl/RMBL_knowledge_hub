@@ -11,6 +11,7 @@ import ViewInGlobalGraphLink from '../../components/ViewInGlobalGraphLink'
 import { JsonLd, datasetJsonLd } from '../../lib/json-ld'
 import LazyGraph from '../../components/LazyGraph'
 import FlagButton from '../../components/FlagButton'
+import { richTitle } from '../../lib/rich-title'
 
 export const dynamic = 'force-dynamic'
 
@@ -99,7 +100,7 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
       </Link>
 
       <span className="badge badge-dataset">Dataset</span>
-      <h1>{dataset.title}</h1>
+      <h1>{richTitle(dataset.title)}</h1>
       <FlagButton collection="datasets" itemId={parseInt(id)} />
 
       <div className="detail-meta">
@@ -294,7 +295,7 @@ async function renderDatasetCitations(datasetId: number) {
                    row.publication_type === 'student_paper' ? 'Student Paper' :
                    row.publication_type === 'thesis' ? 'Thesis' : 'Publication'}
                 </span>
-                <h3 className="result-card-title">{row.title}</h3>
+                <h3 className="result-card-title">{richTitle(row.title)}</h3>
               </div>
               <div className="result-card-meta">
                 {row.year && <span>{row.year}</span>}

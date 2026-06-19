@@ -12,6 +12,7 @@ import { LlmArtifactDisclaimer } from '../../components/ai-artifact/Disclaimer'
 import { LlmProvenanceSidebar } from '../../components/ai-artifact/ProvenanceSidebar'
 import { LlmProvenanceBadge } from '../../components/ai-artifact/ProvenanceBadge'
 import { hasCuratedField } from '../../components/ai-artifact/curation'
+import { richTitle } from '../../lib/rich-title'
 
 export const dynamic = 'force-dynamic'
 
@@ -164,7 +165,7 @@ function renderCard(m: any, type: string, slug: string) {
       <h3 className="result-card-title" style={{
         fontStyle: type === 'species' ? 'italic' : undefined,
       }}>
-        {m.label}
+        {richTitle(m.label)}
       </h3>
       {renderMeta(m, type)}
     </>

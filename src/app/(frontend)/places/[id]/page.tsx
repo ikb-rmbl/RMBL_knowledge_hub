@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import FlagButton from '../../components/FlagButton'
+import { richTitle } from '../../lib/rich-title'
 
 export const dynamic = 'force-dynamic'
 
@@ -154,7 +155,7 @@ export default async function PlaceDetail({ params }: { params: Promise<{ id: st
               <Link key={pub.id} href={`/publications/${pub.id}`} className="result-card">
                 <div className="result-card-header">
                   <span className="badge badge-publication">{pub.publication_type || 'Article'}</span>
-                  <h3 className="result-card-title">{pub.title}</h3>
+                  <h3 className="result-card-title">{richTitle(pub.title)}</h3>
                 </div>
                 <div className="result-card-meta">
                   {pub.year && <span>{pub.year}</span>}
@@ -175,7 +176,7 @@ export default async function PlaceDetail({ params }: { params: Promise<{ id: st
               <Link key={ds.id} href={`/datasets/${ds.id}`} className="result-card">
                 <div className="result-card-header">
                   <span className="badge badge-dataset">{ds.resource_type || 'Dataset'}</span>
-                  <h3 className="result-card-title">{ds.title}</h3>
+                  <h3 className="result-card-title">{richTitle(ds.title)}</h3>
                 </div>
                 <div className="result-card-meta">
                   {ds.publication_year && <span>{ds.publication_year}</span>}
@@ -197,7 +198,7 @@ export default async function PlaceDetail({ params }: { params: Promise<{ id: st
                 <Link key={doc.id} href={`/documents/${doc.id}`} className="result-card">
                   <div className="result-card-header">
                     <span className="badge badge-document">Document</span>
-                    <h3 className="result-card-title">{doc.title}</h3>
+                    <h3 className="result-card-title">{richTitle(doc.title)}</h3>
                   </div>
                   <div className="result-card-meta">
                     {yearStr && <span>{yearStr}</span>}

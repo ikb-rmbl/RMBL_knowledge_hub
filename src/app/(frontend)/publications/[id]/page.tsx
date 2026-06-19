@@ -11,6 +11,7 @@ import ViewInGlobalGraphLink from '../../components/ViewInGlobalGraphLink'
 import { JsonLd, publicationJsonLd } from '../../lib/json-ld'
 import LazyGraph from '../../components/LazyGraph'
 import FlagButton from '../../components/FlagButton'
+import { richTitle } from '../../lib/rich-title'
 
 export const dynamic = 'force-dynamic'
 
@@ -117,7 +118,7 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
       <span className="badge badge-publication">
         {typeLabels[pub.publicationType] || 'Publication'}
       </span>
-      <h1>{pub.title}</h1>
+      <h1>{richTitle(pub.title)}</h1>
       <FlagButton collection="publications" itemId={parseInt(id)} />
 
       <div className="detail-meta">
@@ -306,7 +307,7 @@ async function renderCitationSections(pubId: number, payload: any) {
                      row.publication_type === 'student_paper' ? 'Student Paper' :
                      row.publication_type === 'thesis' ? 'Thesis' : 'Publication'}
                   </span>
-                  <h3 className="result-card-title">{row.title}</h3>
+                  <h3 className="result-card-title">{richTitle(row.title)}</h3>
                 </div>
                 <div className="result-card-meta">
                   {row.year && <span>{row.year}</span>}
@@ -341,7 +342,7 @@ async function renderCitationSections(pubId: number, payload: any) {
                         <span className={`badge ${row.target_dataset_id ? 'badge-dataset' : 'badge-publication'}`}>
                           {row.target_dataset_id ? 'Dataset' : 'Publication'}
                         </span>
-                        <h3 className="result-card-title">{targetTitle}</h3>
+                        <h3 className="result-card-title">{richTitle(targetTitle)}</h3>
                       </div>
                       <div className="result-card-meta">
                         {row.cited_year && <span>{row.cited_year}</span>}
