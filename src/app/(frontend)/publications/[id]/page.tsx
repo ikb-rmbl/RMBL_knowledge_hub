@@ -187,13 +187,9 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
         )}
       </div>
 
-      {pub.abstract && (
-        <div className="detail-section">
-          <h2>Abstract</h2>
-          <p>{pub.abstract}</p>
-        </div>
-      )}
-
+      {/* Actions live above the abstract so the primary action (Download
+          PDF) stays above the fold on publications with long abstracts.
+          See issue #44. */}
       <div className="detail-actions">
         {!pub.pdfRestricted && isHttpUrl(pub.pdfLink) && (
           <a className="detail-action-primary" href={pub.pdfLink} target="_blank" rel="noopener noreferrer">
@@ -211,6 +207,13 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
           </a>
         )}
       </div>
+
+      {pub.abstract && (
+        <div className="detail-section">
+          <h2>Abstract</h2>
+          <p>{pub.abstract}</p>
+        </div>
+      )}
 
       {await (async () => {
         const network = await fetchItemNetwork('publications', parseInt(id), pub.title, 60)
