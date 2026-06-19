@@ -96,6 +96,11 @@ interface FrontierRow {
   avg_management_relevance: number | null
   source_cluster_size: number
   source_neighborhoods: number
+  // AI-provenance fields, added by add-ai-provenance.sql migration and
+  // referenced by LlmProvenanceSidebar below. Both nullable on existing
+  // rows that predate backfill.
+  generated_at: string | null
+  synthesis_model: string | null
 }
 
 async function fetchLinkedEntities(db: any, frontierId: number) {
@@ -240,8 +245,8 @@ export default async function FrontierDetailPage({ params }: { params: Promise<{
           <div style={{ marginTop: '20px', maxWidth: '420px' }}>
             <LlmProvenanceSidebar
               kind="frontier-synthesis"
-              generatedAt={frontier.generated_at as string | undefined}
-              model={(frontier as { synthesis_model?: string | null }).synthesis_model}
+              generatedAt={frontier.generated_at ?? undefined}
+              model={frontier.synthesis_model ?? undefined}
             />
           </div>
         </section>
