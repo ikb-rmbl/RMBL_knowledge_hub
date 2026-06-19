@@ -4,6 +4,8 @@ import { useState } from 'react'
 
 const REASONS = [
   { value: 'incorrect_data', label: 'Incorrect data' },
+  { value: 'attribution_issue', label: 'Attribution issue (wrong author / mis-credited work)' },
+  { value: 'ai_quality_issue', label: 'AI-quality issue (incorrect or low-quality AI-generated content)' },
   { value: 'duplicate', label: 'Duplicate record' },
   { value: 'missing_info', label: 'Missing information' },
   { value: 'outdated', label: 'Outdated' },
@@ -12,12 +14,23 @@ const REASONS = [
   { value: 'other', label: 'Other' },
 ]
 
-export default function FlagButton({ collection, itemId }: { collection: string; itemId: number }) {
-  const [open, setOpen] = useState(false)
+interface FlagButtonProps {
+  collection: string
+  itemId: number
+  /** Pre-select a reason and auto-open the form. Used by inline links
+   *  e.g. the AI-quality link in LlmProvenanceSidebar. */
+  prefilledReason?: string
+  /** Override the default trigger label ("Report an issue with this item")
+   *  for context-specific entry points. */
+  triggerLabel?: string
+}
+
+export default function FlagButton({ collection, itemId, prefilledReason, triggerLabel }: FlagButtonProps) {
+  const [open, setOpen] = useState(Boolean(prefilledReason))
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
-  const [reason, setReason] = useState('')
+  const [reason, setReason] = useState(prefilledReason || '')
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -74,7 +87,7 @@ export default function FlagButton({ collection, itemId }: { collection: string;
             padding: 0,
           }}
         >
-          Report an issue with this item
+          {triggerLabel || 'Report an issue with this item'}
         </button>
       ) : (
         <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>

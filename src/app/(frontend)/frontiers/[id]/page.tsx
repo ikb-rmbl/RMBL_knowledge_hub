@@ -249,6 +249,8 @@ export default async function FrontierDetailPage({ params }: { params: Promise<{
               kind="frontier-synthesis"
               generatedAt={frontier.generated_at ?? undefined}
               model={frontier.synthesis_model ?? undefined}
+              collection="frontiers"
+              itemId={fid}
             />
           </div>
         </section>

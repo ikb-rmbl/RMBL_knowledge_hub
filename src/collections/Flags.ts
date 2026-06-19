@@ -84,6 +84,8 @@ export const Flags: CollectionConfig = {
       required: true,
       options: [
         { label: 'Incorrect data', value: 'incorrect_data' },
+        { label: 'Attribution issue (wrong author / mis-credited work)', value: 'attribution_issue' },
+        { label: 'AI-quality issue (incorrect or low-quality AI-generated content)', value: 'ai_quality_issue' },
         { label: 'Duplicate', value: 'duplicate' },
         { label: 'Missing information', value: 'missing_info' },
         { label: 'Outdated', value: 'outdated' },
