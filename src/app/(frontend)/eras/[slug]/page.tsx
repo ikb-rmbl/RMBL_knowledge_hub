@@ -173,7 +173,7 @@ function PrimerRenderer({ text }: { text: string }) {
       flushPara()
       inReferences = headerText.toLowerCase() === 'references'
       elements.push(
-        <h3
+        <h2
           key={elements.length}
           style={{
             fontFamily: 'var(--font-sans)',
@@ -187,7 +187,7 @@ function PrimerRenderer({ text }: { text: string }) {
           }}
         >
           {headerText}
-        </h3>,
+        </h2>,
       )
       continue
     }
@@ -232,7 +232,7 @@ function SynthesisSection({
   if (!primer) {
     return (
       <section style={sectionWrap}>
-        <h3 style={sectionHeading}>Synthesis</h3>
+        <h2 style={sectionHeading}>Synthesis</h2>
         <div
           style={{
             padding: '14px 16px',
@@ -254,7 +254,7 @@ function SynthesisSection({
   }
   return (
     <section style={sectionWrap}>
-      <h3 style={sectionHeading}>Synthesis</h3>
+      <h2 style={sectionHeading}>Synthesis</h2>
       <LlmArtifactDisclaimer kind="era-primer" />
       <PrimerRenderer text={primer.primer} />
       <div style={{ marginTop: '20px', maxWidth: '420px' }}>
@@ -383,7 +383,7 @@ function TrajectorySection({
 }) {
   return (
     <div>
-      <h4
+      <h3
         style={{
           fontSize: '13px',
           fontWeight: 600,
@@ -405,7 +405,7 @@ function TrajectorySection({
         >
           {entities.length}
         </span>
-      </h4>
+      </h3>
       <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: '0 0 8px' }}>
         {hint}
       </p>
@@ -444,7 +444,7 @@ function WhatChangedPanel({
 
   return (
     <section style={sectionWrap}>
-      <h3 style={sectionHeading}>What changed</h3>
+      <h2 style={sectionHeading}>What changed</h2>
       <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 16px', maxWidth: '65ch' }}>
         Entities trending into or out of the corpus around the {eraName}.{' '}
         {hasPrior && prior_era_name ? (
@@ -517,7 +517,7 @@ function EntitySection({
   if (entities.length === 0) {
     return (
       <section style={sectionWrap}>
-        <h3 style={sectionHeading}>{title}</h3>
+        <h2 style={sectionHeading}>{title}</h2>
         <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
           No {type} mentions ranked as distinctive for this era.
         </p>
@@ -526,7 +526,7 @@ function EntitySection({
   }
   return (
     <section style={sectionWrap}>
-      <h3 style={sectionHeading}>{title}</h3>
+      <h2 style={sectionHeading}>{title}</h2>
       <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 10px' }}>
         {hint}
       </p>
@@ -711,7 +711,7 @@ export default async function EraDetailPage({
 
       {/* Content samples */}
       <section style={sectionWrap}>
-        <h3 style={sectionHeading}>Most-cited publications</h3>
+        <h2 style={sectionHeading}>Most-cited publications</h2>
         {topPubs.length === 0 ? (
           <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
             No publications dated within this era.
@@ -743,7 +743,7 @@ export default async function EraDetailPage({
       </section>
 
       <section style={sectionWrap}>
-        <h3 style={sectionHeading}>Recent documents</h3>
+        <h2 style={sectionHeading}>Recent documents</h2>
         {recentDocs.length === 0 ? (
           <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
             No documents dated within this era.
@@ -765,7 +765,7 @@ export default async function EraDetailPage({
       </section>
 
       <section style={sectionWrap}>
-        <h3 style={sectionHeading}>Top-cited datasets</h3>
+        <h2 style={sectionHeading}>Top-cited datasets</h2>
         {topDatasets.length === 0 ? (
           <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
             No datasets dated within this era.
@@ -788,7 +788,7 @@ export default async function EraDetailPage({
       </section>
 
       <section style={sectionWrap}>
-        <h3 style={sectionHeading}>Recent stories</h3>
+        <h2 style={sectionHeading}>Recent stories</h2>
         {recentStories.length === 0 ? (
           <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
             No stories dated within this era.

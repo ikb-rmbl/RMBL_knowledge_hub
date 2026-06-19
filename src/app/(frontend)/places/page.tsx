@@ -156,14 +156,14 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
       <div className="search-layout">
         <aside className="filters">
           <div className="filter-group">
-            <h4>Sort By</h4>
+            <h2 className="filter-label">Sort By</h2>
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}><Link href={buildUrl({ sort: opt.value, page: '1' })} style={sortParam === opt.value ? activeStyle : inactiveStyle}>{opt.label}</Link></label>
             ))}
           </div>
 
           <div className="filter-group">
-            <h4>Place Type</h4>
+            <h2 className="filter-label">Place Type</h2>
             <label><Link href={buildUrl({ type: undefined, page: '1' })} style={!typeFilter ? activeStyle : inactiveStyle}>All Types</Link></label>
             {typeCounts.map((tc: any) => (
               <label key={tc.place_type}><Link href={buildUrl({ type: tc.place_type, page: '1' })} style={typeFilter === tc.place_type ? activeStyle : inactiveStyle}>{tc.place_type.replace(/_/g, ' ')} ({tc.cnt})</Link></label>
@@ -171,7 +171,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
           </div>
 
           <div className="filter-group">
-            <h4>Show</h4>
+            <h2 className="filter-label">Show</h2>
             <label><Link href={buildUrl({ show: undefined, page: '1' })} style={!showAll ? activeStyle : inactiveStyle}>Referenced only</Link></label>
             <label><Link href={buildUrl({ show: 'all', page: '1' })} style={showAll ? activeStyle : inactiveStyle}>All (inc. GNIS seeds)</Link></label>
           </div>

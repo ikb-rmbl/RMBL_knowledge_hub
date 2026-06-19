@@ -28,7 +28,11 @@
   --fg-1: var(--rmbl-char);
   --fg-2: #55553D;
   --fg-3: #6B6B4E;
-  --fg-muted: #8A8568;
+  /* fg-muted darkened from #8A8568 (3.23:1 vs cream — failed WCAG AA) to
+     #6E6E48 (4.58:1, passes AA normal-text). Visual contrast between fg-3
+     and fg-muted is reduced; reconsider whether the "extra muted" tier is
+     still semantically distinct in light mode. */
+  --fg-muted: #6E6E48;
 
   --border: rgba(50, 50, 30, 0.14);
   --border-strong: rgba(50, 50, 30, 0.30);
@@ -121,7 +125,9 @@
   --fg-1: #F4EEE4;
   --fg-2: #C8C0A8;
   --fg-3: #8A8268;
-  --fg-muted: #5F5A45;
+  /* fg-muted lightened from #5F5A45 (2.39:1 vs dark — failed WCAG AA) to
+     #B5AD8A (7.6:1, passes AAA). Was effectively invisible in dark mode. */
+  --fg-muted: #B5AD8A;
 
   --border: rgba(244, 238, 228, 0.10);
   --border-strong: rgba(244, 238, 228, 0.22);
@@ -692,7 +698,11 @@ a:hover {
   flex-direction: column;
   gap: var(--s-6);
 }
-.filter-group h4 {
+/* Filter-group section labels. Selector covers the historical `h4` plus
+   the post-a11y-fix `h2.filter-label` — labels are h2 now so they sit
+   correctly under the page h1, but visually they're still small/quiet. */
+.filter-group h4,
+.filter-group .filter-label {
   font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;

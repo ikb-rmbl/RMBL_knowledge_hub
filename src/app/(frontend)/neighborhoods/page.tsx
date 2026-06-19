@@ -161,14 +161,14 @@ export default async function NeighborhoodsPage({ searchParams }: { searchParams
       <div className="search-layout">
         <aside className="filters">
           <div className="filter-group">
-            <h4>Sort By</h4>
+            <h2 className="filter-label">Sort By</h2>
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}><Link href={buildUrl({ sort: opt.value })} style={sortParam === opt.value ? activeStyle : inactiveStyle}>{opt.label}</Link></label>
             ))}
           </div>
 
           <div className="filter-group">
-            <h4>Focus</h4>
+            <h2 className="filter-label">Focus</h2>
             <label><Link href={buildUrl({ focus: undefined })} style={!focusFilter ? activeStyle : inactiveStyle}>All ({classified.length})</Link></label>
             {Object.entries(focusCounts).filter(([, n]) => n > 0).map(([focus, n]) => (
               <label key={focus}>
@@ -181,7 +181,7 @@ export default async function NeighborhoodsPage({ searchParams }: { searchParams
           </div>
 
           <div className="filter-group">
-            <h4>Contains</h4>
+            <h2 className="filter-label">Contains</h2>
             <label><Link href={buildUrl({ type: undefined })} style={!typeFilter ? activeStyle : inactiveStyle}>All types</Link></label>
             {typeCounts.map((tc: any) => (
               <label key={tc.entity_type}>
@@ -194,7 +194,7 @@ export default async function NeighborhoodsPage({ searchParams }: { searchParams
           </div>
 
           <div className="filter-group">
-            <h4>Size</h4>
+            <h2 className="filter-label">Size</h2>
             {sizeBuckets.map((sb: any) => (
               <label key={sb.bucket} style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
                 {sb.bucket}: {sb.cnt}

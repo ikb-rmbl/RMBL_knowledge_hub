@@ -140,8 +140,10 @@ export default async function AuthorsPage({ searchParams }: { searchParams: Prom
         })()}
         <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 16px' }}>Browse Authors</h1>
 
-        <form className="search-form" action="/authors" method="GET">
+        <form className="search-form" action="/authors" method="GET" role="search">
+          <label htmlFor="authors-q" className="sr-only">Search authors by name, affiliation, or ORCID</label>
           <input
+            id="authors-q"
             className="search-input"
             type="text"
             name="q"
@@ -180,7 +182,7 @@ export default async function AuthorsPage({ searchParams }: { searchParams: Prom
       <div className="search-layout">
         <aside className="filters">
           <div className="filter-group">
-            <h4>Sort By</h4>
+            <h2 className="filter-label">Sort By</h2>
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}>
                 <Link
@@ -197,7 +199,7 @@ export default async function AuthorsPage({ searchParams }: { searchParams: Prom
           </div>
 
           <div className="filter-group">
-            <h4>Filter</h4>
+            <h2 className="filter-label">Filter</h2>
             {FILTER_OPTIONS.map((opt) => (
               <label key={opt.value}>
                 <Link

@@ -223,8 +223,10 @@ export default async function HomePage() {
           connected in a dense knowledge network.
         </p>
 
-        <form className="search-form" action="/search" method="GET">
+        <form className="search-form" action="/search" method="GET" role="search">
+          <label htmlFor="home-q" className="sr-only">Search publications, datasets, and documents</label>
           <input
+            id="home-q"
             className="search-input"
             type="text"
             name="q"

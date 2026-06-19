@@ -117,7 +117,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
         <aside className="filters">
           {/* Sort */}
           <div className="filter-group">
-            <h4>Sort By</h4>
+            <h2 className="filter-label">Sort By</h2>
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}>
                 <Link
@@ -135,7 +135,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
 
           {/* Status */}
           <div className="filter-group">
-            <h4>Status</h4>
+            <h2 className="filter-label">Status</h2>
             {STATUS_OPTIONS.map((opt) => (
               <label key={opt.value}>
                 <Link
@@ -154,7 +154,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           {/* Field of Science */}
           {fieldOptions.length > 0 && (
             <div className="filter-group">
-              <h4>Field of Science</h4>
+              <h2 className="filter-label">Field of Science</h2>
               {fieldOptions.map(([field, count]) => (
                 <label key={field}>
                   <Link

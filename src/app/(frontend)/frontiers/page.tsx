@@ -372,7 +372,7 @@ export default async function FrontiersPage({
       <div className="search-layout">
         <aside className="filters">
           <div className="filter-group">
-            <h4>Sort By</h4>
+            <h2 className="filter-label">Sort By</h2>
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}>
                 <Link href={buildUrl({ sort: opt.value })} style={sort === opt.value ? activeStyle : inactiveStyle}>
@@ -383,7 +383,7 @@ export default async function FrontiersPage({
           </div>
 
           <div className="filter-group">
-            <h4>Basic ↔ Applied</h4>
+            <h2 className="filter-label">Basic ↔ Applied</h2>
             <label>
               <Link href={buildUrl({ mgmt: undefined })} style={!mgmtFilter ? activeStyle : inactiveStyle}>
                 All ({total})
@@ -399,7 +399,7 @@ export default async function FrontiersPage({
           </div>
 
           <div className="filter-group">
-            <h4>Focused ↔ Cross-cutting</h4>
+            <h2 className="filter-label">Focused ↔ Cross-cutting</h2>
             <label>
               <Link href={buildUrl({ reach: undefined })} style={!reachFilter ? activeStyle : inactiveStyle}>
                 All ({total})
@@ -415,7 +415,7 @@ export default async function FrontiersPage({
           </div>
 
           <div className="filter-group">
-            <h4>Research domain</h4>
+            <h2 className="filter-label">Research domain</h2>
             <label>
               <Link href={buildUrl({ topic: undefined })} style={!topicFilter ? activeStyle : inactiveStyle}>
                 All ({total})
