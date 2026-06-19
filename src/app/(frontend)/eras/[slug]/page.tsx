@@ -4,6 +4,7 @@ import { getDb } from '../../lib/db'
 import { LlmArtifactDisclaimer } from '../../components/ai-artifact/Disclaimer'
 import { LlmProvenanceSidebar } from '../../components/ai-artifact/ProvenanceSidebar'
 import { LlmProvenanceBadge } from '../../components/ai-artifact/ProvenanceBadge'
+import { hasCuratedField } from '../../components/ai-artifact/curation'
 import FlagButton from '../../components/FlagButton'
 import {
   getEra,
@@ -257,11 +258,6 @@ function SynthesisSection({
   return (
     <section style={sectionWrap}>
       <h2 style={sectionHeading}>Synthesis</h2>
-      <LlmProvenanceBadge
-        kind="era-primer"
-        generatedAt={primer.primer_generated_at}
-        model={primer.primer_model}
-      />
       <LlmArtifactDisclaimer kind="era-primer" />
       <PrimerRenderer text={primer.primer} />
       <div style={{ marginTop: '20px', maxWidth: '420px' }}>
@@ -623,7 +619,20 @@ export default async function EraDetailPage({
       </Link>
 
       <h1>{era.name}</h1>
-      <FlagButton collection="eras" itemId={era.id} />
+      {/* Page metadata bar: AI-provenance + flag button live together —
+          issue #49. Era primer is the main AI artifact; the badge keys
+          off it. */}
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px', margin: '4px 0 8px' }}>
+        {primer && (
+          <LlmProvenanceBadge
+            kind="era-primer"
+            generatedAt={primer.primer_generated_at}
+            model={primer.primer_model}
+            curated={hasCuratedField(era, 'primer')}
+          />
+        )}
+        <FlagButton collection="eras" itemId={era.id} />
+      </div>
 
         <div
           style={{

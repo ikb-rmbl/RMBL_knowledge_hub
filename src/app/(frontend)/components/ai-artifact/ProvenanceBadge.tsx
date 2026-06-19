@@ -58,14 +58,63 @@ const linkStyle: React.CSSProperties = {
   textDecoration: 'underline',
 }
 
+/** Visual pill for "Reviewed by a curator" / "Awaiting curator review".
+ *  Renders as the last segment inside the badge. */
+function CurationPill({ curated }: { curated: boolean }) {
+  if (curated) {
+    return (
+      <span
+        title="A human curator has reviewed and may have edited this content."
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '4px',
+          padding: '2px 8px',
+          borderRadius: '999px',
+          background: 'var(--rmbl-moss)',
+          color: '#fff',
+          fontWeight: 600,
+          fontSize: '11px',
+        }}
+      >
+        <span aria-hidden="true">✓</span> Reviewed by a curator
+      </span>
+    )
+  }
+  return (
+    <span
+      title="This AI-generated content has not yet been reviewed by a curator."
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px',
+        padding: '2px 8px',
+        borderRadius: '999px',
+        background: 'transparent',
+        border: '1px dashed var(--color-text-muted)',
+        color: 'var(--color-text-muted)',
+        fontWeight: 500,
+        fontSize: '11px',
+      }}
+    >
+      <span aria-hidden="true">◯</span> Awaiting curator review
+    </span>
+  )
+}
+
 export function LlmProvenanceBadge({
   kind,
   generatedAt,
   model,
+  curated = false,
 }: {
   kind: Tier1Artifact
   generatedAt: string | Date | null | undefined
   model: string | null | undefined
+  /** Pass true when an admin has edited the corresponding AI-generated
+   *  field on this row (i.e. it's in `curated_fields`). When omitted, the
+   *  badge shows "Awaiting curator review". */
+  curated?: boolean
 }) {
   const copy = ARTIFACT_REGISTRY[kind]
   if (!copy) return null
@@ -107,6 +156,8 @@ export function LlmProvenanceBadge({
       >
         Methodology
       </a>
+      <span style={sepStyle}>·</span>
+      <CurationPill curated={curated} />
     </div>
   )
 }

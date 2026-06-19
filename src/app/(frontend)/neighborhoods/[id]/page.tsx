@@ -11,6 +11,7 @@ import FlagButton from '../../components/FlagButton'
 import { LlmArtifactDisclaimer } from '../../components/ai-artifact/Disclaimer'
 import { LlmProvenanceSidebar } from '../../components/ai-artifact/ProvenanceSidebar'
 import { LlmProvenanceBadge } from '../../components/ai-artifact/ProvenanceBadge'
+import { hasCuratedField } from '../../components/ai-artifact/curation'
 
 export const dynamic = 'force-dynamic'
 
@@ -294,7 +295,20 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
 
       <span className="badge" style={{ background: 'var(--color-accent)', color: '#fff' }}>{neighborhood.size} items</span>
       <h1>{neighborhood.title}</h1>
-      <FlagButton collection="neighborhoods" itemId={parseInt(id)} />
+      {/* Page metadata bar: AI-provenance badge + flag button live together
+          so the reader sees both pieces of context (is this AI-authored?
+          how do I report an issue?) in the same eyeline. See issue #49. */}
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginTop: '4px', marginBottom: '8px' }}>
+        {neighborhood.primer && (
+          <LlmProvenanceBadge
+            kind="neighborhood-primer"
+            generatedAt={neighborhood.primer_generated_at}
+            model={neighborhood.primer_model}
+            curated={hasCuratedField(neighborhood, 'primer')}
+          />
+        )}
+        <FlagButton collection="neighborhoods" itemId={parseInt(id)} />
+      </div>
 
       {neighborhood.summary && (
         <p style={{ fontSize: '15px', color: 'var(--color-text-secondary)', lineHeight: 1.5, marginTop: '8px' }}>
@@ -351,11 +365,6 @@ export default async function NeighborhoodDetail({ params }: { params: Promise<{
       {neighborhood.primer && (
         <div className="detail-section">
           <h2>Research Primer</h2>
-          <LlmProvenanceBadge
-            kind="neighborhood-primer"
-            generatedAt={neighborhood.primer_generated_at}
-            model={neighborhood.primer_model}
-          />
           <LlmArtifactDisclaimer kind="neighborhood-primer" />
           <PrimerRenderer text={neighborhood.primer} />
           <div style={{ marginTop: '20px', maxWidth: '420px' }}>
