@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import { LlmArtifactDisclaimer } from '../../components/ai-artifact/Disclaimer'
 import { LlmProvenanceSidebar } from '../../components/ai-artifact/ProvenanceSidebar'
+import { LlmProvenanceBadge } from '../../components/ai-artifact/ProvenanceBadge'
 import FlagButton from '../../components/FlagButton'
 import {
   getEra,
@@ -256,6 +257,11 @@ function SynthesisSection({
   return (
     <section style={sectionWrap}>
       <h2 style={sectionHeading}>Synthesis</h2>
+      <LlmProvenanceBadge
+        kind="era-primer"
+        generatedAt={primer.primer_generated_at}
+        model={primer.primer_model}
+      />
       <LlmArtifactDisclaimer kind="era-primer" />
       <PrimerRenderer text={primer.primer} />
       <div style={{ marginTop: '20px', maxWidth: '420px' }}>

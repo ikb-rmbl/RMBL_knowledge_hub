@@ -5,6 +5,7 @@ import { getDb } from '../../lib/db'
 import { ENTITY_SLUG_MAP } from '../../lib/graph-colors'
 import { LlmArtifactDisclaimer } from '../../components/ai-artifact/Disclaimer'
 import { LlmProvenanceSidebar } from '../../components/ai-artifact/ProvenanceSidebar'
+import { LlmProvenanceBadge } from '../../components/ai-artifact/ProvenanceBadge'
 import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
@@ -240,6 +241,11 @@ export default async function FrontierDetailPage({ params }: { params: Promise<{
       {frontier.frontier_description && (
         <section style={{ marginBottom: '24px' }}>
           <h2 style={{ fontSize: '17px', fontWeight: 600, margin: '0 0 8px' }}>Frontier</h2>
+          <LlmProvenanceBadge
+            kind="frontier-synthesis"
+            generatedAt={frontier.generated_at ?? undefined}
+            model={frontier.synthesis_model ?? undefined}
+          />
           <LlmArtifactDisclaimer kind="frontier-synthesis" />
           {frontier.frontier_description.split(/\n\n+/).map((para, i) => (
             <p key={i} style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--color-text-primary)', maxWidth: '70ch', margin: '0 0 12px' }}>{para}</p>
