@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { GRAPH_COLORS } from '../lib/graph-colors'
+import { useClickToActivateZoom } from './useClickToActivateZoom'
 
 // Color palettes per colorField
 const COLOR_PALETTES: Record<string, Record<string, string>> = {
@@ -187,6 +188,7 @@ export default function ExploreEntityGraph({ data: initialData, dataUrl, detailS
   }, [dynamicPalette])
 
   const containerRef = useRef<HTMLDivElement>(null)
+  const { active: zoomActive, activate: activateZoom } = useClickToActivateZoom(containerRef)
   const sigmaRef = useRef<any>(null)
   const graphRef = useRef<any>(null)
   const [loaded, setLoaded] = useState(false)
@@ -417,12 +419,29 @@ export default function ExploreEntityGraph({ data: initialData, dataUrl, detailS
         {extraControls}
       </div>
 
-      <div
-        ref={containerRef}
-        role="img"
-        aria-label={`Knowledge graph visualization with ${data.nodes?.length || 0} nodes and ${data.edges?.length || 0} connections`}
-        style={{ aspectRatio: '4/3', maxHeight: '80vh', width: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}
-      />
+      <div style={{ position: 'relative' }}>
+        <div
+          ref={containerRef}
+          onMouseDown={activateZoom}
+          role="img"
+          aria-label={`Knowledge graph visualization with ${data.nodes?.length || 0} nodes and ${data.edges?.length || 0} connections`}
+          style={{ aspectRatio: '4/3', maxHeight: '80vh', width: '100%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)' }}
+        />
+        {!zoomActive && (
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute', bottom: 10, right: 10, pointerEvents: 'none',
+              padding: '4px 10px', borderRadius: '999px',
+              background: 'rgba(255,255,255,0.85)', color: 'var(--color-text-secondary)',
+              fontSize: '11px', fontWeight: 500, letterSpacing: '0.02em',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            Click to enable scroll-zoom
+          </div>
+        )}
+      </div>
 
       {selectedNode && (
         <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(255,255,255,0.97)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius)', padding: '14px 18px', fontSize: '13px', maxWidth: '300px', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}>
