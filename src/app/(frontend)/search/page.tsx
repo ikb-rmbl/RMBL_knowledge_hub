@@ -5,6 +5,7 @@ import type { Where } from 'payload'
 import { getBadgeLabel, getBadgeClass } from '../lib/badges'
 import { getDb } from '../lib/db'
 import { search as ftsSearch, type SearchSort } from '@/services/search'
+import { richTitle } from '../lib/rich-title'
 
 export const dynamic = 'force-dynamic'
 
@@ -811,7 +812,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                   <span className={getBadgeClass(item.collection)}>
                     {getBadgeLabel(item.collection, item.subtype)}
                   </span>
-                  <h3 className="result-card-title">{item.title}</h3>
+                  <h3 className="result-card-title">{richTitle(item.title)}</h3>
                 </div>
                 {item.snippet && (() => {
                   // FTS snippets have <mark> highlights from ts_headline; non-FTS are plain text.

@@ -10,6 +10,7 @@ import { fetchAuthorNetwork } from '../../lib/graph-data'
 import LazyGraph from '../../components/LazyGraph'
 import ViewInGlobalGraphLink from '../../components/ViewInGlobalGraphLink'
 import FlagButton from '../../components/FlagButton'
+import { richTitle } from '../../lib/rich-title'
 
 export const dynamic = 'force-dynamic'
 
@@ -287,7 +288,7 @@ export default async function AuthorDetail({ params, searchParams }: { params: P
                       <span className={getBadgeClass(item.type)}>
                         {getBadgeLabel(item.type, item.subtype)}
                       </span>
-                      <h3 className="result-card-title">{item.title}</h3>
+                      <h3 className="result-card-title">{richTitle(item.title)}</h3>
                     </div>
                     <div className="result-card-meta">
                       {item.meta.map((m, i) => <span key={i}>{m}</span>)}

@@ -11,6 +11,7 @@ import { fetchItemNetwork } from '../../lib/graph-data'
 import ViewInGlobalGraphLink from '../../components/ViewInGlobalGraphLink'
 import LazyGraph from '../../components/LazyGraph'
 import FlagButton from '../../components/FlagButton'
+import { richTitle } from '../../lib/rich-title'
 
 export const dynamic = 'force-dynamic'
 
@@ -143,7 +144,7 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
       </Link>
 
       <span className="badge badge-document">{docTypeLabel}</span>
-      <h1>{doc.title}</h1>
+      <h1>{richTitle(doc.title)}</h1>
       <FlagButton collection="documents" itemId={parseInt(id)} />
 
       <div className="detail-meta">

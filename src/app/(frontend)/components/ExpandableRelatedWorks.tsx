@@ -1,4 +1,5 @@
 'use client'
+import { richTitle } from '../lib/rich-title'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -50,7 +51,7 @@ export default function ExpandableRelatedWorks({
               <span className={getBadgeClass(row.type as any)}>
                 {getBadgeLabel(row.type as any, row.subtype)}
               </span>
-              <h3 className="result-card-title">{row.title}</h3>
+              <h3 className="result-card-title">{richTitle(row.title)}</h3>
             </div>
             <div className="result-card-meta">
               {row.year && <span>{row.year}</span>}
