@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import { LlmArtifactDisclaimer } from '../../components/ai-artifact/Disclaimer'
 import { LlmProvenanceSidebar } from '../../components/ai-artifact/ProvenanceSidebar'
+import FlagButton from '../../components/FlagButton'
 import {
   getEra,
   getEraMemberCounts,
@@ -616,6 +617,7 @@ export default async function EraDetailPage({
       </Link>
 
       <h1>{era.name}</h1>
+      <FlagButton collection="eras" itemId={era.id} />
 
         <div
           style={{

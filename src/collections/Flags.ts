@@ -62,6 +62,8 @@ export const Flags: CollectionConfig = {
         { label: 'Protocol', value: 'protocols' },
         { label: 'Place', value: 'places' },
         { label: 'Neighborhood', value: 'neighborhoods' },
+        { label: 'Frontier', value: 'frontiers' },
+        { label: 'Era', value: 'eras' },
       ],
       admin: { description: 'Which collection the flagged item belongs to.' },
     },

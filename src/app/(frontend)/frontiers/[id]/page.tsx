@@ -5,6 +5,7 @@ import { getDb } from '../../lib/db'
 import { ENTITY_SLUG_MAP } from '../../lib/graph-colors'
 import { LlmArtifactDisclaimer } from '../../components/ai-artifact/Disclaimer'
 import { LlmProvenanceSidebar } from '../../components/ai-artifact/ProvenanceSidebar'
+import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -192,6 +193,7 @@ export default async function FrontierDetailPage({ params }: { params: Promise<{
         <h1 style={{ fontSize: '28px', fontWeight: 600, margin: '0 0 10px', lineHeight: 1.25 }}>
           {frontier.title}
         </h1>
+        <FlagButton collection="frontiers" itemId={fid} />
         {frontier.cross_cutting_summary && (
           <p style={{ fontSize: '15px', lineHeight: 1.5, color: 'var(--color-text-secondary)', fontStyle: 'italic', maxWidth: '70ch', margin: 0 }}>
             {frontier.cross_cutting_summary}

@@ -8,10 +8,12 @@ import type React from 'react'
  * record's edit page, so a curator can jump from a flag to the item that
  * needs fixing. Renders on the `content-flags` collection only.
  *
- * The flag's `collection` value maps 1:1 to the target collection's Payload
- * admin slug for every flaggable collection that lives in Payload. The one
- * exception is `neighborhoods`, which is a SQL-only table with no admin edit
- * page — that case shows an explanatory note instead of a dead link.
+ * Two cases:
+ *   - Payload-managed collections: link straight to the admin edit page.
+ *   - SQL-only tables (neighborhoods, frontiers, eras): no admin edit page
+ *     exists, so link to the public detail page instead. Reading the
+ *     flagged record in context is the next best thing a curator can do
+ *     until a dedicated admin path for these tables lands.
  */
 const EDITABLE_COLLECTIONS: Record<string, string> = {
   publications: 'Publication',
@@ -25,6 +27,22 @@ const EDITABLE_COLLECTIONS: Record<string, string> = {
   places: 'Place',
 }
 
+/** Public detail-page slug for SQL-only collections (no admin edit page). */
+const PUBLIC_DETAIL_COLLECTIONS: Record<string, string> = {
+  neighborhoods: 'Neighborhood',
+  frontiers: 'Frontier',
+  eras: 'Era',
+}
+
+const PUBLIC_DETAIL_PATH: Record<string, string> = {
+  neighborhoods: '/neighborhoods',
+  frontiers: '/frontiers',
+  // Eras use a slug for their public URL; the flag only carries the
+  // numeric id, so this path won't resolve directly. Surface the id
+  // and let the curator look up the era by name from the flag itself.
+  eras: '/eras',
+}
+
 const noteStyle: React.CSSProperties = { fontSize: '12px', color: 'var(--theme-elevation-500)' }
 
 export const FlaggedItemLink: React.FC = () => {
@@ -32,7 +50,8 @@ export const FlaggedItemLink: React.FC = () => {
   const { value: itemId } = useField<number>({ path: 'itemId' })
   const { value: itemTitle } = useField<string>({ path: 'itemTitle' })
 
-  const label = collection ? EDITABLE_COLLECTIONS[collection] : undefined
+  const editLabel = collection ? EDITABLE_COLLECTIONS[collection] : undefined
+  const publicLabel = collection ? PUBLIC_DETAIL_COLLECTIONS[collection] : undefined
   const hasItem = Boolean(collection) && itemId !== null && itemId !== undefined
 
   return (
@@ -60,9 +79,9 @@ export const FlaggedItemLink: React.FC = () => {
 
       {!hasItem ? (
         <div style={noteStyle}>No linked item recorded on this flag.</div>
-      ) : !label ? (
+      ) : !editLabel && !publicLabel ? (
         <div style={noteStyle}>
-          {collection} #{itemId} is managed outside Payload and has no edit page.
+          {collection} #{itemId} is managed outside Payload and has no detail page.
         </div>
       ) : (
         <>
@@ -79,7 +98,11 @@ export const FlaggedItemLink: React.FC = () => {
             </div>
           )}
           <a
-            href={`/admin/collections/${collection}/${itemId}`}
+            href={
+              editLabel
+                ? `/admin/collections/${collection}/${itemId}`
+                : `${PUBLIC_DETAIL_PATH[collection!]}/${itemId}`
+            }
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -94,10 +117,14 @@ export const FlaggedItemLink: React.FC = () => {
               border: '1px solid var(--theme-elevation-200)',
             }}
           >
-            Open {label} #{itemId} to edit →
+            {editLabel
+              ? `Open ${editLabel} #${itemId} to edit →`
+              : `View ${publicLabel} #${itemId} on the public site →`}
           </a>
           <div style={{ ...noteStyle, marginTop: '0.5rem' }}>
-            Opens in a new tab so you can return here to resolve the flag.
+            {editLabel
+              ? 'Opens in a new tab so you can return here to resolve the flag.'
+              : `${publicLabel}s are managed outside Payload — the public detail page is the best place to read the flagged content in context.`}
           </div>
         </>
       )}
