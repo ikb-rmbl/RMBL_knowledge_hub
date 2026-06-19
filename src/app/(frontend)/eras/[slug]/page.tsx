@@ -173,7 +173,7 @@ function PrimerRenderer({ text }: { text: string }) {
       flushPara()
       inReferences = headerText.toLowerCase() === 'references'
       elements.push(
-        <h3
+        <h2
           key={elements.length}
           style={{
             fontFamily: 'var(--font-sans)',
@@ -383,7 +383,7 @@ function TrajectorySection({
 }) {
   return (
     <div>
-      <h4
+      <h3
         style={{
           fontSize: '13px',
           fontWeight: 600,
