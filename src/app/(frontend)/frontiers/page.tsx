@@ -353,6 +353,53 @@ export default async function FrontiersPage({
           extracted across the research neighborhoods of the RMBL Knowledge Commons, then clustered
           by semantic similarity and synthesized into a coherent narrative.
         </p>
+        {/* Honest framing banner — addresses the seminar feedback that
+            Frontiers can over-promise. Compact, not alarming; invites
+            readers to consult the methodology and flag specific issues
+            on the per-frontier pages. See issue #48. */}
+        <aside
+          role="note"
+          aria-label="Frontiers framing"
+          style={{
+            margin: '0 0 20px',
+            padding: '12px 14px',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--rmbl-bone)',
+            borderLeft: '3px solid var(--rmbl-orange)',
+            borderRadius: '4px',
+            fontSize: '13.5px',
+            lineHeight: 1.55,
+            color: 'var(--color-text)',
+          }}
+        >
+          <div
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              color: 'var(--rmbl-orange-deep)',
+              marginBottom: '6px',
+            }}
+          >
+            🤖 AI-synthesized · in active refinement
+          </div>
+          <p style={{ margin: '0 0 6px', maxWidth: '78ch' }}>
+            Frontiers cluster gap-statements by semantic similarity, then synthesize a narrative —
+            a useful starting point, not a peer-reviewed agenda. Some read cleanly to a specialist;
+            others mis-cluster topics that don&rsquo;t belong together. We&rsquo;re refining them
+            with researchers.
+          </p>
+          <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--color-text-muted)' }}>
+            <Link href="/about#frontier-syntheses-methodology" style={{ color: 'var(--rmbl-orange-deep)', textDecoration: 'underline' }}>
+              How frontiers are built →
+            </Link>
+            {' · '}
+            <span>
+              Open any frontier to report a misfit cluster or suggest a correction.
+            </span>
+          </p>
+        </aside>
         <form className="search-form" action="/frontiers" method="GET">
           <label htmlFor="fr-q" className="sr-only">Search frontiers</label>
           <input id="fr-q" className="search-input" type="text" name="q" aria-label="Search frontiers" defaultValue={query} placeholder="Search frontiers..." />
