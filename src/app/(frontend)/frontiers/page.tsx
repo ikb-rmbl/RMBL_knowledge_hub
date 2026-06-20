@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getDb } from '../lib/db'
 import { GRAPH_COLORS } from '../lib/graph-colors'
+import { CurrencyDots } from '../components/frontier-grounded/CurrencyDots'
 
 export const dynamic = 'force-dynamic'
 
@@ -213,7 +214,14 @@ export default async function FrontiersPage({
      SELECT id, slug, title, cross_cutting_summary,
             source_cluster_size, source_neighborhoods, avg_management_relevance,
             jsonb_array_length(coalesce(pushing_the_frontier, '[]'::jsonb)) AS action_count,
-            jsonb_array_length(coalesce(key_questions, '[]'::jsonb)) AS question_count
+            jsonb_array_length(coalesce(key_questions, '[]'::jsonb)) AS question_count,
+            -- Grounded-pipeline fields (steps 4b + 5). NULL on legacy frontiers.
+            extraction_run_id,
+            source_paper_count,
+            source_year_p10,
+            source_year_p90,
+            question_currency_summary,
+            last_validated_at
      FROM frontiers
      WHERE ${mgmtClause(mgmtFilter)} AND ${reachClause(reachFilter)} AND ${topicClause} AND ${searchClause}
      ORDER BY ${orderBy(sort)}`,
@@ -518,6 +526,43 @@ export default async function FrontiersPage({
                   <span>{f.question_count} questions</span>
                   <span>{f.action_count} actions</span>
                 </div>
+                {/* Grounded-pipeline card affordances (steps 4b + 5 + 7).
+                    Renders only when the frontier was produced by the grounded
+                    pipeline; legacy frontiers fall through untouched. */}
+                {f.extraction_run_id != null && (f.source_paper_count != null || f.question_currency_summary) && (
+                  <div
+                    className="result-card-meta"
+                    style={{ marginTop: '4px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px', rowGap: '4px' }}
+                  >
+                    {f.source_paper_count != null && (
+                      <span>
+                        {f.source_paper_count} primary{' '}
+                        {f.source_paper_count === 1 ? 'citation' : 'citations'}
+                        {f.source_year_p10 != null && f.source_year_p90 != null
+                          ? ` (${f.source_year_p10}–${f.source_year_p90})`
+                          : ''}
+                      </span>
+                    )}
+                    {f.question_currency_summary && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <CurrencyDots summary={f.question_currency_summary} />
+                        {(() => {
+                          const s = f.question_currency_summary
+                          const total = (s.open ?? 0) + (s.partially_addressed ?? 0) + (s.addressed ?? 0)
+                          if (total === 0) return null
+                          const pct = (n: number) => Math.round(((n ?? 0) / total) * 100)
+                          return (
+                            <span style={{ color: 'var(--color-text-muted)' }}>
+                              {pct(s.open)}% open
+                              {(s.partially_addressed ?? 0) > 0 && ` / ${pct(s.partially_addressed ?? 0)}% partial`}
+                              {(s.addressed ?? 0) > 0 && ` / ${pct(s.addressed ?? 0)}% addressed`}
+                            </span>
+                          )
+                        })()}
+                      </span>
+                    )}
+                  </div>
+                )}
                 {(highlightsByFrontier.get(f.id) || []).length > 0 && (
                   <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '10px' }}>
                     {highlightsByFrontier.get(f.id)!.slice(0, 5).map((h, i) => (
