@@ -26,7 +26,12 @@ interface FlagButtonProps {
 }
 
 export default function FlagButton({ collection, itemId, prefilledReason, triggerLabel }: FlagButtonProps) {
-  const [open, setOpen] = useState(Boolean(prefilledReason))
+  // Always start collapsed. `prefilledReason` pre-selects the dropdown
+  // value when the user opens the form, but it no longer auto-opens —
+  // auto-opening turned the AI-quality affordance in
+  // `LlmProvenanceSidebar` into a permanent expanded form on every
+  // detail page that has provenance.
+  const [open, setOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
