@@ -999,3 +999,86 @@ a:hover {
   color: var(--accent);
   border-bottom-color: var(--accent);
 }
+
+/* ===== Frontier cite chip (grounded frontiers — step 6) ===== */
+/* The chip itself is an inline-block link styled to read as a small
+   source-pill. The popover is a sibling element revealed via CSS only
+   (:hover + :focus-within on the wrapper) — no JS, no React state.
+   Mobile users without hover still see the chip and can tap through
+   to /publications/[id] for the source paper. */
+.cite-chip-wrap {
+  position: relative;
+  display: inline-block;
+  margin: 0 1px;
+  vertical-align: baseline;
+}
+.cite-chip {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--bg-inset);
+  color: var(--fg-2);
+  text-decoration: none;
+  white-space: nowrap;
+  vertical-align: 1px;
+  border: 1px solid var(--border);
+  transition: background 0.1s ease, color 0.1s ease;
+  line-height: 1.4;
+}
+.cite-chip:hover,
+.cite-chip:focus {
+  background: var(--accent-weak);
+  color: var(--accent-deep);
+  outline: none;
+}
+.cite-chip-popover {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 5px);
+  z-index: 30;
+  width: 360px;
+  max-width: min(80vw, 420px);
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-2);
+  border-radius: 4px;
+  color: var(--fg-1);
+  font-size: 12px;
+  line-height: 1.5;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.08s ease, visibility 0s linear 0.08s;
+}
+.cite-chip-wrap:hover .cite-chip-popover,
+.cite-chip-wrap:focus-within .cite-chip-popover {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.08s ease;
+}
+.cite-chip-popover-title {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg-2);
+  font-style: italic;
+}
+.cite-chip-popover-snippet {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--fg-1);
+}
+/* Right-anchor the popover on chips near the viewport edge — there's no
+   reliable CSS-only way to detect that, so we let consumers add this
+   class manually if a chip sits in a tight column. */
+.cite-chip-wrap--right .cite-chip-popover {
+  left: auto;
+  right: 0;
+}
