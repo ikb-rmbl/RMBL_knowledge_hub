@@ -138,21 +138,39 @@ async function loadDocumentText() {
   const txtFiles = readdirSync(textDir).filter((f) => f.endsWith('.txt'))
   console.log(`  ${txtFiles.length} text files found`)
 
-  // Load normalized data for title matching
-  const normPath = join(OUTPUT_DIR, 'sustainable-library-normalized.json')
-  const normalized: any[] = existsSync(normPath)
-    ? JSON.parse(readFileSync(normPath, 'utf-8'))
-    : []
+  // Load normalized data for title matching. Both sources have the
+  // same NormalizedDocument shape; FR JSON wraps records in { meta,
+  // documents, raw } so unwrap before merging.
+  const normalized: any[] = []
+  const slPath = join(OUTPUT_DIR, 'sustainable-library-normalized.json')
+  if (existsSync(slPath)) {
+    const sl = JSON.parse(readFileSync(slPath, 'utf-8'))
+    normalized.push(...(Array.isArray(sl) ? sl : sl.documents || []))
+  }
+  const frPath = join(OUTPUT_DIR, 'discovered-fr-notices.json')
+  if (existsSync(frPath)) {
+    const fr = JSON.parse(readFileSync(frPath, 'utf-8'))
+    normalized.push(...(Array.isArray(fr) ? fr : fr.documents || []))
+  }
   const normById = new Map(normalized.map((d) => [d._sourcePostId, d]))
 
-  // Load Payload document IDs
+  // Load Payload document IDs. Match by sourceUrl primarily (unique),
+  // with title as fallback when no sourceUrl is set on the normalized
+  // record. Title-only matching loses entries to collisions: 92 FR
+  // notices share titles with siblings (e.g. "Notice of Proposed
+  // Reinstatement of Terminated Oil and Gas Lease" appears 8x), and
+  // the title→payload map keeps only the last one, so the other 7
+  // get marked as "already loaded" and skipped.
   console.log('  Loading document records from Payload...')
   const payloadDocs = await getAllPaginated('documents')
+  const payloadByUrl = new Map<string, { id: string; hasFullText: boolean }>()
   const payloadByTitle = new Map<string, { id: string; hasFullText: boolean }>()
   for (const d of payloadDocs) {
-    payloadByTitle.set(d.title, { id: String(d.id), hasFullText: Boolean(d.fullText) })
+    const entry = { id: String(d.id), hasFullText: Boolean(d.fullText) }
+    if (d.sourceUrl) payloadByUrl.set(String(d.sourceUrl), entry)
+    payloadByTitle.set(d.title, entry)
   }
-  console.log(`  ${payloadByTitle.size} documents in Payload`)
+  console.log(`  ${payloadDocs.length} documents in Payload (${payloadByUrl.size} by sourceUrl)`)
 
   let updated = 0
   let skipped = 0
@@ -167,7 +185,9 @@ async function loadDocumentText() {
     const norm = normById.get(sourceId)
     if (!norm) { notFound++; continue }
 
-    const payloadEntry = payloadByTitle.get(norm.title)
+    const payloadEntry =
+      (norm.sourceUrl && payloadByUrl.get(norm.sourceUrl)) ||
+      payloadByTitle.get(norm.title)
     if (!payloadEntry) { notFound++; continue }
 
     if (payloadEntry.hasFullText) { skipped++; continue }

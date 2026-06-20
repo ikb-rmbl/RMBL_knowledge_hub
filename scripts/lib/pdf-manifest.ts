@@ -81,6 +81,22 @@ export function initManifest(): Manifest {
     }
   }
 
+  // Federal Register notices — same normalized shape as Sustainable
+  // Library docs but in a different JSON file. Wrapped in `{ meta,
+  // documents, raw }` by the discoverer, so unwrap before iterating.
+  const frPath = join(OUTPUT_DIR, 'discovered-fr-notices.json')
+  if (existsSync(frPath)) {
+    const fr: any = JSON.parse(readFileSync(frPath, 'utf-8'))
+    const docs: any[] = Array.isArray(fr) ? fr : fr.documents || []
+    for (const doc of docs) {
+      const id = `doc:${doc._sourcePostId}`
+      if (!manifest.has(id)) {
+        manifest.set(id, createEntry(id, 'documents', doc.title, doc.sourceFile))
+        added++
+      }
+    }
+  }
+
   // Publications
   const pubsPath = join(OUTPUT_DIR, 'publications-normalized.json')
   if (existsSync(pubsPath)) {
