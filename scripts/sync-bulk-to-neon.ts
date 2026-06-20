@@ -97,11 +97,50 @@ async function main() {
     if (sections.has('frontiers')) {
     // 3. Frontiers (and child tables: neighborhoods/entities/source_statements links)
     console.log('\n--- Frontiers ---')
-    // CASCADE deletes via FK, so truncating frontiers wipes all link tables too.
+    // CASCADE deletes via FK wipe the link tables when we truncate frontiers.
+    // The grounded-pipeline tables (extraction_runs, validation_runs,
+    // statement_papers, snapshots) need explicit truncates too — they're
+    // referenced *by* the run-id columns on frontiers but ALSO reference
+    // frontiers / source_statements themselves, so the truncate order is:
+    //   1. snapshots         (no children)
+    //   2. statement_papers  (children of source_statements)
+    //   3. frontiers + link tables (CASCADE drops source_statements too)
+    //   4. validation_runs   (referenced from frontiers.last_validation_run_id, now NULL)
+    //   5. extraction_runs   (referenced from frontiers.extraction_run_id, now NULL)
+    await neon.query('TRUNCATE frontier_snapshots, frontier_statement_papers RESTART IDENTITY CASCADE')
     await neon.query('TRUNCATE frontiers, frontier_neighborhoods, frontier_entities, frontier_source_statements RESTART IDENTITY CASCADE')
+    await neon.query('TRUNCATE frontier_validation_runs, frontier_extraction_runs RESTART IDENTITY CASCADE')
+
+    // Insert extraction_runs + validation_runs *first* so the FKs from
+    // frontiers / source_statements / snapshots resolve.
+    const { rows: extRuns } = await local.query('SELECT * FROM frontier_extraction_runs ORDER BY id')
+    if (extRuns.length > 0) {
+      const cols = Object.keys(extRuns[0])
+      for (const row of extRuns) {
+        const vals = cols.map(c => row[c] ?? null)
+        const placeholders = cols.map((_, i) => `$${i + 1}`)
+        await neon.query(`INSERT INTO frontier_extraction_runs (${cols.join(',')}) VALUES (${placeholders.join(',')})`, vals)
+      }
+    }
+    console.log(`  ${extRuns.length} extraction runs`)
+
+    const { rows: valRuns } = await local.query('SELECT * FROM frontier_validation_runs ORDER BY id')
+    if (valRuns.length > 0) {
+      const cols = Object.keys(valRuns[0])
+      for (const row of valRuns) {
+        const vals = cols.map(c => row[c] ?? null)
+        const placeholders = cols.map((_, i) => `$${i + 1}`)
+        await neon.query(`INSERT INTO frontier_validation_runs (${cols.join(',')}) VALUES (${placeholders.join(',')})`, vals)
+      }
+    }
+    console.log(`  ${valRuns.length} validation runs`)
 
     const { rows: frontiers } = await local.query('SELECT * FROM frontiers ORDER BY id')
-    const frJsonbCols = new Set(['key_questions', 'pushing_the_frontier', 'data_gaps'])
+    // `data_gaps` and `key_questions` are jsonb columns that hold *either*
+    // a string[] (legacy) or a structured object[] (grounded). Both round-
+    // trip cleanly through JSON.stringify. `question_currency_summary` is
+    // a plain jsonb object on grounded rows; same treatment.
+    const frJsonbCols = new Set(['key_questions', 'pushing_the_frontier', 'data_gaps', 'question_currency_summary', 'curated_fields'])
     if (frontiers.length > 0) {
       const cols = Object.keys(frontiers[0])
       for (const row of frontiers) {
@@ -166,6 +205,37 @@ async function main() {
       }
     }
     console.log(`  ${frStmts.length} source statements`)
+
+    // Grounded-pipeline join tables — statement-paper cite rows and
+    // historical snapshots. Both reference rows already inserted above.
+    const { rows: frStmtPapers } = await local.query('SELECT * FROM frontier_statement_papers ORDER BY id')
+    if (frStmtPapers.length > 0) {
+      const cols = Object.keys(frStmtPapers[0])
+      for (let i = 0; i < frStmtPapers.length; i += BATCH) {
+        const batch = frStmtPapers.slice(i, i + BATCH)
+        const allVals: any[] = []
+        const valueSets: string[] = []
+        for (const row of batch) {
+          const offset = allVals.length
+          valueSets.push('(' + cols.map((_, j) => `$${offset + j + 1}`).join(',') + ')')
+          for (const c of cols) allVals.push(row[c] ?? null)
+        }
+        await neon.query(`INSERT INTO frontier_statement_papers (${cols.join(',')}) VALUES ${valueSets.join(',')}`, allVals)
+      }
+    }
+    console.log(`  ${frStmtPapers.length} statement-paper cites`)
+
+    const { rows: frSnaps } = await local.query('SELECT * FROM frontier_snapshots ORDER BY id')
+    const snapJsonbCols = new Set(['key_questions', 'pushing_the_frontier', 'data_gaps', 'question_currency_summary'])
+    if (frSnaps.length > 0) {
+      const cols = Object.keys(frSnaps[0])
+      for (const row of frSnaps) {
+        const vals = cols.map(c => snapJsonbCols.has(c) && row[c] != null ? JSON.stringify(row[c]) : row[c] ?? null)
+        const placeholders = cols.map((_, i) => `$${i + 1}`)
+        await neon.query(`INSERT INTO frontier_snapshots (${cols.join(',')}) VALUES (${placeholders.join(',')})`, vals)
+      }
+    }
+    console.log(`  ${frSnaps.length} frontier snapshots`)
     }
 
     if (sections.has('planning')) {

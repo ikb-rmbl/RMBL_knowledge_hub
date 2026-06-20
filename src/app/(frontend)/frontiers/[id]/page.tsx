@@ -227,13 +227,11 @@ export default async function FrontierDetailPage({ params }: { params: Promise<{
   }
 
   return (
-    <div style={{ maxWidth: 'var(--max-width)', margin: '0 auto', padding: '0 var(--gutter)' }}>
-      <Link href="/frontiers" style={{ fontSize: '13px', color: 'var(--color-accent)' }}>&larr; All frontiers</Link>
+    <div className="detail">
+      <Link href="/frontiers" className="detail-back">&larr; Back to Frontiers</Link>
 
-      <div style={{ marginTop: '12px', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 600, margin: '0 0 10px', lineHeight: 1.25 }}>
-          {frontier.title}
-        </h1>
+      <h1>{frontier.title}</h1>
+      <div style={{ marginBottom: '20px' }}>
         {/* Page metadata bar: AI-provenance + flag button live together —
             issue #49. */}
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px', margin: '4px 0 8px' }}>
