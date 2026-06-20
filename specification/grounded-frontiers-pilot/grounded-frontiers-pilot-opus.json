@@ -1,0 +1,1329 @@
+[
+  {
+    "community_id": 0,
+    "neighborhood_id": 14,
+    "title": "Marmot Life History, Sociality, and Predator Ecology",
+    "input_paper_count": 17,
+    "input_papers": [
+      {
+        "pub_id": 3,
+        "year": "2025",
+        "title": "Nonlinear phenomena in marmot alarm calls: a mechanism encoding fear?",
+        "has_abstract": true,
+        "n_keyfindings": 4
+      },
+      {
+        "pub_id": 5,
+        "year": "2025",
+        "title": "Society formation and maintenance in yellow-bellied marmots",
+        "has_abstract": true,
+        "n_keyfindings": 3
+      },
+      {
+        "pub_id": 6,
+        "year": "2025",
+        "title": "Is the propensity to alarm-call heritable and related across multiple contexts?",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 8,
+        "year": "2025",
+        "title": "The sound of fear is heritable",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 22,
+        "year": "2025",
+        "title": "Is early life adversity associated with adult stress in a wild rodent?",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 23,
+        "year": "2025",
+        "title": "Dispersal of the golden-mantled ground squirrel (Callospermophilus lateralis)",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 25,
+        "year": "2025",
+        "title": "Multilevel selection on individual and group social behaviour in the wild",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 46,
+        "year": "2025",
+        "title": "Is social plasticity good? Does lifetime social variation enhance LRS and longevity in yellow-bellied marmots?",
+        "has_abstract": true,
+        "n_keyfindings": 3
+      },
+      {
+        "pub_id": 1294,
+        "year": "2012",
+        "title": "Multisensory perception in uncertain environments",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 1442,
+        "year": "2010",
+        "title": "Coupled dynamics of body mass and population growth in response to environmental change",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 1594,
+        "year": "2008",
+        "title": "Social network analysis of animal behaviour: a promising tool for the study of sociality",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 1729,
+        "year": "2005",
+        "title": "Inter-specific variation in avian responses to human disturbance",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 2198,
+        "year": "1997",
+        "title": "Does sociality drive the evolution of communicative complexity? A comparative test with ground-dwelling sciurid alarm calls",
+        "has_abstract": true,
+        "n_keyfindings": 4
+      },
+      {
+        "pub_id": 2200,
+        "year": "1997",
+        "title": "Alarm calling in yellow-bellied marmots: I. The meaning of situationally variable alarm calls",
+        "has_abstract": true,
+        "n_keyfindings": 8
+      },
+      {
+        "pub_id": 2273,
+        "year": "1996",
+        "title": "Detectability, philopatry, and the distribution of dispersal distances in vertebrates",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 3183,
+        "year": "1981",
+        "title": "Sociality as a life-history tactic of ground squirrels",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 3257,
+        "year": "1980",
+        "title": "Genetic variation in social mammals: the marmot model",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      }
+    ],
+    "statements": [
+      {
+        "text": "It remains unresolved whether the propensity to utter alarm calls is heritable across contexts and species, with quantitative genetic data on calling propensity historically lacking.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 6,
+            "snippet": "whether the propensity to utter alarm calls is heritable has not been studied",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "The heritability of nonlinear phenomena and 'noisiness' in mammalian alarm vocalizations is largely unknown, leaving open whether such fear-encoding acoustic traits can evolve under selection.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 8,
+            "snippet": "there is little research about the heritability of such behavioral traits",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "Annual variation in dispersal, mortality, and recruitment in yellow-bellied marmot societies makes it difficult to produce simple summary statements about society structure and formation, leaving the dynamics of incipient society formation unresolved.",
+        "kind": "open_question",
+        "confidence": "moderate",
+        "cites": [
+          {
+            "pub_id": 5,
+            "snippet": "this social variation makes it difficult to make simple summary statements about society structure and formation",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "Whether and how multilevel selection acts on sociality in wild animals has been a classic but empirically unanswered question, with the relative strength of selection at individual versus group levels in free-living systems still being established.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 25,
+            "snippet": "it is unknown if and how multilevel selection acts on sociality in the wild",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "The costs and benefits of dispersal and the factors influencing the dispersal decision are not well characterized in ground-dwelling sciurids, including for golden-mantled ground squirrels where dispersal patterns were largely unknown prior to this work.",
+        "kind": "data_gap",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 23,
+            "snippet": "the costs and benefits of dispersal, as well as factors influencing the dispersal decision, are not well known",
+            "role": "articulates"
+          },
+          {
+            "pub_id": 2273,
+            "snippet": "The inadequacy of dispersal data obtained directly by traditional methods using population studies of marked individuals",
+            "role": "reinforces"
+          }
+        ]
+      },
+      {
+        "text": "Substantial variation in alarm call repertoire size across ground-dwelling sciurids remains unexplained by social complexity, and the alternative drivers of communicative complexity evolution have not been identified.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 2198,
+            "snippet": "substantial variation remained unexplained by social complexity. We acknowledge that factors other than social complexity, per se, may contribute to the evolution of alarm call repertoire size",
+            "role": "articulates"
+          }
+        ]
+      }
+    ],
+    "verification": {
+      "statements_emitted": 8,
+      "statements_grounded": 6,
+      "statements_dropped_ungrounded": 2,
+      "cites_emitted": 9,
+      "cites_verified": 7,
+      "ungrounded_examples": [
+        {
+          "statement": "The mechanisms by which early life adversity translates into altered adult glucocorticoid physiology remain unclear, and most animal work has been confined to single stressors rather than co-occurring stressors faced by wild populations.",
+          "bad_cite": {
+            "pub_id": 22,
+            "snippet": "the mechanisms are still unclear... most animal studies have focused on individual stressors. Protecting wild populations that are exposed to multiple stressors requires a better understanding of the physiological consequences of several co-­occurring stressors",
+            "role": "articulates"
+          },
+          "reason": "snippet not found verbatim in source"
+        },
+        {
+          "statement": "A general framework for predicting how multiple species respond to human disturbance is lacking, with most behavioral disturbance studies focusing on only a single species.",
+          "bad_cite": {
+            "pub_id": 1729,
+            "snippet": "we lack a general framework to study multiple species... only 21% of studies that used a behavioural approach to study human disturbance focused on multiple species",
+            "role": "articulates"
+          },
+          "reason": "snippet not found verbatim in source"
+        }
+      ]
+    },
+    "llm_raw_count": 8
+  },
+  {
+    "community_id": 40,
+    "neighborhood_id": 41,
+    "title": "Alpine Plant-Pollinator Interactions and Bee Foraging Ecology",
+    "input_paper_count": 20,
+    "input_papers": [
+      {
+        "pub_id": 4,
+        "year": "2025",
+        "title": "Nutrient niche dynamics among wild pollinators",
+        "has_abstract": true,
+        "n_keyfindings": 5
+      },
+      {
+        "pub_id": 7,
+        "year": "2025",
+        "title": "Fitness costs and benefits of a non-native floral resource for subalpine solitary bees",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 39,
+        "year": "2025",
+        "title": "Up high, hot and dry: Individual reproductive output in subalpine bees declines with increasing drought severity",
+        "has_abstract": true,
+        "n_keyfindings": 4
+      },
+      {
+        "pub_id": 49,
+        "year": "2025",
+        "title": "Quantifying ethanol in bumble bee honey and Colorado rocky mountain wildflowers",
+        "has_abstract": true,
+        "n_keyfindings": 3
+      },
+      {
+        "pub_id": 52,
+        "year": "2025",
+        "title": "Foraging preferences of generalist Megachilidae",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 54,
+        "year": "2025",
+        "title": "Functional morphology of pollen capture in Syrphid flies (Diptera syrphidae): The effects of pile density and body region",
+        "has_abstract": true,
+        "n_keyfindings": 3
+      },
+      {
+        "pub_id": 61,
+        "year": "2025",
+        "title": "Reproductive ecology and pollination biology of Geum triflorum (prairie smoke)",
+        "has_abstract": true,
+        "n_keyfindings": 3
+      },
+      {
+        "pub_id": 62,
+        "year": "2025",
+        "title": "Does sodium in floral nectar enhance pollination & plant reproduction?",
+        "has_abstract": false,
+        "n_keyfindings": 2
+      },
+      {
+        "pub_id": 799,
+        "year": "2017",
+        "title": "Interaction rewiring and the rapid turnover of plant-pollinator networks",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 1192,
+        "year": "2013",
+        "title": "Single pollinator species losses reduce floral fidelity and plant reproductive function",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 1348,
+        "year": "2011",
+        "title": "An examination of synchrony between insect emergence and flowering in Rocky Mountain meadows",
+        "has_abstract": true,
+        "n_keyfindings": 7
+      },
+      {
+        "pub_id": 1514,
+        "year": "2009",
+        "title": "Ecology and evolution of plant-pollinator interactions",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 1978,
+        "year": "2001",
+        "title": "Pollinator-mediated selection on a flower color polymorphism in experimental populations of <i>Antirrhinum</i> (Scrophulariaceae)",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 2077,
+        "year": "1999",
+        "title": "Flower constancy, insect psychology, and plant evolution",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 2643,
+        "year": "1991",
+        "title": "Heterogeneity among floral visitors leads to discordance between removal and deposition of pollen",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 2745,
+        "year": "1989",
+        "title": "Evolutionary options for maximizing pollen dispersal of animal-pollinated plants",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 2746,
+        "year": "1989",
+        "title": "Evolutionary options for maximizing pollen dispersal of animal-pollinated plants",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 2907,
+        "year": "1986",
+        "title": "Pollen transport and deposition by bumble bees in Erythronium: influences of floral nectar and bee grooming",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 3243,
+        "year": "1980",
+        "title": "The effect of proboscis and corolla tube lengths on patterns and rates of flower visitation by bumblebees",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 3365,
+        "year": "1978",
+        "title": "Resource partitioning in bumblebees: experimental studies of foraging behavior",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      }
+    ],
+    "statements": [
+      {
+        "text": "How nutrient availability shapes species interactions and nutrient niche dynamics in complex, multispecies wild pollinator assemblages remains poorly understood, as most nutritional ecology work has been confined to laboratory or single-species systems.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 4,
+            "snippet": "how nutrient availability shapes species interactions in natural communities remains poorly understood. Most nutritional ecology research focuses on laboratory or single-species systems, limiting insight into how nutrient use and nutrient niche dynamics occur in complex, multispecies assemblages in the wild",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "The local-scale, individual-level fitness processes by which climate change drives broad-scale patterns of bee decline are largely unknown.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 39,
+            "snippet": "the local-scale processes that generate these broad-scale patterns are little known. Specifically, it is unclear how climate change influences the fitness of individual bees",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "Quantitative data on the actual concentrations of ethanol naturally present in bee dietary sugar sources (honey and foraged floral nectar) are lacking, limiting understanding of yeast-produced ethanol's ecological significance in pollination systems.",
+        "kind": "data_gap",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 49,
+            "snippet": "little is known about the actual concentrations of ethanol naturally present in the dietary sources of sugar for bees, namely their honey (in the case of eusocial bees) and foraged floral nectar",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "The foraging preferences of generalist Megachilidae bees are poorly understood, hindering prediction of their responses to climate change in subalpine ecosystems.",
+        "kind": "data_gap",
+        "confidence": "moderate",
+        "cites": [
+          {
+            "pub_id": 52,
+            "snippet": "Some Megachilidae species are generalists, meaning they visit a wide variety of flower species, but their exact foraging preferences remain poorly understood",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "Independent phenological data on pollinator emergence that are not confounded by flowering phenology are scarce, because pollinators are typically collected at flowers, making it difficult to rigorously test phenological mismatch hypotheses.",
+        "kind": "methodological_blocker",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 1348,
+            "snippet": "there are few data sets on pollinator flight seasons that are independent of flowering phenology, because pollinators are typically collected at flowers",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "Direct effects of drought on plant reproduction in subalpine wildflowers like Geum triflorum remain inadequately characterized, and current pollinator-exclusion and herbivory-control methods are insufficient to disentangle these effects.",
+        "kind": "methodological_blocker",
+        "confidence": "moderate",
+        "cites": [
+          {
+            "pub_id": 61,
+            "snippet": "Future research should explore drought effects on reproduction more directly and use improved methods to reduce herbivory and bag failure",
+            "role": "articulates"
+          }
+        ]
+      }
+    ],
+    "verification": {
+      "statements_emitted": 9,
+      "statements_grounded": 6,
+      "statements_dropped_ungrounded": 3,
+      "cites_emitted": 9,
+      "cites_verified": 6,
+      "ungrounded_examples": [
+        {
+          "statement": "The role of Syrphidae as pollinators remains controversial and understudied, with a lack of comprehensive data on how morphological traits like pile density determine their pollen-carrying capacity.",
+          "bad_cite": {
+            "pub_id": 54,
+            "snippet": "addresses the controversy about the efficiency of Syriphidae as pollinators... This research is significant due to the lack of comprehensive studies on Syriphidae, particularly regarding their roles as pollinators",
+            "role": "articulates"
+          },
+          "reason": "snippet not found verbatim in source"
+        },
+        {
+          "statement": "The implications of short-term, competition-driven changes in pollinator foraging specialization for ecosystem functioning have not been empirically explored, and network model predictions of community resilience to pollinator loss remain untested.",
+          "bad_cite": {
+            "pub_id": 1192,
+            "snippet": "These predictions, however, have not been tested empirically and implicitly assume that pollination efficacy is unaffected by interactions with interspecific competitors... the potential implications of such changes in specialization for ecosystem functioning remain unexplored",
+            "role": "articulates"
+          },
+          "reason": "snippet not found verbatim in source"
+        },
+        {
+          "statement": "Because plant-pollinator interaction networks are typically built from temporally aggregated data, the timescale at which interactions form or dissolve, and the drivers and consequences of those dynamics, remain obscured.",
+          "bad_cite": {
+            "pub_id": 799,
+            "snippet": "species interaction networks are typically constructed from tem- porally aggregated interaction data, thereby implicitly assuming that interactions are fixed. This approach has advanced our understanding of communities, but it obscures the timescale at which interactions form (or dissolve) and the drivers and consequences of such dynamics",
+            "role": "articulates"
+          },
+          "reason": "snippet not found verbatim in source"
+        }
+      ]
+    },
+    "llm_raw_count": 9
+  },
+  {
+    "community_id": 47,
+    "neighborhood_id": 655,
+    "title": "High-Altitude Wetland Communities, Salamanders, and Invertebrate Ecology",
+    "input_paper_count": 21,
+    "input_papers": [
+      {
+        "pub_id": 48,
+        "year": "2025",
+        "title": "Effects of elevation on salamander life strategies",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 50,
+        "year": "2025",
+        "title": "The effects of natural sun exposure on the intensity and distribution of salamander biofluorescence",
+        "has_abstract": true,
+        "n_keyfindings": 3
+      },
+      {
+        "pub_id": 64,
+        "year": "2025",
+        "title": "Salamanders impact on L. externus population densities",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 65,
+        "year": "2025",
+        "title": "Biofluorescence in Arizona Tiger Salamanders (Ambystoma mavortium nebulsoum) as an indicator of sexual readiness",
+        "has_abstract": true,
+        "n_keyfindings": 4
+      },
+      {
+        "pub_id": 67,
+        "year": "2025",
+        "title": "Comparing decomposition rates and detritivore preferences for caddisfly (Trichoptera) cases versus ambient detritus",
+        "has_abstract": true,
+        "n_keyfindings": 4
+      },
+      {
+        "pub_id": 73,
+        "year": "2025",
+        "title": "Quantifying physiological and behavioral differences in caddisfly larvae",
+        "has_abstract": true,
+        "n_keyfindings": 4
+      },
+      {
+        "pub_id": 89,
+        "year": "2024",
+        "title": "Polyphenism predicts actuarial senescence and lifespan in tiger salamanders",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 98,
+        "year": "2024",
+        "title": "Climate mediates the trade-offs associated with phenotypic plasticity in an amphibian polyphenism",
+        "has_abstract": true,
+        "n_keyfindings": 3
+      },
+      {
+        "pub_id": 2073,
+        "year": "1999",
+        "title": "Dispersal of the fairy shrimp <i>Branchinecta coloradensis</i> (Anostraca):  Effects of hydroperiod and salamanders",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 2224,
+        "year": "1997",
+        "title": "Cyclic Colonization in Predictably Ephemeral Habitats: A Template for Biological Control in Annual Crop Systems",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 2295,
+        "year": "1996",
+        "title": "Intraguild predation and cannibalism among larvae of detritivorous caddisflies in subalpine wetlands",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 2414,
+        "year": "1994",
+        "title": "Evolution of Facultative Paedomorphosis in Salamanders",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 2501,
+        "year": "1993",
+        "title": "Intraguild predation and competition between larval dragonflies: direct and indirect effects on shared prey",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 2567,
+        "year": "1992",
+        "title": "Niche overlap and the potential for competition and intraguild predation between size-structured populations",
+        "has_abstract": true,
+        "n_keyfindings": 3
+      },
+      {
+        "pub_id": 2766,
+        "year": "1989",
+        "title": "Seasonal variation in the intensity of competition and predation among dragonfly larvae",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 3197,
+        "year": "1981",
+        "title": "Embryological induction and predation ecology in Daphnia pulex",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 3511,
+        "year": "1974",
+        "title": "Zooplankton competition and predation: an experimental test of the size-efficiency hypothesis",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 3628,
+        "year": "1972",
+        "title": "Mortality in a population of Daphnia rosea",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 3632,
+        "year": "1972",
+        "title": "Effects of size-selective predation and food competition on high altitude zooplankton communities",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 3785,
+        "year": "1963",
+        "title": "The passive dispersal of small aquatic organisms and their colonization of isolated bodies of water",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 6512,
+        "year": "2025",
+        "title": "Females know best: dispersal polymorphism maintained by sex-specific foraging",
+        "has_abstract": false,
+        "n_keyfindings": 2
+      }
+    ],
+    "statements": [
+      {
+        "text": "The functional roles and environmental drivers of biofluorescence in salamanders remain poorly understood, including how sunlight exposure modulates its intensity and distribution.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 50,
+            "snippet": "Not much is known about all its functions, more studies are needed to fully understand how it works and how it can be affected by environmental factors.",
+            "role": "articulates"
+          },
+          {
+            "pub_id": 65,
+            "snippet": "Biofluorescence, the emission of visible light by organisms following the absorption of shorter wavelengths of light, has been identified recently in various amphibians but remains poorly understood in salamanders.",
+            "role": "reinforces"
+          }
+        ]
+      },
+      {
+        "text": "Whether biofluorescence in Arizona tiger salamanders functions as a sexual/reproductive signal is unresolved, and larger datasets with individual-level longitudinal comparisons are needed to test this.",
+        "kind": "data_gap",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 65,
+            "snippet": "Future analyses will incorporate a larger dataset, individual level comparisons over time, and additional body regions to better understand the biological role of fluorescence in salamander courtship and communication.",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "The seasonal decline pattern of L. externus caddisfly population density has not been formally tested, leaving baseline density-trajectory data missing for evaluating salamander predation effects.",
+        "kind": "data_gap",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 64,
+            "snippet": "However this pattern has not been formally tested, so collecting population density data is important for future research and understanding changes in densities over time.",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "It remains unclear how intra- and interspecific interactions shape caddisfly case size across larval development stages.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 73,
+            "snippet": "Case morphology varies with ecological pressures, but gaps remain in understanding how intra- and interspecific interactions influence case size across larval development.",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "The relative fitness of paedomorphic versus metamorphic salamander morphs has not been conclusively determined, limiting understanding of how facultative paedomorphosis evolves and is maintained.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 2414,
+            "snippet": "No study has conclusively determined the relative fitness of paedomorphs and metamorphs, which limits our understanding of the evolution of this polymorphism.",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "How contemporary climate change will alter the selective pressures that maintain phenotypic plasticity and polyphenisms in amphibians is unresolved and requires new studies.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 98,
+            "snippet": "Our findings motivate new studies to determine how contemporary climate change will alter the selective pressures maintaining phenotypic plasticity and polyphenisms.",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "The mechanisms maintaining dominance of Limnephilus larvae in permanent caddisfly habitats—hypothesized to be an indirect effect of salamander predation—are not explained by intraguild predation data and remain to be demonstrated.",
+        "kind": "open_question",
+        "confidence": "moderate",
+        "cites": [
+          {
+            "pub_id": 2295,
+            "snippet": "These data do not explain the dominance of Limnephilus larvae in permanent basins, which we show elsewhere to be an indirect effect of salamander predation.",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "Whether antimicrobial properties of caddisfly silk drive detritivore avoidance and slower decomposition of cases is hypothesized but not yet directly tested.",
+        "kind": "open_question",
+        "confidence": "moderate",
+        "cites": [
+          {
+            "pub_id": 67,
+            "snippet": "Insect silk, which often contains antimicrobial peptides or proteins, may be a contributing factor in potential antimicrobial properties and decreased detritivore consumption of cases.",
+            "role": "articulates"
+          }
+        ]
+      }
+    ],
+    "verification": {
+      "statements_emitted": 8,
+      "statements_grounded": 8,
+      "statements_dropped_ungrounded": 0,
+      "cites_emitted": 9,
+      "cites_verified": 9,
+      "ungrounded_examples": []
+    },
+    "llm_raw_count": 8
+  },
+  {
+    "community_id": 91,
+    "neighborhood_id": 621,
+    "title": "East River Watershed Hydrology and Groundwater Dynamics",
+    "input_paper_count": 24,
+    "input_papers": [
+      {
+        "pub_id": 11,
+        "year": "2025",
+        "title": "The role of bedrock circulation depth and porosity in mountain streamflow response to prolonged drought",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 21,
+        "year": "2025",
+        "title": "Hidden features: How subsurface and landscape heterogeneity govern hydrologic connectivity and stream chemistry in a montane watershed",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 35,
+        "year": "2025",
+        "title": "Matrix diffusion controls mountain hillslope groundwater ages and inferred storage dynamics",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 38,
+        "year": "2025",
+        "title": "The role of snowmelt and subsurface heterogeneity in headwater hydrology of a mountainous catchment in Colorado: A model-data integration approach",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 85,
+        "year": "2024",
+        "title": "A tale of two catchments: causality analysis and isotope systematics reveal mountainous watershed traits that regulate the retention and release of nitrogen",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 88,
+        "year": "2024",
+        "title": "Declining groundwater storage expected to amplify mountain streamflow reductions in a warmer world",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 116,
+        "year": "2024",
+        "title": "Stream water sourcing from high-elevation snowpack inferred from stable isotopes of water: a novel application of d-excess values",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 119,
+        "year": "2024",
+        "title": "Climate forcing controls on carbon terrestrial fluxes during shale weathering",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 121,
+        "year": "2024",
+        "title": "Old-Aged groundwater contributes to mountain hillslope hydrologic dynamics",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 125,
+        "year": "2024",
+        "title": "Hydrological control of rock carbon fluxes from shale weathering",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 142,
+        "year": "2024",
+        "title": "Effects of Dissolved Oxygen & Iron II Concentration Fluxes in Beaver-Impacted Floodplains",
+        "has_abstract": false,
+        "n_keyfindings": 4
+      },
+      {
+        "pub_id": 187,
+        "year": "2023",
+        "title": "Virus diversity and activity is driven by snowmelt and host dynamics in a high-altitude watershed soil ecosystem",
+        "has_abstract": true,
+        "n_keyfindings": 4
+      },
+      {
+        "pub_id": 544,
+        "year": "2020",
+        "title": "The Snowmelt Niche Differentiates Three Microbial Life Strategies That Influence Soil Nitrogen Availability During and After Winter",
+        "has_abstract": true,
+        "n_keyfindings": 4
+      },
+      {
+        "pub_id": 600,
+        "year": "2019",
+        "title": "The importance of interflow to groundwater recharge in a snowmelt-dominated headwater basin",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 621,
+        "year": "2019",
+        "title": "Exploring source water mixing and transient residence time distributions of outflow and evapotranspiration with an integrated hydrologic model and Lagrangian particle tracking approach",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 641,
+        "year": "2019",
+        "title": "Predicting sedimentary bedrock subsurface weathering fronts and weathering rates",
+        "has_abstract": true,
+        "n_keyfindings": 3
+      },
+      {
+        "pub_id": 643,
+        "year": "2019",
+        "title": "Distinct Source Water Chemistry Shapes Contrasting Concentration-Discharge Patterns",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 710,
+        "year": "2018",
+        "title": "Geochemical exports to river from the intra-meander hyporheic zone under transient hydrologic conditions: East River Mountainous Watershed, Colorado",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 711,
+        "year": "2018",
+        "title": "Factors Controlling Seasonal Groundwater and Solute Flux from Snow-Dominated Basins",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 719,
+        "year": "2018",
+        "title": "The East River, Colorado, Watershed: A mountainous community testbed for improving predictive understanding of multiscale hydrological-biogeochemical dynamics",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 4514,
+        "year": "1996",
+        "title": "Land Use and Landscape Change in the Colorado Mountains II: A Case Study of the East River Valley",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 6496,
+        "year": "2026",
+        "title": "Depth of nutrient uptake by deep-rooted plants is regulated by water availability",
+        "has_abstract": false,
+        "n_keyfindings": 4
+      },
+      {
+        "pub_id": 6526,
+        "year": "2025",
+        "title": "Soil signals of key mechanisms driving greater protection of organic carbon under aspen compared to spruce forests in a North American montane ecosystem",
+        "has_abstract": false,
+        "n_keyfindings": 4
+      },
+      {
+        "pub_id": 6528,
+        "year": "2025",
+        "title": "Quantifying the effect of petrogenic carbon on SOC turnover for two Rocky Mountain soils: when are petrogenic carbon corrections required?",
+        "has_abstract": false,
+        "n_keyfindings": 3
+      }
+    ],
+    "statements": [
+      {
+        "text": "It remains unclear how the depth of active groundwater circulation in mountain bedrock affects streamflow response to multi-year drought, requiring better characterization of deeper bedrock hydrogeology in mountainous watersheds.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 11,
+            "snippet": "Quantitative understanding is lacking on how the depth of active groundwater circulation in bedrock affects mountain streamflow response to a multi‐year drought",
+            "role": "articulates"
+          },
+          {
+            "pub_id": 11,
+            "snippet": "Research highlights the importance of characterizing the deeper bedrock hydrogeology in mountainous watersheds to better understand and predict drought impacts",
+            "role": "reinforces"
+          }
+        ]
+      },
+      {
+        "text": "How interannual climate variability impacts hydrologic connectivity, and consequently streamflow generation and stream chemistry, in montane watersheds remains unresolved.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 21,
+            "snippet": "How interannual climate variability impacts hydrologic connectivity, and thus stream flow generation and chemistry, remains unclear",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "The processes that dictate observed mixtures of young and old-aged groundwater age distributions in bedrock-underlain mountain catchments are poorly understood.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 35,
+            "snippet": "Field-based studies have found mixtures of young and old-aged groundwater in mountain catchments underlain by bedrock; yet, the processes that dictate these groundwater age distributions are poorly understood",
+            "role": "articulates"
+          },
+          {
+            "pub_id": 121,
+            "snippet": "the bedrock groundwater dynamics in mountainous environments are typically under-constrained and excluded from watershed hydrologic models",
+            "role": "reinforces"
+          }
+        ]
+      },
+      {
+        "text": "Predicting headwater stream discharge magnitude and peak flow timing remains challenging in mountainous terrains due to the joint influence of vegetation- and elevation-dependent snowmelt rates and heterogeneous subsurface properties.",
+        "kind": "open_question",
+        "confidence": "moderate",
+        "cites": [
+          {
+            "pub_id": 38,
+            "snippet": "predicting headwater stream discharge magnitude and peak flow timing is challenging in mountainous terrains, where snowmelt rates vary with vegetation type and elevation, and heterogeneous subsurface physical properties influence groundwater storage and its release",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "Observations of high-elevation snowpack dynamics in complex mountain terrain are sparse because of access challenges and the cost/labor intensity of existing methods, creating a methodological blocker for understanding snowmelt progression.",
+        "kind": "methodological_blocker",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 116,
+            "snippet": "the dynamics of snowmelt progression are not well understood because observations of the high-elevation snowpack are difficult due to challenging access in complex mountainous terrain as well as the cost and labor intensity of currently available methods",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "Controls on carbon weathering fluxes from shale—and how hydrology regulates ancient rock carbon (Crock) release—remain poorly constrained.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 119,
+            "snippet": "the controls on carbon (C) weathering fluxes remain poorly constrained",
+            "role": "articulates"
+          },
+          {
+            "pub_id": 125,
+            "snippet": "Although water is recognized for cycling elements through terrestrial environments, understanding how hydrology controls ancient rock carbon (Crock) release is limited",
+            "role": "reinforces"
+          }
+        ]
+      },
+      {
+        "text": "Groundwater interactions with mountain streams are often oversimplified or excluded in projections, and explicit incorporation of deeper bedrock groundwater dynamics into watershed hydro-biogeochemical models is needed.",
+        "kind": "methodological_blocker",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 88,
+            "snippet": "Groundwater interactions with mountain streams are often simplified in model projections, potentially leading to inaccurate estimates of streamflow response to climate change",
+            "role": "articulates"
+          },
+          {
+            "pub_id": 35,
+            "snippet": "This dynamic groundwater system amplifies the need to assimilate deeper bedrock groundwater into watershed hydro-biogeochemical predictions",
+            "role": "reinforces"
+          },
+          {
+            "pub_id": 121,
+            "snippet": "the bedrock groundwater dynamics in mountainous environments are typically under-constrained and excluded from watershed hydrologic models",
+            "role": "reinforces"
+          }
+        ]
+      },
+      {
+        "text": "A mechanistic framework that can interpret the diverse, contrasting concentration-discharge patterns observed across solutes and catchments remains elusive.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 643,
+            "snippet": "Contrasting C‐Q relationships have been observed widely, yet a mechanistic framework that can interpret diverse patterns remains elusive",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "Subsurface bedrock weathering depths and rates are not well understood nor predictable, requiring integration of porewater chemistry and subsurface flow measurements.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 641,
+            "snippet": "Although bedrock weathering strongly influences water quality and global carbon and nitrogen budgets, the weathering depths and rates within subsurface are not well understood nor predictable",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "The stability of soil viral communities across time and their response to strong seasonal environmental changes in snow-dominated watersheds remains limited, hindering integration of viral impacts into ecosystem biogeochemistry models.",
+        "kind": "open_question",
+        "confidence": "moderate",
+        "cites": [
+          {
+            "pub_id": 187,
+            "snippet": "our current understanding of the stability of soil viral communities across time and their response to strong seasonal changes in environmental parameters remains limited",
+            "role": "articulates"
+          }
+        ]
+      }
+    ],
+    "verification": {
+      "statements_emitted": 10,
+      "statements_grounded": 10,
+      "statements_dropped_ungrounded": 0,
+      "cites_emitted": 15,
+      "cites_verified": 15,
+      "ungrounded_examples": []
+    },
+    "llm_raw_count": 10
+  },
+  {
+    "community_id": 95,
+    "neighborhood_id": 630,
+    "title": "Mountain Snowpack, Water Balance, and Colorado River Prediction",
+    "input_paper_count": 16,
+    "input_papers": [
+      {
+        "pub_id": 1,
+        "year": "2025",
+        "title": "The short life of upvalley wind in a high-altitude valley in the Colorado Rocky Mountains",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 19,
+        "year": "2025",
+        "title": "Measurement report: An investigation of the spatiotemporal variability in aerosols in the mountainous terrain of the upper Colorado River basin using SAIL-Net",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 30,
+        "year": "2025",
+        "title": "Seasonality and albedo dependence of cloud radiative forcing in the Upper Colorado River Basin",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 55,
+        "year": "2025",
+        "title": "Using time-lapse imagery to determine snow heterogeneity",
+        "has_abstract": false,
+        "n_keyfindings": 3
+      },
+      {
+        "pub_id": 96,
+        "year": "2024",
+        "title": "Recent Upper Colorado River Streamflow Declines Driven by Loss of Spring Precipitation",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 99,
+        "year": "2024",
+        "title": "Sublimation of Snow",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 114,
+        "year": "2024",
+        "title": "Cold-season precipitation sensitivity to microphysical parameterizations: hydrologic evaluations leveraging snow lidar datasets",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 130,
+        "year": "2024",
+        "title": "Surface Temperature Variability Across the East River Watershed",
+        "has_abstract": false,
+        "n_keyfindings": 7
+      },
+      {
+        "pub_id": 191,
+        "year": "2023",
+        "title": "Supporting advancement in weather and water prediction in the upper Colorado River Basin: The SPLASH campaign",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 195,
+        "year": "2023",
+        "title": "The Surface Atmosphere Integrated Field Laboratory (SAIL) Campaign",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 215,
+        "year": "2023",
+        "title": "Impact of Crosstalk on Reflectivity and Doppler Measurements for the WIVERN Polarization Diversity Doppler Radar",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 216,
+        "year": "2023",
+        "title": "Evaluating 3 decades of precipitation in the Upper Colorado River basin from a high-resolution regional climate model",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 412,
+        "year": "2021",
+        "title": "The influence of orbital parameters on the North American Monsoon system during the Last Interglacial Period",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 2215,
+        "year": "1997",
+        "title": "Terrestrial ecosytem feedbacks to global climate change",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 4955,
+        "year": "2024",
+        "title": "Thermal infrared shadow-hiding in GOES-R ABI imagery: snow and forest temperature observations from the SnowEx 2020 Grand Mesa field campaign",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      },
+      {
+        "pub_id": 5001,
+        "year": "2021",
+        "title": "A <scp>community‐supported</scp> weather and soil moisture monitoring database of the Roaring Fork catchment of the Colorado River Headwaters",
+        "has_abstract": true,
+        "n_keyfindings": 0
+      }
+    ],
+    "statements": [
+      {
+        "text": "The magnitude and physical controls of snow sublimation in mountain watersheds remain poorly constrained by observations, driving large divergence in projected Colorado River water availability across models.",
+        "kind": "data_gap",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 99,
+            "snippet": "Sublimation, the conversion of ice to water vapor, results in less water for runoff, but due to a historic lack of observations, this process is hard to constrain. Variations in how sublimation is represented in models have led to a large divergence of projected water resource availability for the Colorado River basin",
+            "role": "articulates"
+          },
+          {
+            "pub_id": 195,
+            "snippet": "Limited observations in complex terrain challenge efforts to improve predictive models of the hydrology in the face of rapid changes. The Upper Colorado River exemplifies these challenges, especially with ongoing mismatches between precipitation, snowpack, and discharge.",
+            "role": "reinforces"
+          }
+        ]
+      },
+      {
+        "text": "Improved seasonal forecasts of spring precipitation in the Upper Colorado headwaters are needed but currently unavailable at the skill required for water availability prediction.",
+        "kind": "methodological_blocker",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 96,
+            "snippet": "Refining seasonal spring precipitation forecasts is imperative for future water availability predictions in this snow‐dominated water resource region.",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "Cloud radiative forcing impacts on the surface radiation balance over high-elevation snowy mountain terrain are not well understood, limiting our ability to model surface energy budgets in the Upper Colorado River Basin.",
+        "kind": "open_question",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 30,
+            "snippet": "However, the impacts of clouds on the surface radiation balance in high elevation snowy mountain terrain are poorly explored.",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "The extent of aerosol spatiotemporal variability in mountainous complex terrain—and how it should inform measurement network design for cloud-aerosol-precipitation studies—has not previously been quantified.",
+        "kind": "data_gap",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 19,
+            "snippet": "Previous studies suggest that there is increased aerosol variability in these regions due to their complex terrain, but none of these studies have quantified the extent of this variability.",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "Precipitation biases in convection-permitting regional climate models over mountain water-resource regions remain poorly characterized due to sparse observations and high spatial variability.",
+        "kind": "data_gap",
+        "confidence": "high",
+        "cites": [
+          {
+            "pub_id": 216,
+            "snippet": "better characterization of precipitation biases is needed, particularly for water-resource-critical mountain regions, where precipitation is highly variable in space, observations are sparse, and the societal water need is great",
+            "role": "articulates"
+          },
+          {
+            "pub_id": 114,
+            "snippet": "We fall short of identifying a clearly superior microphysical parameterization but conclude that snow lidar is a valuable nontraditional indicator of model performance.",
+            "role": "reinforces"
+          }
+        ]
+      },
+      {
+        "text": "Linear lapse-rate models commonly used to spatialize temperature in mountain hydrology fail in complex terrain, leaving an unresolved methodological need for representing non-linear and inversion-dominated temperature fields.",
+        "kind": "methodological_blocker",
+        "confidence": "moderate",
+        "cites": [
+          {
+            "pub_id": 130,
+            "snippet": "Linear lapse rate models often perform poorly in complex terrain, with median R² values below 0.5 for temperature variation with elevation",
+            "role": "articulates"
+          }
+        ]
+      },
+      {
+        "text": "Thermal infrared view-angle biases (e.g., shadow-hiding effects) in geostationary satellite observations of snow- and forest-covered surfaces are not fully characterized, limiting use of GOES-R land surface temperatures in mountain snow applications.",
+        "kind": "methodological_blocker",
+        "confidence": "moderate",
+        "cites": [
+          {
+            "pub_id": 4955,
+            "snippet": "These biases are important to understand for applications using GOES-R brightness temperatures or derived land surface temperatures (LSTs) over areas with surface roughness features, such as forests, that could exhibit a thermal infrared shadow-hiding effect.",
+            "role": "articulates"
+          }
+        ]
+      }
+    ],
+    "verification": {
+      "statements_emitted": 8,
+      "statements_grounded": 7,
+      "statements_dropped_ungrounded": 1,
+      "cites_emitted": 10,
+      "cites_verified": 9,
+      "ungrounded_examples": [
+        {
+          "statement": "Climate model projections of the North American Monsoon response to warming remain divergent and uncertain, with the spatial complexity of monsoon precipitation responses not yet well understood.",
+          "bad_cite": {
+            "pub_id": 412,
+            "snippet": "The response of summer precipitation in the western United States to climate variability remains a subject of uncertainty... These illustrate diverging pictures of the NAM response to warming.",
+            "role": "articulates"
+          },
+          "reason": "snippet not found verbatim in source"
+        }
+      ]
+    },
+    "llm_raw_count": 8
+  }
+]
