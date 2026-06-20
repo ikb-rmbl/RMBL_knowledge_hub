@@ -59,6 +59,13 @@ export interface NormalizedDocument {
   _sourcePostId: string
   title: string
   summary: string
+  /** Optional discoverer-time hint for the documents collection's
+   *  `document_type` column. Sustainable Library docs leave this
+   *  undefined (enrich-document-summaries.ts fills it in later via LLM
+   *  extraction); the Federal Register discoverer sets it directly
+   *  from the FR record's `type` field so notices land with their
+   *  type already classified at ingest. */
+  documentType?: string
   categories: string[]
   dateOriginal: string | null
   geographicScope: string[]
