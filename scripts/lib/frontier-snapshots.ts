@@ -20,19 +20,30 @@ export type SnapshotReason =
   | 'manual_admin'
 
 /**
+ * Context for a snapshot — which pipeline run triggered it. Exactly one
+ * of these is set in practice (`pipeline_rerun` → extractionRunId,
+ * `validation_currency_shift` → validationRunId), but the type lets
+ * either be omitted so the helper stays generic.
+ */
+export interface SnapshotContext {
+  extractionRunId?: number | null
+  validationRunId?: number | null
+}
+
+/**
  * Append a snapshot of the current state of the given frontier. Marks
  * any previous open snapshot of the same frontier as superseded so the
  * snapshot timeline is a clean chain. Returns the new snapshot id, or
  * null when the frontier id isn't found.
  *
  * Accepts either a Pool or a PoolClient so callers can run this inside
- * an existing transaction (the loader does so).
+ * an existing transaction (the loader and validator both do so).
  */
 export async function snapshotFrontier(
   db: Pool | PoolClient,
   frontierId: number,
   reason: SnapshotReason,
-  extractionRunId: number | null = null,
+  ctx: SnapshotContext = {},
 ): Promise<number | null> {
   const { rows: [f] } = await db.query<{
     title: string
@@ -86,9 +97,9 @@ export async function snapshotFrontier(
        frontier_description, barriers, research_opportunities, impacts,
        tractability, framing_notes, key_questions, pushing_the_frontier,
        data_gaps, source_paper_count, source_year_median,
-       question_currency_summary, snapshot_reason, extraction_run_id
+       question_currency_summary, snapshot_reason, extraction_run_id, validation_run_id
      ) VALUES (
-       $1, now(), $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+       $1, now(), $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19
      ) RETURNING id`,
     [
       frontierId, f.title, f.cross_cutting_summary, f.context,
@@ -101,7 +112,9 @@ export async function snapshotFrontier(
       JSON.stringify(f.pushing_the_frontier ?? []),
       JSON.stringify(f.data_gaps ?? []),
       f.source_paper_count, f.source_year_median,
-      JSON.stringify(summary), reason, extractionRunId,
+      JSON.stringify(summary), reason,
+      ctx.extractionRunId ?? null,
+      ctx.validationRunId ?? null,
     ],
   )
   return r.id
