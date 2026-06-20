@@ -8,6 +8,7 @@ import { LlmProvenanceSidebar } from '../../components/ai-artifact/ProvenanceSid
 import { LlmProvenanceBadge } from '../../components/ai-artifact/ProvenanceBadge'
 import { hasCuratedField } from '../../components/ai-artifact/curation'
 import FlagButton from '../../components/FlagButton'
+import { GroundedQuestion, isGroundedItem, type GroundedItem } from '../../components/frontier-grounded/GroundedQuestion'
 
 export const dynamic = 'force-dynamic'
 
@@ -93,9 +94,13 @@ interface FrontierRow {
   cross_cutting_summary: string | null
   tractability: string | null
   framing_notes: string | null
-  key_questions: string[]
+  // key_questions and data_gaps are jsonb arrays. Legacy frontiers
+  // (extraction_run_id IS NULL) store plain strings; grounded frontiers
+  // (step 4b) store {text, cites, year_range, currency?, addressed_by?,
+  // last_checked_at?} objects. The render path detects shape per item.
+  key_questions: (string | GroundedItem)[]
   pushing_the_frontier: { category: string; effort: string; action: string }[]
-  data_gaps: string[]
+  data_gaps: (string | GroundedItem)[]
   avg_management_relevance: number | null
   source_cluster_size: number
   source_neighborhoods: number
@@ -104,6 +109,14 @@ interface FrontierRow {
   // rows that predate backfill.
   generated_at: string | null
   synthesis_model: string | null
+  // Grounded-pipeline fields (steps 4b + 5). Null on legacy frontiers.
+  extraction_run_id: number | null
+  question_currency_summary: { open?: number; partially_addressed?: number; addressed?: number } | null
+  last_validated_at: string | null
+  source_paper_count: number | null
+  source_year_median: number | null
+  source_year_p10: number | null
+  source_year_p90: number | null
 }
 
 async function fetchLinkedEntities(db: any, frontierId: number) {
@@ -178,6 +191,32 @@ export default async function FrontierDetailPage({ params }: { params: Promise<{
   ])
   const mgmtScore = frontier.avg_management_relevance != null ? Number(frontier.avg_management_relevance) : null
   const maxReach = Number(reachMax.max_reach) || 1
+
+  // For grounded frontiers, gather every cited pub_id (from key_questions
+  // and data_gaps, including addressed_by entries) and resolve title + year
+  // in one query so cite chips and the currency badge can render with
+  // metadata without N+1 fetches.
+  const isGrounded = frontier.extraction_run_id != null
+  const citeMeta = new Map<number, { title: string | null; year: number | null }>()
+  if (isGrounded) {
+    const pubIds = new Set<number>()
+    const collect = (arr: (string | GroundedItem)[] | null | undefined) => {
+      for (const item of arr ?? []) {
+        if (!isGroundedItem(item)) continue
+        for (const c of item.cites ?? []) pubIds.add(c.pub_id)
+        for (const a of item.addressed_by ?? []) pubIds.add(a.pub_id)
+      }
+    }
+    collect(frontier.key_questions)
+    collect(frontier.data_gaps)
+    if (pubIds.size > 0) {
+      const { rows: pubRows } = await db.query<{ id: number; title: string | null; year: number | null }>(
+        `SELECT id, title, year FROM publications WHERE id = ANY($1::int[])`,
+        [Array.from(pubIds)],
+      )
+      for (const r of pubRows) citeMeta.set(r.id, { title: r.title, year: r.year })
+    }
+  }
 
   // Group pushing_the_frontier by category
   const actionsByCategory = new Map<string, typeof frontier.pushing_the_frontier>()
@@ -271,8 +310,26 @@ export default async function FrontierDetailPage({ params }: { params: Promise<{
       {(frontier.key_questions?.length || 0) > 0 && (
         <section style={{ marginBottom: '24px' }}>
           <h2 style={{ fontSize: '17px', fontWeight: 600, margin: '0 0 8px' }}>Key questions</h2>
+          {isGrounded && (frontier.source_paper_count || frontier.last_validated_at) && (
+            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 10px' }}>
+              {frontier.source_paper_count != null && (
+                <>Grounded in {frontier.source_paper_count} primary{' '}
+                {frontier.source_paper_count === 1 ? 'citation' : 'citations'}
+                {frontier.source_year_p10 != null && frontier.source_year_p90 != null
+                  ? ` (${frontier.source_year_p10}–${frontier.source_year_p90})`
+                  : ''}.{' '}</>
+              )}
+              {frontier.last_validated_at && (
+                <>Currency last checked {new Date(frontier.last_validated_at).toISOString().slice(0, 10)}.</>
+              )}
+            </p>
+          )}
           <ul style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--color-text-primary)', maxWidth: '70ch', paddingLeft: '20px', margin: 0 }}>
-            {frontier.key_questions.map((q, i) => (<li key={i} style={{ marginBottom: '6px' }}>{q}</li>))}
+            {frontier.key_questions.map((q, i) => (
+              isGroundedItem(q)
+                ? <GroundedQuestion key={i} item={q} citeMeta={citeMeta} />
+                : <li key={i} style={{ marginBottom: '6px' }}>{q}</li>
+            ))}
           </ul>
         </section>
       )}
@@ -332,7 +389,11 @@ export default async function FrontierDetailPage({ params }: { params: Promise<{
             statements feeding this frontier.
           </p>
           <ul style={{ fontSize: '13px', lineHeight: 1.5, color: 'var(--color-text-secondary)', maxWidth: '74ch', paddingLeft: '20px', margin: 0 }}>
-            {frontier.data_gaps.slice(0, 30).map((g, i) => (<li key={i} style={{ marginBottom: '4px' }}>{g}</li>))}
+            {frontier.data_gaps.slice(0, 30).map((g, i) => (
+              isGroundedItem(g)
+                ? <GroundedQuestion key={i} item={g} citeMeta={citeMeta} fontSize="13px" lineHeight={1.55} />
+                : <li key={i} style={{ marginBottom: '4px' }}>{g}</li>
+            ))}
           </ul>
         </section>
       )}
