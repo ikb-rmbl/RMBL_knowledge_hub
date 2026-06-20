@@ -172,7 +172,7 @@ async function main() {
     // is preserved as historical record. Then clear the row's neighborhood /
     // entity / statement-pointer rels — we'll repopulate from the new cluster.
     for (const [, frontierId] of existingByCluster) {
-      const snapId = await snapshotFrontier(client, frontierId, 'pipeline_rerun', runId)
+      const snapId = await snapshotFrontier(client, frontierId, 'pipeline_rerun', { extractionRunId: runId })
       if (snapId == null) {
         throw new Error(`Failed to snapshot frontier #${frontierId} before replacement`)
       }
