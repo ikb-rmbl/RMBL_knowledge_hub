@@ -129,7 +129,7 @@ const FRONTIER_TOPICS_CTE = `
 export default async function FrontiersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string; mgmt?: string; reach?: string; topic?: string; q?: string }>
+  searchParams: Promise<{ sort?: string; mgmt?: string; reach?: string; topic?: string; q?: string; legacy?: string }>
 }) {
   const params = await searchParams
   const sort = params.sort || 'breadth'
@@ -137,15 +137,21 @@ export default async function FrontiersPage({
   const reachFilter = params.reach || ''
   const topicFilter = parseInt(params.topic || '') || null
   const query = (params.q || '').trim().slice(0, 200)
+  // Step 9 cutover (Plan A2): grounded frontiers are the default surface;
+  // the legacy pre-grounded set is hidden behind ?legacy=show. The legacy
+  // corpus is preserved (it anchors 3.3K planning items) — we're just
+  // filtering visibility, not deleting rows. `mgmtFilter` and the
+  // "Management leverage" sort are legacy-only signals because
+  // avg_management_relevance is NULL on every grounded frontier; we hide
+  // those affordances when legacy is hidden.
+  const showLegacy = params.legacy === 'show'
+  const visibilityClause = showLegacy ? 'TRUE' : 'extraction_run_id IS NOT NULL'
 
   const db = getDb()
 
-  // Quartile thresholds computed from the corpus — the filter labels
-  // ("Most basic", "Most applied", etc.) stay meaningful as the
-  // distribution shifts on pipeline re-runs. percentile_cont on the
-  // numeric mgmt column (interpolated), percentile_disc on the integer
-  // breadth column (returns an actual data value, so threshold compares
-  // cleanly with integer source_neighborhoods).
+  // Quartile thresholds computed from the *visible* cohort, so the
+  // filter labels ("Most basic", "Most applied", etc.) stay meaningful
+  // regardless of whether legacy is in view.
   const { rows: [pct] } = await db.query(`
     SELECT
       percentile_cont(0.25) WITHIN GROUP (ORDER BY avg_management_relevance) AS m25,
@@ -156,6 +162,7 @@ export default async function FrontiersPage({
       percentile_disc(0.75) WITHIN GROUP (ORDER BY source_neighborhoods)     AS r75,
       max(source_neighborhoods)                                              AS max_reach
     FROM frontiers
+    WHERE ${visibilityClause}
   `)
   const m25 = Number(pct.m25) || 0
   const m50 = Number(pct.m50) || 0
@@ -223,11 +230,17 @@ export default async function FrontiersPage({
             question_currency_summary,
             last_validated_at
      FROM frontiers
-     WHERE ${mgmtClause(mgmtFilter)} AND ${reachClause(reachFilter)} AND ${topicClause} AND ${searchClause}
+     WHERE ${visibilityClause}
+       AND ${mgmtClause(mgmtFilter)} AND ${reachClause(reachFilter)} AND ${topicClause} AND ${searchClause}
      ORDER BY ${orderBy(sort)}`,
     searchValues,
   )
-  const { rows: [{ total }] } = await db.query(`SELECT count(*)::int AS total FROM frontiers`)
+  const { rows: [{ total }] } = await db.query(
+    `SELECT count(*)::int AS total FROM frontiers WHERE ${visibilityClause}`,
+  )
+  const { rows: [{ legacy_hidden }] } = await db.query<{ legacy_hidden: number }>(
+    `SELECT count(*)::int AS legacy_hidden FROM frontiers WHERE extraction_run_id IS NULL`,
+  )
 
   // Strongest-link highlights: up to 5 chips per frontier from the thematic
   // entity types only (species/concept/place/protocol). Authors, stakeholders,
@@ -294,22 +307,25 @@ export default async function FrontiersPage({
     }
   }
 
-  // Per-topic counts for the sidebar (full corpus — independent of mgmt/reach filters
-  // so the user sees the absolute size of each domain). "Other" (id=9) is a
-  // catch-all not a real domain; excluded from the filter list.
+  // Per-topic counts for the sidebar (against the visible cohort, so the
+  // user sees the absolute size of each domain among the rows they can
+  // actually see). "Other" (id=9) is a catch-all not a real domain;
+  // excluded from the filter list.
   const { rows: topicRows } = await db.query(`
     WITH RECURSIVE ${FRONTIER_TOPICS_CTE}
     SELECT t.id, t.name, count(DISTINCT ftt.frontier_id)::int AS n
     FROM topics t
     LEFT JOIN frontier_top_topics ftt ON ftt.top_topic_id = t.id
+    LEFT JOIN frontiers f ON f.id = ftt.frontier_id
     WHERE t.parent_id IS NULL AND t.id <> 9
+      AND (f.id IS NULL OR ${visibilityClause.replace(/extraction_run_id/g, 'f.extraction_run_id')})
     GROUP BY t.id, t.name
     HAVING count(DISTINCT ftt.frontier_id) > 0
     ORDER BY n DESC, t.name`)
 
-  // Per-filter counts for the sidebar (computed against the full corpus
-  // so the same quartile boundaries show their unconditional size, not
-  // a count narrowed by the other axis's current filter)
+  // Per-filter counts for the sidebar (against the visible cohort, so
+  // the quartile boundaries show their unconditional size, not a count
+  // narrowed by the other axis's current filter).
   const { rows: filterCounts } = await db.query(`
     SELECT
       count(*) FILTER (WHERE avg_management_relevance < $1) AS mgmt_q1,
@@ -320,7 +336,8 @@ export default async function FrontiersPage({
       count(*) FILTER (WHERE source_neighborhoods > $4 AND source_neighborhoods <= $5) AS reach_q2,
       count(*) FILTER (WHERE source_neighborhoods > $5 AND source_neighborhoods <= $6) AS reach_q3,
       count(*) FILTER (WHERE source_neighborhoods > $6) AS reach_q4
-    FROM frontiers`, [m25, m50, m75, r25, r50, r75])
+    FROM frontiers
+    WHERE ${visibilityClause}`, [m25, m50, m75, r25, r50, r75])
   const counts: Record<string, number> = {
     'mgmt-q1': filterCounts[0].mgmt_q1,
     'mgmt-q2': filterCounts[0].mgmt_q2,
@@ -339,6 +356,7 @@ export default async function FrontiersPage({
     if (mgmtFilter) next.set('mgmt', mgmtFilter)
     if (reachFilter) next.set('reach', reachFilter)
     if (topicFilter) next.set('topic', String(topicFilter))
+    if (showLegacy) next.set('legacy', 'show')
     for (const [k, v] of Object.entries(overrides)) {
       if (v === undefined || v === '') next.delete(k)
       else next.set(k, v)
@@ -426,32 +444,66 @@ export default async function FrontiersPage({
 
       <div className="search-layout">
         <aside className="filters">
+          {/* Visibility toggle — step 9 cutover (Plan A2). Default surface
+              is the grounded set (paper-anchored, currency-tracked); the
+              legacy pre-grounded frontiers are preserved in the DB (they
+              anchor the planning corpus) but hidden by default. */}
           <div className="filter-group">
-            <h2 className="filter-label">Sort By</h2>
-            {SORT_OPTIONS.map((opt) => (
-              <label key={opt.value}>
-                <Link href={buildUrl({ sort: opt.value })} style={sort === opt.value ? activeStyle : inactiveStyle}>
-                  {opt.label}
-                </Link>
-              </label>
-            ))}
+            <h2 className="filter-label">View</h2>
+            <label>
+              <Link href={buildUrl({ legacy: undefined })} style={!showLegacy ? activeStyle : inactiveStyle}>
+                Grounded only{!showLegacy ? ` (${total})` : ''}
+              </Link>
+            </label>
+            <label>
+              <Link href={buildUrl({ legacy: 'show' })} style={showLegacy ? activeStyle : inactiveStyle}>
+                Include legacy{showLegacy ? ` (${total})` : ` (+${legacy_hidden})`}
+              </Link>
+            </label>
+            <p style={{
+              fontSize: '11px', color: 'var(--color-text-muted)',
+              margin: '6px 0 0', lineHeight: 1.45,
+            }}>
+              Grounded frontiers cite primary papers verbatim and track currency.
+              Legacy frontiers were synthesized from neighborhood primers without
+              paper-level provenance.
+            </p>
           </div>
 
           <div className="filter-group">
-            <h2 className="filter-label">Basic ↔ Applied</h2>
-            <label>
-              <Link href={buildUrl({ mgmt: undefined })} style={!mgmtFilter ? activeStyle : inactiveStyle}>
-                All ({total})
-              </Link>
-            </label>
-            {MGMT_OPTIONS.filter((opt) => (counts[opt.value] || 0) > 0).map((opt) => (
-              <label key={opt.value}>
-                <Link href={buildUrl({ mgmt: opt.value })} style={mgmtFilter === opt.value ? activeStyle : inactiveStyle}>
-                  {opt.label} ({counts[opt.value]})
+            <h2 className="filter-label">Sort By</h2>
+            {SORT_OPTIONS
+              .filter((opt) => showLegacy || opt.value !== 'leverage')
+              .map((opt) => (
+                <label key={opt.value}>
+                  <Link href={buildUrl({ sort: opt.value })} style={sort === opt.value ? activeStyle : inactiveStyle}>
+                    {opt.label}
+                  </Link>
+                </label>
+              ))}
+          </div>
+
+          {/* Basic↔Applied is driven by avg_management_relevance, which
+              only legacy frontiers carry. Hide the whole group when
+              grounded-only is selected (would otherwise show 0-count
+              quartiles). */}
+          {showLegacy && (
+            <div className="filter-group">
+              <h2 className="filter-label">Basic ↔ Applied</h2>
+              <label>
+                <Link href={buildUrl({ mgmt: undefined })} style={!mgmtFilter ? activeStyle : inactiveStyle}>
+                  All ({total})
                 </Link>
               </label>
-            ))}
-          </div>
+              {MGMT_OPTIONS.filter((opt) => (counts[opt.value] || 0) > 0).map((opt) => (
+                <label key={opt.value}>
+                  <Link href={buildUrl({ mgmt: opt.value })} style={mgmtFilter === opt.value ? activeStyle : inactiveStyle}>
+                    {opt.label} ({counts[opt.value]})
+                  </Link>
+                </label>
+              ))}
+            </div>
+          )}
 
           <div className="filter-group">
             <h2 className="filter-label">Focused ↔ Cross-cutting</h2>
