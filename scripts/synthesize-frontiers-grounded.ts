@@ -27,7 +27,8 @@
  * PR #66 (step 3) → this PR (step 4).
  */
 
-import { readFileSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { dirname } from 'path'
 import './lib/config.js'
 import { callClaudeJson } from './lib/claude-api.js'
 import { sleep } from './lib/concurrency.js'
@@ -370,10 +371,20 @@ async function synthesizeCluster(cluster: InputCluster): Promise<SynthesizedFron
     prompt,
     content: '',
     model: MODEL,
-    maxTokens: 4000,
+    // Bumped 4000 → 8000 — large clusters (size ≥ 12) produce JSON outputs
+    // longer than ~3000 tokens once cite snippets are included, and the
+    // 4000 limit was truncating mid-array. Cost impact is marginal because
+    // we pay per token used, not per allocated cap.
+    maxTokens: 8000,
   })
   if (!data) {
-    console.log(`     ⚠ LLM JSON parse failed (raw len ${response.text.length})`)
+    // Dump the raw payload + cluster id so we can diagnose what went wrong.
+    // Goes to scripts/output/synth-failures/<run>-<cluster>.txt.
+    const dumpDir = 'scripts/output/synth-failures'
+    if (!existsSync(dumpDir)) mkdirSync(dumpDir, { recursive: true })
+    const dumpPath = `${dumpDir}/cluster-${cluster.cluster_id}.txt`
+    writeFileSync(dumpPath, response.text)
+    console.log(`     ⚠ LLM JSON parse failed (raw len ${response.text.length}, dumped to ${dumpPath})`)
     return null
   }
 
@@ -425,30 +436,66 @@ async function main() {
 
   const input = JSON.parse(readFileSync(INPUT_PATH, 'utf-8')) as InputDoc
   const eligible = input.clusters.filter(c => c.size >= MIN_CLUSTER)
-  const toProcess = eligible.slice(0, LIMIT === Number.POSITIVE_INFINITY ? eligible.length : LIMIT)
+
+  // Resume support — if OUTPUT_PATH exists for the same extraction_run_id,
+  // load it and skip clusters already synthesized. Lets us recover from
+  // mid-run failures without redoing the expensive Opus calls. Re-running
+  // from scratch is still possible via `--no-resume`.
+  const noResume = args.includes('--no-resume')
+  let frontiers: SynthesizedFrontier[] = []
+  let alreadyDone = new Set<number>()
+  if (!noResume && existsSync(OUTPUT_PATH)) {
+    try {
+      const prior = JSON.parse(readFileSync(OUTPUT_PATH, 'utf-8')) as OutputDoc
+      if (prior.extraction_run_id === input.extraction_run_id && Array.isArray(prior.frontiers)) {
+        frontiers = prior.frontiers
+        alreadyDone = new Set(prior.frontiers.map(f => f.cluster_id))
+        console.log(`Resuming from existing output (extraction_run_id=${prior.extraction_run_id}): ${alreadyDone.size} clusters already synthesized`)
+      }
+    } catch (e) {
+      console.warn(`  (existing output unreadable, starting fresh: ${(e as Error).message})`)
+    }
+  }
+  const toProcess = eligible
+    .filter(c => !alreadyDone.has(c.cluster_id))
+    .slice(0, LIMIT === Number.POSITIVE_INFINITY ? Number.POSITIVE_INFINITY : LIMIT)
   console.log(`Loaded ${input.clusters.length} clusters from ${INPUT_PATH}`)
-  console.log(`  (filtered to size >= ${MIN_CLUSTER}: ${eligible.length}; processing ${toProcess.length})`)
+  console.log(`  (filtered to size >= ${MIN_CLUSTER}: ${eligible.length}; resume skip: ${alreadyDone.size}; processing ${toProcess.length})`)
   console.log('')
 
-  const frontiers: SynthesizedFrontier[] = []
+  // Periodically checkpoint to disk so a crash doesn't lose every prior
+  // synthesis since the last full write.
+  const CHECKPOINT_EVERY = 5
+  let sinceCheckpoint = 0
+  const writeOutput = () => {
+    const output: OutputDoc = {
+      pipeline_version: input.pipeline_version,
+      extraction_run_id: input.extraction_run_id,
+      synthesis_generated_at: new Date().toISOString(),
+      model: MODEL,
+      source_clusters_total: input.clusters.length,
+      synthesized_count: frontiers.length,
+      frontiers,
+    }
+    if (!existsSync(dirname(OUTPUT_PATH))) mkdirSync(dirname(OUTPUT_PATH), { recursive: true })
+    writeFileSync(OUTPUT_PATH, JSON.stringify(output, null, 2))
+  }
+
   for (const cluster of toProcess) {
     const f = await synthesizeCluster(cluster)
-    if (f) frontiers.push(f)
+    if (f) {
+      frontiers.push(f)
+      sinceCheckpoint++
+      if (sinceCheckpoint >= CHECKPOINT_EVERY) {
+        writeOutput()
+        sinceCheckpoint = 0
+        console.log(`     · checkpoint: ${frontiers.length}/${eligible.length} written to disk`)
+      }
+    }
     // Brief courtesy pause between clusters
     if (!dryRun) await sleep(300)
   }
-
-  const output: OutputDoc = {
-    pipeline_version: input.pipeline_version,
-    extraction_run_id: input.extraction_run_id,
-    synthesis_generated_at: new Date().toISOString(),
-    model: MODEL,
-    source_clusters_total: input.clusters.length,
-    synthesized_count: frontiers.length,
-    frontiers,
-  }
-
-  writeFileSync(OUTPUT_PATH, JSON.stringify(output, null, 2))
+  writeOutput()
 
   console.log('')
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
