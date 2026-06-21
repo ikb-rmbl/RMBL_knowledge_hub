@@ -116,25 +116,100 @@ async function seedTopics() {
 async function loadDocuments() {
   console.log('\n--- Loading Documents ---')
   const existing = await getCount('documents')
-  if (existing > 0) {
-    console.log(`  ${existing} documents already exist, skipping. Delete collection to reimport.`)
-    return
-  }
 
-  const allDocs: any[] = JSON.parse(
-    readFileSync(`${OUTPUT_DIR}/sustainable-library-normalized.json`, 'utf-8'),
-  )
+  // Merge Sustainable Library (canonical) + Federal Register notices
+  // (optional add-on file). FR notices have a `documentType` field set
+  // at discovery time; Sustainable Library records get their
+  // documentType later via enrich-document-summaries.ts.
+  const slPath = `${OUTPUT_DIR}/sustainable-library-normalized.json`
+  const frPath = `${OUTPUT_DIR}/discovered-fr-notices.json`
+  const allDocs: any[] = []
+  if (existsSync(slPath)) {
+    const sl = JSON.parse(readFileSync(slPath, 'utf-8'))
+    allDocs.push(...(Array.isArray(sl) ? sl : sl.documents || []))
+  }
+  if (existsSync(frPath)) {
+    const fr = JSON.parse(readFileSync(frPath, 'utf-8'))
+    const frDocs = Array.isArray(fr) ? fr : fr.documents || []
+    allDocs.push(...frDocs)
+    console.log(`  +${frDocs.length} Federal Register notices merged in`)
+  }
+  console.log(`  ${allDocs.length} candidate documents from disk`)
 
   const tombstones = await loadTombstones('documents')
-  const docs = allDocs.filter((d) => !isTombstoned('documents', d, tombstones))
+  let docs = allDocs.filter((d) => !isTombstoned('documents', d, tombstones))
   const tombSkipped = allDocs.length - docs.length
   if (tombSkipped > 0) console.log(`  ${tombSkipped} documents skipped (tombstoned)`)
+
+  // Incremental dedup: when the collection already has rows, only insert
+  // documents whose source_url isn't present. Lets the loader add FR
+  // notices on top of an existing Sustainable Library corpus without
+  // duplicating it. Match Payload's camelCase `sourceUrl`.
+  if (existing > 0) {
+    console.log(`  ${existing} documents already exist; deduping by sourceUrl…`)
+    const existingDocs = await getAllPaginated('documents')
+    const seenUrls = new Set<string>()
+    for (const d of existingDocs as any[]) {
+      if (d?.sourceUrl) seenUrls.add(String(d.sourceUrl))
+    }
+    const before = docs.length
+    docs = docs.filter((d) => !d.sourceUrl || !seenUrls.has(String(d.sourceUrl)))
+    console.log(`  ${before - docs.length} already loaded, ${docs.length} new to insert`)
+    if (docs.length === 0) return
+  }
+
+  // Federal Register notices land with action-tag-driven categories that
+  // don't match the 40-thematic-topic taxonomy by string. Map known
+  // action tags to existing top-level topics so every FR notice gets at
+  // least the universal "Land & Water Management" category required by
+  // the Payload schema. Sustainable Library docs come pre-mapped, so the
+  // fallback only fires when no topic resolved.
+  const FR_TOPIC_FALLBACKS: Record<string, string> = {
+    mining:             'Mining & Mineral Resources',
+    'ESA-listing':      'Biodiversity & Conservation',
+    'critical-habitat': 'Biodiversity & Conservation',
+    recreation:         'Recreation & Tourism',
+    'RMP/LMP':          'Land & Water Management',
+    NOA:                'Land & Water Management',
+    NOI:                'Land & Water Management',
+    EA:                 'Land & Water Management',
+    ROD:                'Land & Water Management',
+    DEIS:               'Land & Water Management',
+    FEIS:               'Land & Water Management',
+    FONSI:              'Land & Water Management',
+    CE:                 'Land & Water Management',
+    BiOp:               'Biodiversity & Conservation',
+    'vegetation-mgmt':  'Forest Ecology',
+  }
+  const FR_DEFAULT_TOPIC = 'Land & Water Management'
+
+  // Track post-load SQL updates needed for fields not exposed by Payload
+  // (documentType is a SQL-only column populated by enrichment).
+  const documentTypeBySourceUrl = new Map<string, string>()
 
   await runBatch(
     docs,
     WRITE_CONCURRENCY,
     async (doc) => {
-      const categoryIds = await resolveTopicIds(doc.categories)
+      let categoryNames: string[] = Array.isArray(doc.categories) ? [...doc.categories] : []
+      let categoryIds = await resolveTopicIds(categoryNames)
+
+      // FR notice fallback: walk known action tags + always-add default.
+      const isFR = doc.documentType?.startsWith('federal_')
+      if (isFR && categoryIds.length === 0) {
+        const wanted = new Set<string>([FR_DEFAULT_TOPIC])
+        for (const tag of categoryNames) {
+          const topic = FR_TOPIC_FALLBACKS[tag]
+          if (topic) wanted.add(topic)
+        }
+        categoryIds = await resolveTopicIds(Array.from(wanted))
+      }
+
+      // Stash documentType for a post-load SQL update — it's not a
+      // Payload field, so it can't go through createRecord.
+      if (doc.documentType && doc.sourceUrl) {
+        documentTypeBySourceUrl.set(doc.sourceUrl, doc.documentType)
+      }
 
       const result = await createRecord('documents', {
         title: doc.title,
@@ -150,6 +225,28 @@ async function loadDocuments() {
     },
     'Documents',
   )
+
+  // Set document_type for the rows we just inserted. The column is
+  // owned by enrich-document-summaries.ts in steady state; we're just
+  // pre-populating it for FR notices where the type is structurally
+  // knowable at ingest.
+  if (documentTypeBySourceUrl.size > 0) {
+    const pgUrl = process.env.DATABASE_URL
+    if (pgUrl) {
+      const { default: pg } = await import('pg')
+      const pool = new pg.Pool({ connectionString: pgUrl })
+      let updated = 0
+      for (const [url, type] of documentTypeBySourceUrl) {
+        const { rowCount } = await pool.query(
+          `UPDATE documents SET document_type = $1 WHERE source_url = $2 AND document_type IS NULL`,
+          [type, url],
+        )
+        updated += rowCount ?? 0
+      }
+      console.log(`  ${updated} document_type values set via post-load SQL`)
+      await pool.end()
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------

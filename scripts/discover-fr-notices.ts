@@ -237,12 +237,28 @@ function classifyAction(doc: FrDoc): string[] {
 // Normalize to NormalizedDocument
 // ---------------------------------------------------------------------------
 
+/** Map Federal Register `type` to a snake_case `documentType` matching
+ *  the existing documents-collection convention (`technical_report`,
+ *  `environmental_assessment`, etc.). Subdividing rules vs notices is
+ *  load-bearing for downstream UI: a "Proposed Rule" carries an open
+ *  public-comment window and a "Notice" doesn't, so the science-policy
+ *  bridge UI needs the distinction. */
+function frTypeToDocumentType(type: string): string {
+  switch (type) {
+    case 'Notice':         return 'federal_register_notice'
+    case 'Proposed Rule':  return 'federal_proposed_rule'
+    case 'Rule':           return 'federal_rule'
+    default:               return 'federal_register_notice'
+  }
+}
+
 function normalize(doc: FrDoc, actionTags: string[]): NormalizedDocument {
   const agencyNames = doc.agencies.map((a) => a.name).join(', ')
   return {
     _sourcePostId: `fr-${doc.document_number}`,
     title: doc.title,
     summary: doc.abstract || doc.action || '',
+    documentType: frTypeToDocumentType(doc.type),
     categories: [...(doc.topics || []), doc.type, ...actionTags],
     dateOriginal: doc.publication_date,
     geographicScope: [],  // populated later by entity extraction
