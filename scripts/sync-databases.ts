@@ -80,7 +80,12 @@ const COLLECTIONS: Record<string, CollectionConfig> = {
   documents: {
     table: 'documents',
     matchFields: matchDocument,
-    pipelineFields: ['embedding', 'search_vector', 'full_text'],
+    // `document_type` is pipeline-managed — discoverer scripts set it at
+    // ingest (FR notices) or enrich-document-summaries.ts back-fills it
+    // via LLM. Without this, the column never propagates from local to
+    // Neon because the INSERT-fields list only walks curatedFields +
+    // pipelineFields.
+    pipelineFields: ['embedding', 'search_vector', 'full_text', 'document_type'],
     curatedFields: ['title', 'summary', 'date_original', 'source_url', 'pdf_link', 'pdf_restricted', 'pdf_source_description', 'pdf_acquired_at'],
     skipFields: ['id', 'created_at', 'updated_at', 'ingestion_date'],
   },

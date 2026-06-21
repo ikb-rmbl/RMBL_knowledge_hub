@@ -28,7 +28,7 @@ const BATCH = 200
 
 const args = process.argv.slice(2)
 const onlyArg = args.find((a) => a.startsWith('--only='))?.split('=')[1]
-const sections = new Set(onlyArg ? onlyArg.split(',').map((s) => s.trim()) : ['neighborhoods', 'entity_mentions', 'frontiers', 'planning', 'era_primers', 'futures'])
+const sections = new Set(onlyArg ? onlyArg.split(',').map((s) => s.trim()) : ['neighborhoods', 'entity_mentions', 'frontiers', 'planning', 'era_primers', 'futures', 'references_cited'])
 
 async function main() {
   console.log('Sync Bulk Tables to Neon')
@@ -402,6 +402,37 @@ async function main() {
     console.log(`  ${updated} era primer(s) patched${unmatched > 0 ? `, ${unmatched} unmatched` : ''}`)
     }
 
+    if (sections.has('references_cited')) {
+    // references_cited — pipeline-managed citation graph rows produced by
+    // extract-references / extract-document-entities / load-referenced-works
+    // / match-document-citations. No admin editing in steady state, so the
+    // central-set TRUNCATE+INSERT pattern is safe. The table is large
+    // (~150K rows) so we batch.
+    //
+    // Note: target_publication_id / target_document_id / target_dataset_id
+    // reference IDs that need to be stable across local ↔ Neon. We rely on
+    // sync-databases.ts having pushed the parent collections first.
+    console.log('\n--- References cited ---')
+    await neon.query('TRUNCATE references_cited RESTART IDENTITY CASCADE')
+
+    const { rows: refs } = await local.query('SELECT * FROM references_cited ORDER BY id')
+    if (refs.length > 0) {
+      const cols = Object.keys(refs[0])
+      for (let i = 0; i < refs.length; i += BATCH) {
+        const batch = refs.slice(i, i + BATCH)
+        const allVals: any[] = []
+        const valueSets: string[] = []
+        for (const row of batch) {
+          const offset = allVals.length
+          valueSets.push('(' + cols.map((_, j) => `$${offset + j + 1}`).join(',') + ')')
+          for (const c of cols) allVals.push(row[c] ?? null)
+        }
+        await neon.query(`INSERT INTO references_cited (${cols.join(',')}) VALUES ${valueSets.join(',')}`, allVals)
+      }
+    }
+    console.log(`  ${refs.length} references_cited rows`)
+    }
+
     // 5. Reset sequences
     console.log('\n--- Resetting sequences ---')
     for (const t of [
@@ -409,6 +440,7 @@ async function main() {
       'frontier_planning_themes', 'frontier_planning_clusters', 'frontier_planning_items',
       'frontier_long_reach_opportunities',
       'scenarios', 'scenario_stories',
+      'references_cited',
     ]) {
       try {
         await neon.query(`SELECT setval('${t}_id_seq', (SELECT COALESCE(MAX(id), 1) FROM ${t}))`)
