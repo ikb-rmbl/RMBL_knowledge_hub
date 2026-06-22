@@ -35,6 +35,14 @@ export const Documents: CollectionConfig = {
     {
       name: 'fullText',
       type: 'textarea',
+      // Payload's default `textarea` maxLength is 40,000 chars — that's
+      // too small for many policy docs (RMPs, EISs, ESA recovery plans
+      // routinely run 200–800 KB of text; the largest critical-habitat
+      // designations crest 2 MB). Set to 5 MB which covers the corpus
+      // we've seen (max 2.4 MB) with comfortable headroom. The DB
+      // column is unconstrained `text` already, so this is a Payload
+      // validator-only change.
+      maxLength: 5_000_000,
       admin: {
         description: 'Extracted from PDF; used for search indexing, not displayed in full',
         condition: (_, siblingData) => Boolean(siblingData?.fullText),

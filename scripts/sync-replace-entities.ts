@@ -19,7 +19,7 @@ const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
 const tableFilter = args.find((a) => a.startsWith('--table='))?.split('=')[1] || 'all'
 
-const TABLES = ['species', 'places', 'protocols', 'concepts']
+const TABLES = ['species', 'places', 'protocols', 'concepts', 'stakeholders']
 
 async function main() {
   console.log('Replace Entity Tables on Neon')

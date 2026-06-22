@@ -38,9 +38,12 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
     paramIdx++
   }
 
-  // Default: only show places with publications (hide GNIS-only seeds)
+  // Default: only show places that appear in some content (hide GNIS-only
+  // seeds with no mentions). Was `publication_count > 0`; switched to
+  // `mention_count > 0` to surface places mentioned in policy docs /
+  // datasets / stories too, not just publications.
   if (!showAll) {
-    where.push('publication_count > 0')
+    where.push('mention_count > 0')
   }
 
   if (query) {
@@ -56,7 +59,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
 
   const orderBy = sortParam === 'name' ? 'name ASC' :
     sortParam === 'elevation' ? 'elevation_m DESC NULLS LAST, name ASC' :
-    'publication_count DESC, name ASC'
+    'mention_count DESC, name ASC'
 
   const whereStr = where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''
 
@@ -194,7 +197,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
               <div className="result-card-meta">
                 {pl.scale && <span>{pl.scale}</span>}
                 {pl.lat && pl.lon && <span>{pl.lat.toFixed(3)}, {pl.lon.toFixed(3)}</span>}
-                {pl.publication_count > 0 && <span>{pl.publication_count} paper{pl.publication_count !== 1 ? 's' : ''}</span>}
+                {pl.mention_count > 0 && <span>{pl.mention_count} mention{pl.mention_count !== 1 ? 's' : ''}</span>}
                 {pl.external_ids?.gnis && <span>GNIS</span>}
               </div>
             </Link>

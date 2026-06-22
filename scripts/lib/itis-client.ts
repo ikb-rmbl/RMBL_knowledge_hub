@@ -41,9 +41,18 @@ export interface ITISResult {
 async function itisGet(endpoint: string, params: Record<string, string>): Promise<any> {
   const url = new URL(`${ITIS_BASE}/${endpoint}`)
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v)
-  const res = await fetch(url.toString())
-  if (!res.ok) throw new Error(`ITIS API error ${res.status}`)
-  return res.json()
+  // Hard 30-second timeout. Without this, slow/hung ITIS responses block
+  // the whole concurrency batch indefinitely — link-species-places.ts
+  // saw 1h+ stalls when ITIS hung TCP connections without erroring.
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), 30_000)
+  try {
+    const res = await fetch(url.toString(), { signal: ctrl.signal })
+    if (!res.ok) throw new Error(`ITIS API error ${res.status}`)
+    return res.json()
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 async function searchByName(name: string): Promise<any[]> {

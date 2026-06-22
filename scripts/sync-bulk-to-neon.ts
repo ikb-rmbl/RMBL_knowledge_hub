@@ -28,7 +28,7 @@ const BATCH = 200
 
 const args = process.argv.slice(2)
 const onlyArg = args.find((a) => a.startsWith('--only='))?.split('=')[1]
-const sections = new Set(onlyArg ? onlyArg.split(',').map((s) => s.trim()) : ['neighborhoods', 'entity_mentions', 'frontiers', 'planning', 'era_primers', 'futures'])
+const sections = new Set(onlyArg ? onlyArg.split(',').map((s) => s.trim()) : ['neighborhoods', 'entity_mentions', 'frontiers', 'planning', 'era_primers', 'futures', 'references_cited'])
 
 async function main() {
   console.log('Sync Bulk Tables to Neon')
@@ -72,10 +72,14 @@ async function main() {
     }
 
     if (sections.has('entity_mentions')) {
-    // 2. Story entity mentions
-    console.log('\n--- Story entity mentions ---')
-    await neon.query("DELETE FROM entity_mentions WHERE collection = 'stories'")
-    const { rows: mentions } = await local.query("SELECT * FROM entity_mentions WHERE collection = 'stories' ORDER BY id")
+    // Entity mentions — pipeline-managed rows produced by link-species-places,
+    // cluster-*, backfill-species-mentions, and load-story-extractions.
+    // Bulk TRUNCATE+INSERT across all collections (was previously limited
+    // to stories only, which left publication/document/dataset mentions
+    // stranded local-only).
+    console.log('\n--- Entity mentions (all collections) ---')
+    await neon.query('TRUNCATE entity_mentions RESTART IDENTITY')
+    const { rows: mentions } = await local.query('SELECT * FROM entity_mentions ORDER BY id')
     const emCols = mentions.length > 0 ? Object.keys(mentions[0]) : []
     for (let i = 0; i < mentions.length; i += BATCH) {
       const batch = mentions.slice(i, i + BATCH)
@@ -91,7 +95,10 @@ async function main() {
       }
       await neon.query(`INSERT INTO entity_mentions (${emCols.join(',')}) VALUES ${valueSets.join(',')}`, allVals)
     }
-    console.log(`  ${mentions.length} story entity mentions`)
+    const byColl = mentions.reduce((acc: Record<string, number>, m: any) => {
+      acc[m.collection] = (acc[m.collection] ?? 0) + 1; return acc
+    }, {})
+    console.log(`  ${mentions.length} entity mentions: ${Object.entries(byColl).map(([k,v]) => `${k}=${v}`).join(', ')}`)
     }
 
     if (sections.has('frontiers')) {
@@ -402,6 +409,37 @@ async function main() {
     console.log(`  ${updated} era primer(s) patched${unmatched > 0 ? `, ${unmatched} unmatched` : ''}`)
     }
 
+    if (sections.has('references_cited')) {
+    // references_cited — pipeline-managed citation graph rows produced by
+    // extract-references / extract-document-entities / load-referenced-works
+    // / match-document-citations. No admin editing in steady state, so the
+    // central-set TRUNCATE+INSERT pattern is safe. The table is large
+    // (~150K rows) so we batch.
+    //
+    // Note: target_publication_id / target_document_id / target_dataset_id
+    // reference IDs that need to be stable across local ↔ Neon. We rely on
+    // sync-databases.ts having pushed the parent collections first.
+    console.log('\n--- References cited ---')
+    await neon.query('TRUNCATE references_cited RESTART IDENTITY CASCADE')
+
+    const { rows: refs } = await local.query('SELECT * FROM references_cited ORDER BY id')
+    if (refs.length > 0) {
+      const cols = Object.keys(refs[0])
+      for (let i = 0; i < refs.length; i += BATCH) {
+        const batch = refs.slice(i, i + BATCH)
+        const allVals: any[] = []
+        const valueSets: string[] = []
+        for (const row of batch) {
+          const offset = allVals.length
+          valueSets.push('(' + cols.map((_, j) => `$${offset + j + 1}`).join(',') + ')')
+          for (const c of cols) allVals.push(row[c] ?? null)
+        }
+        await neon.query(`INSERT INTO references_cited (${cols.join(',')}) VALUES ${valueSets.join(',')}`, allVals)
+      }
+    }
+    console.log(`  ${refs.length} references_cited rows`)
+    }
+
     // 5. Reset sequences
     console.log('\n--- Resetting sequences ---')
     for (const t of [
@@ -409,6 +447,7 @@ async function main() {
       'frontier_planning_themes', 'frontier_planning_clusters', 'frontier_planning_items',
       'frontier_long_reach_opportunities',
       'scenarios', 'scenario_stories',
+      'references_cited',
     ]) {
       try {
         await neon.query(`SELECT setval('${t}_id_seq', (SELECT COALESCE(MAX(id), 1) FROM ${t}))`)

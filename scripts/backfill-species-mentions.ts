@@ -50,8 +50,37 @@ function isMultiWord(s: string): boolean {
 function isCapitalizedSingle(s: string): boolean {
   return /^[A-Z][a-z]+$/.test(s) && s.length >= 6
 }
+/** Returns true for tokens that are too generic to anchor a species
+ *  match: single letters (the "A" in "Species A"), or generic Latin
+ *  placeholders ("sp.", "spp.", "species") that mean "an unspecified
+ *  member of this genus" and therefore don't identify the species. */
+function isJunkSecondToken(t: string): boolean {
+  const norm = t.toLowerCase().replace(/\.$/, '')
+  if (norm.length === 1) return true
+  if (['sp', 'spp', 'species'].includes(norm)) return true
+  return false
+}
 function isLatinBinomial(s: string): boolean {
-  return /^[A-Z][a-z]+ [a-z]/.test(s)
+  const m = /^([A-Z][a-z]+)\s+([a-z]\S*)/.exec(s)
+  if (!m) return false
+  // Reject "Bombus sp", "Bombus spp.", "Bombus species" — they're
+  // genus-level shorthand and would match every paper that mentions any
+  // member of the genus generically.
+  return !isJunkSecondToken(m[2])
+}
+/** Reject "Species A", "Species B", "Genus X" etc — the LLM extracts these
+ *  as synonyms when papers use letter codes for unnamed species in
+ *  comparison tables. The text search would then hit every paper that
+ *  uses the same phrase for any of its own unnamed species. */
+function isPlaceholderPhrase(s: string): boolean {
+  const tokens = s.trim().split(/\s+/)
+  if (tokens.length !== 2) return false
+  // Second token is a single uppercase letter (Species A / B / C)
+  if (/^[A-Z]$/.test(tokens[1])) return true
+  // Second token is sp / spp / species — covered by isLatinBinomial but
+  // also catches "Genus sp" where the genus arrived via common_names.
+  if (isJunkSecondToken(tokens[1])) return true
+  return false
 }
 
 function termsFor(species: { canonical_name: string; common_names: string[] | null; synonyms: string[] | null }): string[] {
@@ -64,6 +93,7 @@ function termsFor(species: { canonical_name: string; common_names: string[] | nu
   const consider = (t: string | null | undefined, allowSingleCap: boolean) => {
     const s = (t || '').trim()
     if (!s) return
+    if (isPlaceholderPhrase(s)) return    // "Species A", "Bombus sp."
     if (isLatinBinomial(s)) { out.add(s); return }
     if (isMultiWord(s) && s.length >= 8) { out.add(s); return }
     if (allowSingleCap && isCapitalizedSingle(s)) { out.add(s); return }

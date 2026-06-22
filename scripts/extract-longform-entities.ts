@@ -236,7 +236,9 @@ async function callClaude(prompt: string, text: string, label: string): Promise<
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        // Bumped from claude-sonnet-4-20250514 (Anthropic deprecated
+        // it mid-2025; 404s on the API now) to current Sonnet 4.6.
+        model: 'claude-sonnet-4-6',
         max_tokens: 4096,
         messages: [{ role: 'user', content: `${prompt}\n\nSection: "${label}"\n\n${text}` }],
       }),

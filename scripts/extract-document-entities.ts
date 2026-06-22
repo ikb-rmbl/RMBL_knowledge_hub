@@ -110,7 +110,11 @@ async function callClaude(docText: string, title: string): Promise<any | null> {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        // Bumped from claude-sonnet-4-20250514 (deprecated by Anthropic
+        // mid-2025; 404s on the API now) to the current Sonnet 4.6.
+        // Matches the project's canonical model in CLAUDE.md and the
+        // pricing table in scripts/lib/claude-api.ts.
+        model: 'claude-sonnet-4-6',
         max_tokens: 8192,
         messages: [{
           role: 'user',
