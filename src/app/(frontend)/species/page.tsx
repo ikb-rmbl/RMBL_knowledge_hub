@@ -25,8 +25,11 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
 
   const db = getDb()
 
-  // Build WHERE clauses
-  const where: string[] = ['publication_count > 0']
+  // Build WHERE clauses. Filter to species with ≥1 mention anywhere
+  // (publications, documents, datasets, stories) — see concepts/page.tsx
+  // for the load-bearing rationale (FR-notice extraction added many
+  // document-only entities with publication_count=0).
+  const where: string[] = ['mention_count > 0']
   const values: any[] = []
   let paramIdx = 1
 
@@ -53,7 +56,7 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
 
   const orderBy = sortParam === 'name' ? 'canonical_name ASC' :
     sortParam === 'family' ? 'family ASC NULLS LAST, canonical_name ASC' :
-    'publication_count DESC, canonical_name ASC'
+    'mention_count DESC, canonical_name ASC'
 
   const whereStr = where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''
 

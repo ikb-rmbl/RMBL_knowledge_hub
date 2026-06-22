@@ -31,7 +31,14 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
 
   const db = getDb()
 
-  const where: string[] = ['publication_count > 0']
+  // Filter to concepts that have ≥1 mention anywhere (publications,
+  // documents, datasets, stories). Was previously `publication_count > 0`,
+  // which silently hid every concept whose mentions came only from
+  // documents — after the FR-notice extraction load, that was 100% of the
+  // concept rows (3,607/3,607 with publication_count=0 because the
+  // extractor pulls concepts from policy text, not papers). The new filter
+  // surfaces document-sourced policy concepts alongside research ones.
+  const where: string[] = ['mention_count > 0']
   const values: any[] = []
   let paramIdx = 1
 
@@ -62,7 +69,7 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
     paramIdx++
   }
 
-  const orderBy = sortParam === 'name' ? 'name ASC' : 'publication_count DESC, name ASC'
+  const orderBy = sortParam === 'name' ? 'name ASC' : 'mention_count DESC, name ASC'
   const whereStr = where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''
 
   const { rows } = await db.query(
