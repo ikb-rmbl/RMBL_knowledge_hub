@@ -31,6 +31,11 @@ const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
 const typeFilter = args.find((a) => a.startsWith('--type='))?.split('=')[1] || 'all'
 const forceItis = args.includes('--force-itis')
+// `--skip-itis`: don't query ITIS for uncached names; mark them all as
+// "not in cache" and proceed. Species still get canonical rows + mentions,
+// just without taxonomy enrichment for the uncached subset. Useful when
+// ITIS is rate-limiting or hung and we want to unblock the pipeline.
+const skipItis = args.includes('--skip-itis')
 const itisConcurrency = parseInt(args.find((a) => a.startsWith('--itis-concurrency='))?.split('=')[1] || '3', 10)
 
 // ---------------------------------------------------------------------------
@@ -133,7 +138,10 @@ async function linkSpecies(db: pg.Pool): Promise<void> {
   let itisExact = 0, itisFuzzy = 0, itisNotFound = 0
   let resolved = 0
 
-  if (uncachedKeys.length > 0) {
+  if (uncachedKeys.length > 0 && skipItis) {
+    console.log(`  Skipping ITIS resolution for ${uncachedKeys.length} uncached names (--skip-itis)`)
+    for (const key of uncachedKeys) itisCache.set(key, null)
+  } else if (uncachedKeys.length > 0) {
     console.log(`  Resolving via ITIS (concurrency=${itisConcurrency})...`)
 
     // Build lookup name for each key
@@ -148,7 +156,14 @@ async function linkSpecies(db: pg.Pool): Promise<void> {
       itisConcurrency,
       async (key) => {
         const lookupName = keyToLookup.get(key)!
-        const result = await resolveSpeciesViaITIS(lookupName)
+        let result = null
+        try {
+          result = await resolveSpeciesViaITIS(lookupName)
+        } catch (err: any) {
+          // Timeout / network error — fall through with null. Cache the
+          // miss so we don't keep retrying on subsequent runs.
+          if (resolved % 50 === 0) console.log(`\n    ITIS error on "${lookupName}": ${err.message?.slice(0, 60)}`)
+        }
         itisCache.set(key, result)
         resolved++
         if (resolved % 25 === 0) {

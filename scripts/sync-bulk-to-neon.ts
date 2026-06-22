@@ -72,10 +72,14 @@ async function main() {
     }
 
     if (sections.has('entity_mentions')) {
-    // 2. Story entity mentions
-    console.log('\n--- Story entity mentions ---')
-    await neon.query("DELETE FROM entity_mentions WHERE collection = 'stories'")
-    const { rows: mentions } = await local.query("SELECT * FROM entity_mentions WHERE collection = 'stories' ORDER BY id")
+    // Entity mentions — pipeline-managed rows produced by link-species-places,
+    // cluster-*, backfill-species-mentions, and load-story-extractions.
+    // Bulk TRUNCATE+INSERT across all collections (was previously limited
+    // to stories only, which left publication/document/dataset mentions
+    // stranded local-only).
+    console.log('\n--- Entity mentions (all collections) ---')
+    await neon.query('TRUNCATE entity_mentions RESTART IDENTITY')
+    const { rows: mentions } = await local.query('SELECT * FROM entity_mentions ORDER BY id')
     const emCols = mentions.length > 0 ? Object.keys(mentions[0]) : []
     for (let i = 0; i < mentions.length; i += BATCH) {
       const batch = mentions.slice(i, i + BATCH)
@@ -91,7 +95,10 @@ async function main() {
       }
       await neon.query(`INSERT INTO entity_mentions (${emCols.join(',')}) VALUES ${valueSets.join(',')}`, allVals)
     }
-    console.log(`  ${mentions.length} story entity mentions`)
+    const byColl = mentions.reduce((acc: Record<string, number>, m: any) => {
+      acc[m.collection] = (acc[m.collection] ?? 0) + 1; return acc
+    }, {})
+    console.log(`  ${mentions.length} entity mentions: ${Object.entries(byColl).map(([k,v]) => `${k}=${v}`).join(', ')}`)
     }
 
     if (sections.has('frontiers')) {
