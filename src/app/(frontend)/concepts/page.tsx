@@ -73,7 +73,7 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
   const whereStr = where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''
 
   const { rows } = await db.query(
-    `SELECT id, name, concept_type, definition, scope, aliases, publication_count
+    `SELECT id, name, concept_type, definition, scope, aliases, publication_count, mention_count
      FROM concepts ${whereStr}
      ORDER BY ${orderBy}
      LIMIT ${PAGE_SIZE} OFFSET $${paramIdx}`,
@@ -206,7 +206,7 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
               )}
               <div className="result-card-meta">
                 {c.scope && <span>{c.scope.replace(/_/g, ' ')}</span>}
-                <span>{c.publication_count} paper{c.publication_count !== 1 ? 's' : ''}</span>
+                <span>{c.mention_count} mention{c.mention_count !== 1 ? 's' : ''}</span>
               </div>
             </Link>
           ))}

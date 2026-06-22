@@ -199,7 +199,7 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
                 {sp.kingdom && <span>{sp.kingdom}</span>}
                 {sp.conservation_status && <span>IUCN: {sp.conservation_status}</span>}
                 {sp.native_to_rmbl && <span>{sp.native_to_rmbl}</span>}
-                <span>{sp.publication_count} paper{sp.publication_count !== 1 ? 's' : ''}</span>
+                <span>{sp.mention_count} mention{sp.mention_count !== 1 ? 's' : ''}</span>
                 {sp.ecological_roles?.length > 0 && (
                   <span>{sp.ecological_roles.slice(0, 2).join(', ')}</span>
                 )}

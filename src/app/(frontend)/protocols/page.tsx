@@ -185,7 +185,7 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
               )}
               <div className="result-card-meta">
                 {pr.subcategory && <span>{pr.subcategory}</span>}
-                <span>{pr.publication_count} paper{pr.publication_count !== 1 ? 's' : ''}</span>
+                <span>{pr.mention_count} mention{pr.mention_count !== 1 ? 's' : ''}</span>
                 {pr.typical_equipment?.length > 0 && (
                   <span>{pr.typical_equipment.slice(0, 2).join(', ')}{pr.typical_equipment.length > 2 ? '...' : ''}</span>
                 )}

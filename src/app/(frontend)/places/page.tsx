@@ -197,7 +197,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
               <div className="result-card-meta">
                 {pl.scale && <span>{pl.scale}</span>}
                 {pl.lat && pl.lon && <span>{pl.lat.toFixed(3)}, {pl.lon.toFixed(3)}</span>}
-                {pl.publication_count > 0 && <span>{pl.publication_count} paper{pl.publication_count !== 1 ? 's' : ''}</span>}
+                {pl.mention_count > 0 && <span>{pl.mention_count} mention{pl.mention_count !== 1 ? 's' : ''}</span>}
                 {pl.external_ids?.gnis && <span>GNIS</span>}
               </div>
             </Link>
