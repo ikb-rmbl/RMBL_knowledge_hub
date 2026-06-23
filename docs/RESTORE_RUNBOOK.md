@@ -182,7 +182,7 @@ After any restore, run through this list:
 - [ ] Visit http://localhost:3000 and search for "marmot" — results appear
 - [ ] Open a publication detail page — abstract and references show
 - [ ] Open a restricted publication — "Download PDF" button is hidden
-- [ ] Run `npm run test` — all 214 tests pass
+- [ ] Run `npm run test` — all 272 tests pass
 - [ ] Run a fresh backup right away to capture the recovered state:
       `AWS_PROFILE=rmbl-backup bash scripts/backup-database.sh`
 - [ ] Document what happened in `docs/incident-log.md` (create if needed)

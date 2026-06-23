@@ -4,21 +4,21 @@
 
 Unified search platform for environmental knowledge from the Rocky Mountain Biological Laboratory (RMBL) and Gunnison Basin, Colorado:
 - **Publications** (4,852) — peer-reviewed articles, theses, student papers (3,988 RMBL + 864 discovered)
-- **Documents** (1,381) — community/policy documents from the Sustainable Living Library
+- **Documents** (1,769) — community/policy documents from the Sustainable Living Library (1,381) plus **Federal Register notices** (388, 1995–2025) covering Interior/BLM, USFS, USFWS, EPA, NPS rulemaking. FR notices carry `document_type ∈ {federal_register_notice, federal_proposed_rule, federal_rule}`.
 - **Datasets** (1,426) — research datasets from 8 discovery sources
 - **Stories** (841) — news articles from CB News, Gunnison Times, LexisNexis (13 LLM-classified types; full text stored for search, not displayed for copyright)
-- **Authors** (6,696) — deduplicated cross-collection author registry with ORCID enrichment
+- **Authors** (7,512) — deduplicated cross-collection author registry with ORCID enrichment
 - **Projects** (118) — research plans and programs with auto-discovered item assignments
-- **Species** (1,206) — taxonomic entities with ITIS validation and external links
-- **Places** (1,954) — geographic entities with coordinates and hierarchy
+- **Species** (4,334) — taxonomic entities with ITIS validation and external links
+- **Places** (8,225) — geographic entities with coordinates and hierarchy
 - **Protocols** (1,474) — research methods with embedding-based clustering
-- **Concepts** (4,874) — scientific concepts with type/scope classification
-- **Stakeholders** (5,023) — agencies, organizations, institutions with type classification
-- **Neighborhoods** (151) — Louvain-detected research communities with LLM-generated descriptions and primers
-- **Frontiers** (98) — synthesized knowledge boundaries clustered from neighborhood gap-statements, with key questions, concrete actions (categorized + effort-tiered), data gaps, and linked entities
-- **Entity Mentions** (98,252) — cross-links between entities and all collections (publications, datasets, documents, stories)
-- **References** (143,289) — citation network with 10,619 internal links + 19,827 story→publication links
-- **Embeddings** (8,239) — Voyage AI voyage-4 vector embeddings for semantic similarity search
+- **Concepts** (3,607) — scientific concepts with type/scope classification
+- **Stakeholders** (5,823) — agencies, organizations, institutions with type classification
+- **Neighborhoods** (146) — Louvain-detected research communities with LLM-generated descriptions and primers
+- **Frontiers** (166 total) — 68 **grounded** frontiers (extraction_run_id IS NOT NULL) that cite primary papers verbatim with currency tracking, plus 98 **legacy** frontiers preserved because they anchor the 3,288-item planning corpus. Grounded is the default surface on `/frontiers`; legacy hidden behind `?legacy=show`. See `specification/grounded-frontiers-design.md`.
+- **Entity Mentions** (151,728) — cross-links between entities and all collections (publications, documents, datasets, stories)
+- **References** (151,746) — citation network with 10K+ internal pub→pub links + 19,827 story→publication links + 6,851 FR-notice→external-work references (mostly unmatched — the tier-3 acquisition worklist, see `specification/policy-corpus-acquisition/fr-references-worklist.md`)
+- **Embeddings** (13,034) — Voyage AI voyage-4 vector embeddings for semantic similarity search
 
 ## Tech Stack
 
@@ -38,7 +38,7 @@ Unified search platform for environmental knowledge from the Rocky Mountain Biol
 fnm use 22
 npm install
 npm run dev          # Start dev server at http://localhost:3000
-npm run test         # Run unit tests (Vitest, 214 tests across 12 files)
+npm run test         # Run unit tests (Vitest, 272 tests across ~15 files)
 npm run lint         # ESLint check
 npm run build        # Production build
 npm run pipeline     # Full data pipeline (10 phases)
@@ -88,7 +88,7 @@ scripts/export-database.sh   # Export database dump for sharing (excludes sensit
 ```
 src/
   payload.config.ts              — Payload CMS configuration (push: false, env validation, S3 conditional)
-  collections/                   — 14 Payload collections (Documents, Publications, Datasets, Stories, Topics, Authors, Projects, Species, Places, Protocols, Concepts, Flags, Users, Media)
+  collections/                   — 15 Payload collections (Documents, Publications, Datasets, Stories, Topics, Authors, Projects, Species, Places, Protocols, Concepts, Stakeholders, Eras, Flags, Users, Media)
   services/                      — 7 service modules (search, graph, neighborhoods, frontiers, entities, items, related)
   admin/components/              — Custom Payload admin React components (FlagsForItem, CuratedFields sidebar widgets)
   collections/shared/access.ts   — Shared access control (publicReadAuthWrite)
@@ -193,7 +193,8 @@ scripts/
   load-fulltext.ts            — Load extracted text into Payload fullText field
   load-stories.ts             — Load stories from 4 sources (CB News, Gunnison Times, Lexis)
   load-story-extractions.ts   — Load story LLM extractions into entity_mentions + story_type
-  load-extraction-results.ts  — Load VLM extraction JSON into entity_candidates + mentions
+  load-extraction-results.ts  — Load VLM (publications) extraction JSON into entity_candidates + mentions
+  load-document-extractions.ts — Load document + longform extraction JSON into entity_candidates (deferring linking to cluster/link scripts; idempotent)
   load-referenced-works.ts    — Load LLM-extracted external references into references_cited
   load-document-authors.ts    — Load extracted document authors + match to existing authors
   load-neighborhoods.ts       — Load community detection output into neighborhoods table
@@ -242,12 +243,22 @@ scripts/
   generate-primers.ts         — LLM research primers for neighborhoods (Opus/Sonnet, ~$4-6 per 75 nbrs)
   build-poster-svg.ts         — Hand-editable large-format SVG poster of unified graph
 
-  # Frontiers pipeline (extract → cluster → synthesize → link → load)
+  # Frontiers pipeline — LEGACY primer-derived flow (kept for the planning corpus)
   extract-frontiers.ts        — LLM extraction of atomic frontier statements from neighborhood primers
   cluster-frontiers.ts        — Embedding-based clustering of frontier statements
   synthesize-frontiers.ts     — LLM synthesis of clusters into named frontiers with narrative fields
   link-frontier-entities.ts   — Structural derivation of linkable_entities for each frontier
   inspect-frontier-clusters.ts — Diagnostic threshold sweep for tuning cluster-frontiers
+  load-frontiers.ts           — Load synthesized frontiers + links (TRUNCATE+INSERT, idempotent)
+
+  # Frontiers pipeline — GROUNDED (paper-anchored with verbatim cites + currency tracking; PRs #63–#73)
+  extract-frontiers-grounded.ts    — Per-neighborhood LLM extraction with verbatim cite enforcement
+  cluster-frontiers-grounded.ts    — Voyage-4 embeddings + recency-weighted greedy clustering
+  synthesize-frontiers-grounded.ts — LLM synthesis with cite propagation (verbatim verification)
+  load-frontiers-grounded.ts       — DB loader with append-only snapshot history per re-run
+  validate-frontier-currency.ts    — Per-question LLM "still open?" check against newer papers
+  pilot-grounded-frontiers.ts      — Stage-A pilot script (kept for reference)
+  See specification/grounded-frontiers-design.md and specification/grounded-frontiers-runs/
 
   # Planning pipeline (over the Frontiers corpus, for board/leadership planning)
   extract-frontier-planning-items.ts — Flatten frontier JSONB fields → planning_items table
@@ -268,8 +279,8 @@ scripts/
   # Sync (local ↔ Neon)
   sync-to-neon.ts             — Production sync modes: full / safe / schema / verify
   sync-databases.ts           — Bidirectional incremental sync with curation-aware merge
-  sync-bulk-to-neon.ts        — Targeted sync for SQL-only tables (--only=neighborhoods|entity_mentions|frontiers|planning)
-  sync-replace-entities.ts    — Bulk replace for entity tables (species, places, protocols, concepts)
+  sync-bulk-to-neon.ts        — Targeted sync for SQL-only tables (--only=neighborhoods|entity_mentions|frontiers|planning|references_cited|futures|era_primers). entity_mentions covers ALL collections; references_cited is the citation graph.
+  sync-replace-entities.ts    — Bulk replace for entity tables (species, places, protocols, concepts, stakeholders) — TRUNCATE+INSERT pattern; needed when canonical IDs shift after a re-cluster.
 
   # Diagnostics
   check-staleness.ts          — Compare timestamps across pipeline stages
@@ -285,21 +296,22 @@ scripts/
   cleanup-discovered.ts       — On-demand re-filter of discovered publications when filter rules change
   select-experiment-papers.ts — Stratified paper sampling for the VLM extraction experiment
   results-to-markdown.ts      — Convert VLM extraction results.json to Markdown report
+  backfill-fr-document-types.ts — One-shot SQL backfill for FR documents missing document_type
 
   # Setup + export (shell)
   setup-local.sh              — Automated local development environment setup
   export-database.sh          — Database export for sharing (excludes sensitive tables)
 
-  lib/                        — 22 shared utility modules (config, claude-api, embedding-cluster, payload-client, record-matching, dedup-keys, curation, author-{parsing,dedup}, doi-utils, eml-parser, pdf-{manifest,extract}, crossref-client, dataset-discovery, publication-discovery, sources, topic-rules, itis-client, types, concurrency, extraction-runner)
-  sql/                        — 28 SQL migration files (mostly idempotent CREATE IF NOT EXISTS / ADD COLUMN IF NOT EXISTS; one-shot data migrations should be split off — see backfill-publication-provenance.sql for the pattern)
-  __tests__/                  — Test files (~12) covering core libs (author/crossref/topic/sync/discovery). New pipeline scripts (cluster/describe/extract LLM-driven) are intentionally untested at the call level due to LLM dependency.
+  lib/                        — 25+ shared utility modules (config, claude-api, embedding-cluster, payload-client, record-matching, dedup-keys, curation, author-{parsing,dedup}, doi-utils, eml-parser, pdf-{manifest,extract}, crossref-client, dataset-discovery, publication-discovery, sources, topic-rules, itis-client, types, concurrency, extraction-runner, frontier-snapshots, entity-filter)
+  sql/                        — 30+ SQL migration files. Existing migrations use `add-*` prefix; PRs landing 2026-06-19 onward use `z-YYYY-MM-DD-NN-` prefix so `npm run sync:schema` applies them after the base migrations in dependency order. (Most idempotent CREATE IF NOT EXISTS / ADD COLUMN IF NOT EXISTS; one-shot data migrations should be split off — see backfill-publication-provenance.sql for the pattern.)
+  __tests__/                  — ~15 test files (272 tests) covering core libs (author/crossref/topic/sync/discovery) and a few service-layer paths. New pipeline scripts (cluster/describe/extract LLM-driven) are intentionally untested at the call level due to LLM dependency.
 
 public/
   robots.txt                 — Crawler policy (allows GPTBot, ClaudeBot, PerplexityBot)
   llms.txt                   — LLM discovery index with API docs and collection stats
   rmbl-logo.jpg              — RMBL logo for site header
 
-mcp/                         — MCP server for AI assistant access (8 tools, stdio transport)
+mcp/                         — MCP server for AI assistant access (10 tools, stdio transport)
   src/index.ts               — Server setup with tool registration
   src/client.ts              — HTTP client for REST API v1
 

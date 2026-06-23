@@ -16,27 +16,27 @@ The RMBL Knowledge Commons connects scientific publications, community documents
 - [Entities](/api/v1/entities/{type}/{id}?format=text): Species, concepts, protocols, places, stakeholders
 - [Entity Browse](/api/v1/entities/{type}?format=text): List entities by type (species, concept, protocol, place, stakeholder)
 - [Related Works](/api/v1/related/{collection}/{id}?format=text): Find related items via semantic similarity, shared entities, co-authorship, and citations
-- [Neighborhoods](/api/v1/neighborhoods?format=text): Browse 154 research communities
+- [Neighborhoods](/api/v1/neighborhoods?format=text): Browse 146 research communities
 - [Neighborhood Detail](/api/v1/neighborhoods/{id}?format=text): Community detail with research primer
-- [Frontiers](/api/v1/frontiers?format=text): Browse research frontiers (synthesized knowledge gaps with key questions and concrete actions)
-- [Frontier Detail](/api/v1/frontiers/{id}?format=text): Frontier detail with narrative, questions, actions, data gaps, contributing neighborhoods, and source statements
+- [Frontiers](/api/v1/frontiers?format=text): Browse paper-grounded research frontiers with key questions, verbatim cites, and currency tracking
+- [Frontier Detail](/api/v1/frontiers/{id}?format=text): Frontier detail with key questions (each with verbatim source-paper cites), data gaps, currency state, contributing neighborhoods, and source statements
 
 ## Collections
 
 - 4,852 publications (peer-reviewed articles, theses, student papers from 1928-2025)
-- 1,381 documents (community/policy documents from the Sustainable Living Library)
+- 1,769 documents (1,381 from the Sustainable Living Library + 388 Federal Register notices, 1995-2025, covering Interior/BLM, USFS, USFWS, EPA, NPS rulemaking that touches the basin)
 - 1,426 datasets (research datasets from 8 discovery sources)
 - 841 stories (news articles from local and national outlets, 1981-2026, 13 LLM-classified types)
-- 6,696 authors with ORCID enrichment and deduplication
-- 1,206 species with ITIS taxonomic validation
-- 4,874 scientific concepts with definitions
+- 7,512 authors with ORCID enrichment and deduplication
+- 4,334 species with ITIS taxonomic validation
+- 3,607 scientific concepts with definitions
 - 1,474 research protocols with descriptions
-- 1,954 geographic places with coordinates
-- 5,023 stakeholders (agencies, organizations, institutions)
-- 151 research neighborhoods with AI-generated research primers
-- 98 research frontiers — synthesized knowledge gaps clustered from neighborhood-level gap statements, with key questions, concrete actions, and linked entities
-- 98,252 entity mentions linking items to the knowledge graph
-- 143,289 citation references with 10,619 internal links
+- 8,225 geographic places with coordinates
+- 5,823 stakeholders (agencies, organizations, institutions)
+- 146 research neighborhoods with AI-generated research primers
+- 166 research frontiers: 68 grounded (each key question + data gap cites a primary paper verbatim and tracks currency) + 98 legacy (kept for the planning corpus; hidden from default view)
+- 151,728 entity mentions linking items to the knowledge graph
+- 151,746 citation references including 6,851 from Federal Register notices to external plans and reports
 
 ## MCP Server
 

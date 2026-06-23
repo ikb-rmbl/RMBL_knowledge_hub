@@ -4,35 +4,53 @@ A unified search platform for environmental knowledge from the Rocky Mountain Bi
 
 ## What's Inside
 
-- **1,381 documents** from the [Gunnison Sustainable Living Library](https://sustainablelibrary.org/) — community planning, mining history, water policy, and environmental impact documents
-- **5,267 publications** from the RMBL Publications Database + OpenAlex/CrossRef discovery — journal articles, theses, student papers spanning decades of Gunnison Basin research
-- **1,216 datasets** discovered from 8 repositories — DataONE, DataCite, Zenodo, NCEI, ScienceBase, and more
-- **6,586 authors** — deduplicated cross-collection registry with ORCID enrichment
+- **1,769 documents** — 1,381 from the [Gunnison Sustainable Living Library](https://sustainablelibrary.org/) (community planning, mining history, water policy) plus **388 Federal Register notices** (1995–2025) covering Interior/BLM, Forest Service, USFWS, EPA, and NPS rulemaking that touches the basin
+- **4,852 publications** from the RMBL Publications Database + OpenAlex/CrossRef discovery — journal articles, theses, student papers spanning decades of Gunnison Basin research
+- **1,426 datasets** discovered from 8 repositories — DataONE, DataCite, Zenodo, NCEI, ScienceBase, and more
+- **841 stories** — local news articles (CB News, Gunnison Times, LexisNexis) with LLM type-classification; full text indexed for search, not displayed for copyright
+- **7,512 authors** — deduplicated cross-collection registry with ORCID enrichment
 - **118 research projects** — active research plans and long-term programs with auto-discovered item assignments
-- **106,209 references** — citation network with 10,045 internal links enabling "cited by" navigation
-- **7,758 vector embeddings** — concept graph powering "Related Works" panels and similarity search
+- **151,746 references** — citation network with internal links across publications and documents (10K+ pub→pub, 19K+ story→pub, 6K+ FR→external)
+- **13,034 vector embeddings** — concept graph powering "Related Works" panels and similarity search
 - **40 thematic topics** across 7 groups — from Flowering & Pollination to Archaeology & Cultural History
+
+**Knowledge graph** (entities derived from LLM extraction over publications + documents):
+
+- **4,334 species** with ITIS taxonomy, **8,225 places** with coordinates and hierarchy, **3,607 concepts**, **1,474 protocols**, **5,823 stakeholders** (agencies, NGOs, institutions)
+- **151,728 entity mentions** linking these across publications + documents + datasets + stories
+
+**Research frontiers + neighborhoods**:
+
+- **146 knowledge neighborhoods** detected by Louvain community detection over the unified graph, with LLM-generated descriptions and research primers
+- **68 grounded frontiers** + 98 legacy frontiers. Grounded frontiers cite primary papers verbatim (658 cites across 425 papers) and track currency — "still open?" validated against newer literature. Live at `/frontiers` with legacy hidden behind a `?legacy=show` toggle.
 
 ## Architecture
 
 ```
 Next.js 16 + Payload CMS 3.x (single app)
     |
-    +-- Public frontend (search, browse, detail, project pages)
+    +-- Public frontend (search, browse, detail, projects, frontiers, neighborhoods)
     +-- Payload admin panel (/admin)
-    +-- REST + GraphQL APIs (auto-generated)
+    +-- REST API v1 (/api/v1/*) + MCP server (/api/mcp + mcp/) for AI agents
          |
     PostgreSQL 17 + pgvector (local / Neon)
-    +-- Payload collections (14)
+    +-- 15 Payload collections (Documents, Publications, Datasets, Stories,
+    +     Authors, Topics, Projects, Species, Places, Protocols, Concepts,
+    +     Stakeholders, Eras, Flags, Users, Media)
     +-- tsvector full-text search indexes
-    +-- pgvector HNSW indexes (concept graph / similarity)
-    +-- Custom tables (references_cited, content_chunks, publications_mentors, sync_log, duplicate_tombstones)
+    +-- pgvector HNSW indexes (similarity + RAG)
+    +-- SQL-only tables (references_cited, content_chunks, entity_mentions,
+          entity_candidates, neighborhoods, neighborhood_members, frontiers,
+          frontier_source_statements, frontier_statement_papers, frontier_snapshots,
+          frontier_extraction_runs, frontier_validation_runs, publications_mentors,
+          sync_log, duplicate_tombstones)
          |
-    AWS S3 (PDF + media storage)
-    Voyage AI (vector embeddings)
+    AWS S3 / Cloudflare R2 (PDF + media storage)
+    Voyage AI (voyage-4, 1024-dim vector embeddings)
+    Claude (Anthropic) for entity extraction, summarization, primers, frontier synthesis
 ```
 
-The data pipeline scrapes three external sources, enriches with CrossRef DOIs and Unpaywall open-access links, extracts text from PDFs (digital + OCR), builds citation networks, and loads everything into Payload CMS.
+The data pipeline scrapes four external sources (Sustainable Library, RMBL Publications, RMBL Data Catalog, Federal Register), enriches with CrossRef DOIs and Unpaywall open-access links, extracts text from PDFs (digital + OCR), runs LLM entity extraction over the corpus, builds the knowledge graph, detects neighborhoods, and synthesizes paper-grounded research frontiers.
 
 ## Quick Start
 
@@ -81,13 +99,13 @@ npm run pipeline
 ```bash
 cp .env.example .env   # edit with your settings
 npm run dev            # http://localhost:3000
-npm run test           # 214 tests
+npm run test           # 272 tests
 ```
 
 ### Data Pipeline
 
 ```bash
-npm run pipeline         # full pipeline (9 phases)
+npm run pipeline         # full pipeline (10 phases)
 npm run pipeline:check   # preview what would change
 ```
 
@@ -98,10 +116,12 @@ Or run individual steps:
 npx tsx scripts/scrape-library.ts
 npx tsx scripts/scrape-publications.ts
 npx tsx scripts/scrape-catalog.ts
+npx tsx scripts/discover-fr-notices.ts        # Federal Register policy docs
 
 # 2. Discover additional publications and datasets
 npx tsx scripts/discover-publications.ts --source=all
 npx tsx scripts/discover-datasets.ts --source=all
+npx tsx scripts/discover-pdfs.ts              # Semantic Scholar OA discovery
 
 # 3. Enrich (DOIs, ORCIDs, mentors, abstracts)
 npx tsx scripts/enrich.ts --step=all
@@ -112,20 +132,44 @@ npx tsx scripts/load-to-payload.ts
 npx tsx scripts/manage-topics.ts
 npx tsx scripts/build-authors.ts --load-payload
 
-# 5. PDF processing (optional, long-running)
-npx tsx scripts/download-pdfs.ts
-npx tsx scripts/extract-text.ts
-npx tsx scripts/load-fulltext.ts
+# 5. PDF processing
+npx tsx scripts/download-pdfs.ts --collection=documents
+npx tsx scripts/extract-text.ts --collection=documents
+npx tsx scripts/load-fulltext.ts --collection=documents
 
-# 6. References (optional)
+# 6. References (citation network)
 npx tsx scripts/extract-references.ts --method=all
 npx tsx scripts/match-references.ts
+npx tsx scripts/load-referenced-works.ts      # LLM-extracted referenced works
+npx tsx scripts/match-document-citations.ts   # doc→pub/doc title-trigram matching
 
-# 7. Dataset cross-linking (optional)
-npx tsx scripts/crosslink-datasets.ts
+# 7. LLM entity extraction (concepts, places, species, protocols, stakeholders)
+npx tsx scripts/extract-document-entities.ts
+npx tsx scripts/extract-longform-entities.ts --collection=documents  # >120KB docs
+npx tsx scripts/load-document-extractions.ts  # JSON → entity_candidates
+
+# 8. Link/cluster entity candidates → canonical entities + mentions
+npx tsx scripts/link-species-places.ts
+npx tsx scripts/cluster-concepts.ts
+npx tsx scripts/cluster-protocols.ts
+npx tsx scripts/cluster-stakeholders.ts
+npx tsx scripts/backfill-species-mentions.ts  # text-search-based widening
+
+# 9. Knowledge graph + neighborhoods
+npx tsx scripts/build-unified-graph.ts
+npx tsx scripts/detect-communities.ts
+npx tsx scripts/describe-communities.ts
+npx tsx scripts/generate-primers.ts
+
+# 10. Frontiers (paper-grounded research-gap synthesis)
+npx tsx scripts/extract-frontiers-grounded.ts
+npx tsx scripts/cluster-frontiers-grounded.ts
+npx tsx scripts/synthesize-frontiers-grounded.ts --model=claude-opus-4-7
+npx tsx scripts/load-frontiers-grounded.ts
+npx tsx scripts/validate-frontier-currency.ts  # "still open?" check
 ```
 
-See `scripts/README.md` for detailed documentation of each script, CLI flags, and shared libraries.
+See the project `CLAUDE.md` for detailed documentation of each script, CLI flags, and shared libraries.
 
 ### Manual PDF Acquisition
 
@@ -199,42 +243,52 @@ and `NEON_DIRECT_URL`.
 ```
 src/
   payload.config.ts           # CMS configuration (push: false, env validation)
-  collections/                # Data model (8 collections)
-  collections/shared/         # Shared access control + constants
-  app/(frontend)/             # Public pages (search, browse, detail, projects)
-  app/(frontend)/api/         # Search API endpoint
-  app/(frontend)/lib/         # Shared utilities (badges, db, related-works, url-validation)
+  collections/                # Data model (15 Payload collections)
+  collections/shared/         # Shared access control, curation hooks, tombstone hooks
+  services/                   # 7 service modules (search, graph, neighborhoods, frontiers,
+                              #   entities, items, related)
+  admin/components/           # Custom Payload admin React components
+                              #   (FlagsForItem, CuratedFields sidebar widgets)
+  app/(frontend)/             # Public pages (search, browse, detail, projects,
+                              #   frontiers, neighborhoods, /explore/*)
+  app/(frontend)/api/v1/      # REST API v1 (13 endpoints, format=json|text, rate-limited)
+  app/(frontend)/api/mcp/     # MCP server (Streamable HTTP, 10 tools)
+  app/(frontend)/lib/         # Shared utilities (badges, db, related-works, url-validation,
+                              #   graph-data, graph-colors, json-ld)
   app/(frontend)/components/  # Client components
   app/(payload)/              # Admin panel
 
-scripts/
-  pipeline.ts                 # Orchestrator (9 phases)
-  scrape-*.ts                 # Source data scrapers (3)
-  discover-publications.ts    # OpenAlex + CrossRef geographic discovery
-  discover-datasets.ts        # 7-source dataset discovery
-  enrich.ts                   # DOI/ORCID/mentor enrichment
-  enrich-abstracts.ts         # Abstract enrichment (4 tiers)
-  load-to-payload.ts          # Database loader (incremental dedup)
-  manage-topics.ts            # 40-topic thematic taxonomy
-  build-authors.ts            # Author registry + dedup
-  fetch-citation-counts.ts    # External citation counts
-  generate-embeddings.ts      # Voyage AI vector embeddings
-  seed-projects.ts            # Research project seeding
-  assign-projects.ts          # Auto-discover project items
-  extract-references.ts       # CrossRef + GROBID + fulltext
-  match-references.ts         # Reference matching
-  crosslink-datasets.ts       # Publication<->dataset linking
-  sync-to-neon.ts             # Production sync (full restore, verify, safe, schema)
-  sync-databases.ts           # Bidirectional incremental sync (local <-> Neon)
-  experiment-extraction.ts    # VLM extraction experiment
-  setup-local.sh              # Automated local setup
-  export-database.sh          # Database export for sharing
-  lib/                        # 16 shared utility modules
-  sql/                        # 5 SQL migration files
-  __tests__/                  # 12 test files (214 tests)
+scripts/                      # 60+ pipeline scripts (see CLAUDE.md for full inventory)
+  pipeline.ts                 # Orchestrator (10 phases)
+  scrape-*.ts                 # Source scrapers (Sustainable Library, RMBL Pubs,
+                              #   Data Catalog, FR notices, CB News, Gunnison Times)
+  discover-*.ts               # Publication / dataset / PDF / FR-notice discovery
+  enrich*.ts                  # DOI / ORCID / mentor / abstract / FR-document enrichment
+  download-pdfs.ts            # PDF download with manifest tracking
+  extract-text.ts             # PDF → text (pdftotext + tesseract OCR fallback)
+  load-to-payload.ts          # Bulk loader (incremental dedup + tombstone check)
+  extract-{document,longform,dataset,story}-entities.ts  # LLM entity extraction
+  link-species-places.ts      # Species + Places canonicalization (ITIS-aware)
+  cluster-{concepts,protocols,stakeholders}.ts  # Embedding-based clustering
+  backfill-species-mentions.ts  # Text-search widening
+  build-{explore,collection,unified}-graph.ts   # Knowledge graph construction
+  detect-communities.ts       # Louvain neighborhoods
+  generate-primers.ts         # LLM neighborhood primers
+  extract-frontiers-grounded.ts + cluster + synthesize + load + validate
+                              # Paper-grounded frontiers pipeline (PRs #63–#73)
+  sync-databases.ts           # Bidirectional incremental sync (local ↔ Neon)
+  sync-bulk-to-neon.ts        # SQL-only tables (neighborhoods, frontiers, planning,
+                              #   entity_mentions, references_cited)
+  sync-replace-entities.ts    # Bulk replace for canonical entity tables
+  mcp/                        # Local MCP server (stdio transport)
+  lib/                        # 25+ shared utility modules
+  sql/                        # SQL migration files (idempotent CREATE IF NOT EXISTS)
+  __tests__/                  # ~15 test files (272 tests)
 
 public/
   rmbl-logo.jpg               # RMBL logo
+  llms.txt                    # LLM discovery index
+  robots.txt                  # Crawler policy (allows GPTBot, ClaudeBot, PerplexityBot)
 
 specification/                # Technical specs
 ```
@@ -243,7 +297,7 @@ specification/                # Technical specs
 
 ```bash
 npm run dev             # Start dev server
-npm run test            # Run tests (214 tests, Vitest)
+npm run test            # Run tests (272 tests, Vitest)
 npm run lint            # Lint check
 npm run build           # Production build
 npm run pipeline        # Full data pipeline
