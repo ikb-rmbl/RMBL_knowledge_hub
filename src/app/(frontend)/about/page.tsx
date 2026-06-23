@@ -274,9 +274,9 @@ npm install && npm run build`}
                   ['get_entity', 'Entity lookup (species, concept, protocol, place, stakeholder)'],
                   ['find_related', 'Related works via semantic similarity, shared entities, co-authorship, citations'],
                   ['explore_neighborhood', 'Research neighborhood detail with primer'],
-                  ['list_neighborhoods', 'Browse or search 154 research neighborhoods'],
-                  ['get_frontier', 'Research frontier detail: questions, actions, data gaps, source statements'],
-                  ['list_frontiers', 'Browse or search synthesized research frontiers (sortable by breadth/leverage)'],
+                  ['list_neighborhoods', 'Browse or search 146 research neighborhoods'],
+                  ['get_frontier', 'Research frontier detail: key questions (with verbatim primary-paper cites), data gaps, currency state, contributing neighborhoods'],
+                  ['list_frontiers', 'Browse or search paper-grounded research frontiers (sortable by breadth/leverage)'],
                 ].map(([tool, desc]) => (
                   <tr key={tool} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ padding: '6px 12px', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{tool}</td>
@@ -411,29 +411,38 @@ npm install && npm run build`}
       <div className="detail-section" id="frontier-syntheses-methodology">
         <h2>Frontier syntheses — how the knowledge boundaries were named</h2>
         <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', marginBottom: '16px', maxWidth: '65ch' }}>
-          Each entry in the <a href="/frontiers" style={{ color: 'var(--rmbl-orange-deep)' }}>Frontiers</a> collection is an AI-synthesized articulation of a knowledge boundary — a coherent gap between what scientists know and what they don&apos;t, with identifiable paths to push the boundary forward. The synthesis sits on top of an algorithmic clustering of gap statements drawn from research-neighborhood primers.
+          Each entry in the <a href="/frontiers" style={{ color: 'var(--rmbl-orange-deep)' }}>Frontiers</a> collection is an AI-synthesized articulation of a knowledge boundary — a coherent gap between what scientists know and what they don&apos;t. The default view shows <strong>paper-grounded frontiers</strong>: every key question and data gap on a grounded frontier cites at least one primary paper with a verbatim snippet you can verify, and the system periodically asks the LLM whether newer literature has addressed each open question (the &ldquo;currency&rdquo; tag on each item).
         </p>
 
         <details style={{ marginBottom: '12px' }}>
-          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>The pipeline</summary>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>The grounded pipeline</summary>
           <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
-            The pipeline runs in five stages: (1) extract atomic gap statements from each research-neighborhood primer, (2) embed each statement with Voyage AI, (3) cluster the statements by Louvain detection over the embedding graph, (4) synthesize each cluster into a named frontier with title, description, key questions, concrete actions (categorized + effort-tiered), and data gaps, and (5) derive linked entities structurally from the contributing neighborhoods.
+            Five stages: (1) per neighborhood, the LLM reads top papers and emits atomic frontier statements, each with a verbatim cite snippet — statements that can&apos;t be grounded in source text are dropped; (2) the statements are embedded with Voyage AI and clustered by greedy-centroid similarity with recency weighting; (3) the LLM synthesizes each cluster into a named frontier with key questions and data gaps that carry the verbatim cite snippets through; (4) the frontier loads to the DB with snapshot history; (5) a currency-validation pass asks per question whether newer papers in the same neighborhoods have addressed it.
+          </p>
+        </details>
+
+        <details style={{ marginBottom: '12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>Legacy frontiers (toggle)</summary>
+          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
+            An earlier (&ldquo;legacy&rdquo;) set of 98 frontiers was synthesized from neighborhood-primer prose rather than direct paper grounding. Those are kept in the DB because they anchor the downstream planning corpus, but they&apos;re hidden from the default <a href="/frontiers" style={{ color: 'var(--rmbl-orange-deep)' }}>/frontiers</a> view; surface them with the <em>Include legacy</em> filter chip.
           </p>
         </details>
 
         <details style={{ marginBottom: '12px' }}>
           <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>How to read it</summary>
           <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
-            Read a frontier as a synthesized articulation of where the literature points toward a knowledge boundary, not as an authoritative research agenda. The contributing neighborhoods are listed; readers can verify the gap statements that clustered to form the frontier and decide whether the synthesis reads true.
+            Read a frontier as a synthesized articulation of where the literature points toward a knowledge boundary, not as an authoritative research agenda. Click any cite chip on a key question to open the source paper and verify the snippet word-for-word. The contributing neighborhoods are listed so you can trace the frontier back to its evidence base.
           </p>
         </details>
 
         <details style={{ marginBottom: '12px' }}>
           <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '15px', padding: '8px 0' }}>View the actual prompts</summary>
           <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
-            The synthesis prompt lives in{' '}
-            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/scripts/synthesize-frontiers.ts#L93" style={{ color: 'var(--rmbl-orange-deep)' }}>synthesize-frontiers.ts</a>. The gap-statement extraction prompt lives in{' '}
-            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/scripts/extract-frontiers.ts" style={{ color: 'var(--rmbl-orange-deep)' }}>extract-frontiers.ts</a>.
+            The grounded extractor lives in{' '}
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/scripts/extract-frontiers-grounded.ts" style={{ color: 'var(--rmbl-orange-deep)' }}>extract-frontiers-grounded.ts</a>, the synthesizer in{' '}
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/scripts/synthesize-frontiers-grounded.ts" style={{ color: 'var(--rmbl-orange-deep)' }}>synthesize-frontiers-grounded.ts</a>, and the currency validator in{' '}
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/scripts/validate-frontier-currency.ts" style={{ color: 'var(--rmbl-orange-deep)' }}>validate-frontier-currency.ts</a>. Full design spec:{' '}
+            <a href="https://github.com/ikb-rmbl/RMBL_knowledge_hub/blob/main/specification/grounded-frontiers-design.md" style={{ color: 'var(--rmbl-orange-deep)' }}>grounded-frontiers-design.md</a>.
           </p>
         </details>
       </div>
