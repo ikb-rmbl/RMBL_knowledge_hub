@@ -116,6 +116,115 @@ export function documentToRIS(doc: any): string {
 }
 
 // ---------------------------------------------------------------------------
+// Plain-text APA citation
+//
+// Used by the per-item "Copy citation" affordance on detail pages. Returns
+// a single APA-7-ish line that pastes cleanly into an email or document.
+// Not a full citation-style implementation — that's what the CSL-JSON path
+// is for. Conservative on punctuation: if a field is missing, the
+// surrounding glue is dropped rather than emitted as " ." or "(undefined)".
+// ---------------------------------------------------------------------------
+
+/** Format one author's full name as "Family, G. I." (APA short form).
+ *  Falls back to whatever display_name we have if family + given aren't
+ *  split out. */
+function apaAuthor(a: any): string {
+  const fam = (a?.family_name || '').trim()
+  const giv = (a?.given_name || '').trim()
+  if (fam) {
+    const initials = giv
+      .split(/[\s.-]+/)
+      .filter(Boolean)
+      .map((p: string) => p[0].toUpperCase() + '.')
+      .join(' ')
+    return initials ? `${fam}, ${initials}` : fam
+  }
+  return String(a?.display_name || a?.name || '').trim()
+}
+
+/** Join a list of author names APA-style:
+ *    1 author:   "Smith, J."
+ *    2 authors:  "Smith, J., & Jones, K."
+ *    3+ authors: "Smith, J., Jones, K., & Lee, M."
+ *  Drops empties; returns '' when no usable name. APA-7 truncates at 20
+ *  authors with " ... " — we apply that cap. */
+function apaAuthorList(authors: any[] | undefined | null): string {
+  if (!authors || authors.length === 0) return ''
+  const names = authors.map(apaAuthor).filter(Boolean)
+  if (names.length === 0) return ''
+  if (names.length === 1) return names[0]
+  if (names.length === 2) return `${names[0]}, & ${names[1]}`
+  if (names.length <= 20) {
+    return `${names.slice(0, -1).join(', ')}, & ${names[names.length - 1]}`
+  }
+  return `${names.slice(0, 19).join(', ')}, ... ${names[names.length - 1]}`
+}
+
+/** Tail a citation with the canonical Knowledge-Commons URL when no DOI is
+ *  available. DOIs are preferred per APA-7 §10.1. */
+function doiOrUrl(doi: string | null | undefined, fallbackUrl: string): string {
+  if (!doi) return fallbackUrl
+  const s = String(doi).trim()
+  if (!s) return fallbackUrl
+  if (/^https?:\/\//i.test(s)) return s
+  return `https://doi.org/${s.replace(/^doi:/i, '')}`
+}
+
+// APA italicizes journal + book + dataset titles, but the clipboard target
+// is plain text — and the Unicode italic block reserves a slot for 'h'
+// (U+1D455) which renders as a tofu on many platforms. Skip italicization
+// here; readers pasting into a rich editor reformat anyway, and downstream
+// CSL-JSON / BibTeX exports carry the structural intent.
+
+export function publicationToAPA(pub: any): string {
+  const parts: string[] = []
+  const authors = apaAuthorList(pub.authors)
+  if (authors) parts.push(authors + (authors.endsWith('.') ? '' : '.'))
+  if (pub.year) parts.push(`(${pub.year}).`)
+  if (pub.title) {
+    const t = String(pub.title).trim().replace(/\.$/, '')
+    parts.push(t + '.')
+  }
+  const journal = pub.journal ? String(pub.journal).trim() : ''
+  const vol = pub.volume ? String(pub.volume).trim() : ''
+  const iss = pub.issue ? `(${pub.issue})` : ''
+  const pages = pub.pages ? String(pub.pages).trim() : ''
+  const tail: string[] = []
+  if (journal) tail.push(journal)
+  if (vol)     tail.push((tail.length ? ', ' : '') + vol + iss)
+  if (pages)   tail.push((tail.length ? ', ' : '') + pages)
+  if (tail.length) parts.push(tail.join('') + '.')
+  parts.push(doiOrUrl(pub.doi, `https://rmblknowledgecommons.org/publications/${pub.id}`))
+  return parts.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
+}
+
+export function datasetToAPA(ds: any): string {
+  const parts: string[] = []
+  const creators = apaAuthorList(ds.creators)
+  if (creators) parts.push(creators + (creators.endsWith('.') ? '' : '.'))
+  if (ds.publication_year) parts.push(`(${ds.publication_year}).`)
+  if (ds.title) {
+    const t = String(ds.title).trim().replace(/\.$/, '')
+    parts.push(`${t} [Data set].`)
+  }
+  if (ds.repository) parts.push(String(ds.repository) + '.')
+  parts.push(doiOrUrl(ds.doi, `https://rmblknowledgecommons.org/datasets/${ds.id}`))
+  return parts.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
+}
+
+export function documentToAPA(doc: any): string {
+  const parts: string[] = []
+  const year = doc.date_original ? new Date(doc.date_original).getFullYear() : null
+  if (year) parts.push(`(${year}).`)
+  if (doc.title) {
+    const t = String(doc.title).trim().replace(/\.$/, '')
+    parts.push(t + '.')
+  }
+  parts.push(`https://rmblknowledgecommons.org/documents/${doc.id}`)
+  return parts.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
+}
+
+// ---------------------------------------------------------------------------
 // CSL JSON
 //
 // https://docs.citationstyles.org/en/stable/specification.html#citation-style-language-csl-citation-items

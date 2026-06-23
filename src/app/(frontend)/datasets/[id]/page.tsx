@@ -11,6 +11,8 @@ import ViewInGlobalGraphLink from '../../components/ViewInGlobalGraphLink'
 import { JsonLd, datasetJsonLd } from '../../lib/json-ld'
 import LazyGraph from '../../components/LazyGraph'
 import FlagButton from '../../components/FlagButton'
+import CitationActions from '../../components/CitationActions'
+import { datasetToAPA } from '../../api/v1/lib/citation-format'
 import { richTitle } from '../../lib/rich-title'
 
 export const dynamic = 'force-dynamic'
@@ -101,7 +103,25 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
 
       <span className="badge badge-dataset">Dataset</span>
       <h1>{richTitle(dataset.title)}</h1>
-      <FlagButton collection="datasets" itemId={parseInt(id)} />
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', margin: '4px 0 14px' }}>
+        <FlagButton collection="datasets" itemId={parseInt(id)} />
+        <CitationActions
+          source="dataset"
+          itemId={parseInt(id)}
+          citationText={datasetToAPA({
+            id: dataset.id,
+            title: dataset.title,
+            // DataCite creators arrive as a single `name` field; pass through
+            // as display_name so the APA formatter doesn't try to split.
+            creators: (Array.isArray(dataset.creators) ? dataset.creators : []).map((c: any) => ({
+              display_name: c?.name || c?.display_name,
+            })),
+            publication_year: dataset.publicationYear,
+            repository: dataset.repository,
+            doi: dataset.doi,
+          })}
+        />
+      </div>
 
       <div className="detail-meta">
         {creatorLinks.length > 0 && (

@@ -11,6 +11,8 @@ import ViewInGlobalGraphLink from '../../components/ViewInGlobalGraphLink'
 import { JsonLd, publicationJsonLd } from '../../lib/json-ld'
 import LazyGraph from '../../components/LazyGraph'
 import FlagButton from '../../components/FlagButton'
+import CitationActions from '../../components/CitationActions'
+import { publicationToAPA } from '../../api/v1/lib/citation-format'
 import { richTitle } from '../../lib/rich-title'
 
 export const dynamic = 'force-dynamic'
@@ -119,7 +121,30 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
         {typeLabels[pub.publicationType] || 'Publication'}
       </span>
       <h1>{richTitle(pub.title)}</h1>
-      <FlagButton collection="publications" itemId={parseInt(id)} />
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', margin: '4px 0 14px' }}>
+        <FlagButton collection="publications" itemId={parseInt(id)} />
+        <CitationActions
+          source="publication"
+          itemId={parseInt(id)}
+          citationText={publicationToAPA({
+            id: pub.id,
+            title: pub.title,
+            // Payload `pub.authors` carries {family, given, orcid}; the APA
+            // formatter expects {family_name, given_name}. Normalize here.
+            authors: (Array.isArray(pub.authors) ? pub.authors : []).map((a: any) => ({
+              family_name: a?.family,
+              given_name: a?.given,
+              display_name: a?.given ? `${a.family}, ${a.given}` : a?.family,
+            })),
+            year: pub.year,
+            journal: pub.journal,
+            volume: pub.volume,
+            issue: pub.issue,
+            pages: pub.pages,
+            doi: pub.doi,
+          })}
+        />
+      </div>
 
       <div className="detail-meta">
         <div>
