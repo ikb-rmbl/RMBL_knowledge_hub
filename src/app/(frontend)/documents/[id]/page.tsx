@@ -11,6 +11,8 @@ import { fetchItemNetwork } from '../../lib/graph-data'
 import ViewInGlobalGraphLink from '../../components/ViewInGlobalGraphLink'
 import LazyGraph from '../../components/LazyGraph'
 import FlagButton from '../../components/FlagButton'
+import CitationActions from '../../components/CitationActions'
+import { documentToAPA } from '../../api/v1/lib/citation-format'
 import { richTitle } from '../../lib/rich-title'
 
 export const dynamic = 'force-dynamic'
@@ -145,7 +147,18 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
 
       <span className="badge badge-document">{docTypeLabel}</span>
       <h1>{richTitle(doc.title)}</h1>
-      <FlagButton collection="documents" itemId={parseInt(id)} />
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', margin: '4px 0 14px' }}>
+        <FlagButton collection="documents" itemId={parseInt(id)} />
+        <CitationActions
+          source="document"
+          itemId={parseInt(id)}
+          citationText={documentToAPA({
+            id: doc.id,
+            title: doc.title,
+            date_original: doc.dateOriginal,
+          })}
+        />
+      </div>
 
       <div className="detail-meta">
         {dateStr && <div><strong>Date:</strong> {dateStr}</div>}
