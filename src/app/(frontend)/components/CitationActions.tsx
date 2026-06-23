@@ -21,6 +21,9 @@ import { useEffect, useRef, useState } from 'react'
 
 type Source = 'publication' | 'dataset' | 'document'
 
+// Mirror FlagButton's trigger styling exactly so the three triggers
+// (Report an issue, Copy citation, Export bibliography record) render
+// as visually identical siblings under the page title.
 const TRIGGER_STYLE: React.CSSProperties = {
   background: 'none',
   border: 'none',
@@ -29,7 +32,6 @@ const TRIGGER_STYLE: React.CSSProperties = {
   color: 'var(--fg-3)',
   textDecoration: 'underline',
   padding: 0,
-  font: 'inherit',
 }
 
 const MENU_STYLE: React.CSSProperties = {
