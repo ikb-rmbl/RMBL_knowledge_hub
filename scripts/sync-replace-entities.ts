@@ -18,6 +18,13 @@ import './lib/config.js'
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
 const tableFilter = args.find((a) => a.startsWith('--table='))?.split('=')[1] || 'all'
+// When canonical entity tables get rebuilt, `content_flags.item_id` rows
+// on Neon orphan because the IDs shifted. The repair script
+// (scripts/fix-orphan-flag-links.ts) walks each broken flag, finds the
+// new canonical record by name/synonym/alias, and re-points the ID.
+// Default: run automatically at the end of a write pass. Opt out with
+// `--no-repair-flags` (or it's auto-skipped on dry-run).
+const skipRepairFlags = args.includes('--no-repair-flags')
 
 const TABLES = ['species', 'places', 'protocols', 'concepts', 'stakeholders']
 
@@ -172,6 +179,26 @@ async function main() {
 
   await localDb.end()
   await neonDb.end()
+
+  // Repair orphaned content_flags references whose item_id no longer
+  // resolves after the entity rebuild. Skipped on dry-run + when opted
+  // out. Delegates to fix-orphan-flag-links.ts so the same logic stays
+  // usable as a standalone script too.
+  if (!dryRun && !skipRepairFlags) {
+    console.log('--- Repairing orphaned content_flags references ---')
+    const { execSync } = await import('child_process')
+    try {
+      execSync('npx tsx scripts/fix-orphan-flag-links.ts --apply', {
+        stdio: 'inherit',
+      })
+    } catch (err: any) {
+      console.error(`  ⚠ fix-orphan-flag-links failed (non-fatal): ${err.message?.slice(0, 100)}`)
+    }
+  } else if (dryRun) {
+    console.log('--- Skipping content_flags repair on dry-run ---')
+  } else {
+    console.log('--- Skipping content_flags repair (--no-repair-flags) ---')
+  }
 }
 
 main().catch((err) => { console.error(err); process.exit(1) })
