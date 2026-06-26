@@ -280,7 +280,8 @@ scripts/
   sync-to-neon.ts             — Production sync modes: full / safe / schema / verify
   sync-databases.ts           — Bidirectional incremental sync with curation-aware merge
   sync-bulk-to-neon.ts        — Targeted sync for SQL-only tables (--only=neighborhoods|entity_mentions|frontiers|planning|references_cited|futures|era_primers). entity_mentions covers ALL collections; references_cited is the citation graph.
-  sync-replace-entities.ts    — Bulk replace for entity tables (species, places, protocols, concepts, stakeholders) — TRUNCATE+INSERT pattern; needed when canonical IDs shift after a re-cluster.
+  sync-replace-entities.ts    — Bulk replace for entity tables (species, places, protocols, concepts, stakeholders) — TRUNCATE+INSERT pattern; needed when canonical IDs shift after a re-cluster. Automatically calls `fix-orphan-flag-links.ts --apply` at the end to repair `content_flags.item_id` references that orphan when IDs shift; opt out with `--no-repair-flags`.
+  fix-orphan-flag-links.ts    — Repair `content_flags.item_id` after a canonical entity table is rebuilt and IDs shift. Matches broken flags by exact name / common-name / synonym / alias; falls back to ILIKE substring. Defaults to Neon target (content_flags is admin-managed). `--apply` to commit; default is dry-run.
 
   # Diagnostics
   check-staleness.ts          — Compare timestamps across pipeline stages
@@ -438,6 +439,36 @@ Both share the same tool definitions via `src/app/(frontend)/api/mcp/server.ts`,
 **Tool naming**: Our tools use descriptive names (`search_rmbl`, `get_publication`, `explore_neighborhood`) optimized for Claude. OpenAI requires generic `search`/`fetch` tool names. If OpenAI support is added, a separate endpoint with adapted tool names would be needed (dual-endpoint approach, not renaming existing tools).
 
 ## Rebuild Strategy
+
+### Entity rebuild order (species + places + concepts + protocols + stakeholders)
+
+Triggered by a major LLM extraction run that adds ≥1K new candidates, or any time canonical entities feel out-of-date. Each cluster/link script is destructive on its own table (TRUNCATE + INSERT), so every canonical ID can shift — downstream artifacts that store entity_id (including `content_flags.item_id`) need to be remapped at the end.
+
+```bash
+# 0. (After LLM extraction.) Load JSON output into entity_candidates.
+npx tsx scripts/load-document-extractions.ts       # documents + longform → entity_candidates
+npx tsx scripts/load-extraction-results.ts --results=…  # publications (VLM)
+
+# 1. Canonical entity rebuild (each wipes its own canonical table + entity_mentions).
+npx tsx scripts/link-species-places.ts             # use --skip-itis if ITIS is slow/throttled
+npx tsx scripts/cluster-concepts.ts
+npx tsx scripts/cluster-protocols.ts
+npx tsx scripts/cluster-stakeholders.ts            # self-contained; reads JSON, writes everything
+
+# 2. Mention widening: regenerate text-search mentions for species (deleted in step 1).
+npx tsx scripts/backfill-species-mentions.ts
+
+# 3. Sync canonical tables + mentions to Neon (also auto-runs flag repair).
+npx tsx scripts/sync-replace-entities.ts            # species/places/concepts/protocols/stakeholders
+                                                    # + fix-orphan-flag-links.ts --apply at the end
+npx tsx scripts/sync-bulk-to-neon.ts --only=entity_mentions
+
+# 4. If a graph / neighborhood / frontier rebuild is also warranted, see below.
+```
+
+After step 3, the curation interface's flag links are guaranteed to resolve to their current canonical records (or get reported as ambiguous / unmatched for admin review — see `fix-orphan-flag-links.ts` output). Skip the auto-repair with `sync-replace-entities --no-repair-flags` if you want to run the fix manually later.
+
+### Graph + neighborhood + frontier rebuild
 
 When to do a **full rebuild** (graph + communities + primers):
 - Adding a new collection type (e.g., stories) — changes graph structure fundamentally
