@@ -8,6 +8,11 @@
 import type { MetadataRoute } from 'next'
 import { getDb } from './(frontend)/lib/db'
 
+// Serve fresh per request instead of prerendering at build time — the
+// build environment (CI) has no database, and a build-time sitemap goes
+// stale between deploys anyway.
+export const dynamic = 'force-dynamic'
+
 const BASE_URL = 'https://rmblknowledgecommons.org'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

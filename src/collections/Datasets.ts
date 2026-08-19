@@ -246,6 +246,10 @@ export const Datasets: CollectionConfig = {
     {
       name: 'fullText',
       type: 'textarea',
+      // Payload's default `textarea` maxLength (40,000 chars) blocks admin
+      // saves once metadata text grows past it (current max: ~39.8K — one
+      // enrichment away). 5 MB matches Documents.fullText.
+      maxLength: 5_000_000,
       admin: {
         description: 'Full metadata text extracted from external sources; used for search indexing',
         condition: (_, siblingData) => Boolean(siblingData?.fullText),

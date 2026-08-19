@@ -133,6 +133,11 @@ export const Publications: CollectionConfig = {
     {
       name: 'fullText',
       type: 'textarea',
+      // Payload's default `textarea` maxLength is 40,000 chars — 1,000+
+      // publications exceed it, which makes *any* admin edit on those rows
+      // fail validation. 5 MB matches Documents.fullText; validator-only
+      // change (DB column is unconstrained `text`).
+      maxLength: 5_000_000,
       admin: {
         description: 'Extracted from PDF where available; indexed for search and RAG',
         condition: (_, siblingData) => Boolean(siblingData?.fullText),
