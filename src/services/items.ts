@@ -28,7 +28,9 @@ export interface PublicationDetail {
 export async function getPublication(pool: pg.Pool, id: number): Promise<PublicationDetail | null> {
   const { rows: [pub] } = await pool.query(
     `SELECT id, title, year, journal, doi, abstract, publication_type,
-            volume, issue, pages, data_source, external_citation_count, pdf_link, external_url
+            volume, issue, pages, data_source, external_citation_count,
+            CASE WHEN pdf_restricted THEN NULL ELSE pdf_link END AS pdf_link,
+            external_url
      FROM publications WHERE id = $1`,
     [id],
   )

@@ -62,6 +62,9 @@ export const Stories: CollectionConfig = {
     {
       name: 'fullText',
       type: 'textarea',
+      // Payload's default `textarea` maxLength (40,000 chars) blocks admin
+      // saves on long articles. 5 MB matches Documents.fullText.
+      maxLength: 5_000_000,
       admin: {
         description: 'Full narrative text or transcript',
       },
