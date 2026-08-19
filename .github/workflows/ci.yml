@@ -24,6 +24,10 @@ jobs:
 
       - name: Run tests
         run: npm test
+        env:
+          # scripts/lib/config.ts throws at import time without this;
+          # tests never authenticate, any value works.
+          PAYLOAD_ADMIN_PASSWORD: ci-test-password
 
       - name: Build
         run: npm run build
