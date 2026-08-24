@@ -73,7 +73,7 @@ const COLLECTIONS: Record<string, CollectionConfig> = {
   datasets: {
     table: 'datasets',
     matchFields: matchDataset,
-    pipelineFields: ['external_citation_count', 'citation_count_updated_at', 'embedding', 'search_vector', 'full_text'],
+    pipelineFields: ['external_citation_count', 'citation_count_updated_at', 'embedding', 'search_vector', 'full_text', 'sdp_catalog_id'],
     curatedFields: ['title', 'description', 'doi', 'publication_year', 'download_url', 'external_catalog_url', 'spatial_description', 'license', 'resource_type', 'data_publisher', 'repository', 'methods'],
     skipFields: ['id', 'created_at', 'updated_at'],
   },

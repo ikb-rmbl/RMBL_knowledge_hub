@@ -178,6 +178,15 @@ export const Datasets: CollectionConfig = {
       },
     },
     {
+      name: 'sdpCatalogId',
+      type: 'text',
+      admin: {
+        description:
+          'RMBL Spatial Data Platform product code (e.g. R6D004). Pipeline-managed by sync-sdp-stac.ts — drives the "Explore in SDP Browser" link.',
+        readOnly: true,
+      },
+    },
+    {
       name: 'spatialDescription',
       type: 'text',
       admin: {

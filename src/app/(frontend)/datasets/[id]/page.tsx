@@ -217,6 +217,16 @@ export default async function DatasetDetail({ params }: { params: Promise<{ id: 
       )}
 
       <div className="detail-actions">
+        {typeof dataset.sdpCatalogId === 'string' && /^[A-Z0-9]{2,10}$/.test(dataset.sdpCatalogId) && (
+          <a
+            className="detail-action-primary"
+            href={`https://sdpbrowser.org/#add=${dataset.sdpCatalogId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Explore in SDP Browser
+          </a>
+        )}
         {isHttpUrl(dataset.downloadUrl) && (
           <a
             className="detail-action-primary"
