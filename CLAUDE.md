@@ -5,7 +5,7 @@
 Unified search platform for environmental knowledge from the Rocky Mountain Biological Laboratory (RMBL) and Gunnison Basin, Colorado:
 - **Publications** (4,852) — peer-reviewed articles, theses, student papers (3,988 RMBL + 864 discovered)
 - **Documents** (1,769) — community/policy documents from the Sustainable Living Library (1,381) plus **Federal Register notices** (388, 1995–2025) covering Interior/BLM, USFS, USFWS, EPA, NPS rulemaking. FR notices carry `document_type ∈ {federal_register_notice, federal_proposed_rule, federal_rule}`.
-- **Datasets** (1,426) — research datasets from 8 discovery sources
+- **Datasets** (1,473) — research datasets from 8 discovery sources; 173 SDP spatial products synced from the STAC catalog (`sdp_catalog_id`, "Explore in SDP Browser" deep links)
 - **Stories** (841) — news articles from CB News, Gunnison Times, LexisNexis (13 LLM-classified types; full text stored for search, not displayed for copyright)
 - **Authors** (7,512) — deduplicated cross-collection author registry with ORCID enrichment
 - **Projects** (118) — research plans and programs with auto-discovered item assignments
@@ -159,7 +159,8 @@ scripts/
   # Scraping (source acquisition)
   scrape-library.ts           — Sustainable Library scrape + normalize
   scrape-publications.ts      — RMBL Publications scrape + CrossRef/Unpaywall enrichment
-  scrape-catalog.ts           — Data Catalog scrape + EML metadata fetch
+  scrape-catalog.ts           — Data Catalog scrape + EML metadata fetch (legacy — catalog retiring; SDP entries now come from sync-sdp-stac.ts)
+  sync-sdp-stac.ts            — SDP STAC catalog → datasets upsert keyed on sdp_catalog_id (direct SQL, no dev server; --dry-run/--force; skips runs when rmbl:catalog_version unchanged)
   scrape-news.ts              — Crested Butte News scraper (search results + article text)
   scrape-gunnison-times.ts    — Gunnison Country Times scraper (current + archive search)
   parse-lexis-pdf.ts          — LexisNexis index PDF parser (metadata + embedded links)
