@@ -20,10 +20,13 @@
  *     matches the previous run (state in scripts/output/; --force overrides).
  *
  * Usage:
- *   npx tsx scripts/sync-sdp-stac.ts [--dry-run] [--force]
+ *   npx tsx scripts/sync-sdp-stac.ts [--dry-run] [--force] [--target=neon]
  *
- * Writes directly to local PostgreSQL — no dev server needed. Follow with
- * generate-embeddings.ts (new rows) and the normal Neon sync.
+ * Writes directly to local PostgreSQL by default — no dev server needed.
+ * --target=neon runs the same upsert against production (NEON_DIRECT_URL),
+ * the sync:safe pattern: needed after catalog updates because title-keyed
+ * db-to-db sync can't pair rows whose titles the catalog rewrote. Follow
+ * local runs with generate-embeddings.ts (new rows) and the normal sync.
  */
 
 import { writeFileSync, readFileSync, existsSync } from 'fs'
@@ -47,8 +50,13 @@ import {
 
 const dryRun = process.argv.includes('--dry-run')
 const force = process.argv.includes('--force')
+const target = process.argv.find((a) => a.startsWith('--target='))?.split('=')[1] ?? 'local'
+if (target !== 'local' && target !== 'neon') {
+  console.error(`Unknown --target=${target} (expected local or neon)`)
+  process.exit(1)
+}
 
-const STATE_FILE = `${OUTPUT_DIR}/sdp-stac-state.json`
+const STATE_FILE = `${OUTPUT_DIR}/sdp-stac-state${target === 'neon' ? '-neon' : ''}.json`
 const CACHE_FILE = `${OUTPUT_DIR}/sdp-stac-catalog.json`
 
 const SDP_CREATOR = 'Ian Breckheimer'
@@ -165,7 +173,12 @@ async function main() {
       `${records.length - active.length - skippedDeprecated} duplicate ids skipped)`,
   )
 
-  const db = new pg.Pool({ connectionString: process.env.DATABASE_URL })
+  const connectionString = target === 'neon' ? process.env.NEON_DIRECT_URL : process.env.DATABASE_URL
+  if (!connectionString) {
+    throw new Error(`${target === 'neon' ? 'NEON_DIRECT_URL' : 'DATABASE_URL'} is not set`)
+  }
+  console.log(`Target: ${target}`)
+  const db = new pg.Pool({ connectionString })
   try {
     const tombstones: TombstoneKeys[] = (
       await db.query(`SELECT keys FROM duplicate_tombstones WHERE collection = 'datasets'`)

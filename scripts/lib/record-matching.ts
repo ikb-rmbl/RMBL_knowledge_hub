@@ -93,6 +93,13 @@ export function matchPublication(record: any, _candidates: any[], index?: MatchI
 
 export function matchDataset(record: any, _candidates: any[], index?: MatchIndex): MatchResult {
   const idx = index!
+  // SDP products: sdp_catalog_id is the stable key — titles are rewritten
+  // when the STAC catalog is regenerated, so title similarity can't be
+  // trusted to pair the same product across databases.
+  if (record.sdp_catalog_id) {
+    const idMatch = idx.all.find((c) => c.sdp_catalog_id === record.sdp_catalog_id)
+    if (idMatch) return { match: idMatch, confidence: 'exact' }
+  }
   if (record.doi) {
     const doiMatch = idx.byDoi.get(record.doi.toLowerCase())
     if (doiMatch) return { match: doiMatch, confidence: 'exact' }
