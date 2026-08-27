@@ -212,6 +212,7 @@ scripts/
   # Topics, authors, projects
   manage-topics.ts            — 40-topic thematic taxonomy organize + assignment (pipeline phase 5)
   build-authors.ts            — Author registry build + dedup (pipeline phase 6)
+  tag-student-authors.ts      — Student-author auto-detection → publication_student_authors (custom SQL table keyed on author_name so it survives author rebuilds; student papers + theses structural seed; REU awaits cohort roster; --dry-run/--target=neon). Feeds /metrics dashboard.
   seed-projects.ts            — Seed projects from research plan data
   assign-projects.ts          — Auto-discover and assign items to projects (embeddings + author + text)
   seed-places-gnis.ts         — Seed places from GNIS authoritative data (668 locations)
