@@ -317,6 +317,7 @@ mcp/                         — MCP server for AI assistant access (10 tools, s
   src/client.ts              — HTTP client for REST API v1
 
 specification/               — Project specs (functionality + implementation variants)
+  roadmap.md                 — Living near-term roadmap (check before proposing new arcs)
 ```
 
 ## Shared Libraries (`scripts/lib/`)

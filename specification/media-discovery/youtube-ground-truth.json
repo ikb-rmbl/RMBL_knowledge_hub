@@ -1,0 +1,503 @@
+{
+ "source": "Volunteer-compiled, received 2026-08-27",
+ "purpose": "Ground truth for automated discovery of RMBL-scientist talks/media (roadmap item 7)",
+ "authors": [
+  {
+   "author": "Daniel T. Blumstein",
+   "videos": [
+    {
+     "title": "Animal behaviour and conservation",
+     "url": "https://www.youtube.com/watch?v=tM9Hdo6X4S0",
+     "video_id": "tM9Hdo6X4S0"
+    },
+    {
+     "title": "The Sound of Fear: Dan Blumstein at TEDxUCLA",
+     "url": "https://www.youtube.com/watch?v=HQQmFocLDng",
+     "video_id": "HQQmFocLDng"
+    },
+    {
+     "title": "Lab Chat with Dr. Dan Blumstein 6.24.20",
+     "url": "https://www.youtube.com/watch?v=O5z4QEZY8jQ",
+     "video_id": "O5z4QEZY8jQ"
+    },
+    {
+     "title": "Daniel Blumstein -- 10-30-19",
+     "url": "https://www.youtube.com/watch?v=h-l9NXh3E7k",
+     "video_id": "h-l9NXh3E7k"
+    },
+    {
+     "title": "The Sound of Fear",
+     "url": "https://www.youtube.com/watch?v=7nMSn4TrPk0",
+     "video_id": "7nMSn4TrPk0"
+    },
+    {
+     "title": "Antipredator behavior of Kangaroos and Wallabies:integrating behavior and conservation",
+     "url": "https://www.youtube.com/watch?v=3W-J6xaqx9U",
+     "video_id": "3W-J6xaqx9U"
+    },
+    {
+     "title": "289: Daniel T. Blumstein | Examining Animal Behavior To Understand More About \"The Nature Of Fear\"",
+     "url": "https://www.youtube.com/watch?v=s7zOESnwbHo",
+     "video_id": "s7zOESnwbHo"
+    },
+    {
+     "title": "funding crisis forces scientists to put marmots on onlyfans",
+     "url": "https://www.youtube.com/watch?v=WvRU4I9pbEE",
+     "video_id": "WvRU4I9pbEE"
+    },
+    {
+     "title": "#735 Daniel Blumstein: Predator-Prey Research, Antipredator Behavior, and Conservationism",
+     "url": "https://www.youtube.com/watch?v=lMWSrLH9hsI",
+     "video_id": "lMWSrLH9hsI"
+    },
+    {
+     "title": "Researcher Meet with Dan Blumstein",
+     "url": "https://www.youtube.com/watch?v=UMCNt-32BMk",
+     "video_id": "UMCNt-32BMk"
+    },
+    {
+     "title": "Researcher Meet with Dan Blumstein - part 2",
+     "url": "https://www.youtube.com/watch?v=o3B-6FG68U4",
+     "video_id": "o3B-6FG68U4"
+    },
+    {
+     "title": "Conservation Behavior: A Fearful Perspective",
+     "url": "https://www.youtube.com/watch?v=1KxAb-8YYJY",
+     "video_id": "1KxAb-8YYJY"
+    },
+    {
+     "title": "Club EvMed: The COVID-19 Pandemic and Human Nature: An Interdisciplinary Conversation",
+     "url": "https://www.youtube.com/watch?v=hdvx8DCLPhU",
+     "video_id": "hdvx8DCLPhU"
+    },
+    {
+     "title": "Club EvMed: Lessons from 3.5 billion years of life: evolution and countering catastrophic risks",
+     "url": "https://www.youtube.com/watch?v=jGChHk46OJU",
+     "video_id": "jGChHk46OJU"
+    },
+    {
+     "title": "Excerpts from the White House Summit on Environmental Education",
+     "url": "https://www.youtube.com/watch?v=t766Wg74Sk0",
+     "video_id": "t766Wg74Sk0"
+    },
+    {
+     "title": "Prof Daniel T. Blumstein - Conservation behaviour: in situ predator conditioning of na\u00efve prey",
+     "url": "https://www.youtube.com/watch?v=c8FLVQwxPUw",
+     "video_id": "c8FLVQwxPUw"
+    },
+    {
+     "title": "Dan Blumstein: Fear and listening to your inner marmot",
+     "url": "https://www.youtube.com/watch?v=c8cp-45g7kM",
+     "video_id": "c8cp-45g7kM"
+    },
+    {
+     "title": "The Sound of Fear: The Evolutionary Bases For Why We Respond to Music",
+     "url": "https://www.youtube.com/watch?v=GKs8FHqOqgQ",
+     "video_id": "GKs8FHqOqgQ"
+    },
+    {
+     "title": "The sound of fear: A journey from marmot meadows to Hollywood",
+     "url": "https://www.youtube.com/watch?v=YlmhZV1WhPA",
+     "video_id": "YlmhZV1WhPA"
+    },
+    {
+     "title": "The Sound of Fear",
+     "url": "https://www.youtube.com/watch?v=0MxlLf4FeXU",
+     "video_id": "0MxlLf4FeXU"
+    },
+    {
+     "title": "Daniel Blumstein. Translational behavioral ecology integrating behavior Parte 1 de 4 M2U00512",
+     "url": "https://www.youtube.com/watch?v=hegQ9lqGcLw",
+     "video_id": "hegQ9lqGcLw"
+    },
+    {
+     "title": "Daniel Blumstein. Translational behavioral ecology integrating behavior Parte 2 de 4 M2U00513",
+     "url": "https://www.youtube.com/watch?v=uvJKvrhAMXs",
+     "video_id": "uvJKvrhAMXs"
+    },
+    {
+     "title": "Daniel Blumstein. Translational behavioral ecology integrating behavior Parte 3 de 4 M2U00525",
+     "url": "https://www.youtube.com/watch?v=MhRR0hizcaQ",
+     "video_id": "MhRR0hizcaQ"
+    },
+    {
+     "title": "Daniel Blumstein. Translational behavioral ecology integrating behavior Parte 4 de 4 M2U00514",
+     "url": "https://www.youtube.com/watch?v=QAI40SsXLmY",
+     "video_id": "QAI40SsXLmY"
+    },
+    {
+     "title": "Studying migratory behavior in parading shrimps to inform...",
+     "url": "https://www.youtube.com/watch?v=3Ei7LfJG5oY",
+     "video_id": "3Ei7LfJG5oY"
+    },
+    {
+     "title": "Scientists working in Colorado say they are seeing the effects of climate change on the local plants",
+     "url": "https://www.youtube.com/watch?v=YQck6tnF5lE",
+     "video_id": "YQck6tnF5lE"
+    },
+    {
+     "title": "Ecological Integration Symposium 2022- Dr. Dan Blumstein",
+     "url": "https://www.youtube.com/watch?v=HNrmlcJWl7Y",
+     "video_id": "HNrmlcJWl7Y"
+    },
+    {
+     "title": "Dan Blumstein, author of The Nature of Fear",
+     "url": "https://www.youtube.com/watch?v=V-JK1D5x7VQ",
+     "video_id": "V-JK1D5x7VQ"
+    },
+    {
+     "title": "Club EvMed: The Nature of Fear",
+     "url": "https://www.youtube.com/watch?v=ZuuooEEykpE",
+     "video_id": "ZuuooEEykpE"
+    },
+    {
+     "title": "Marmotology (GROUNDHOGS) with Daniel Blumstein",
+     "url": "https://www.youtube.com/watch?v=k45ZtNbpLSg",
+     "video_id": "k45ZtNbpLSg"
+    },
+    {
+     "title": "Researchers create OnlyFans account to help raise money for marmots",
+     "url": "https://www.youtube.com/watch?v=-YUuqXjf3eI",
+     "video_id": "-YUuqXjf3eI"
+    },
+    {
+     "title": "EIS report Dr. Dan Blumstein",
+     "url": "https://www.youtube.com/watch?v=30YZ1SYZLig",
+     "video_id": "30YZ1SYZLig"
+    },
+    {
+     "title": "Dan Blumstein: Insights from an Emergent View of Sociality (10 Nov. 2020)",
+     "url": "https://www.youtube.com/watch?v=XWCPROlfjUs",
+     "video_id": "XWCPROlfjUs"
+    },
+    {
+     "title": "EE Bio Week 9- \"A test of the multipredator hypothesis...\" Blumstein, D.T., et al",
+     "url": "https://www.youtube.com/watch?v=gSjMFf_bLWY",
+     "video_id": "gSjMFf_bLWY"
+    },
+    {
+     "title": "Sem. INOMEP 2013 - Daniel Blumstein - Y.-bellied marmots: insights from an emerg. view of sociality",
+     "url": "https://www.youtube.com/watch?v=7gY67m8xU-c",
+     "video_id": "7gY67m8xU-c"
+    },
+    {
+     "title": "Consequences of social structure for mass gain in an alpine hibernator [Philson, Conner S.]",
+     "url": "https://www.youtube.com/watch?v=teJbGy9O6m0",
+     "video_id": "teJbGy9O6m0"
+    },
+    {
+     "title": "OnlyFans for marmots?? | ChicagoLIVE",
+     "url": "https://www.youtube.com/watch?v=_YsKXo27mfY",
+     "video_id": "_YsKXo27mfY"
+    },
+    {
+     "title": "Are bold or docile animals more socially valuable? [Williams, Dana M.]",
+     "url": "https://www.youtube.com/watch?v=-A94Xcj735s",
+     "video_id": "-A94Xcj735s"
+    },
+    {
+     "title": "FINE Panel: Animal Behavior and Conservation Panel (24 Oct. 2023)",
+     "url": "https://www.youtube.com/watch?v=hiMBmGq2wIQ",
+     "video_id": "hiMBmGq2wIQ"
+    },
+    {
+     "title": "Panel Discussion on Long-term Field Studies (2 Nov. 2021)",
+     "url": "https://www.youtube.com/watch?v=JJwRMFMxK6Q",
+     "video_id": "JJwRMFMxK6Q"
+    },
+    {
+     "title": "Of Food Choices and Eco-Eating",
+     "url": "https://www.youtube.com/watch?v=CJUcfbXNfyQ",
+     "video_id": "CJUcfbXNfyQ"
+    },
+    {
+     "title": "Marmots get frisky on OnlyFans to fund research | The Moment",
+     "url": "https://www.youtube.com/watch?v=-b_Ch_r4yj4",
+     "video_id": "-b_Ch_r4yj4"
+    },
+    {
+     "title": "\u2018OnlyMarms' is the G-Rated OnlyFans Page Marmot Researchers Use to Fundraise",
+     "url": "https://www.youtube.com/watch?v=PMqvjxlih7I",
+     "video_id": "PMqvjxlih7I"
+    },
+    {
+     "title": "Playing Mewgenics and tier-listing fear responses",
+     "url": "https://www.youtube.com/watch?v=FI4Ag4ykmZU",
+     "video_id": "FI4Ag4ykmZU"
+    }
+   ],
+   "author_id": 25585
+  },
+  {
+   "author": "Kenneth B. Armitage",
+   "videos": [
+    {
+     "title": "Audrey Nelson: Kenneth B. Armitage Award Seminar Talk",
+     "url": "https://www.youtube.com/watch?v=PYCDQ1h0X9o",
+     "video_id": "PYCDQ1h0X9o"
+    }
+   ],
+   "author_id": 25586
+  },
+  {
+   "author": "Ian Breckheimer",
+   "videos": [
+    {
+     "title": "Live Lab Chat with Dr. Ian Breckheimer",
+     "url": "https://www.youtube.com/watch?v=PSj1L3UBZPI",
+     "video_id": "PSj1L3UBZPI"
+    }
+   ],
+   "author_id": 25588
+  },
+  {
+   "author": "David W. Inouye",
+   "videos": [
+    {
+     "title": "2024 BSA Climate Change Symposium: Day 1, Session 2 - Featured Speaker: David W. Inouye",
+     "url": "https://www.youtube.com/watch?v=WyhZVALfSBw",
+     "video_id": "WyhZVALfSBw"
+    },
+    {
+     "title": "David Inouye \u2014 A passion for pollinators",
+     "url": "https://www.youtube.com/watch?v=cadv1rKPgWw",
+     "video_id": "cadv1rKPgWw"
+    },
+    {
+     "title": "Dr. David Inouye - The Rocky Mountain Biological Laboratory",
+     "url": "https://www.youtube.com/watch?v=OtOkHkogDHI",
+     "video_id": "OtOkHkogDHI"
+    },
+    {
+     "title": "Floral Resources for Migratory Hummingbirds in the Colorado Rocky Mountains with David Inouye",
+     "url": "https://www.youtube.com/watch?v=PJzxdit9xXU",
+     "video_id": "PJzxdit9xXU"
+    },
+    {
+     "title": "Tyson Seminar Series-Dr. David Inouye",
+     "url": "https://www.youtube.com/watch?v=mrRXZrTzhm8",
+     "video_id": "mrRXZrTzhm8"
+    },
+    {
+     "title": "RMBL - David Inouye",
+     "url": "https://www.youtube.com/watch?v=e2axk18SnvQ",
+     "video_id": "e2axk18SnvQ"
+    },
+    {
+     "title": "Naturalist Nights - \"How the Changing Climate is Affecting Wildflowers and Pollinators\"",
+     "url": "https://www.youtube.com/watch?v=S-0l0M-pz-A",
+     "video_id": "S-0l0M-pz-A"
+    },
+    {
+     "title": "Dr. David Inouye - \"Are Alpine Plants and Animals on the Same Page?\"",
+     "url": "https://www.youtube.com/watch?v=yRsmIiV5jfM",
+     "video_id": "yRsmIiV5jfM"
+    },
+    {
+     "title": "5 year long study tracks effects of climate change",
+     "url": "https://www.youtube.com/watch?v=sauKGnKPzWA",
+     "video_id": "sauKGnKPzWA"
+    },
+    {
+     "title": "2023 Pollinator Power Party Day One: Status of Pollinators",
+     "url": "https://www.youtube.com/watch?v=9cOHizU97EE",
+     "video_id": "9cOHizU97EE"
+    },
+    {
+     "title": "David Inouye--Local Impact of Climate Change",
+     "url": "https://www.youtube.com/watch?v=WnwWgLxqXew",
+     "video_id": "WnwWgLxqXew"
+    },
+    {
+     "title": "A family of scientists puts down roots in Gothic, Colorado",
+     "url": "https://www.youtube.com/watch?v=wK21oCF0Hd0",
+     "video_id": "wK21oCF0Hd0"
+    },
+    {
+     "title": "Collaborating to Solve a Crisis: The Story of the North American Pollinator Protection Campaign",
+     "url": "https://www.youtube.com/watch?v=iOd5i8iI7Go",
+     "video_id": "iOd5i8iI7Go"
+    },
+    {
+     "title": "45 year long study tracks effects of climate change",
+     "url": "https://www.youtube.com/watch?v=Lhy6i9GKZzI",
+     "video_id": "Lhy6i9GKZzI"
+    },
+    {
+     "title": "Scientist Stories: Michael Inouye, Polygenic risk scores and their use in the clinic",
+     "url": "https://www.youtube.com/watch?v=qPSWIrWFjZ0",
+     "video_id": "qPSWIrWFjZ0"
+    }
+   ],
+   "author_id": 25589
+  },
+  {
+   "author": "Diane R. Campbell",
+   "videos": [
+    {
+     "title": "R2R Campbell Research talk",
+     "url": "https://www.youtube.com/watch?v=Vdw4iiK7KO4",
+     "video_id": "Vdw4iiK7KO4"
+    }
+   ],
+   "author_id": 25592
+  },
+  {
+   "author": "John Harte",
+   "videos": [
+    {
+     "title": "ERG Annual Lecture 2018 - John Harte",
+     "url": "https://www.youtube.com/watch?v=VMwWSUYEnGo",
+     "video_id": "VMwWSUYEnGo"
+    },
+    {
+     "title": "Conversations with History - John Harte",
+     "url": "https://www.youtube.com/watch?v=3_l7mPYv9F0",
+     "video_id": "3_l7mPYv9F0"
+    },
+    {
+     "title": "Climate Round Table: John Harte PhD",
+     "url": "https://www.youtube.com/watch?v=Bam1SRPADuo",
+     "video_id": "Bam1SRPADuo"
+    },
+    {
+     "title": "John Harte, \"Maximum Entropy is a Foundation for Complexity Science\" ~ Stanford Complexity",
+     "url": "https://www.youtube.com/watch?v=XElfPKCG69o",
+     "video_id": "XElfPKCG69o"
+    },
+    {
+     "title": "John Harte on climate change",
+     "url": "https://www.youtube.com/watch?v=iVJTdD2T434",
+     "video_id": "iVJTdD2T434"
+    },
+    {
+     "title": "292: John Harte | Ecology, Climate Change, Biodiversity, And Complex Systems At The Harte Lab",
+     "url": "https://www.youtube.com/watch?v=bhE7HexRd5Y",
+     "video_id": "bhE7HexRd5Y"
+    },
+    {
+     "title": "Making the Planet a Cooler Place to Live - John Harte, Ph.D. \u2013 Harte Lab, University of Californi...",
+     "url": "https://www.youtube.com/watch?v=-P9lBPiIaTo",
+     "video_id": "-P9lBPiIaTo"
+    },
+    {
+     "title": "*Complex Time Working Group: \"A Stab at Time\" with Karole Armitage & John Harte",
+     "url": "https://www.youtube.com/watch?v=6I0g41R_gOw",
+     "video_id": "6I0g41R_gOw"
+    },
+    {
+     "title": "Lara Kueppers and John Harte \u2014 The Little Event 2021",
+     "url": "https://www.youtube.com/watch?v=MzP2Hvob7bg",
+     "video_id": "MzP2Hvob7bg"
+    },
+    {
+     "title": "Session 1: An Overview of the Scientific Uncertainties and Ambiguities",
+     "url": "https://www.youtube.com/watch?v=m5zyyowiBcc",
+     "video_id": "m5zyyowiBcc"
+    },
+    {
+     "title": "Afternoon Plenary discussion moderated by: John Harte, UC Berkeley",
+     "url": "https://www.youtube.com/watch?v=iNjymBWAwOE",
+     "video_id": "iNjymBWAwOE"
+    },
+    {
+     "title": "John Harte (scientist) | Wikipedia audio article",
+     "url": "https://www.youtube.com/watch?v=xVUMLG70ImI",
+     "video_id": "xVUMLG70ImI"
+    },
+    {
+     "title": "Info-Metrics 2014 Fall Conference: Recent Innovations in Info-Metrics, Day 2 - John Harte",
+     "url": "https://www.youtube.com/watch?v=dgGd141ZTMQ",
+     "video_id": "dgGd141ZTMQ"
+    },
+    {
+     "title": "Denial is Not Just a River in Egypt, It\u2019s an Increasingly Warm River in Egypt: The Truth About H...",
+     "url": "https://www.youtube.com/watch?v=cpaPE1QK5d4",
+     "video_id": "cpaPE1QK5d4"
+    },
+    {
+     "title": "Hybridizing Mechanism and MaxEnt: Ecological Theory for the Anthropocene",
+     "url": "https://www.youtube.com/watch?v=OawIolJSoTY",
+     "video_id": "OawIolJSoTY"
+    },
+    {
+     "title": "Scientists use outdoor heaters to mimic possible effects of global warming",
+     "url": "https://www.youtube.com/watch?v=BVOoySTZ5bM",
+     "video_id": "BVOoySTZ5bM"
+    },
+    {
+     "title": "Science at the Theater: Secrets of the Soil",
+     "url": "https://www.youtube.com/watch?v=DApOtvk0sfc",
+     "video_id": "DApOtvk0sfc"
+    },
+    {
+     "title": "Modeling the Micro-Macro Dialogue: Cross-Scale Dynamics Far from Steady State",
+     "url": "https://www.youtube.com/watch?v=rFzBbDqtdkw",
+     "video_id": "rFzBbDqtdkw"
+    },
+    {
+     "title": "The statistical mechanics of big data",
+     "url": "https://www.youtube.com/watch?v=v3z_dC6tW0M",
+     "video_id": "v3z_dC6tW0M"
+    },
+    {
+     "title": "China-U.S. Climate Change Forum: What's at Risk? Climate...",
+     "url": "https://www.youtube.com/watch?v=BW5PM1tMLRg",
+     "video_id": "BW5PM1tMLRg"
+    },
+    {
+     "title": "ESS212 Lecture 3 Part 1",
+     "url": "https://www.youtube.com/watch?v=NCd0yjwebLg",
+     "video_id": "NCd0yjwebLg"
+    },
+    {
+     "title": "Fungi, Forests, Group Selection (and Us?)",
+     "url": "https://www.youtube.com/watch?v=Qc8lvEKWxfc",
+     "video_id": "Qc8lvEKWxfc"
+    },
+    {
+     "title": "Secrets of the Soil",
+     "url": "https://www.youtube.com/watch?v=pwmqr3oo0Ms",
+     "video_id": "pwmqr3oo0Ms"
+    },
+    {
+     "title": "Disturbance and Recovery Dynamics in Complex Systems",
+     "url": "https://www.youtube.com/watch?v=nxM5Mx0-UrE",
+     "video_id": "nxM5Mx0-UrE"
+    }
+   ],
+   "author_id": 25593
+  },
+  {
+   "author": "Rebecca E. Irwin",
+   "videos": [
+    {
+     "title": "Invasive species: Causes, consequences, and solutions",
+     "url": "https://www.youtube.com/watch?v=9h5dpkANC1s",
+     "video_id": "9h5dpkANC1s"
+    },
+    {
+     "title": "Climate change puts bumblebees in peril",
+     "url": "https://www.youtube.com/watch?v=E8VmZy-2PNU",
+     "video_id": "E8VmZy-2PNU"
+    },
+    {
+     "title": "2025 New Project Lightning Talks",
+     "url": "https://www.youtube.com/watch?v=sCCZMQgkBAU",
+     "video_id": "sCCZMQgkBAU"
+    },
+    {
+     "title": "New Projects Lightning Talks",
+     "url": "https://www.youtube.com/watch?v=AHdSWdh_nFc",
+     "video_id": "AHdSWdh_nFc"
+    },
+    {
+     "title": "Bumblebee Superfood - The unexpected science behind it",
+     "url": "https://www.youtube.com/watch?v=ao3pnLVBOoA",
+     "video_id": "ao3pnLVBOoA"
+    }
+   ],
+   "author_id": 25594
+  }
+ ]
+}
