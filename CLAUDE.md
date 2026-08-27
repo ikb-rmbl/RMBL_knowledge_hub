@@ -276,6 +276,7 @@ scripts/
 
   # Story pipeline (scrape → load → dedup → extract → load extractions)
   dedup-stories.ts            — Story dedup (non-relevant filter, exact title, syndication similarity, RMBL relevance)
+  ingest-oral-histories.ts    — Oral-history transcripts → stories (story_type='oral_history'; direct SQL, --dry-run/--target=neon). Input: scripts/output/oral-histories/*.md (header block + "Speaker [t]:" turns — format documented in the script). Unlike news, transcripts ARE displayed (RMBL-owned); source gdoc URL is never exposed publicly.
 
   # Sync (local ↔ Neon)
   sync-to-neon.ts             — Production sync modes: full / safe / schema / verify
