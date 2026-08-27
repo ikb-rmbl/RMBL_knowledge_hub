@@ -13,7 +13,7 @@ export const CURATABLE_FIELDS: Record<string, string[]> = {
     'title', 'abstract', 'year', 'journal', 'volume', 'issue', 'pages',
     'doi', 'publisher', 'pdfLink', 'externalUrl', 'publicationType',
     'dataSource', 'discoveryMethod', 'pdfRestricted', 'pdfSourceDescription',
-    'pdfAcquiredAt',
+    'pdfAcquiredAt', 'rmblResearch',
   ],
   datasets: [
     'title', 'description', 'doi', 'publicationYear', 'downloadUrl',
@@ -30,6 +30,8 @@ export const CURATABLE_FIELDS: Record<string, string[]> = {
     'name', 'description', 'projectType', 'status', 'pi', 'piAuthorId',
     'fieldOfScience', 'researchAreas', 'startYear', 'endYear',
     'discoveryKeywords', 'autoDiscoveryEnabled', 'parentProject',
+    // item assignments: hand-edited lists survive assign-projects re-runs
+    'publications', 'datasets', 'documents',
   ],
   protocols: ['approved'],
   species: [],

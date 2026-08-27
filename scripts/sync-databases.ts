@@ -67,7 +67,7 @@ const COLLECTIONS: Record<string, CollectionConfig> = {
     table: 'publications',
     matchFields: matchPublication,
     pipelineFields: ['external_citation_count', 'citation_count_updated_at', 'embedding', 'search_vector', 'full_text'],
-    curatedFields: ['title', 'abstract', 'year', 'journal', 'volume', 'issue', 'pages', 'doi', 'publisher', 'pdf_link', 'external_url', 'publication_type', 'data_source', 'discovery_method', 'pdf_restricted', 'pdf_source_description', 'pdf_acquired_at'],
+    curatedFields: ['title', 'abstract', 'year', 'journal', 'volume', 'issue', 'pages', 'doi', 'publisher', 'pdf_link', 'external_url', 'publication_type', 'data_source', 'discovery_method', 'pdf_restricted', 'pdf_source_description', 'pdf_acquired_at', 'rmbl_research'],
     skipFields: ['id', 'created_at', 'updated_at', 'pdf_available'],
   },
   datasets: {

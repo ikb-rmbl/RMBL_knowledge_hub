@@ -3,7 +3,7 @@
 ## Project Overview
 
 Unified search platform for environmental knowledge from the Rocky Mountain Biological Laboratory (RMBL) and Gunnison Basin, Colorado:
-- **Publications** (4,852) — peer-reviewed articles, theses, student papers (3,988 RMBL + 864 discovered)
+- **Publications** (4,852) — peer-reviewed articles, theses, student papers (3,988 RMBL + 864 discovered). `rmbl_research` tri-state flag ('yes'/'no'/NULL=unreviewed; text not boolean so Payload checkbox saves can't drain the NULL triage queue) — seeded from provenance before the legacy Pubs DB shutdown; search facet + detail badge; curation-tracked. Publications↔Projects filtering via `projects_rels` (project facet in search; admin-curated project item lists survive assign-projects re-runs).
 - **Documents** (1,769) — community/policy documents from the Sustainable Living Library (1,381) plus **Federal Register notices** (388, 1995–2025) covering Interior/BLM, USFS, USFWS, EPA, NPS rulemaking. FR notices carry `document_type ∈ {federal_register_notice, federal_proposed_rule, federal_rule}`.
 - **Datasets** (1,473) — research datasets from 8 discovery sources; 173 SDP spatial products synced from the STAC catalog (`sdp_catalog_id`, "Explore in SDP Browser" deep links)
 - **Stories** (841) — news articles from CB News, Gunnison Times, LexisNexis (13 LLM-classified types; full text stored for search, not displayed for copyright)
@@ -212,6 +212,7 @@ scripts/
   # Topics, authors, projects
   manage-topics.ts            — 40-topic thematic taxonomy organize + assignment (pipeline phase 5)
   build-authors.ts            — Author registry build + dedup (pipeline phase 6)
+  tag-student-authors.ts      — Student-author auto-detection → publication_student_authors (custom SQL table keyed on author_name so it survives author rebuilds; student papers + theses structural seed; REU awaits cohort roster; --dry-run/--target=neon). Feeds /metrics dashboard.
   seed-projects.ts            — Seed projects from research plan data
   assign-projects.ts          — Auto-discover and assign items to projects (embeddings + author + text)
   seed-places-gnis.ts         — Seed places from GNIS authoritative data (668 locations)
