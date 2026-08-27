@@ -272,13 +272,23 @@ async function main() {
     totalDs += dsIds.length
     totalDocs += docIds.length
 
-    // Update project
+    // Update project — but never clobber item lists an admin hand-curated
+    // (curated_fields is set by the curation hook when a project's
+    // publications/datasets/documents are edited in the admin UI).
+    const curated = new Set<string>(Array.isArray(project.curatedFields) ? project.curatedFields : [])
     if (!dryRun && (pubIds.length > 0 || dsIds.length > 0 || docIds.length > 0)) {
-      await patchRecord('projects', String(project.id), {
-        publications: pubIds.length > 0 ? pubIds : undefined,
-        datasets: dsIds.length > 0 ? dsIds : undefined,
-        documents: docIds.length > 0 ? docIds : undefined,
-      }, { pipeline: true })
+      const patch: Record<string, number[] | undefined> = {
+        publications: !curated.has('publications') && pubIds.length > 0 ? pubIds : undefined,
+        datasets: !curated.has('datasets') && dsIds.length > 0 ? dsIds : undefined,
+        documents: !curated.has('documents') && docIds.length > 0 ? docIds : undefined,
+      }
+      if (Object.values(patch).some((v) => v !== undefined)) {
+        await patchRecord('projects', String(project.id), patch, { pipeline: true })
+      }
+      const skippedFields = ['publications', 'datasets', 'documents'].filter((f) => curated.has(f))
+      if (skippedFields.length > 0) {
+        console.log(`\n  ~ ${project.name}: admin-curated ${skippedFields.join('+')} left untouched`)
+      }
     }
 
     if ((i + 1) % 10 === 0 || i + 1 === projects.length) {

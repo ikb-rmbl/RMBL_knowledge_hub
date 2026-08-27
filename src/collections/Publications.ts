@@ -231,6 +231,21 @@ export const Publications: CollectionConfig = {
       options: GEOGRAPHIC_SCOPE_OPTIONS,
     },
     {
+      // Tri-state on purpose: NULL = not yet reviewed (the triage queue).
+      // A checkbox would collapse NULL to false on any admin save.
+      name: 'rmblResearch',
+      type: 'select',
+      options: [
+        { label: 'Yes — RMBL research', value: 'yes' },
+        { label: 'No — not RMBL research', value: 'no' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description:
+          'Was this research run through the lab? Pubs-Database-sourced papers are seeded "yes"; discovered papers start unset and need review.',
+      },
+    },
+    {
       name: 'dataSource',
       type: 'select',
       required: true,

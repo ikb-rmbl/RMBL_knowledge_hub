@@ -120,6 +120,15 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
       <span className="badge badge-publication">
         {typeLabels[pub.publicationType] || 'Publication'}
       </span>
+      {pub.rmblResearch === 'yes' && (
+        <span
+          className="badge"
+          title="Research run through the Rocky Mountain Biological Laboratory"
+          style={{ marginLeft: '6px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--fg-2)' }}
+        >
+          RMBL Research
+        </span>
+      )}
       <h1>{richTitle(pub.title)}</h1>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', margin: '4px 0 14px' }}>
         <FlagButton collection="publications" itemId={parseInt(id)} />
@@ -145,6 +154,28 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
           })}
         />
       </div>
+
+      {await (async () => {
+        const { rows: projects } = await getDb().query(
+          `SELECT p.id, p.name FROM projects p
+           JOIN projects_rels r ON r.parent_id = p.id AND r.path = 'publications'
+           WHERE r.publications_id = $1 ORDER BY p.name`,
+          [parseInt(id)],
+        )
+        if (projects.length === 0) return null
+        return (
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', margin: '0 0 14px' }}>
+            {projects.map((proj: any) => (
+              <Link key={proj.id} href={`/projects/${proj.id}`} style={{
+                padding: '4px 12px', borderRadius: '12px', fontSize: '12px', textDecoration: 'none',
+                background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--fg-2)',
+              }}>
+                {proj.name}
+              </Link>
+            ))}
+          </div>
+        )
+      })()}
 
       <div className="detail-meta">
         <div>

@@ -49,6 +49,8 @@ interface SearchParams {
   type?: string
   topic?: string
   pubType?: string
+  rmbl?: string
+  project?: string
   yearFrom?: string
   yearTo?: string
   sort?: string
@@ -77,6 +79,8 @@ function buildUrl(current: SearchParams, overrides: Record<string, string | unde
   if (merged.type) p.set('type', merged.type)
   if (merged.topic) p.set('topic', merged.topic)
   if (merged.pubType) p.set('pubType', merged.pubType)
+  if (merged.rmbl) p.set('rmbl', merged.rmbl)
+  if (merged.project) p.set('project', merged.project)
   if (merged.yearFrom) p.set('yearFrom', merged.yearFrom)
   if (merged.yearTo) p.set('yearTo', merged.yearTo)
   if (merged.sort) p.set('sort', merged.sort)
@@ -108,6 +112,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const typeFilter = params.type || ''
   const topicFilter = params.topic || ''
   const pubTypeFilter = params.pubType || ''
+  const rmblFilter = params.rmbl === 'yes'
+  const projectFilter = params.project && /^\d+$/.test(params.project) ? parseInt(params.project) : null
   const yearFrom = params.yearFrom ? parseInt(params.yearFrom) : null
   const yearTo = params.yearTo ? parseInt(params.yearTo) : null
   const defaultSort = query ? 'relevance' : (typeFilter === 'publications' ? 'most-cited' : 'newest')
@@ -119,7 +125,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   // Use tsvector full-text search when there's a query text
   // This provides ranked results with stemming and snippet highlighting
-  const useFts = Boolean(query) && !topicFilter && !pubTypeFilter && !yearFrom && !yearTo && !neighborhoodParam
+  const useFts = Boolean(query) && !topicFilter && !pubTypeFilter && !rmblFilter && !projectFilter && !yearFrom && !yearTo && !neighborhoodParam
   let results: ResultItem[] = []
   let totalResults = 0
 
@@ -238,6 +244,18 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   if (query) pubWhere.title = { contains: query }
   if (topicIds.length > 0) Object.assign(pubWhere, topicWhere('researchTopics'))
   if (pubTypeFilter) pubWhere.publicationType = { equals: pubTypeFilter }
+  if (rmblFilter) pubWhere.rmblResearch = { equals: 'yes' }
+  // Project filter: assignments live on the Projects side (projects_rels),
+  // so resolve the project's publication ids once and filter by id.
+  let projectPubIds: number[] | null = null
+  if (projectFilter) {
+    const { rows } = await getDb().query(
+      `SELECT publications_id FROM projects_rels WHERE parent_id = $1 AND path = 'publications' AND publications_id IS NOT NULL`,
+      [projectFilter],
+    )
+    projectPubIds = rows.map((r: any) => r.publications_id)
+    pubWhere.id = { in: projectPubIds.length > 0 ? projectPubIds : [-1] }
+  }
   if (yearFrom) pubWhere.year = { ...(pubWhere.year as any), greater_than_equal: yearFrom }
   if (yearTo) pubWhere.year = { ...(pubWhere.year as any), less_than_equal: yearTo }
 
@@ -279,6 +297,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         let paramIdx = 1
         if (query) { whereClauses.push(`title ILIKE $${paramIdx}`); params.push(`%${query}%`); paramIdx++ }
         if (pubTypeFilter) { whereClauses.push(`publication_type = $${paramIdx}`); params.push(pubTypeFilter); paramIdx++ }
+        if (rmblFilter) { whereClauses.push(`rmbl_research = 'yes'`) }
+        if (projectPubIds) { whereClauses.push(`p.id = ANY($${paramIdx})`); params.push(projectPubIds.length > 0 ? projectPubIds : [-1]); paramIdx++ }
         if (yearFrom) { whereClauses.push(`year >= $${paramIdx}`); params.push(yearFrom); paramIdx++ }
         if (yearTo) { whereClauses.push(`year <= $${paramIdx}`); params.push(yearTo); paramIdx++ }
         const whereStr = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : ''
@@ -527,6 +547,21 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   if (query) activeFilters.push(`"${query}"`)
   if (topicFilter) activeFilters.push(`topic: ${topicFilter}`)
   if (pubTypeFilter) activeFilters.push(`type: ${PUB_TYPE_OPTIONS.find((o) => o.value === pubTypeFilter)?.label}`)
+  if (rmblFilter) activeFilters.push('RMBL research only')
+  let projectName: string | null = null
+  if (projectFilter) {
+    const { rows: [proj] } = await getDb().query('SELECT name FROM projects WHERE id = $1', [projectFilter])
+    projectName = proj?.name ?? null
+    if (projectName) activeFilters.push(`project: ${projectName}`)
+  }
+  // Top projects by publication count for the sidebar facet
+  const { rows: projectFacet } = (!typeFilter || typeFilter === 'publications')
+    ? await getDb().query(
+        `SELECT p.id, p.name, count(r.publications_id)::int AS pubs
+         FROM projects p JOIN projects_rels r ON r.parent_id = p.id AND r.path = 'publications'
+         GROUP BY p.id, p.name ORDER BY pubs DESC, p.name LIMIT 12`,
+      )
+    : { rows: [] }
   if (yearFrom || yearTo) activeFilters.push(`years: ${yearFrom || '...'}-${yearTo || '...'}`)
 
   return (
@@ -614,6 +649,60 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               </label>
             ))}
           </div>
+
+          {/* RMBL research flag (only when viewing publications or all) */}
+          {(!typeFilter || typeFilter === 'publications') && (
+            <div className="filter-group">
+              <h2 className="filter-label">RMBL Research</h2>
+              <label>
+                <Link
+                  href={buildUrl(params, {
+                    rmbl: rmblFilter ? undefined : 'yes',
+                    type: typeFilter || 'publications',
+                    page: undefined,
+                  })}
+                  style={{
+                    fontWeight: rmblFilter ? 700 : 400,
+                    color: rmblFilter ? 'var(--color-accent)' : 'inherit',
+                  }}
+                >
+                  RMBL research only
+                </Link>
+              </label>
+            </div>
+          )}
+
+          {/* Project (only when viewing publications or all) */}
+          {(!typeFilter || typeFilter === 'publications') && projectFacet.length > 0 && (
+            <div className="filter-group">
+              <h2 className="filter-label">Project</h2>
+              {projectFacet.map((proj: any) => (
+                <label key={proj.id}>
+                  <Link
+                    href={buildUrl(params, {
+                      project: projectFilter === proj.id ? undefined : String(proj.id),
+                      type: typeFilter || 'publications',
+                      page: undefined,
+                    })}
+                    style={{
+                      fontWeight: projectFilter === proj.id ? 700 : 400,
+                      color: projectFilter === proj.id ? 'var(--color-accent)' : 'inherit',
+                    }}
+                  >
+                    {proj.name} ({proj.pubs})
+                  </Link>
+                </label>
+              ))}
+              {projectFilter && (
+                <Link href={buildUrl(params, { project: undefined, page: undefined })} style={{ fontSize: '13px', marginTop: '8px', display: 'block' }}>
+                  Clear project filter
+                </Link>
+              )}
+              <Link href="/projects" style={{ fontSize: '13px', marginTop: '8px', display: 'block', color: 'var(--color-text-muted)' }}>
+                All projects &rarr;
+              </Link>
+            </div>
+          )}
 
           {/* Publication type (only when viewing publications or all) */}
           {(!typeFilter || typeFilter === 'publications') && (
