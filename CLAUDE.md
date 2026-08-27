@@ -180,6 +180,7 @@ scripts/
   enrich-dataset-metadata.ts  — DataCite/EML/RMBL-SDP metadata enrichment for datasets
   enrich-document-summaries.ts — Build summaries from extracted document type + agencies + entities
   backfill-pdf-sizes.ts       — Backfill PDF file sizes via HEAD requests
+  audit-pdf-rights.ts         — Redistribution-rights audit for served PDFs (rmbl.org/S3-hosted only; external links out of scope). Classifies via publication type + Unpaywall license/OA status into pdf_rights_basis; writes scripts/output/pdf-rights-worklist.csv for review/unknown rows. --dry-run/--force/--limit/--target=neon.
   fetch-citation-counts.ts    — External citation counts from OpenAlex (publications) + DataCite (datasets)
 
   # PDF processing
