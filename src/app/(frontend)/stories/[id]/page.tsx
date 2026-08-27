@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import { isHttpUrl } from '../../lib/url-validation'
+import { parseTranscript } from '../../lib/transcript'
 import FlagButton from '../../components/FlagButton'
 
 export const dynamic = 'force-dynamic'
@@ -41,7 +42,11 @@ export default async function StoryDetail({ params }: { params: Promise<{ id: st
 
   const { rows: [story] } = await db.query(
     `SELECT id, title, story_type, author, date, summary, location, duration,
-            media_url, media_type, source_url
+            media_url, media_type,
+            -- oral histories: transcript is public, but source_url is an
+            -- internal working doc — expose one, never the other
+            CASE WHEN story_type = 'oral_history' THEN NULL ELSE source_url END AS source_url,
+            CASE WHEN story_type = 'oral_history' THEN full_text END AS full_text
      FROM stories WHERE id = $1`,
     [id],
   )
@@ -203,8 +208,32 @@ export default async function StoryDetail({ params }: { params: Promise<{ id: st
         </div>
       )}
 
-      {/* Link to original source */}
-      {isHttpUrl(story.source_url) && !story.source_url.includes('advance.lexis.com') && (
+      {/* Transcript — displayed only for RMBL-owned oral histories (news
+          full text stays index-only for copyright) */}
+      {story.story_type === 'oral_history' && story.full_text && (
+        <div className="detail-section">
+          <h2>Transcript</h2>
+          <div style={{ maxWidth: '68ch' }}>
+            {parseTranscript(story.full_text).map((turn, i) => (
+              <div key={i} style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--fg-2)', marginBottom: '4px' }}>
+                  {turn.speaker}
+                  {turn.timestamp && (
+                    <span style={{ fontWeight: 400, color: 'var(--muted)', marginLeft: '8px' }}>{turn.timestamp}</span>
+                  )}
+                </div>
+                {turn.paragraphs.map((p, j) => (
+                  <p key={j} style={{ fontSize: '15px', lineHeight: 1.7, margin: '0 0 8px' }}>{p}</p>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Link to original source (not for oral histories — their source is an
+          internal working doc, not a public page) */}
+      {story.story_type !== 'oral_history' && isHttpUrl(story.source_url) && !story.source_url.includes('advance.lexis.com') && (
         <div className="detail-section">
           <a href={story.source_url} target="_blank" rel="noopener noreferrer"
              style={{ fontSize: '14px', color: 'var(--accent)' }}>
