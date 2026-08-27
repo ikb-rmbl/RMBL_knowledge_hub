@@ -13,9 +13,14 @@ export const metadata: Metadata = {
 // RMBL was founded in 1928; earlier "years" in the data are entry errors.
 const YEAR_MIN = 1928
 
+// Peer-reviewed publication types — the primary metric. Theses and student
+// papers are reported separately (they inflate raw publication counts).
+const PEER_REVIEWED = `('article', 'chapter', 'book')`
+
 // Colors validated for both site surfaces (dataviz palette checks, light+dark).
 const SERIES_META = [
-  { key: 'rmbl', label: 'RMBL research', color: '#0f7d9e' },
+  { key: 'peer', label: 'Peer-reviewed (RMBL research)', color: '#0f7d9e' },
+  { key: 'students_theses', label: 'Student papers & theses', color: '#5e8b2f' },
   { key: 'student', label: 'With student authors', color: '#F05028' },
   { key: 'reu', label: 'REU students', color: '#9a4ec4' },
 ] as const
@@ -26,7 +31,8 @@ export default async function MetricsPage() {
   const [{ rows: perYear }, { rows: [totals] }] = await Promise.all([
     db.query(`
       SELECT p.year::int AS year,
-             count(*) FILTER (WHERE p.rmbl_research = 'yes')::int AS rmbl,
+             count(*) FILTER (WHERE p.rmbl_research = 'yes' AND p.publication_type IN ${PEER_REVIEWED})::int AS peer,
+             count(*) FILTER (WHERE p.publication_type IN ('student_paper', 'thesis'))::int AS students_theses,
              count(*) FILTER (WHERE sa.publication_id IS NOT NULL)::int AS student,
              count(*) FILTER (WHERE sa.has_reu)::int AS reu
       FROM publications p
@@ -40,7 +46,8 @@ export default async function MetricsPage() {
     db.query(`
       SELECT
         (SELECT count(*) FROM publications)::int AS total,
-        (SELECT count(*) FROM publications WHERE rmbl_research = 'yes')::int AS rmbl,
+        (SELECT count(*) FROM publications WHERE rmbl_research = 'yes' AND publication_type IN ${PEER_REVIEWED})::int AS peer,
+        (SELECT count(*) FROM publications WHERE publication_type IN ('student_paper', 'thesis'))::int AS students_theses,
         (SELECT count(*) FROM publications WHERE rmbl_research IS NULL)::int AS unreviewed,
         (SELECT count(DISTINCT publication_id) FROM publication_student_authors)::int AS student_pubs,
         (SELECT count(DISTINCT author_id) FROM publication_student_authors WHERE author_id IS NOT NULL)::int AS student_authors,
@@ -61,8 +68,8 @@ export default async function MetricsPage() {
     }))
 
   const tiles = [
-    { label: 'Publications', value: totals.total.toLocaleString(), note: 'all collections sources' },
-    { label: 'RMBL research', value: totals.rmbl.toLocaleString(), note: `${totals.unreviewed} awaiting review` },
+    { label: 'Peer-reviewed publications', value: totals.peer.toLocaleString(), note: `RMBL research · ${totals.unreviewed} awaiting review` },
+    { label: 'Student papers & theses', value: totals.students_theses.toLocaleString(), note: 'reported separately' },
     { label: 'With student authors', value: totals.student_pubs.toLocaleString(), note: `${totals.student_authors.toLocaleString()} student authors` },
     { label: 'REU publications', value: haveReuData ? totals.reu_pubs.toLocaleString() : '—', note: haveReuData ? undefined : 'awaiting REU cohort roster' },
   ]
@@ -71,8 +78,10 @@ export default async function MetricsPage() {
     <div className="detail" style={{ maxWidth: '960px' }}>
       <h1>Publication Metrics</h1>
       <p style={{ color: 'var(--fg-2)', maxWidth: '68ch' }}>
-        RMBL publication output over time. &ldquo;RMBL research&rdquo; marks work run through the
-        laboratory; student tags come from student papers, theses, and manual curation.
+        RMBL publication output over time ({totals.total.toLocaleString()} records in all).
+        <strong> Peer-reviewed publications from RMBL research are the primary metric</strong>;
+        student papers and theses are reported separately. Student tags come from
+        student papers, theses, and manual curation.
       </p>
 
       {/* KPI row */}
