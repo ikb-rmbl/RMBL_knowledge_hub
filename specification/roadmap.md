@@ -77,9 +77,24 @@ Living document. Near-term priorities first (added 2026-08-26, internal-metrics 
 
 **Effort:** 3–5 days for audio-first MVP (storage + player + transcript search); photos/video after.
 
+### 7. Automated discovery of RMBL-scientist media (YouTube pilot)
+
+**Why:** RMBL scientists' talks, seminars, and interviews are scattered across YouTube (TEDx, department seminars, podcasts, lab chats) with no collation. A volunteer hand-compiled links for 7 prominent RMBL scientists — that set is the training/eval ground truth for building automated search-and-collate.
+
+**Ground truth:** `specification/media-discovery/youtube-ground-truth.json` — 91 unique videos across Blumstein (44), Harte (24), Inouye (15), Irwin (5), Armitage / Breckheimer / Campbell (1 each), each mapped to their `authors` registry id (2026-08-27).
+
+**Approach (phased):**
+- **Pilot — evaluate discovery:** script queries the YouTube Data API per author (name + disambiguating terms: "RMBL", affiliation, topic keywords from their publication record), scores candidates (channel authority, title/description match against the author's known topics/embeddings), and measures precision/recall against the ground truth. The hard problem is disambiguation (common names, homonyms) — the per-author publication embeddings we already generate are the natural relevance signal.
+- **Tune** on the two deep sets (Blumstein 44, Harte 24); hold out Inouye/Irwin for testing.
+- **Productize:** a `discover-author-media.ts` pipeline script over the full 7,512-author registry (rate-limited, likely restricted to authors above a work-count threshold), landing candidates in a review queue rather than auto-publishing — same candidate → curation pattern as entity extraction.
+- **Surface:** media list on author detail pages; ties into item 6's Stories/multimedia schema (external embeds first — no storage/rights burden for YouTube-hosted content; only archival material we own gets ingested).
+- **Beyond YouTube** (later): same pattern over podcast indexes, institutional video platforms, Internet Archive.
+
+**Effort:** 2–3 days for the pilot evaluation; productizing depends on pilot precision. **Synergy:** shares schema with item 6; author-page surfacing is independent of it.
+
 ### Suggested sequencing
 
-1 → 3 → 4 (metrics arc, in dependency order), with 5 early and independent (do before Pubs DB shutdown). 2 is independent, any time. 6 is its own arc — start with an audio pilot when content is in hand.
+1 → 3 → 4 (metrics arc, in dependency order), with 5 early and independent (do before Pubs DB shutdown). 2 is independent, any time. 6 is its own arc — start with an audio pilot when content is in hand. 7's pilot is cheap and self-contained — good volunteer-momentum project; its productization should follow 6's schema decisions.
 
 ---
 
