@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getDb } from '../lib/db'
 import PublicationsMetricsChart, { type MetricsSeries } from '../components/PublicationsMetricsChart'
+import { SHOW_STUDENT_AUTHOR_SERIES } from '../lib/feature-flags'
 
 export const dynamic = 'force-dynamic'
 
@@ -64,6 +65,8 @@ export default async function MetricsPage() {
   const series: MetricsSeries[] = SERIES_META
     // hide the REU series until roster data exists — a flat zero line is noise
     .filter((m) => m.key !== 'reu' || haveReuData)
+    // student-author series hidden until tagging improves (see feature-flags.ts)
+    .filter((m) => m.key !== 'student' || SHOW_STUDENT_AUTHOR_SERIES)
     .map((m) => ({
       ...m,
       values: Object.fromEntries(perYear.map((r: any) => [r.year, r[m.key]])),
@@ -72,7 +75,7 @@ export default async function MetricsPage() {
   const tiles = [
     { label: 'Peer-reviewed publications', value: totals.peer.toLocaleString(), note: `RMBL research · ${totals.unreviewed} awaiting review` },
     { label: 'Student papers & theses', value: totals.students_theses.toLocaleString(), note: 'reported separately' },
-    { label: 'Peer-reviewed w/ student authors', value: totals.student_pubs.toLocaleString(), note: `${totals.student_authors.toLocaleString()} student authors tagged` },
+    { label: 'Peer-reviewed w/ student authors', value: totals.student_pubs.toLocaleString(), note: 'tagging incomplete — trend not yet chartable' },
     { label: 'REU publications', value: haveReuData ? totals.reu_pubs.toLocaleString() : '—', note: haveReuData ? undefined : 'awaiting REU cohort roster' },
   ]
 
