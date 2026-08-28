@@ -180,6 +180,9 @@ scripts/
   enrich-dataset-metadata.ts  — DataCite/EML/RMBL-SDP metadata enrichment for datasets
   enrich-document-summaries.ts — Build summaries from extracted document type + agencies + entities
   backfill-pdf-sizes.ts       — Backfill PDF file sizes via HEAD requests
+  audit-pdf-rights.ts         — Redistribution-rights audit for served PDFs (rmbl.org/S3-hosted only; external links out of scope). Classifies via publication type + Unpaywall license/OA status into pdf_rights_basis; writes scripts/output/pdf-rights-worklist.csv for review/unknown rows. --dry-run/--force/--limit/--target=neon.
+                              # NOTE: pdf-staging/publications/ files are named pub_<payload id>.pdf — NOT the pdf-manifest's pub:<source id> localPath scheme. Match staged files by publications.id. 1,683/1,693 rmbl.org-served PDFs archived there (2026-08-28); 10 unrecoverable (4 junk links, 6 already 404 on the legacy site).
+  migrate-pdf-links.ts        — Relink rights-cleared publications (rmbl_owned/oa_licensed/oa_published) from the retiring rmbl.org file store to the public S3 serving bucket. HEAD-verifies each file in the bucket first; curation-aware; --dry-run/--limit/--target=neon. Buckets: s3://rmbl-hub-pdfs/publications/ (public read on that prefix only) serves; s3://rmbl-hub-pdfs-private/pdf-staging/ archives everything incl. review/unknown. Re-run after triage clears more papers (upload to the public bucket first).
   fetch-citation-counts.ts    — External citation counts from OpenAlex (publications) + DataCite (datasets)
 
   # PDF processing
