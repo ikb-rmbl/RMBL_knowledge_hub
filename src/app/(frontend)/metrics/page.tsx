@@ -21,7 +21,7 @@ const PEER_REVIEWED = `('article', 'chapter', 'book')`
 const SERIES_META = [
   { key: 'peer', label: 'Peer-reviewed (RMBL research)', color: '#0f7d9e' },
   { key: 'students_theses', label: 'Student papers & theses', color: '#5e8b2f' },
-  { key: 'student', label: 'With student authors', color: '#F05028' },
+  { key: 'student', label: 'Peer-reviewed w/ student authors', color: '#F05028' },
   { key: 'reu', label: 'REU students', color: '#9a4ec4' },
 ] as const
 
@@ -33,7 +33,7 @@ export default async function MetricsPage() {
       SELECT p.year::int AS year,
              count(*) FILTER (WHERE p.rmbl_research = 'yes' AND p.publication_type IN ${PEER_REVIEWED})::int AS peer,
              count(*) FILTER (WHERE p.publication_type IN ('student_paper', 'thesis'))::int AS students_theses,
-             count(*) FILTER (WHERE sa.publication_id IS NOT NULL)::int AS student,
+             count(*) FILTER (WHERE sa.publication_id IS NOT NULL AND p.publication_type IN ${PEER_REVIEWED})::int AS student,
              count(*) FILTER (WHERE sa.has_reu)::int AS reu
       FROM publications p
       LEFT JOIN (
@@ -49,7 +49,9 @@ export default async function MetricsPage() {
         (SELECT count(*) FROM publications WHERE rmbl_research = 'yes' AND publication_type IN ${PEER_REVIEWED})::int AS peer,
         (SELECT count(*) FROM publications WHERE publication_type IN ('student_paper', 'thesis'))::int AS students_theses,
         (SELECT count(*) FROM publications WHERE rmbl_research IS NULL)::int AS unreviewed,
-        (SELECT count(DISTINCT publication_id) FROM publication_student_authors)::int AS student_pubs,
+        (SELECT count(DISTINCT sa.publication_id) FROM publication_student_authors sa
+           JOIN publications pp ON pp.id = sa.publication_id
+           WHERE pp.publication_type IN ${PEER_REVIEWED})::int AS student_pubs,
         (SELECT count(DISTINCT author_id) FROM publication_student_authors WHERE author_id IS NOT NULL)::int AS student_authors,
         (SELECT count(DISTINCT publication_id) FROM publication_student_authors WHERE student_program = 'reu')::int AS reu_pubs
     `),
@@ -70,7 +72,7 @@ export default async function MetricsPage() {
   const tiles = [
     { label: 'Peer-reviewed publications', value: totals.peer.toLocaleString(), note: `RMBL research · ${totals.unreviewed} awaiting review` },
     { label: 'Student papers & theses', value: totals.students_theses.toLocaleString(), note: 'reported separately' },
-    { label: 'With student authors', value: totals.student_pubs.toLocaleString(), note: `${totals.student_authors.toLocaleString()} student authors` },
+    { label: 'Peer-reviewed w/ student authors', value: totals.student_pubs.toLocaleString(), note: `${totals.student_authors.toLocaleString()} student authors tagged` },
     { label: 'REU publications', value: haveReuData ? totals.reu_pubs.toLocaleString() : '—', note: haveReuData ? undefined : 'awaiting REU cohort roster' },
   ]
 
@@ -80,8 +82,9 @@ export default async function MetricsPage() {
       <p style={{ color: 'var(--fg-2)', maxWidth: '68ch' }}>
         RMBL publication output over time ({totals.total.toLocaleString()} records in all).
         <strong> Peer-reviewed publications from RMBL research are the primary metric</strong>;
-        student papers and theses are reported separately. Student tags come from
-        student papers, theses, and manual curation.
+        student papers and theses are reported separately. Student authorship on
+        peer-reviewed papers is inferred from student papers and theses (an author is
+        counted as a student in a window around their student work) plus manual curation.
       </p>
 
       {/* KPI row */}

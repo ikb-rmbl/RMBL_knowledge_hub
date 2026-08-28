@@ -5,17 +5,25 @@
  * detection_method != 'publication_type') are never touched, so re-runs are
  * safe after any pipeline change.
  *
- * Signals (v1):
+ * Signals:
  *   - publication_type = 'student_paper' → every author is a student
  *     (program 'student_paper'; RMBL student papers are course/summer work)
  *   - publication_type = 'thesis'        → every author is a student
  *     (program 'thesis')
+ *   - windowed co-author inference (detection_method='inferred_window'):
+ *     an author with a structural/roster/manual student tag in year Y is
+ *     tagged on PEER-REVIEWED pubs (article/chapter/book) they authored
+ *     within a window — student papers & REU: [Y-1, Y+1] (summer/course
+ *     work); theses: [Y-5, Y] (grad-school years leading to the thesis).
+ *     Inference rows are re-derivable: delete WHERE detection_method =
+ *     'inferred_window' and re-run.
  *
  * REU tagging needs an external cohort roster (no signal exists in the DB) —
- * load it later with detection_method='roster', student_program='reu'.
+ *  load it later with detection_method='roster', student_program='reu';
+ *  inference then propagates roster students onto their peer-reviewed papers.
  *
  * Usage:
- *   npx tsx scripts/tag-student-authors.ts [--dry-run] [--target=neon]
+ *   npx tsx scripts/tag-student-authors.ts [--dry-run] [--no-inference] [--target=neon]
  *
  * Writes directly to PostgreSQL — no dev server needed.
  */
@@ -24,6 +32,7 @@ import pg from 'pg'
 import './lib/config.js' // .env auto-load
 
 const dryRun = process.argv.includes('--dry-run')
+const noInference = process.argv.includes('--no-inference')
 const target = process.argv.find((a) => a.startsWith('--target='))?.split('=')[1] ?? 'local'
 if (target !== 'local' && target !== 'neon') {
   console.error(`Unknown --target=${target} (expected local or neon)`)
@@ -72,6 +81,31 @@ async function main() {
         [c.publication_id, c.author_id, c.author_name, c.publication_type],
       )
       inserted += res.rowCount ?? 0
+    }
+
+    // Windowed co-author inference: propagate student status onto
+    // peer-reviewed pubs the student authored during their student years.
+    if (!noInference && !dryRun) {
+      const inf = await db.query(`
+        INSERT INTO publication_student_authors
+          (publication_id, author_id, author_name, student_program, detection_method)
+        SELECT DISTINCT p.id, a.id, a.display_name, src.student_program, 'inferred_window'
+        FROM publication_student_authors src
+        JOIN publications sp ON sp.id = src.publication_id AND sp.year IS NOT NULL
+        JOIN authors a ON a.id = src.author_id
+        JOIN authors_rels ar ON ar.parent_id = a.id AND ar.publications_id IS NOT NULL
+        JOIN publications p ON p.id = ar.publications_id
+        WHERE src.detection_method <> 'inferred_window'
+          AND src.author_id IS NOT NULL
+          AND p.publication_type IN ('article', 'chapter', 'book')
+          AND p.year IS NOT NULL
+          AND (
+            (src.student_program IN ('student_paper', 'reu') AND p.year BETWEEN sp.year - 1 AND sp.year + 1)
+            OR (src.student_program = 'thesis' AND p.year BETWEEN sp.year - 5 AND sp.year)
+          )
+        ON CONFLICT (publication_id, author_name) DO NOTHING
+      `)
+      console.log(`  ${inf.rowCount} peer-reviewed tags from windowed co-author inference`)
     }
 
     const { rows: [stats] } = await db.query(`
