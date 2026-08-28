@@ -48,7 +48,11 @@ export function curatedSafe(column: string, valueExpr: string): string {
  */
 export function curatedSkipClause(columns: string[]): string {
   if (columns.length === 0) return 'TRUE'
-  const camelNames = columns.map((c) => `"${snakeToCamel(c)}"`).join(', ')
+  // Single quotes: these are string literals. Double quotes would make
+  // Postgres read them as column identifiers — with 'abstract' that silently
+  // compared curated_fields against the abstract column's VALUE (guard was a
+  // no-op, and NULL columns nulled the whole clause, skipping the row).
+  const camelNames = columns.map((c) => `'${snakeToCamel(c)}'`).join(', ')
   // jsonb ?| array['k'] tests whether any of the array elements equals a
   // top-level string element in the jsonb array.
   return `NOT (curated_fields ?| array[${camelNames}])`
