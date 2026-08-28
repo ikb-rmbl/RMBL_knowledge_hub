@@ -181,6 +181,7 @@ scripts/
   enrich-document-summaries.ts — Build summaries from extracted document type + agencies + entities
   backfill-pdf-sizes.ts       — Backfill PDF file sizes via HEAD requests
   audit-pdf-rights.ts         — Redistribution-rights audit for served PDFs (rmbl.org/S3-hosted only; external links out of scope). Classifies via publication type + Unpaywall license/OA status into pdf_rights_basis; writes scripts/output/pdf-rights-worklist.csv for review/unknown rows. --dry-run/--force/--limit/--target=neon.
+                              # NOTE: pdf-staging/publications/ files are named pub_<payload id>.pdf — NOT the pdf-manifest's pub:<source id> localPath scheme. Match staged files by publications.id. 1,683/1,693 rmbl.org-served PDFs archived there (2026-08-28); 10 unrecoverable (4 junk links, 6 already 404 on the legacy site).
   fetch-citation-counts.ts    — External citation counts from OpenAlex (publications) + DataCite (datasets)
 
   # PDF processing
