@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { SHOW_PROJECT_LINKS } from '../../lib/feature-flags'
 import { getPayload } from 'payload'
 import { notFound } from 'next/navigation'
 import config from '@/payload.config'
@@ -155,7 +156,7 @@ export default async function PublicationDetail({ params }: { params: Promise<{ 
         />
       </div>
 
-      {await (async () => {
+      {SHOW_PROJECT_LINKS && await (async () => {
         const { rows: projects } = await getDb().query(
           `SELECT p.id, p.name FROM projects p
            JOIN projects_rels r ON r.parent_id = p.id AND r.path = 'publications'

@@ -6,6 +6,7 @@ import { getBadgeLabel, getBadgeClass } from '../lib/badges'
 import { getDb } from '../lib/db'
 import { search as ftsSearch, type SearchSort } from '@/services/search'
 import { richTitle } from '../lib/rich-title'
+import { SHOW_PROJECT_LINKS } from '../lib/feature-flags'
 
 export const dynamic = 'force-dynamic'
 
@@ -555,7 +556,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     if (projectName) activeFilters.push(`project: ${projectName}`)
   }
   // Top projects by publication count for the sidebar facet
-  const { rows: projectFacet } = (!typeFilter || typeFilter === 'publications')
+  const { rows: projectFacet } = (SHOW_PROJECT_LINKS && (!typeFilter || typeFilter === 'publications'))
     ? await getDb().query(
         `SELECT p.id, p.name, count(r.publications_id)::int AS pubs
          FROM projects p JOIN projects_rels r ON r.parent_id = p.id AND r.path = 'publications'
@@ -673,7 +674,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           )}
 
           {/* Project (only when viewing publications or all) */}
-          {(!typeFilter || typeFilter === 'publications') && projectFacet.length > 0 && (
+          {SHOW_PROJECT_LINKS && (!typeFilter || typeFilter === 'publications') && projectFacet.length > 0 && (
             <div className="filter-group">
               <h2 className="filter-label">Project</h2>
               {projectFacet.map((proj: any) => (
