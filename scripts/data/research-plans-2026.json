@@ -1,0 +1,983 @@
+[
+ {
+  "pi": "Katie Adler",
+  "institution": "University of California, Los Angeles",
+  "position": "Graduate Student",
+  "name": "Evaluating mechanisms underlying disturbance-related demographic change",
+  "description": "Human development is expanding rapidly into wildlands to keep up with exponential population growth, forcing wildlife to either emigrate or adapt to increased disturbance. Species that adapt often exhibit behavioral changes that can have subsequent survival consequences. Despite a strong focus on urbanization?s impact on species behavior, there is increasing evidence of behavioral shifts occurring at a low-density, rural scale. In particular, changes in antipredator behavior and sociality may be altered by small-scale anthropogenic development. Antipredator vigilance and flight initiation distance can directly affect survival-related behaviors such as foraging or reproduction. Social structure and individual social relationships have been found to have complex impacts on species survival. While both vigilance and sociality have been studied extensively, little is known about how built structures may alter these behaviors by impeding an animal?s visibility of a landscape. The yellow-bellied marmot (Marmota flaviventer), a social, behaviorally adaptable rodent, is an ideal model species to analyze the relationship between rural human disturbance and behavior. Previous studies have determined that marmot behaviors, such as vigilance and mating, influence their survival, which may impact their demography. Marmots can acclimate to humans, which may also have long-term survival consequences. My study goals are to: 1) determine whether there are significant differences in antipredator behaviors in disturbed versus undisturbed areas; 2) determine whether there are significant differences in social behaviors in disturbed versus undisturbed areas; and 3) use statistical models to pinpoint any underlying mechanisms that may influence species demography in response to human disturbance. I aim to fill a crucial knowledge gap in how wildlife are influenced by rural anthropogenic development through changes in landscape visibility. My results can be useful for future studies on how disturbance influences wildlife behavior and may create novel insights for the conservation management of social species in human-modified environments.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Long-term research"
+ },
+ {
+  "pi": "Jill Anderson",
+  "institution": "University of Georgia",
+  "position": "Associate Professor",
+  "name": "Interactive effects of biotic and abiotic conditions on local adaptation",
+  "description": "Climate change is imposing novel selection, disrupting local adaptation, shifting geographic distributions, and altering species composition and diversity of ecological communities. Accordingly, climate change acts directly on species through new abiotic conditions, as well as indirectly through altered biotic interactions. Here, we seek to test mechanistic hypotheses about evolution in complex environments where correlated suites of traits evolve in response to abiotic and biotic agents of selection. Specifically, we propose to examine the mechanistic basis of local adaptation to current abiotic and biotic conditions in the emerging ecological model plant, Boechera stricta (Brassicaceae), in the Colorado Rocky Mountains. We focus on plant-herbivore interactions, as they provide exceptional opportunities for dissecting the direct and indirect effects of climate change. We will then predict plant evolutionary responses to projected future abiotic and biotic environments. _x000D_\nTo evaluate how abiotic conditions and the biotic community have interacted to shape local adaptation and exert selection on functional traits (Aim 1), we will first conduct a multifactorial manipulation of herbivory, snow dynamics, and water availability in three field gardens at different elevations. We will then characterize herbivore communities across elevational gradients to project future distributions and abundances (Aim 2). Finally, based on these projections, we will investigate how adaptive landscapes will shift under climate change by exposing B. stricta transplants to current and future abiotic conditions and herbivore levels in high and low elevation gardens (Aim 3 and 4). We hypothesize that climate change favors novel suites of traits, such as the rapid development of high elevation families combined with the drought tolerance and herbivore resistance of low elevation families. Further, to test the hypothesis that genetic trade-offs restrict adaptation, we will contrast natural accessions with existing genetic constraints vs. recombinant inbred lines that allow an unconstrained response to selection. Finally, we will examine the genetic basis of local adaptation by mapping quantitative trait loci and test whether the fitness of local alleles declines under climate change. _x000D_\n\t _x000D_\nDespite extensive work characterizing local adaptation, we still know little about the processes through which species adapt to the simultaneous, likely interactive, effects of multiple abiotic and biotic agents of selection. Dissecting the contributions of climatic and biotic factors to local adaptation and selection will enable us to forecast how climate change could alter adaptive evolution and influence the risk of extinction. The proposed studies will reveal the extent to which climate change could favor novel suites of traits, whether genetic constraints could restrict adaptation, and whether climate change could increase the vulnerability of local populations to decline. Collectively, our field experiments will identify the functional traits and genetic basis of local adaptation to complex environments and evaluate the evolutionary and ecological consequences of projected future, novel environments.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Genetics; Phenology; Plant biology; Species Interactions"
+ },
+ {
+  "pi": "Kaysee Arrowsmith",
+  "institution": "University of Texas",
+  "position": "Post Doc",
+  "name": "Intra-annual variation in pollen and nectar nutrition",
+  "description": "I present a project to (1) assess intra-seasonal variation in the quantity and nutritional content of pollen and nectar and (2) link nutritional variation to foraging patterns in a community of wild insect pollinators. It is reasonable to expect that nutritional traits may exhibit substantive intra-seasonal variation, likely in response to phenological and environmental drivers, but we currently lack any framework for assessing the extent of such variation and how it could impact survival, foraging, and pollen transfer by insect pollinators. My goal with this project is to characterize weekly variation in nectar and pollen nutrients and assess how that variation impacts pollinator foraging and pollen collection. I hypothesize that the nutritional traits of pollen and nectar will vary in response to phenological and environmental drivers and that this intra-seasonal nutritional variation has a substantive impact on pollinator foraging.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Community ecology; Food web biology; Insect biology; Plant biology; Pollination; Species Interactions"
+ },
+ {
+  "pi": "Christie Bahlai",
+  "institution": "Kent State University",
+  "position": "Associate Professor",
+  "name": "Forecasting integrated plant-aphid dynamics in a rapidly warming community",
+  "description": "Changing weather patterns are expected to disrupt the lifecycles and population growth of many organisms, especially ones that are sensitive to changes in temperature like insects. But when insects rely on other organisms like plants, microbes or other insects for food, protection or habitat, it becomes harder to predict how they will respond, because these organisms may also be affected by these changes. Because mountain ecosystems are harsher environments, not as many different species live there, making it easier to observe these interactions. This project will use many years of observations of aphids, ants, plants and microbes to build a computer model that will integrate these interactions and make predictions about how different patterns of environmental change will affect the abundance and long-term survival of these species.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Climate science; Community ecology; Insect biology; Long-term research; Modeling; Phenology; Plant biology; Soil/microbial ecology; Species Interactions"
+ },
+ {
+  "pi": "Katie Becklin",
+  "institution": "SUNY College of Environmental Science and Forestry",
+  "position": "Other - if your profession or educational stage is not listed, please select this option",
+  "name": "Local adaptation in plant-aphid dynamics across a temperature gradient",
+  "description": "Insect herbivores such as aphids play an outsized role in both natural and agricultural ecosystems. Consequently, understanding factors that control aphid abundance is critical for ecosystem management. Temperature can directly impact aphid development, growth, and survival and shift how these insect herbivores interact with plants. Genetic differences among aphid and plant populations can also influence how these organisms respond to rising temperatures. This project will assess local adaptation in plant-aphid interactions across a temperature gradient in a well-studied Rocky Mountain ecosystem. Findings from this work will be used to create models that predict plant-aphid dynamics under different climate conditions, develop educational materials for K-12 students about plant and insect ecology, and train rising students to become future scientists.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Insect biology; Plant biology; Soil/microbial ecology; Species Interactions"
+ },
+ {
+  "pi": "Max Berkelhammer",
+  "institution": "University of Illinois Chicago",
+  "position": "Full Professor",
+  "name": "Topographic controls on transpiration in the East River watershed",
+  "description": "Transpiration is the upwards flow of water from soil to atmosphere by vegetation. This flux of water is a critical component of the photosynthetic process and an important control on the energy balance of leaves. The spatial and temporal patterns in transpiration have a dominant control of the hydrological balance of watersheds because the use of this water by plants effects how much water delivered by snow or rain remains available downstream for streamflow or groundwater recharge. While transpiration has been an obvious source of interest to ecologists and hydrologists for decades, continuous and distributed measurements of transpiration in alpine systems remain limited. The lack of observed information on transpiration has made it difficult to develop models to predict how and why transpiration varies between species, across hillslopes or in response to climate drivers such as drought. We will use a technique called sap flow to make continuous measurements of transpiration for lodgepole pine, Engelmann spruce, subalpine fir and quaking aspen across topographic gradients in the East River watershed. We will use this data to test how differences in factors such as slope, relief, lithology and upslope drainage influences the water demands between species. We will also test how these abiotic factors interact with biotic factors such as the effective rooting depth and conductivity of xylem tissues to modulate transpiration. We will complement the measurements of transpiration with periodic measurements of the stable isotope ratios of xylem and soil water to help understand the sources of water (such as snow melt vs. summer rain) as well as the soil depth trees are drawing water from. The detailed measurements of transpiration from sap flow will be complemented by a more experimental approach based on continuous measurements of the diameter of trees ? i.e. dendrometry. Changes in the daily cycle of tree circumference is related to storage of water in trees and can therefore be related to total water use. This technique has the advantage of using lower cost and more robust sensors but is less reliable. The work collectively will shed light on how trees compete for available water, particularly at the interface between aspen and conifer stands. This data will be collected synergistically with measurements of canopy temperature from drone flights which can provide spatial information on water use that complements the tree-level temporally continuous data from sap flow. In addition, this data will be used for model validation of a recently developed land surface model. The information gathered on transpiration will also be broadly applicable to understanding the resilience of typical fir, pine, spruce and aspen ecosystems in the western US to climate change.",
+  "fieldOfScience": "Hydrology",
+  "researchAreas": "Atmospheric Science; Biogeochemistry; Climate change; Hydrology; Modeling"
+ },
+ {
+  "pi": "Amrita Bhattacharyya",
+  "institution": "University of San Francisco",
+  "position": "Assistant Professor",
+  "name": "Anoxic microsites control methanogenesis at terrestrial-aquatic interfaces",
+  "description": "Anaerobic microsites, a defining feature of soil redox heterogeneity, are zones of oxygen depletion in otherwise oxic environments. Subsequently, anaerobic microsites can serve as hot spots for biogeochemical (BGC) processes, generating and exporting reduced products to oxic environments. Anoxic microsites have been predicted to contribute 21% to the global production of methane (CH4), an important greenhouse gas affecting climate change. They are often generated at terrestrial?aquatic interfaces (TAIs), such as riverine floodplains, which are dynamic transition zones between land and water, where seasonal changes in river and groundwater flow conditions lead to redox fluctuations. As a result, TAIs play a significant role for elemental cycling and greenhouse gas (GHG) emissions, while only occupying small areas of the Earth?s surface (0.07%?0.22%)._x000D_\nDespite the presumed importance of anaerobic microsites in TAIs, significant knowledge gaps still exist regarding their abundance over time and space under varying environmental conditions, as well as their specific contributions to BGC processes, especially with regard to CH4 production._x000D_\nUsing the novel LOAMS (Laboratory for Observing Anaerobic Microsites in Soils) approach, we will specifically detect and examine the role of anaerobic microsites in methanogenesis and metal redox processes across spatial and temporal scales at current DOE-ESS natural floodplain research sites. The main objectives of this work are to: (i) quantify the abundance and the impact of anaerobic microsites on methanogenesis and elemental speciation; (ii) compare microscale anaerobic microsite characteristics to macroscale field observations of methanogenesis and metal redox chemistry; and (iii) quantify reaction kinetics of relevant BGC processes within anaerobic microsites based on data from controlled laboratory experiments paired with modeling. Furthermore, our experimental data and parametric modeling results will support the future development of refined conceptual and quantitative models, and improve predictions of metal cycling and production of GHG emissions in TAI environments. For this study, we have selected three rivers/creeks (East River, Slate River, Cold Creek) as field sites at the Greater East River Watershed Observatory (GERWO), given that previous field measurements have indicated a potential relevance of anaerobic microsites for methane production at these sites. In addition, these sites allow us to study redox fluctuations due to seasonal changes in hydrological conditions, and provide the possibility to support our research with additional data from the ongoing DOE-BER supported Watershed Function SFA.",
+  "fieldOfScience": "Earth Systems Science",
+  "researchAreas": "Biogeochemistry; Climate change; Geology; Hydrology; Microbiology"
+ },
+ {
+  "pi": "Benjamin Blonder",
+  "institution": "UC Berkeley",
+  "position": "Assistant Professor",
+  "name": "Plant community dynamics in a changing environment",
+  "description": "Predicting the responses of species to environmental change is a key goal for community ecology, especially in applied management and restoration contexts. My research focuses on this general challenge in two complementary contexts: alpine plant community assembly, and quaking aspen forest responses to drought and other stressors.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Community ecology; Genetics; Landscape biology; Long-term research; Modeling; Plant biology; Species Interactions"
+ },
+ {
+  "pi": "Dan Blumstein",
+  "institution": "UCLA",
+  "position": "Full Professor",
+  "name": "Vertebrate antipredator and communication studies",
+  "description": "Since 2001, I have had an approved UCLA protocol to study antipredator behavior and communication in free-living birds by employing simple experiments. Many of these projects have been designed to study questions associated with wildlife conservation and management and/or to better understand human impacts on wildlife. In 2008 I extended this UCLA protocol to include other vertebrates (mammals, reptiles, amphibians, and fishes). UCLA supports this (admittedly) very flexible protocol that focuses on methods but not specific questions._x000D_\nMuch of the proposed work will be conducted by undergraduate students at the RMBL (much of the UCLA work is conducted by students in my field and marine biology classes). Rather than citing specific references to justify a single question, I append relevant publications that illustrate the types of projects we have conducted below. _x000D_\nAt the RMBL I will design specific projects with the students? interests in mind. Projects will have to fit within procedures identified in this protocol. There are some that might not be focused on 'animals' per se and thus fall outside this protocol. For instance, there may be projects that broadcast sounds in the environment to study the 'habitat acoustics'. Such an experiment would not be targeted towards animals._x000D_\nI will provide close supervision of all work. The methods I describe below can be used to ask a variety of research questions and it is these methods that will likely be used by students conducting their projects. The experimental manipulations are relatively noninvasive. The animals are observed, but not handled, and are only minimally stressed or disturbed by a brief change in the environment. Similar sorts of experiments that I've done over the past two decades have caused limited disturbance.",
+  "fieldOfScience": null,
+  "researchAreas": "Animal Behavior; Vertebrate biology; Other"
+ },
+ {
+  "pi": "Dan Blumstein",
+  "institution": "UCLA",
+  "position": "Full Professor",
+  "name": "The marmots of RMBL",
+  "description": "The study of yellow-bellied marmots at the RMBL is the third-longest study of free-living, individually-marked mammals in the world. Over the next five years we aim to continue to collect demographic, genetic/genomic, behavioral, and endocrinological data to help develop a comprehensive view of marmot population biology and evolutionary dynamics of a variety of behavioral, physiological and life history traits. We will continue our studies of aging and senescence and hope to expand our studies of the causes and consequences of microbial diversity in the intestinal and oral microbiomes.",
+  "fieldOfScience": null,
+  "researchAreas": "Animal Behavior; Climate change; Disease ecology; Genetics; Long-term research; Microbiomes; Modeling; Phenology; Vertebrate biology"
+ },
+ {
+  "pi": "Carol Boggs",
+  "institution": "University of South Carolina",
+  "position": "Full Professor",
+  "name": "Drought response as escape from apparent maladaptation",
+  "description": "The native butterfly Pieris macdunnoughii lays eggs on a non-native, invasive mustard, Thlaspi arvense. The larvae won't eat the plant. This reflects maladaptation on the part of the butterfly to the plant. This maladaptation has persisted for over 150 generations in the Gothic area, in the face of strong selection pressures. We will explore the role of drought in altering plant chemistry, hence larval ability to eat the plant, as a mechanisms that may have allowed the apparent maladaptation to persist in the population.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Climate change; Community ecology; Genetics; Insect biology; Landscape biology; Plant biology; Species Interactions"
+ },
+ {
+  "pi": "Carol Boggs",
+  "institution": "University of South Carolina",
+  "position": "Full Professor",
+  "name": "Soul\u00e9 Butterfly Re-survey",
+  "description": "This project exploits a butterfly monitoring data set collected by Michael Soul\u00e9 and his Earthwatch teams from 1982-1991. He collected data on the number of butterflies of specified species seen every 3 days along the Copper Creek trail from RMBL to the first crossing. We propose a re-survey, to examine changes in phenology, abundance and species diversity in the intervening 30-40 years. Additionally, we propose to set up a long-term monitoring program involving RMBL docents to continue this data collection.",
+  "fieldOfScience": null,
+  "researchAreas": "Climate change; Insect biology; Long-term research; Phenology"
+ },
+ {
+  "pi": "Janelle Bohey",
+  "institution": "University of California Irvine",
+  "position": "Graduate Student",
+  "name": "Effect of drought on floral scent and plant-pollinator interactions",
+  "description": "Plant-pollinator interactions are important for biodiversity and supporting healthy ecosystems. With climate change posing a threat to floral traits that attract pollinators, our focus extends to the often-overlooked olfactory signals and stimuli. Floral scent, composed of diverse volatile organic compounds (VOCs), plays an important role in communication between plants and pollinators. While pollinators use scent to identify and locate rewards, the integration of olfactory stimuli into plant-pollinator networks is still in its early stages. Climate change-induced factors, such as drought and temperature shifts, can disrupt these interactions at both individual and community levels. Our study aims to bridge this knowledge gap, investigating the impact of climate change on floral scent and its role in shaping plant-pollinator networks. By experimentally manipulating precipitation to simulate drought conditions and assessing visual and chemical floral traits across a community, we will employ network analysis to investigate the changes in visitation patterns in plant-pollinator networks under environmental stress. This research aims to advance our understanding of how climate-induced changes in floral scent influence plant-pollinator dynamics at the community level.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Community ecology; Phenology; Plant biology; Pollination; Species Interactions"
+ },
+ {
+  "pi": "Israel Borokini",
+  "institution": "Montana State University Bozeman",
+  "position": "Assistant Professor",
+  "name": "Species and functional shifts in plant communities under climate change",
+  "description": "Scientific understanding of biodiversity responses to climate change have come from ecological modeling; however, the data that go into these models are limited and violate many ecological and statistical assumptions, resulting in unreliable predictions. Therefore, long-term monitoring is the best option for investigating biodiversity shifts due to climate change, especially in areas with reduced human activities that can confound climate effects. This proposed research will revisit and survey plant communities that were surveyed by Dr. Langenheim in 1948-1952 and Dr. Zorio between 2013-2014 to investigate temporal beta diversity and community shifts due to climate change. These sites were selected along elevational gradient giving us a chance to assess plant community resilience and vulnerability under different local conditions.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": null
+ },
+ {
+  "pi": "Ian Breckheimer",
+  "institution": "RMBL",
+  "position": "Research Scientist - Non-academic PhD Scientist",
+  "name": "The Spatial Ecology of Environmental Change in the Upper Gunnison Basin",
+  "description": "This project investigates how rapid climate change is reshaping the mountain landscapes of the Upper Gunnison Basin. By combining advanced technology with traditional fieldwork, the research aims to track these environmental shifts in great detail. Using drones and sensors placed in forest gaps, the team will create 3D maps of temperature and humidity to better understand how trees manage water loss. Additionally, the project will build a sustainable network of weather stations to ensure a reliable, long-term record of local climate and snow conditions, preserving crucial historical data. The team will also continue vital ongoing monitoring efforts. This includes generating \"Flower Forecasts\" to predict wildflower blooms?verified by community \"Flower Blitz\" events ?and using aerial imagery paired with tree-ring analysis to monitor forest health. All collected data feeds into the RMBL Spatial Data Platform, a digital atlas that provides detailed environmental maps to scientists and the public, helping us understand the resilience of these fragile high-altitude ecosystems.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Atmospheric Science; Biogeochemistry; Climate change; Climate science; Community ecology; Landscape biology; Long-term research; Meteorology; Modeling; Plant biology; Snow Science"
+ },
+ {
+  "pi": "Alison Brody",
+  "institution": "University of Vermont",
+  "position": "Full Professor",
+  "name": "Effects of herbivory on life-history and long-term demography.",
+  "description": "The effects of herbivore damage on plant reproductive success are most often assessed by counting fruit and seed production over a few years. Long-term, demographic data sets can be extraordinarily useful in elucidating patterns that cannot be revealed within the timeframe of a typical, 2-4 year project. I have monitored the demography of several populations of two long-lived, perennial plants, Sticky Polemonium (Polemonium foliosissimum) and Scarlet Gilia (Ipomopsis aggregata) in and around the RMBL, off and on, for over 12 years for each species. Both are subject to frequent predispersal seed predation and herbivory by deer which sometimes reduces their annual reproductive success to zero. The two species are uniquely different in that one, Scarlet Gilia, is a long-lived but monocarpic perennial and the other, Sticky Polemonium, also a long-lived perennial, exhibits a rare breeding system (gynodioecy) in which some individuals are typical, hermaphrodites while others function only as females. These differences in reproductive strategies, along with other life-history traits, provide exciting opportunities to ask questions about the effects of herbivory on demographic processes, sex-ratios, and life-history traits. Over the next five years, I aim to accomplish two overarching goals: 1) analyze my long-term data sets for each species to reveal the ways in which herbivore damage affects life history traits and population growth rates; and 2) continue to monitor populations of Sticky Polemonium to examine the stability of sex ratios within and among populations over time and assess if herbivory levels are correlated with changes in sex ratios.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Long-term research; Plant biology; Species Interactions"
+ },
+ {
+  "pi": "Berry Brosi",
+  "institution": "University of Washington",
+  "position": "Full Professor",
+  "name": "Pollination Network Structure, Function, and Response to Perturbation",
+  "description": "This renewal research application covers three distinct but related projects, all focused on pollination networks, their responses to perturbation, and the relationship between their structure and function._x000D_\nThe first project, ?Quantitative Network Structure and Function? has two primary objectives: A) accurately measuring of quantitative network structure (i.e. intensity of interactions) with a focus on testing predictions about quantitative structure from theoretical work we are leading; and B) comparing network structure and function (seed production across multiple plant species) in drought (2018, 2020, 2021, potential future years) vs. non-drought years (2016, 2017, 2019, potential future years)._x000D_\nThe second project, ?Snowmelt Acceleration and Pollination Network Structure and Function?, is focused on temporally shuffling interaction partners in pollination networks via medium-scale (10 x 14 m) snowmelt acceleration experiments that are controlled and spatially replicated. The temporal re-shuffling occurs via changes in plant flowering phenology in manipulated patches, whereas we expect the pollinator community to remain relatively unchanged given that the scale of movement of individual pollinators is typically much larger than the spatial scale of our plots._x000D_\nThe third project, ?Understanding Pollinator Functional Responses and Benefit Accrual Under Perturbation? is focused on improving the integration between models and empirical data in pollination networks. In particular, this work will for the first time empirically estimate the functional forms of 1) multi-species pollinator functional responses, i.e. how pollinator visitation changes with plant density, as well as plant and pollinator species identity; and 2) the numerical response (reproductive benefit accrual) of plants with respect to pollinator visits, i.e. how fecundity changes with pollinator visit frequency change. The benefit accrual component will involve new experiments focused on plant seed set. These empirically validated functional forms will then be incorporated into models, which we will subsequently test by conducting short-term perturbation experiments, in a full modeling-empirical cycle.",
+  "fieldOfScience": null,
+  "researchAreas": "Animal Behavior; Climate change; Community ecology; Genetics; Insect biology; Modeling; Phenology; Plant biology; Pollination; Species Interactions; Theory"
+ },
+ {
+  "pi": "Wendy Brown",
+  "institution": "Lawrence Berkeley National Laboratory pays me",
+  "position": "Research Technician - Non-academic non-PhD Scientist",
+  "name": "Biodiversity of aquatic insects in the Upper Gunnison Basin of Colorado.",
+  "description": "Understanding the taxonomy and distribution of aquatic insects and other taxa helps us understand the ecology and status of our local freshwater streams and ponds. https://www.gunnisoninsects.org/",
+  "fieldOfScience": "Biology",
+  "researchAreas": "Aquatic Biology; Community ecology; Insect biology; Long-term research"
+ },
+ {
+  "pi": "Nicolas Buchler",
+  "institution": "North Carolina State University",
+  "position": "Associate Professor",
+  "name": "Isolating chytrid fungi from high alpine soils and aquatic habitats",
+  "description": "I aim to study and identify chytrid fungi from high-altitude soils and water near melting snow in Colorado during the early summer. These fungi, commonly found in wet environments like soil and water, are known to thrive in extreme conditions, including high-elevation regions such as the Colorado mountains. To carry out this research, I will collect samples near the Rocky Mountain Biological Laboratory (RMBL) and work with them on-site in the lab at RMBL. Using specific techniques, I will isolate and grow the fungi in pure cultures before identifying them through DNA sequencing. The most promising samples will be sent back to my home lab at North Carolina State University for cryopreservation and further analysis. During this multi-year project, I aim to uncover the diversity and abundance of chytrids, including new species, to better understand their evolutionary history and ecological roles in high-alpine ecosystems.",
+  "fieldOfScience": "Biology",
+  "researchAreas": "Genetics; Microbiology; Soil/microbial ecology"
+ },
+ {
+  "pi": "Diane Campbell",
+  "institution": "University of California, Irvine",
+  "position": "Professor Emeritus",
+  "name": "Long-term studies of evolutionary rescue in plants",
+  "description": "Climate change is threatening many populations around the world. A population can avoid extinction by dispersal to more favorable locations, but that is not possible for many plants with limited seed dispersal. An alternative is evolutionary change in which changes in traits increase fitness and result in rescue of an otherwise endangered population. Some populations of a subalpine herb, Scarlet gilia, are threatened by increasingly early spring snowmelt due to climate change, which dries the soil and reduces survival. Long-term field data on this species presents a unique opportunity to examine if evolutionary rescue is likely in a plant population. We are measuring the strength of natural selection on several vegetative traits and floral traits (including flower scent), and our many decades data set allows us to examine how selection depends on the date of spring snowmelt that year. Combined with previous estimates of the heritability of traits (which affects speed of evolution), and the direct responses of traits to date of snowmelt (plasticity), we can test whether evolutionary rescue is likely in this species. Our work capitalizes on the longest data set in the world on natural selection on plant morphology to provide one of the first applications of evolutionary rescue models to natural populations.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Long-term research; Modeling; Plant biology; Pollination"
+ },
+ {
+  "pi": "Paul CaraDonna",
+  "institution": "Chicago Botanic Garden",
+  "position": "Associate Professor",
+  "name": "Long-term monitoring of bee-plant interactions",
+  "description": "Our primary research project is an ongoing long-term (8-year) monitoring of wild pollinator populations, floral resources, plant-pollinator interactions, and local climate. Since 2015, we have extensively monitored the abundance and activity of wild bumble bees and floral resource availability at six permanent study sites within the East River Valley at the Rocky Mountain Biological Laboratory (RMBL). Our long-term research aims to address a series of outstanding questions focused on our fundamental understanding of the population and community ecology of plant-pollinator interactions and mutualism. With ongoing monitoring, our project will generate a more mechanistic and predictive understanding of the demographic responses of wild pollinators in the context of pollinator declines and climate change, as well as how and why species interact in nature.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Climate change; Community ecology; Food web biology; Insect biology; Long-term research; Modeling; Phenology; Plant biology; Pollination; Species Interactions"
+ },
+ {
+  "pi": "Mariah Carbone",
+  "institution": "Northern Arizona University",
+  "position": "Associate Professor",
+  "name": "Response of plant and microbial respiration to changing cold season climate",
+  "description": "Winter is changing in the western US mountains. There is less snowfall, snow is melting earlier in the spring, and the warm summers are becoming longer. These changes in winter and water availability impact forests. Belowground in the forest soil, microorganisms break down organic matter, releasing carbon dioxide (CO2), an important greenhouse gas that is warming Earth. Plant roots produce CO2 also, via their metabolism. Our research seeks to understand how changes in winter snowpack influence the amount of CO2 produced in soils in the East River watershed, near Crested Butte, Colorado. We will quantify the production of CO2 by microorganisms and plant roots across different elevations and seasons. We will work in the two main forest types of the region, evergreen spruce/fir and deciduous aspen, applying unique experimental measurements. We will make use of existing long-term measurements to understand how past changes in snow amount and duration of cover have affected soil CO2. Information gathered from our experimental work and data analyses will be used to improve predictions of soil CO2 produced in the future using models. Our proposed work is motivated by the hypothesis that changing winter snow amounts will impact how microorganisms and roots function separately, and thus understanding these influences is necessary to predict how the ecosystems will respond to future climate.",
+  "fieldOfScience": "Earth Systems Science",
+  "researchAreas": "Biogeochemistry; Climate change; Climate science; Phenology; Soil/microbial ecology"
+ },
+ {
+  "pi": "Lauren Carley",
+  "institution": "University of Chicago",
+  "position": "Assistant Professor",
+  "name": "Joint fates of genetic variation and demography under changing climates",
+  "description": "In a changing climate, a central research goal is to understand whether and how wild populations will persist despite rapid shifts in environmental drivers like precipitation and temperature. As such, many researchers aim to monitor population dynamics across space and time to discern how variation in environmental drivers shape population growth, and use this information to project performance and viability under future climate scenarios. Much less is known, however, about the consequences of environmental change for genetic variation within populations. The extent and persistence of genetic variation in wild populations determines their ability to adapt evolutionarily to changing conditions, and also may directly influence population dynamics and persistence. In this project, I will establish long-term study sites to jointly monitor population dynamics, environmental variation, and genetic variation across a range of populations of the ecological model organism Boechera stricta, a perennial wildflower in the mustard family. These complementary datasets will allow me to directly track how population performance and genetic polymorphism change over time in response to variation in climate variables like precipitation and temperature, and to test for effects between population-level genetic variation and population viability.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Genetics; Long-term research; Modeling; Plant biology; Species Interactions; Other"
+ },
+ {
+  "pi": "Maryela Celaya Rosas",
+  "institution": "University of Arizona",
+  "position": "Graduate Student",
+  "name": "Stomatal trait responses to climate change in the Rocky Mountains",
+  "description": "The RMBL turf transplant experiment, established in 2017, simulates climate change by moving large, intact blocks of plants and soil along a temperature and elevation gradient. By transplanting to the warmer and drier conditions predicted to occur with future climate change, we can observe how the plant?s stomata respond to novel environments. Although annual monitoring has already documented rapid community responses through shifts in species composition and ecosystem functioning, little is known about how stomata respond at the morphological and functional levels. The impact of stomatal traits on plant physiology and productivity points to an unresolved mechanism underlying drought stress responses. Because any change in stomatal behavior is crucial for accurately modeling carbon and water cycling under future climatic conditions, understanding stomatal morphology and its plasticity becomes essential. Additional data will also be beneficial towards collaborations with the TransPlant Network, an international group of researchers conducting similar turf transplant experiments around the world.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Community ecology; Long-term research; Plant biology"
+ },
+ {
+  "pi": "Aimee Classen",
+  "institution": "University of Michigan",
+  "position": "Full Professor",
+  "name": "Warming and Species Removal in Mountains (WaRM)",
+  "description": null,
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Long-term research; Microbiomes; Phenology; Plant biology; Soil/microbial ecology; Snow Science; Species Interactions"
+ },
+ {
+  "pi": "Jessica Cusick",
+  "institution": "Utah Valley University",
+  "position": "Assistant Professor",
+  "name": "Effects of stress on colony-level personality in Western Thatch Ants",
+  "description": "Cooperation is a complex behavior in which individuals act in ways that increase the reproductive success and survival of others, often at a cost to themselves. Cooperation is observed across a variety of species, from ants, to birds, to humans. Animals can have cooperative personality, meaning that individuals display consistency in their cooperative behavior across time and are consistently different from others. Individual personality can be driven by many physiological systems that are affected by early development and environmental stress. In eusocial species, individuals that make up a colony are so tightly connected they are often referred to as a ?superorganism? that display collective cognition and collective behavior. Therefore, in eusocial species, environmental stressors may affect the physiology of the entire colony, leading to distinct personalities at the level of the colony, not the individual. Colony-level personality in eusocial species is not well studied. In this study, we will examine whether environmental stress (bear attacks and nitrogen changes) leads to variation in cooperative colony personality in the Western thatch ant (Formica obscuripes), a eusocial, invertebrate that engages in a mutualistic relationship with honeydew producers. Specifically, thatch ants engage in a defensive mutualistic relationship with honeydew-producing aphids and will aggressively and cooperatively defend aphids from predation in exchange for their sugary excrement. Previous studies have shown that thatch ants that experience stressors are less aggressive when under threat at the nest and when defending their aphids. Previous work has also shown that nitrogen enrichment, can positively affect ants? interactions with aphids, suggesting nitrogen may mediate some of the negative predator effects. This study investigates how nitrogen enrichment affects the defensive mutualistic behaviors of thatch ants and whether predation and nitrogen?s effect on behavior is drives differences in colony-level personality.",
+  "fieldOfScience": "Biology",
+  "researchAreas": "Animal Behavior; Community ecology; Food web biology; Insect biology; Microbiomes; Species Interactions"
+ },
+ {
+  "pi": "Nicholas Dabagia",
+  "institution": "University of Arizona",
+  "position": "Graduate Student",
+  "name": "How does longterm N deposition impact pollination interactions in Almont?",
+  "description": "Nitrogen is being deposited from the atmosphere at significant levels at near-global scales, and this deposition has the potential to transform formerly nitrogen limited communities into entirely new spaces, with altered growth, traits, and interactions with other species. In spite of this significance, it is poorly understood how long term nitrogen deposition impacts plant-pollinator interactions, which are of special concern to humanity due to the billions of dollars per year that pollination represents as an ecosystem service. Through collaboration with Josh Grinath (Idaho State University), I plan to utilize his 17 year nitrogen addition experiment at the Almont Triangle (Gunnison County) to assess how plant-pollinator interactions are affected by nitrogen deposition. I will survey interactions between plants and pollinators for one hour per experimental plot per week, and then I will construct interaction networks to compare the network structure throughout the growing season between nitrogen addition plots and control plots using the r package bipartite. Ultimately, this work stands to demonstrate how nitrogen deposition (exacerbated by anthropogenic emissions) impacts plant-pollinator community structure and interactions.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Climate science; Community ecology; Food web biology; Insect biology; Long-term research; Phenology; Plant biology; Pollination"
+ },
+ {
+  "pi": "Lee \"Mick\" Demi",
+  "institution": "Allegheny College",
+  "position": "Assistant Professor",
+  "name": "Chronic N deposition and the recent proliferation D. geminata blooms",
+  "description": null,
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Aquatic Biology; Landscape biology; Other"
+ },
+ {
+  "pi": "Sabine Dritz",
+  "institution": "University of California, Davis",
+  "position": "Graduate Student",
+  "name": "Adaptation of bumblebee traplines to natural variation in flower density",
+  "description": "Bumblebee workers adaptively allocate foraging preferences both across co-occurring flower species in a flower patch and across flower patches in a landscape. These adaptive foraging behaviors improve the resilience of their foraging rates to spatial and temporal variation in resource availability. In my first dissertation chapter I characterized the functional response form of within-patch foraging rates with respect to flower density. In this project, I will characterize the functional response form of across patch foraging rates with respect to flower density. To do so I will measure how the traplines of bumblebee workers evolve during their lifetime, both in terms of patch acceptance rate and patch residence time, in response to natural variation in Delphinium barbeyi density at the Rocky Mountain Biological Laboratory (RMBL). The results of this study will be used to develop a nested functional response model accounting for adaptive foraging behavior of bumblebees both within and across patches. With this model, I will explore the resilience of bumblebee and plant populations to resource perturbations.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Landscape biology; Modeling; Pollination; Theory"
+ },
+ {
+  "pi": "Laurent Duverglas",
+  "institution": "University of South Carolina",
+  "position": "Graduate Student",
+  "name": "The effects of tri-trophic interactions on insect population dynamics",
+  "description": "I will investigate the relative effects of various biotic interactions (e.g., predation, intraguild predation, parasitism) on the introduced population of Gillette?s Checkerspot (Euphydryas gillettii) at Gothic, Colorado. Knowledge of the relative magnitude of biotic drivers, oftentimes regulated by abiotic factors, is necessary to understand how populations persist.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Insect biology; Species Interactions"
+ },
+ {
+  "pi": "Bret Elderd",
+  "institution": "Louisiana State University",
+  "position": "Full Professor",
+  "name": "General Observations of Plant-Lichen \\& Plant-Herbivore Interactions",
+  "description": "We will continue to conduct a series of surveys/observations in the US Forest Service's Gunnison District and at RMBL to examine plant-lichen associations in alpine meadows and the long-term dynamics of grasshopper populations. The research focused on plant-lichen associations will examine the variety of ways in which the plant influences lichen establishment and growth and the ways in which the lichen influences plant establishment and growth. Preliminary results indicate that the lichen's presence in xeric alpine meadows may be due to an association with the plant. However, the plant's growth appears to be independent of the lichen's presence. In the near term, we will examine the potential influence of the lichen on various aspects of the plant's life history particularly establishment. The current plan is focused on observational studies and no manipulative experiments are being planned at this time. In the near future, we are considering potential experiments that may include manipulations in the plant-lichen system.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Insect biology; Plant biology; Species Interactions"
+ },
+ {
+  "pi": "Brian Enquist",
+  "institution": "University of Arizona",
+  "position": "Full Professor",
+  "name": "Assessing drivers of vegetation functional change",
+  "description": "We use physiological, experimental, theoretical, and observational methods to try to understand what regulates diversity (phylogenetic and functional) and dynamics of subalpine communities and ecosystems at different scales. In particular, we are interested in understanding how diversity influences ecosystem functioning. We are interested in the relative importance of abiotic (namely, climate) and biotic (species interactions, community assembly, and competition) factors in controlling plant community and ecosystem response to climate change. At the largest scales, we study the flux of carbon dioxide from subalpine meadows along an elevational gradient and its relationship to temperature, water availability, plant functional traits and species identity. We also use remote sensing techniques as well as macro ecological approaches to study large scale processes. At the smallest scale, we are studying the mechanisms of community assembly of subalpine meadows.",
+  "fieldOfScience": "Biology",
+  "researchAreas": "Climate change; Community ecology; Hydrology; Long-term research; Modeling; Plant biology; Soil/microbial ecology; Snow Science; Species Interactions; Theory"
+ },
+ {
+  "pi": "Brian Enquist",
+  "institution": "University of Arizona",
+  "position": "Full Professor",
+  "name": "Community response to climate change using a transplant experiment",
+  "description": "The RMBL turf transplant experiment, established in 2017, simulates climate change by moving large, intact blocks of plants and soil along a temperature and elevation gradient. By transplanting to the warmer and drier conditions predicted to occur with future climate change, we can observe the responses of the soil microbes and plants to novel environments. Annual monitoring has already documented rapid community responses through changes in community composition and functioning. Extending annual monitoring will further enhance our understanding of the resilience and vulnerability of mountain communities and ecosystems. Additional data will also be beneficial towards collaborations with the TransPlant Network, an international group of researchers conducting similar turf transplant experiments around the world, including the newly established Niwot Ridge turf transplant experiment.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Plant biology"
+ },
+ {
+  "pi": "Andrew Gloss",
+  "institution": "University of Georgia",
+  "position": "Assistant Professor",
+  "name": "Genomics of adaptation underlying a transition to herbivory",
+  "description": "Herbivorous insects are among the most successful?and destructive?organisms on Earth. One third of all animal species are herbivorous insects, and they collectively remove over 20% of plant biomass in both natural and agricultural systems. Yet we know surprisingly little about how herbivory originates: how insects transition from ancestral diets like detritus, microbes, or other insects to feeding on living plants. To illuminate this process, we are comparing the genomes and traits of herbivorous insect species with closely-related non-herbivorous relatives, in order to infer the changes that occur when insects evolve to be herbivorous. In particular, we are focusing on fly species closely related to Drosophila melanogaster, a microbe-feeding fly that is the leading model organism for genetics studies. One of these focal herbivorous species, Scaptomyza nigrita, has been studied for decades at RMBL where it feeds exclusively on wild mustard plants along alpine streams and seeps. I plan to collect S. nigrita flies at RMBL, sequence their genome, and use this genome in a broader analysis with other herbivorous and non-herbivorous fly genomes to help illuminate the genetic changes that allow insects to feed on living plants. While our primary goal is to understand how herbivory evolves, this work also has practical implications. By identifying genes and traits essential for herbivory, we aim to uncover new targets for protecting crops from insect pests. More broadly, by studying how organisms adapt to novel diets, we also hope to shed light on genes that mediate the link between diet and health?which may inform our understanding of the relationship between diet and disease in humans.",
+  "fieldOfScience": "Biology",
+  "researchAreas": "Genetics; Insect biology; Species Interactions"
+ },
+ {
+  "pi": "Hamish Greig",
+  "institution": "University of Maine",
+  "position": "Full Professor",
+  "name": "Long-term research on the ecology of ponds in a changing climate",
+  "description": "High elevation wetlands harbor unique biodiversity, are important components of Rocky Mountain water systems, and are subject to accelerating rates of environmental change. This application summarizes the next 5 years of long-term research by co-PIs Hamish Greig and Amanda Klemmer on the invertebrates that are critical to the diversity and function of high-elevation wetland ecosystems. In 2023, we collected the 34th year of data on wetland caddisflies at a sentinel RMBL field site, the Mexican Cut Nature Preserve, continuing monitoring initiated by Scott Wissinger in 1989. These long-term data document changes in insect abundances and distributions in response to rapid climate change, including several caddisfly species that have moved upslope from wetlands on the valley floors to ponds at treeline. We plan to explore the consequences of fluctuations in the abundance and distributions of these range-expanding species for salamanders that prey on caddisflies, invertebrate communities, and the ecosystem processes such as carbon and nutrient dynamics that influence water quality. We are also working with collaborators to understand how climate alters feedbacks between predator and prey species in pond food webs, and how this influences the response of invertebrates and salamanders to climate stress. In addition to testing new hypotheses, our research will train undergraduate and graduate students, be used as the basis for multiple community outreach events, and the co-PIS will contribute to the administration and strategic direction of RMBL through committee and Board of Trustees service.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Aquatic Biology; Climate change; Community ecology; Food web biology; Insect biology; Long-term research; Species Interactions"
+ },
+ {
+  "pi": "Josh Grinath",
+  "institution": "Idaho State University",
+  "position": "Assistant Professor",
+  "name": "Long-term effects of nitrogen deposition and bears in ecological networks",
+  "description": "Human activities have doubled the amount of biologically-available nitrogen on Earth, much of which is emitted to the atmosphere and falls to the ground far from its source. This blanket of fertilizer, called ?atmospheric nitrogen deposition, has well-studied ecological effects near sources of nitrogen emissions, but much less is understood about the elevated, yet low-level, deposition that occurs more broadly. In particular, it is unclear how low-level nitrogen fertilization indirectly affects relationships among plants, herbivores and predators, especially across the long timespans over which nitrogen deposition occurs. I propose to study how long-term, low-level nitrogen deposition impacts a community composed of plants, arthropods and black bears. My previous research showed that bears can indirectly benefit plants by eating ants and suppressing positive relationships between ants and herbivorous insects, but that the effects of bears weakened under short-term nitrogen enrichment. Here, I will extend this ongoing experiment to a total of 18 years to evaluate how long-term exposure to low-level nitrogen enrichment affects these relationships. I will also study spatial and temporal variation in bear consumption of ants. This work will aid our understanding of the repercussions of nitrogen pollution and inform the management of both nitrogen deposition and bears.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Atmospheric Science; Community ecology; Food web biology; Insect biology; Long-term research; Plant biology; Soil/microbial ecology; Species Interactions; Vertebrate biology"
+ },
+ {
+  "pi": "John Gutrich",
+  "institution": "Southern Oregon University",
+  "position": "Full Professor",
+  "name": "Carbon storage in created freshwater marshes: A 40 year study",
+  "description": "Wetland soils contain some of the highest stores of soil carbon in the global biosphere. However, there is little understanding of the quantity and distribution of carbon stored in our remaining wetlands which is important to the societal goal of limiting release of carbon to the atmosphere to hinder climate change. Under Section 404 of the Clean Water Act, draining of wetlands hydrologically connected by surface waters to a navigable waterway may require wetland mitigation whereby a developer constructs a wetland to offset the loss of the original drained wetland. Previous research by Gutrich, Taylor and Fennessy (2009) has assessed the floristic community development over time of constructed inland freshwater marshes compared to natural reference wetland sites. In this study, we propose to assess the carbon storage and accretion in soils of constructed wetlands in Colorado that now display over 40 years of ecological succession since construction. This scientific research is critical to the management of inland freshwater wetlands in the United States as carbon sinks offsetting anthropogenic carbon release to the troposphere.",
+  "fieldOfScience": "Chemistry",
+  "researchAreas": "Climate science; Long-term research"
+ },
+ {
+  "pi": "John Harte",
+  "institution": "University of California at Berkeley",
+  "position": "Full Professor",
+  "name": "Vegetation Recovery after Termination of Heating",
+  "description": "Much research at RMBL and elsewhere has focused on the effects of climate warming on plant communities. Less studied is how these communities will recover upon termination of heating. Although society is unlikely to actually reduce atmospheric greenhouse gas levels in the coming decades, it is nevertheless of interest to understand how reversible are the ecological effects of warming. Do ecosystems undergo tipping-point-like transitions under warming that lock in change even when warming is reversed, or can we expect recovery of our altered ecosystems should society ever be able to undo the current phase of warming? If so, on what time scale? RMBL provides an opportunity to address these questions by taking advantage of the termination in 2019 of the long-term meadow-warming experiment. In that experiment, measurements revealed significant shifts in plant dominance and flowering success in heated versus control plots. This study will measure these same vegetation variables at least up to 7 years post-termination, to determine the degree to which vegetation in the former heated plots is recovering to levels observed in the former control plots.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Atmospheric Science; Climate change; Community ecology; Long-term research; Modeling; Plant biology; Theory"
+ },
+ {
+  "pi": "Jacob Heiling",
+  "institution": "Western Carolina University",
+  "position": "Assistant Professor",
+  "name": "Lupinus argenteus reproductive ecology",
+  "description": "Like color and shape, floral scent helps plants communicate with animals. But attraction via scent is not limited to pollinators, scent can also attract herbivores and, potentially, the natural enemies of these herbivores. Likewise, even while attracting some species, scent can repel others. Thus, floral scent plays many important roles in the ecology and reproductive biology of the plants which produce it. There is enormous variation in floral scent both between and within plant species, and this holds implications for variation in the interactions between individual plants and their environments. However, variation in scent within and among plant species remains poorly understood. _x000D_\nSome populations of silvery lupine (Lupinus argenteus) have conspicuously strong scent, while others seem completely scentless. This variation appears to depend on elevation, with populations high in the alpine zone emitting strong scent, and lower montane and sub-alpine populations emitting little if any scent, and populations at intermediate elevations exhibiting a mixture of these traits. In 2017 and 2018 we analyzed lupine scent from one sub-alpine, one alpine, and one intermediate population near RMBL._x000D_\nWe found that these populations showed strong differences in scent characteristics, and that, in the intermediate population, some individuals produce more alpine- or subalpine-like scent characteristics. _x000D_\nWe hope to conduct further studies to try to understand which factors are important for generation this variation, what the significance of this variation is for the plants and the animals that they interact with, and whether and how climate change may affect these plant traits and their impact on their communities.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Community ecology; Food web biology; Insect biology; Long-term research; Plant biology; Pollination; Species Interactions"
+ },
+ {
+  "pi": "Amanda Hewes",
+  "institution": "Colorado College",
+  "position": "Assistant Professor",
+  "name": "Pollination ecology in Ipomopsis aggregata and Delphinium nelsonii",
+  "description": "This research description proposes two projects for the summer 2026 field season. The first project aim to investigate hummingbird pollination of Ipomopsis aggregata and Delphinium nelsonii, with a focus on quantifying the interaction outcomes for both the birds and the plants in these interaction. Specifically, this project will measure the per-visit seed set affected by Broad-tailed and Rufous hummingbirds, as well as the per-visit energy gain hummingbirds receive from consuming floral nectar. Additionally, this project will investigate whether these per-visit measures of interaction benefit are correlated with floral shape, specifically length and width. The second project aims to investigate passive acoustic monitoring as a tool for monitoring pollination visits from different pollinator guilds. Also focused on Ipomopsis aggregata and Delphinium nelsonii, this second project will deploy acoustic monitors into the field to collect recordings of pollinator visits. We will then use machine learning to determine the accuracy with which acoustic recordings can be indicative of pollinator guild (e.g., hummingbird, bee, fly).",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Pollination; Vertebrate biology"
+ },
+ {
+  "pi": "Amy Iler",
+  "institution": "Chicago Botanic Garden",
+  "position": "Associate Professor",
+  "name": "Consequences of phenological shifts and pollination for plant populations",
+  "description": "Non-technical Abstract (Project 1):_x000D_\nClimate change is predicted to decrease biodiversity by increasing the extinction risk of many species, but there are very few examples of climate change actually leading to population declines, because this is a challenging topic to study. One prominent way that climate change is expected to affect populations is by changes in the timing of life-cycle events, such as flowering date or date of emergence from hibernation. Despite changes in the timing of such events being one of the most widespread biological responses to climate change, incredibly little is known about whether and how changes in timing affect popualtions, especially for plants. This project therefore aims to link climate change-induced shifts in the timing of life-cycle events, such as leaf-out and flowering, to plant population dynamics. We are conducting a field experiment where we experimentally advance the timing of leaf-out and flowering in several plant species by melting the snow early. These plants will be compared to control plants to learn how these earlier life-cycle events affect plant survival and reproduction. The data from the field study will be used to build population models that will allow us to understand whether earlier life-cycle events increase or decrease plant popualtions, and why (or have no effect). In doing so, this project will be one of the most comprehensive assessments to date of the risk that climate change-induced earlier life-cycle events pose to plant biodiversity._x000D_\nNon-technical Abstract (Project 2):_x000D_\nPollinator populations are declining, but we have a very poor understanding of the ecological consequences of these declines. There is widespread concern that many flowering plant species will decline in tandem with pollinators because approximately 87% of flowering plants rely on animal pollination for their reproduction. Increases in pollination typically increase the number of seeds a plant can make, and because of this, scientists who study pollination often assume that changes in the amount of pollination have direct consequences for the persistence of plant populations. However, the number of seeds a plant makes typically does not limit population growth, especially for perennial plants. This suggests that alterations to pollination may not actually have extensive consequences for plant populations. But no studies have connected pollinator-mediated declines in seed output to the actual ability of a plant population to persist. This project makes that connection using mathematical population models informed by data from a field experiment. In doing so, this project will advance basic scientific knowledge by bridging two ecological subfields that are surprisingly disconnected, and it will increase our understanding of the ecological consequences of pollinator declines.",
+  "fieldOfScience": null,
+  "researchAreas": "Climate change; Community ecology; Long-term research; Phenology; Plant biology; Pollination; Species Interactions"
+ },
+ {
+  "pi": "Brian Inouye",
+  "institution": "Florida State University",
+  "position": "Full Professor",
+  "name": "Underwood-Inouye long-term phenology",
+  "description": "The long-term phenology project tracks the flowering phenology (timing within season) for ~130 plant species in 35 permanent plots in the RMBL area. This dataset shows evidence of climate change advancing the flowering times of most species.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Insect biology; Phenology; Plant biology; Species Interactions"
+ },
+ {
+  "pi": "David Inouye",
+  "institution": "University of Maryland and RMBL",
+  "position": "Professor Emeritus",
+  "name": "Motus station at RMBL",
+  "description": "I propose to establish a transect, or potentially a small grid, of sensors for detecting radio tags on Broadtailed Hummingbirds or other migratory birds (tagged elsewhere) passing nearby. I would like to confirm an observation from several years ago that male hummingbirds fly about a thousand feet up the side of the valley to roost at night. I will collaborate with graduate student Katja Kochvar on her behavioral study of territorial male Broadtailed Hummingbirds. The sensors would be accessible to any other RMBL researchers who want to put radio tags on animals.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Landscape biology; Long-term research; Vertebrate biology"
+ },
+ {
+  "pi": "David Inouye",
+  "institution": "University of Maryland and RMBL",
+  "position": "Professor Emeritus",
+  "name": "Long-term studies of wildflowers and pollinators",
+  "description": "I propose to continue studies initiated in 1973 on flowering phenology and plant demography, and hummingbird demography. Also similar studies initiated more recently but mostly decades ago. Phenology will be monitored 3X/week in permanent plots, and individually tagged plants of three species will be monitored annually. Other annual counts include the number of flowering Frasera speciosa in the East River valley. A long-term Malaise trap study in the Research Meadow will be continued, with two different types of traps collecting samples 2-3 days/week. I will continue efforts to reduce deer herbivory in my study plots and to estimate the resident deer population. I will continue establishment of a Motus station for tracking radio-tagged animals, continue collaboration with Cassie Stoddard?s lab members, and initiate a collaboration on songbirds with Savannah Troy.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Climate change; Community ecology; Insect biology; Long-term research; Phenology; Plant biology; Pollination"
+ },
+ {
+  "pi": "Rebecca Irwin",
+  "institution": "NC State University",
+  "position": "Full Professor",
+  "name": "Bee phenology and abundance, disease, and invasive plants",
+  "description": "My five-year research plan is split across four projects. (Projects 1 and 2) Assessing how climate variability affects bee phenology and abundance and the mechanisms involved. We will add to a 15-year dataset that is addressing how climate and flowering patterns directly and indirectly affect the phenology and abundance of bees, and how bee life history traits may buffer them (or make them more susceptible) to changes in climate. This dataset is publicly available online and is well-resolved to the species level, making it an exemplary resource for not only my lab and the RMBL community but also the scientific community at large. (Project 3) Effects of sunflower pollen on bee disease. We are building off a tritrophic effects framework to assess how pollen diets have indirect effects on bees by mediating host-parasite interactions. (Project 4) Ecology and management of invasive plants. We will finish a long-term management project on Linaria vulgaris assessing how various management strategies affect L. vulgaris abundance and spread.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Community ecology; Disease ecology; Insect biology; Long-term research; Phenology; Pollination; Species Interactions"
+ },
+ {
+  "pi": "Juliana Jiranek",
+  "institution": "University of Virginia",
+  "position": "Graduate Student",
+  "name": "Epidemiology and evolution across environments in a plant?pathogen system",
+  "description": "Infectious diseases vary in severity across time and space. This variation makes it difficult to forecast epidemics, so there is a need to describe the underlying factors that contribute to diverse disease outcomes across populations. A growing body of work attests to the role of environmental context in shaping epidemics. At the most basic level, environment can alter host and pathogen physiology and landscape distribution. These changes could cascade to affect host and pathogen evolution by altering selection, leading to different coevolutionary trajectories across environments. However, there are few model systems where ecological measures of disease prevalence and severity across environments can be integrated with genetic data to test hypotheses about how ecological context shapes host evolution. Established in 2018, the Flax Rust Project leverages the powerful system of Lewis flax (Linum lewisii), a supalpine wildflower abundant on the slopes near RMBL, and flax rust (Melampsora lini), its conspicuous fungal pathogen. Populations occur across a steep elevational gradient, allowing the measurement of a wide variety of weather conditions that contribute to the spread of disease. Through long-term observation of disease transmission in study populations, we investigate how hosts balance adaptation to both their abiotic environment and their pathogens. Lewis flax is also a burgeoning model system in genomics, so we can further integrate field measurements of disease with genetic information about our study populations to investigate the role of disease in molecular evolution of this host. Understanding the impacts of environment on epidemics and host evolution will shed light on how disease might be expected to shift as the climate warms and whether we expect hosts to adapt to changing pressures.",
+  "fieldOfScience": "Biology",
+  "researchAreas": "Climate change; Disease ecology; Genetics; Landscape biology; Species Interactions"
+ },
+ {
+  "pi": "Stephanie Kampf",
+  "institution": "Colorado State University",
+  "position": "Full Professor",
+  "name": "Stream Tracker: Documenting flow duration on non-perennial streams",
+  "description": null,
+  "fieldOfScience": "Hydrology",
+  "researchAreas": null
+ },
+ {
+  "pi": "Melanie Kazenel",
+  "institution": "Earlham College",
+  "position": "Assistant Professor",
+  "name": "Long-term monitoring of solitary bee populations under climate change",
+  "description": "Understanding the consequences of climate change for insect pollinators, plants, and their interactions is critical to sustaining ecosystems and the human food supply. While mounting evidence indicates that climate change is affecting bee abundance, studies are still scarce that document the mechanisms underlying these patterns. In particular, few studies have examined the consequences of climate change for bee reproductive output and survival during different life cycle stages. To fill this knowledge gap, this long-term study aims to understand the population dynamics of solitary bee species in the family Megachilidae. These species provide an ideal study system to identify the sensitivity of solitary bee demographic metrics to climate variation.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Community ecology; Insect biology; Long-term research; Phenology; Plant biology; Pollination; Species Interactions"
+ },
+ {
+  "pi": "Chloe Keck",
+  "institution": "University of South Carolina",
+  "position": "Graduate Student",
+  "name": "Integrating resource allocation, vision, and fitness in Speyeria mormonia",
+  "description": "Using the Mormon fritillary ( Speyeria mormonia) butterfly as a study system, I will study the adult morphology and reproductive behavior of adults in the field, while also examining how these traits are affected by larval dietary stress in the laboratory. At the Rocky Mountain Biological Laboratory (RMBL), I will complete behavior observations, assess visual capabilities of males, determine the fecundity of females, and measure both male and female adult morphology (I.e., wing size, wing color, and body size). Moreover, I will be examining the density of S. mormonia larval host plants ( Viola spp.) each year. These data will be collected every year to determine whether there is an observable change throughout time and whether this change can be explained by other variables. These data collected at RMBL will also be compared to laboratory data at the University of South Carolina in which I will conduct an experiment examining whether larval dietary stress impacts adult behavior and morphology to determine whether these measurements vary from field measurements. _x000D_\n These experiments can allow us to assess the potential impacts of resource deficiencies on adult reproduction and survival. Additionally, comparing data across-years will provide a better understanding of how this system changes across time and whether there are realized, observable effects of larval resource deficiency on adult fitness.",
+  "fieldOfScience": "Biology",
+  "researchAreas": "Animal Behavior; Community ecology; Insect biology"
+ },
+ {
+  "pi": "Stephanie Kivlin",
+  "institution": "University of Tennessee",
+  "position": "Assistant Professor",
+  "name": "Decoupling plant and mycorrhizal fungal phenology in the Anthropocene",
+  "description": "Plants do not live in isolation. Instead, they associate with multitudes of organisms, including mycorrhizal fungi belowground. These fungi acquire most plant nutrients and water in exchange for sugar. However, interactions between plants and mycorrhizal fungi may be disrupted as the climate changes. This project examines the potential for relationships between plants and mycorrhizal fungi to be disrupted as snowmelt timing shifts with global warming. We will examine the growth and composition of plants and fungi as well as soil nutrient concentrations in slopes and aspects with different snowmelt dates and in a three year long snowmelt manipulation. All data will be fed into an ecosystem model to scale our findings to the global scale.",
+  "fieldOfScience": null,
+  "researchAreas": "Biogeochemistry; Climate change; Community ecology; Microbiomes; Modeling; Phenology; Soil/microbial ecology; Snow Science; Species Interactions"
+ },
+ {
+  "pi": "Kyla Knauf",
+  "institution": "Northwestern University",
+  "position": "Graduate Student",
+  "name": "Wildflower Reproduction Phenology and Seed Traits under Early Snowmelt",
+  "description": "As snow melts earlier in the spring due to climate change, it has the potential to cause shifts in flowering time, especially for spring wildflowers. However, research on this topic often focuses solely on flowering time, with little regard for subsequent seed production and maturation timing. Cohesive research on the entire reproductive stage (flowering and seed production), and how timing of this stage impacts seed traits, is crucial for truly understanding the effects of early snowmelt on wildflower reproduction. Therefore, for three seasons, I will monitor the flowering and seed maturation of six subalpine spring wildflower species at the Rocky Mountain Biological Laboratory from both early snowmelt and control plots. I will then collect a subset of these seeds and analyze their viability, germination, and traits in the Chicago Botanic Garden laboratory and greenhouses.The results of this study will provide novel insight into early snowmelt impacts on spring wildflowers, as well as provide a framework for restorationists who struggle to determine the appropriate seed collection timing and quantity under climate change.",
+  "fieldOfScience": "Biology",
+  "researchAreas": "Phenology; Plant biology"
+ },
+ {
+  "pi": "Katja Kochvar",
+  "institution": "Princeton University",
+  "position": "Graduate Student",
+  "name": "Exploring the Drivers of Variation in Broad-tailed Hummingbird Displays",
+  "description": "This project will explore the factors that drive variation in Broad-tailed Hummingbird male courtship display behavior on territories. Detailed characterization of male territories and behavioral observation across the breeding season will allow us to assess the environmental features that drive variation in display effort. Experimental playbacks studies will elucidate the features of female cues that are most salient in eliciting male displays. Together, these studies will give us a better picture of when and why males perform these conspicuous displays.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Phenology"
+ },
+ {
+  "pi": "Lara Kueppers",
+  "institution": "UC Berkeley",
+  "position": "Associate Professor",
+  "name": "Climate effects on forest structure, dynamics and hydrologic function",
+  "description": null,
+  "fieldOfScience": "Earth Systems Science",
+  "researchAreas": "Climate change; Landscape biology; Long-term research; Modeling; Plant biology"
+ },
+ {
+  "pi": "Lara Kueppers",
+  "institution": "UC Berkeley",
+  "position": "Associate Professor",
+  "name": "GLORIA@RMBL",
+  "description": null,
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Community ecology; Landscape biology; Long-term research"
+ },
+ {
+  "pi": "Isaac Larsen",
+  "institution": "University of Massachusetts",
+  "position": "Associate Professor",
+  "name": "Abiotic and biotic controls on chemical weathering rates",
+  "description": "Precipitation falling on mountainous watersheds is exposed to surface and subsurface processing, such as chemical weathering, before eventually leaving as streamflow. In turn, this processing is governed by a variety of abiotic and biotic interactions involving, e.g., the type of rock that governs geomorphology and mineralization and the type of vegetation that can generate acidity. The proposed work will focus on the role of vegetation as a means to influence water chemistry and quality. By employing a multi-scale approach, the project will address the following questions: 1) Does landscape-scale heterogeneity in vegetation, climate, and geology impart unique, spatially-variable signatures on soil production and chemical weathering rates? 2) What roles do the legacies of Pleistocene glaciation and Holocene geomorphic processes play in determining modern-day solute concentrations in surface waters? 3) Are physical erosion and chemical weathering rates linked at the watershed scale, and can these rates be predicted from watershed characteristics? These questions will be addressed in the physical and ecological setting of the East River watershed near Crested Butte, Colorado._x000D_\nThe proposed technical approach will assess controls on weathering and solute generation at the soil profile, landform, and watershed scales. At the soil profile scale, soil production and chemical weathering rates will be quantified with cosmogenic nuclides and geochemical mass balance at sites that span biotic, climatic, and geologic gradients in order to isolate the key drivers of chemical weathering. At the landform scale, solute concentrations in surface waters will be used to assess whether surficial deposits generated by different geomorphic processes impart unique weathering signatures. At the watershed-scale, cosmogenic nuclides will be used to measure erosion rates. A series of reactive transport models will be constructed to place the field-based findings into a framework for making predictions regarding the roles that vegetation, climate, and geomorphology play in solute generation. The proposed research complements ongoing BER investments at the LBNL Watershed Science SFA Science Focus Area.",
+  "fieldOfScience": "Geology",
+  "researchAreas": "Biogeochemistry; Geology"
+ },
+ {
+  "pi": "Corey Lawrence",
+  "institution": "US Geological Survey",
+  "position": "Other - if your profession or educational stage is not listed, please select this option",
+  "name": "Regional Assessment of Drought Impacts on Soils",
+  "description": "Regional Assessment of Drought Impacts on Soils: Development of an integrated soil functional mapping framework. Soils serve critical roles in most terrestrial ecosystems. In particular, the accumulation of soil organic matter is an important function supporting ecosystem productivity and serving as a feedback to climate change. With the more frequent occurrence of extensive and persistent drought conditions in the Western US, there is an urgent need to improve our ability to map soil organic matter and forecast how it may respond. To address this need, we are developing and testing an integrated framework for measurement, mapping, and modeling of soil functions at a regional scale in the East River and surrounding watersheds. This work will result in development of detailed maps of soil properties, a community accessible archive of soil samples, and an integrated framework for modeling changes in soil functions (not limited to soil organic matter storage) across the region.",
+  "fieldOfScience": "Earth Systems Science",
+  "researchAreas": "Biogeochemistry; Climate change; Geology; Long-term research; Modeling; Phenology; Plant biology; Soil/microbial ecology"
+ },
+ {
+  "pi": "John Lehrter",
+  "institution": "University of South Alabama and Dauphin Island Sea Lab",
+  "position": "Full Professor",
+  "name": "Sinks or sources: beaver pond fluxes of carbon, nutrients, and insects",
+  "description": "Beaver dams and their complexes of ponds and riparian wetlands are prominent features of small mountain streams and are widely recognized for their ability to alter hydrology, sedimentation, carbon and nutrient cycling, and aquatic insect communities. Yet, our understanding of whether an individual beaver dam?pond complex functions as a source or sink of carbon, nutrients, and aquatic insects remains highly uncertain. In this study, we examine how the position of beaver dams along a stream channel and the vertical height (head height) of dams influence ponds as a sink or source of downstream fluxes of carbon, nitrogen, phosphorus, and insects. Using paired upstream?downstream measurements of stream discharge, chemistry, insect communities, and greenhouse gas exchanges, together with high-resolution drone imagery that characterizes pond and floodplain elevation, geometry, and vegetation type, we will link landscape position and pond geomorphology to carbon, nutrient, and insect dynamics. This work aims to clarify when and where beaver dam?pond complexes enhance retention versus export of materials in mountain streams. The work will be performed over multiple seasons and years to assess how the dams-ponds operate during wet and dry periods. The research is part of a field course focused on aquatic ecosystems ecology and watershed processes and provides hands-on research training for undergraduate and graduate students in aquatic biogeochemistry, hydrology, and ecosystem ecology. Efforts are focused on the East River, Slate River, Oh-be-joyful Ck, and Ohio Ck drainages of the upper Gunnison River, CO watershed where beaver dams occur.",
+  "fieldOfScience": "Other",
+  "researchAreas": "Aquatic Biology; Biogeochemistry; Climate change; Food web biology; Hydrology; Insect biology; Landscape biology"
+ },
+ {
+  "pi": "Kelly Lesnik",
+  "institution": "University of South Alabama",
+  "position": "Graduate Student",
+  "name": "Larval mayfly fear responses to predator kairomones at RMBL",
+  "description": "In aquatic ecosystems, predator-prey interactions are largely mediated by chemical cues. Numerous studies in the East River and its tributaries near Rocky Mountain Biological Laboratory have investigated antipredator behavior involving multiple predators (McIntosh and Peckarsky 1999), but the cues that may mediate these behaviors themselves have not been identified. Through experiments using mayfly larvae as prey, we hope to further confirm these behaviors but also identify the chemical cues the prey are exposed to. These investigations will be part of a larger study looking to determine if a universal fear cue exists across multiple aquatic ecosystems, including coastal ecosystems up into mountain river systems.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Community ecology"
+ },
+ {
+  "pi": "Orly Lindner",
+  "institution": "Northwestern University",
+  "position": "Graduate Student",
+  "name": "The Effects of Abiotic and Biotic Factors on Bumblebee Phenology",
+  "description": "Bumblebee abundance at various life stages is affected by a variety of environmental factors like climate and flowers. However, how these environmental factors affect bumblebee phenology is less well understood. Life stages, called ?castes,? are specific events within the life-cycle of a bumblebee colony. They include queens, which emerge in the early season, female workers, which emerge after queens, and males, which emerge later in the summer. I propose to study the emergence timing of bumblebee castes that are found near RMBL, as they relate to floral abundance and snowmelt timing. I will study caste emergence by contributing to an 11-year long bumblebee monitoring project that includes weekly bumblebee monitoring at six distinct fieldsites, as well as weekly floral censuses of flowers pollinated by bumblebees at each of these sites. Additionally, I will assist in the collection of bumblebee legs for a 5-year genetic study on bumblebee colonies in these same sites to better understand how colony size and abundance may impact bumblebee phenology. I will leverage my past three years of fieldwork experience on these specific projects at RMBL to contribute to these long-term datasets. My results will contribute to our understanding of pollinator phenology, as well as the relationship among sequential life events in bumblebees.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Community ecology; Genetics; Insect biology; Long-term research; Phenology; Species Interactions"
+ },
+ {
+  "pi": "Neil Losin",
+  "institution": "Day's Edge Productions",
+  "position": "Media",
+  "name": "In High Places: A feature documentary about long-term ecological research",
+  "description": "As the Rocky Mountain Biological Lab (RMBL) prepares for its centennial, the tight-knit community of Gothic, Colorado is approaching the end of an era ? one defined by a cohort of extraordinary scientists who first arrived in the 1970s? and kept coming back. \"In High Places\" (working title) is a feature documentary that traces the extraordinary, interconnected stories of these scientists, their families, and the creatures they?ve studied in the West Elk Mountains for more than half a century. As their careers draw to a close, what will become of these scientists? work, the singular community they helped create and nurture, and the spectacular mountain ecosystem that first drew them all together?",
+  "fieldOfScience": "Other",
+  "researchAreas": "Animal Behavior; Aquatic Biology; Climate change; Insect biology; Long-term research; Phenology; Plant biology; Pollination; Snow Science; Species Interactions; Vertebrate biology"
+ },
+ {
+  "pi": "Jessica Lundquist",
+  "institution": "University of Washington",
+  "position": "Full Professor",
+  "name": "Seasonal Cycles Unravel Mysteries of Missing Mountain Water",
+  "description": "Snow provides over 60% of water supplies in the Western United States, and in general, spring snow measurements provide a good prediction of summer streamflow. However, in some years, these streamflow predictions are not accurate, and water managers struggle to efficiently allocate water resources. In many studies, warming temperatures correspond to less observed streamflow per unit precipitation input. However, key elements, including basin heterogeneity, gauge undercatch, groundwater flow, and water storage, are often not represented in models or predictions, and physical hydrologic models diverge widely in their hydrologic sensitivity to warming. We will combine distributed observations and modeling to test the following hypotheses. _x000D_\n1)\tFall rainstorms recharge soil moisture and groundwater, increasing subsurface connectivity and the efficiency of winter snowpack to generate streamflow. _x000D_\n2)\tMore uniformly-distributed snow cover leads to greater subsurface water connectivity and more efficient water delivery to the stream. More variable snow cover, either through a greater elevational gradient or increased patchiness, leads to less effective recharge and greater evaporative losses. Only modeling that represents subsurface water transfer from snow-covered to snow-free grid cells will represent these effects._x000D_\n3)\tWarming temperatures and increased rain relative to snow over recent decades have changed snow distributions in ways that decrease runoff efficiency, increasing the frequency of snow free areas at lower elevations fed by snow at higher elevations, which increases basin total evapotranspiration._x000D_\nOur questions require both long timeseries and detailed, distributed observations. We propose to first investigate our hypotheses over the well-instrumented East River (Colorado) and Tuolumne River (California) basins. These long-term observations are augmented with detailed distributed surface flux observations obtained during the 2021-23 multi-agency atmospheric campaigns of SAIL, SPLASH, and SOS in the East River basin. We will use models to establish essential process representations and to directly test hypotheses. We will then test for the essential minimum observations and process representations to expand to larger scales. _x000D_\nOur study will directly inform modelers and water managers of the key processes that must be represented to accurately predict runoff originating from seasonal snow in mountain watersheds, leading to improved understanding, prediction, and planning at seasonal and longer timescales.",
+  "fieldOfScience": "Hydrology",
+  "researchAreas": "Atmospheric Science; Biogeochemistry; Climate change; Climate science; Hydrology; Meteorology; Microbiomes; Modeling; Snow Science"
+ },
+ {
+  "pi": "Patrick Magee",
+  "institution": "Western Colorado University",
+  "position": "Full Professor",
+  "name": "Ecology of wintering mammals int he Rocky Mountains",
+  "description": "Western Colorado University Mammalogy Class_x000D_\nEcology of wintering mammals in the Rocky Mountains_x000D_\nThe class will involve natural history and winter ecology with focus on mammals and the physics of snow. To explore life histories of mammals we will ?hike? throughout the area looking for mammals and their sign, including scat, tracks, and fur. We hope to snowshoe through parts of the townsite where RMBL staff permits, including along the East River and across the river to the base of Gothic Peak. We will also hike north out of the townsite and do additional mammal tracking and natural history study in the National Forest near the East River bridge crossing. We also plan to dig 12 snow pits on USFS lands and where no existing RMBL research plots are located to measure snow depth and thermal profiles and relate these physical properties to mammal winter ecology. We will fill in the pits upon completion of the experiment._x000D_\nI will travel to RMBL on a Friday afternoon in January and spend the weekend with 24 students from Western Colorado University at the RMBL huts. We will gather in one of the huts on Friday night to learn about the foundations of mammal tracks and tracking. The following morning we will snowshoe around the Gothic townsite along an RMBL approved path in single file pattern in search of mammals and mammal tracks. On Saturday afternoon we will trek above the RMBL townsite to USDA FS land and break into 6 small groups with each group digging two snow pits. The snow will be trampled by snowshoes on one pit and left untouched for the control pits. Students will measure the depth of each snow event and measure the temperature within each snow layer. On Saturday night we will gather in one of the huts and students will build thermal profiles and answer questions about the impact of human activities on the subnivean environment used by a number of wintering mammal species. They will also create wildlife skits to demonstrate a variety of winter adaptive strategies employed by high elevation mammals. On Sunday morning, we will snowshoe around the townsite and discuss winter ecology of mammals and observe wildlife and their adaptations for the winter environment. We will depart Gothic around 1 pm on Sunday.",
+  "fieldOfScience": "Other",
+  "researchAreas": "Vertebrate biology"
+ },
+ {
+  "pi": "Madison Mengel",
+  "institution": "University of South Carolina",
+  "position": "Graduate Student",
+  "name": "Wing loading and wing color tradeoffs in Speyeria mormonia",
+  "description": "I propose to study the tradeoff between wing coloration and wing loading in adult butterflies. Specifically, I am conducting research on the Mormon fritillary butterfly to deduce allocation relationships across butterfly size and the flight season. Wing pigments are expensive to make and are a part of mate signaling, which makes them an interesting allocation pathway to study. Similarly, wing loading is important for males to search for mates and females to search for oviposition sites. These two measurements are indicative of indirect reproductive allocation, which influence the likelihood of acquiring a mate and overall fitness.",
+  "fieldOfScience": "Biology",
+  "researchAreas": "Insect biology"
+ },
+ {
+  "pi": "Emily Mooney",
+  "institution": "University of Colorado Colorado Springs",
+  "position": "Associate Professor",
+  "name": "Insects on Ligusticum",
+  "description": "Plants are consumed by a variety of insect herbivores. These herbivores vary in abundance from place to place and over time. The purpose of this project is to monitor the abundance and phenology of insects and other arthropods on the focal plant Ligusticum porteri. The primary herbivore of interests are aphids, which colonize host plant flowering stalks. Since 2017, we have conducted weekly censuses at twenty sites along an elevation gradient. These different sites provide varying combinations of temperature and snow melt timing, which we also monitor. We use these data to assess associations between herbivore abundance and the biotic and abiotic factors that vary among sites and study years. These associations provide insights into the impacts of climate change on plant-herbivore interactions.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Insect biology; Phenology; Snow Science"
+ },
+ {
+  "pi": "Emily Mooney",
+  "institution": "University of Colorado Colorado Springs",
+  "position": "Associate Professor",
+  "name": "Experimental Warming of Ligusticum and Aphids",
+  "description": "Insects play important roles such as herbivores, pollinators, disease vectors, and decomposers. However, changing patterns of temperature and precipitation are upending the abundances for many insect populations. These population changes may arise from direct effects, as warmer temperatures may accelerate insect population growth. Insects do not exist in isolation, and this project explores the impacts of warming temperatures on the host plants that insects depend on. These plants, in turn, rely on close association with soil microbes, which themselves may be impacted by changing temperatures. Our project will determine the impacts of warming for insect populations arising from this web of above- and belowground interactions.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Insect biology; Soil/microbial ecology; Species Interactions"
+ },
+ {
+  "pi": "Kailen Mooney",
+  "institution": "UC Irvine",
+  "position": "Full Professor",
+  "name": "The role of ants in plant indirect defense",
+  "description": "Plants interact with both harmful insects that eat them and helpful insects that protect them. Ants often defend plants from herbivores, but they do so while farming sap-feeding aphids that produce honeydew. This means plants, aphids, and ants form a three-way relationship?one that plants may be able to influence through their own defensive chemistry. This project investigates how activating plant defense hormones affects aphid growth, which ant species arrive, and how much protection those ants ultimately provide. Because ant species differ greatly in how aggressively they defend plants, even small changes in which ants show up can alter plant outcomes. This project tests these ideas in the well-studied aspen?aphid?ant system. This project also asks whether plants can ?anticipate help? from ants. Using young aspen sunflower, the project will examine whether simple exposure to ants?before plants offer rewards?leads them to invest less in costly chemical defenses because they expect protection. Together, these studies will reveal how plants shape ant behavior and how indirect defense fits into broader plant strategies in natural communities.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Community ecology; Food web biology; Insect biology; Plant biology; Species Interactions; Theory"
+ },
+ {
+  "pi": "Annika Nelson",
+  "institution": "Texas Christian University",
+  "position": "Assistant Professor",
+  "name": "Investigating the Ecological Significance of Secondary Metabolites in Fruit",
+  "description": "Plants produce thousands of secondary metabolites ? chemical compounds that mediate ecological interactions ? but the roles of most of these compounds remain unknown, especially outside of leaves. Fruits are particularly rich in secondary metabolites, which shape interactions with seed dispersers, seed predators, and pathogens. However, the ecological effects of fruit secondary metabolites are complex and context-dependent ? the same compound can influence multiple frugivores with opposing effects (e.g., toxins can repel both harmful seed predators and beneficial seed dispersers), and compounds can have synergistic effects. To understand the ecological and evolutionary significance of fruit secondary metabolites, it is therefore essential to determine the combined effects of multiple compounds on a range of frugivores. I propose to investigate how the concentrations and diversity of nutrients and defensive secondary metabolites mediate interactions surrounding fruit. Using observational field and lab studies, experimental manipulations of fruit chemistry, and analytical chemistry techniques, I will assess patterns of secondary metabolite allocation to fruits, as well as how chemical composition and diversity shape seed dispersal and fruit defense. This research will improve understanding of processes critical to plant reproduction and evolution, with potential applications to conservation and agriculture. The data generated will provide the foundation for the PI to establish a longer-term research program at RMBL.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Community ecology; Plant biology; Species Interactions"
+ },
+ {
+  "pi": "Erica Newman",
+  "institution": "James Madison University",
+  "position": "Assistant Professor",
+  "name": "Long term repeat resurveys of the Gothic earthflow plant community",
+  "description": "Repeat resurveys of a landslide area outside of the Gothic townsite have shown an unusual plant community that has recolonized the site in the past 100 years. This area gives us the opportunity to study plant successional communities in highly disturbed areas, in order to understand their dynamics, productivity, and species diversity. Various biodiversity patterns from macroecological theory can be tested against the data that are collected on this site, to understand how disturbance may affect the plant community structure.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Community ecology; Landscape biology; Theory"
+ },
+ {
+  "pi": "Anna Grinath",
+  "institution": "UCLA",
+  "position": "Graduate Student",
+  "name": "Authoring disciplinary identities in a community of science practice",
+  "description": "The purpose of this research is to understand how people learn to do scientific research while participating in research groups and communities of research groups. A community of practice is a \"group of people who share a concern or a passion for something they do and learn how to do it better as they interact regularly\". A community of science practice (COSP) is a group of people associated with a science discipline(s) who understand and share specialized language, norms, and practices for participation and knowledge generation in the discipline(s). Identity formation as part of a COSP involves learning to legitimately participate in the specialized practices and discourses of the discipline. Such learning is conceptualized as a trajectory of apprenticeship where novices first learn through legitimate forms of peripheral participation, taking on more responsibility and ownership over time as they move towards full participation in the community. COSP research has described full participation as generating new knowledge through research. Structured research experiences are important forms of apprenticeship in a COSP. Although research experiences can have powerful effects on peoples' persistence in science education and research, more research is needed to understand the learning trajectories across different forms of legitimate participation in a COSP, from peripheral to full. This research focuses specifically on how people negotiate and author their science identities through legitimate forms of participation in a COSP.",
+  "fieldOfScience": null,
+  "researchAreas": "Other"
+ },
+ {
+  "pi": "Bobbi Peckarsky",
+  "institution": "University of Wisconsin Madison",
+  "position": "Professor Emeritus",
+  "name": "Integrating river science, education, mentoring and community connections",
+  "description": "RMBL shares the Upper East River basin with other special interests, such as recreation, development of open space associated with the Mt. Crested Butte ski area, abstraction of water for snowmaking and irrigation, hard rock mining and cattle grazing. Such multiple uses of the basin potentially threaten the quality of the receiving streams critical not only to the integrity of the ecosystem, but also to sustaining research, education and community connection functions of RMBL. In 1976 the RMBL obtained a non-consumptive water rights (NCWR) decree that protects minimum flows in streams of the basin. Since that time stream ecologists at RMBL have used invertebrates as biological indicators of stream quality, with the objective of protecting the health and biodiversity of those streams. We have observed some concerning changes over the 50 year time course of this study. For example, changing climate conditions are causing increases in the intensity and frequency of extreme weather events, including severe floods, protracted periods of drought and increasing water temperatures, all of which have the potential to degrade the streams of our region. Periodic drought conditions, increasing water temperatures, lower snow pack and earlier spring snowmelt not only affect the distribution and abundance of sensitive species of macroinvertebrates, but also have contributed to proliferation of a nuisance diatom, Didymosphenia geminata (Didymo), which has altered its growth form and has the potential to threaten the health and biodiversity of otherwise pristine tributaries of the Colorado River. The primary goal of this project is to continue ongoing quantitative invertebrate sampling of eight streams in the Upper East River basin two times per summer, estimate biovolume of Didymo, and monitor abiotic parameters, such as water temperatures, light levels, hydrology, and conductivity. This long-term record of biotic and abiotic variables enables early detection of environmental problems and potential effects of climate change. We are positioned to influence public policy to prevent or mitigate human-mediated changes that fall outside the range of acceptable conditions needed to sustain healthy stream biota. We strive to provide a model system for assessing threats to high elevation streams such as human accelerated environmental change, extraction of mineral resources, proliferation of invasive species, population growth and streamflow diversions. This dataset obtained from relatively pristine streams within a backdrop of environmental change can thereby be used as a reference for comparison to streams in other parts of the Colorado River basin that are vulnerable to ongoing and future threats.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Aquatic Biology; Climate change; Community ecology; Food web biology; Hydrology; Insect biology; Long-term research"
+ },
+ {
+  "pi": "William Petry",
+  "institution": "North Carolina State University",
+  "position": "Assistant Professor",
+  "name": "Predicting range dynamics from climate-demography relationships",
+  "description": null,
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Landscape biology; Long-term research; Modeling; Plant biology; Other"
+ },
+ {
+  "pi": "Sam Pierce",
+  "institution": "Stanford University",
+  "position": "Graduate Student",
+  "name": "Beaver wetlands as ecosystem control points for river water quality",
+  "description": "Beaver dams and the wetlands they create are ubiquitous, landmark features to glaciated river corridors in the West. By building dams and diverting river water into floodplains, beavers fundamentally alter how water flows through a watershed and the biogeochemical processes that occur within the critical zone. Amplified soil weathering conditions, abundant transitional redox boundaries, and heightened aqueous concentrations of iron and dissolved organic matter set the stage for beaver wetlands to be influential bioreactors that can alter downstream water quality. Highly associated with floodplains but marginally understood are colloids; reactive and mobile nanoparticles formed at subsurface redox interfaces, typically rich in iron, organic carbon, and trace metals, and, thus, with the potential to enhance passage of metals and carbon to streams. Unlike hydrologically disconnected floodplains, beaver wetlands are highly engineered systems with substantial advective pathways that allow chemically altered waters, and potentially iron-rich nano-colloids, to be mobilized and transported directly into adjacent streams. My research seeks to understand 1) whether iron-rich colloids are generated in beaver wetlands, 2) whether iron-rich colloids are present in river water downstream of beaver wetlands, 3) how seasonal hydrologic variability influences the abundance and structure of iron within beaver wetlands, and 4) the overall mass loading of iron to rivers from beaver wetlands through surface and subsurface flow paths. Iron particles are widely recognized for their ability to adsorb toxic, redox-sensitive metals from arsenic to uranium, so by focusing on iron this work tracks the water quality implications for harmful trace metals that can be repartitioned within beaver wetlands. In completing this work, I will identify the role beaver wetlands play as an ecosystem control point for river water quality with respect to iron and other affiliated elements and substances.",
+  "fieldOfScience": "Chemistry",
+  "researchAreas": "Biogeochemistry; Hydrology"
+ },
+ {
+  "pi": "Jonathan Raberg",
+  "institution": "University of Wyoming",
+  "position": "Post Doc",
+  "name": "Reconstructing Holocene hydroclimate from sedimentary biomarkers in lakes",
+  "description": "Alpine regions of the Western US are key sources of freshwater for 10s of millions of people. Modern warming and drying trends in this region threaten the security of this resource, especially in the form of a diminishing snowpack. To better understand the trajectory of water availability in the Rocky Mountains, this project aims to reconstruct (coupled) changes in temperature and hydroclimate over the past ~10,000 years by analyzing lake sediment archives. Using a combination of geophysical and sedimentological analyses, we will reconstruct fluctuations in lake water levels as they respond to prolonged (multi-millennial scale) droughts. We will additionally analyze molecular \"fossils\" - the organic remains of bacteria and vegetation on the landscape - which can provide information on temperature and precipitation regimes. These data will ultimately be used to better understand the hydrologic history of the region and improve forecasting of its future.",
+  "fieldOfScience": "Earth Systems Science",
+  "researchAreas": "Biogeochemistry; Climate change; Climate science; Geology; Hydrology; Snow Science"
+ },
+ {
+  "pi": "Mark Raleigh",
+  "institution": "Oregon State University",
+  "position": "Assistant Professor",
+  "name": "Snow process studies in the East River Basin",
+  "description": null,
+  "fieldOfScience": null,
+  "researchAreas": "Snow Science"
+ },
+ {
+  "pi": "Evan Ramos",
+  "institution": "University of Pittsburgh",
+  "position": "Assistant Professor",
+  "name": "Clay formation and organic matter stabilization across an alpine watershed",
+  "description": "Soil organic carbon (OC) constitutes the largest terrestrial pool of carbon, and changes in its size have the potential to modulate atmospheric CO2 levels. As such, the underlying controls on OC stabilization and their sensitivities to climatic change have been increasingly scrutinized. The existing paradigm for OC stabilization suggests that due to their high specific surface areas and negatively charged surfaces, secondary clay minerals that form in soil protect OC from oxidation. Thus, a direct relationship between clay mineral abundance and OC may hold across soil types and climates. Despite this understanding, reactive transport models (RTMs) cannot reconcile soil geochemistry and OC profiles, pointing to knowledge gaps regarding organo-mineral interactions and their constitutive controls. Consequently, these challenges result in great uncertainty in the treatment of soil OC dynamics in Earth systems models and their concomitant effects on future climate projections._x000D_\nTo further understand clay mineral formation and its relationship with OC dynamics over a hydrologic year, Here we propose to advance our understanding of clay mineral formation, OC stabilization, and their_x000D_\ncontrols across a recently deglaciated, headwater catchment (East River watershed) using high-frequency geochemical analyses that track clay mineral formation. Preliminary analyses, including a numerical inversion of a solute time series show that the amount of cation uptake by clay varies on short (event) timescales. These same events also feature changes in dissolved carbon species, which may be plausibly linked to the dynamics of clay mineral cycling. Following these results, we designed preliminary RTMs that include Li isotopes: a novel proxy for clay formation. The models predict a covariation in Li isotope ratios (in sediment and soil water) with solid-phase and dissolved OC. Together, these results support clay mineral formation as a dynamic and seasonally modulated process that is closely linked to OC dynamics. Planned measurements of Li isotope ratios of soil, river water, and bedrock in the East River, along with new RTMs with variable organo-mineral couplings, will help validate these preliminary findings.",
+  "fieldOfScience": "Earth Systems Science",
+  "researchAreas": "Biogeochemistry; Climate change; Geology; Hydrology; Soil/microbial ecology"
+ },
+ {
+  "pi": "Kelsey Reider",
+  "institution": "James Madison University",
+  "position": "Assistant Professor",
+  "name": "Context-Dependent Life History Responses to Climate Change",
+  "description": "Larval salamanders either metamorphose into terrestrial adults (metamorphs) or forego metamorphosis to become gilled, aquatic adults (paedomorphs). Paedomorphs are primarily subject to environmental changes in the aquatic habitat whereas metamorphs are subject to environmental variation affecting both the aquatic and terrestrial environments. Metamorphs and paedomorphs are thus likely to be asymmetrically impacted by climate change. My objectives are to understand how past and future climate variation and climate change impact amphibians using a combination of modeling and field studies. I propose to:_x000D_\nA) Compare temperature and water stress impacts of ongoing climate trends under different environmental contexts (in the aquatic and terrestrial environments along an elevational gradient) using data logger-implanted paedomorphs and metamorph salamanders as mobile temperature sensors, salamander biophysical models in different environments. _x000D_\nB) Study the thermal physiology of wild aquatic and terrestrial salamanders at different elevations to better understand sources of exposure and resilience to the changing thermal environment they are subjected to under climate change._x000D_\nC) Determine the effects of abiotic correlates, e.g., temperature and precipitation, on breeding activity in a wide-ranging frog species.",
+  "fieldOfScience": null,
+  "researchAreas": "Aquatic Biology; Climate change; Phenology; Vertebrate biology"
+ },
+ {
+  "pi": "Emily Renkey",
+  "institution": "University of California Los Angeles",
+  "position": "Graduate Student",
+  "name": "Marmot moods: Quantifying affective state in a wild mammal",
+  "description": "Emotion plays a critical role in shaping animal decision-making and behaviors. However, little is known about the way wild animals experience and express emotion, or affective state, especially over extended periods. In order to predict how species will respond to disturbance, and ultimately adapt in a rapidly changing world, we must understand how to assess their emotional state. The goal of this research is to develop an index that evaluates affective state in a wild population of yellow-bellied marmots (Marmota flaviventer). Once developed, I will use the index to (1) determine the relationship between affective state and environmental conditions, (2) experimentally validate the index and (3) examine whether emotions influence two fitness metrics. I will use this research to provide a framework that includes taxon-specific measures and can be implemented by other wildlife managers to better understand emotion across wild animal populations. This research will produce a novel study on the mechanisms that underlie wildlife behavior, their long-term consequences for survival and reproduction, and whether human-induced ecological changes may be driving changes in affective state.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Long-term research; Vertebrate biology"
+ },
+ {
+  "pi": "David Rey",
+  "institution": "U.S. Geological Survey",
+  "position": "Research Scientist - Non-academic PhD Scientist",
+  "name": "Proposed GW/SW interactions course, near on Slate River, July 2026",
+  "description": "The U.S. Geological Survey (USGS) is holding a training course focusing on field methods for identifying and quantifying stream and groundwater connectivity. For the field components of this class, we intend to focus our stream corridor teaching efforts along the Slate River, along the reach from the Oh Be Joyful campground down to the SLAC research area/Gunsight bridge. Proposed field activities would occur between July 27th and July 31st, 2026. Proposed field components would mainly take place on 7/28 and 7/29 (the rest of the course is offered in a classroom setting), and no equipment would be left installed after the end of the training week. Proposed activities include: The brief installation of seepage meters/piezometers/permeameters, and fiber optic cable (placed at the streambed interface) for collecting distributed temperature measurements; a small drone-based data collection demonstration; non-invasive thermal methods including thermal infrared mapping with cameras and water and bed temperature collection via probes; non-invasive geophysical data collection on the streambanks; and the injection of inert tracers to identify spatially distributed groundwater inflows along the reach via dilution. We plan to make the various field data collected during the course publicly available for possible future research use, and so they could be leveraged to augment the ongoing 'baseflow' related data being collected along the Slate River by the USGS and others. The course teaching will highlight the wide range of RMBL, University, National Laboratory, and Federal data collected throughout the East River watershed related to groundwater-surface water exchange processes.",
+  "fieldOfScience": "Hydrology",
+  "researchAreas": "Hydrology"
+ },
+ {
+  "pi": "Ceci Rigby",
+  "institution": "Northwestern University",
+  "position": "Graduate Student",
+  "name": "How do the abiotic and biotic environment shape species interactions?",
+  "description": "Theory predicts the conditions under which species? diets expand or contract. These predictions, such as limited food resources leading to an expanded diet breadth, have experimental support in various systems under controlled conditions. However, we know much less about how these predictions play out under realistic and variable field conditions, nor do we understand their direct and indirect biotic and abiotic drivers. Therefore, I propose to investigate the environmental drivers of interaction specialization and generalization using a long-term (11-yr, ongoing) well-studied plant-pollinator interaction system. Focusing on the floral diets of bumble bees (Bombus spp.), I will analyze how pollinator interaction specialization (i.e. diet breadth) is shaped directly and/or indirectly by biotic factors (e.g., floral abundance), abiotic factors (e.g., climate conditions), and their combinations. This work will leverage 11+ years of data on natural environmental variation and bumble bee floral resource use. While conducting this fieldwork, I will concurrently use my unique training in bumble bee nest searching to locate and document bumble bee nesting traits?the most understudied facet of their life history, and the basis of their population ecology. My results will aid in our fundamental understanding of how ecological interactions are shaped by the environment, and illuminate how plant-pollinator interactions may play out under projected environmental change. I, too, will advance our knowledge of the least understood stage of the bumble bee life cycle through collecting information on bumble bee nesting ecology. Preliminary results from this work have found diet breadth diversity amongst the bumble bee community in our system, with two major groups emerging: relative diet generalists (B. bifarius, B. flavifrons, B. mixtus, B. occidentalis, B. rufocinctus) and diet specialists (B. appositus, B. californicus, B. nevadensis). This information will be used in a structural equation model to untangle how the biotic and abiotic environment has shaped diet diversity in this bumble bee community across the last decade.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Pollination; Species Interactions"
+ },
+ {
+  "pi": "Timberley Roane",
+  "institution": "University of Colorado Denver",
+  "position": "Associate Professor",
+  "name": "Microbial Genomics Analysis of the Mt. Emmons Acidic, Metal-Impacted Fen",
+  "description": "The Mt. Emmons Fen is a unique acidic, naturally metal-impacted wetland system in the Crested Butte area. Sensitive to environmental changes, the Fen provides opportunity to examine how microorganisms, such as the bacteria, can be used as early sentinels of disturbance. Vulnerable to mining impacts, climate change, and hydrological aging, bacterial species and genomic diversities can provide timely information about ecosystem parameters and predict shifts in ecosystem functioning, e.g., carbon sequestration/degradation, elemental cycling, tolerance to metal toxicity. This work continues to build our understanding of the background microbial ecology of the Mt. Emmons Fen in an effort to protect this rare ecosystem.",
+  "fieldOfScience": "Biology",
+  "researchAreas": "Microbiology"
+ },
+ {
+  "pi": "Alden Sears",
+  "institution": "North Carolina State University",
+  "position": "Graduate Student",
+  "name": "How interactions with mutualists & predators shape plant coexistence",
+  "description": "Plant community structure is controlled by interactions between individuals that are mediated by shared resources, mutualists, and enemies. It is difficult to study each of these three classes of interactions in parallel due to their great complexity. We propose to isolate the relative effects of each class of interactions by a study of perennial plant coexistence. Perennial plants have life cycles in which competition via resources, pollinators, and seed predators are separated temporally. We will therefore manipulate floral communities of four perennial plant species to parameterize a model which identifies how different forms of interaction impact the viability of plant coexistence and pathways of community assembly.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Community ecology; Plant biology; Pollination; Species Interactions; Theory"
+ },
+ {
+  "pi": "Carlisle Segal",
+  "institution": "Montana State University",
+  "position": "Graduate Student",
+  "name": "Patterns of Diversity in Rocky Mountain Alpine Flora",
+  "description": "The latitudinal gradient hypothesis which posits that biodiversity decreases as latitude increases does not show up in all locations or all taxa. In alpine plant communities many factors may play a role in community assembly including climate and elevation. We hope to explore the main drivers of biodiversity in Rocky mountain alpine flora by analyzing taxonomic, functional, and phylogenetic diversity. Our study covers paired sites east and west of the continental divide which are found across a relatively narrow longitudinal band but experience different climate. Using this framework we hope to learn what kinds of climatic or latitudinal factors may play the largest role in formation of these communities.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Community ecology; Genetics; Landscape biology; Long-term research; Modeling; Plant biology"
+ },
+ {
+  "pi": "Kamini Singha",
+  "institution": "Colorado School of Mines",
+  "position": "Full Professor",
+  "name": "How does subsurface connectivity regulate water and carbon processes?",
+  "description": "This research focuses on the layers of soil and bedrock known as the subsurface, and how its physical structure controls the movement of water and carbon into our rivers. While most of our river water travels through the subsurface before reaching the surface, this area remains difficult to study because it is largely \"invisible\" to traditional observation. Understanding these underground flow paths is critical because dissolved carbon affects the health of aquatic ecosystems, the cost of drinking water treatment, and the global climate. To bridge this gap, our team will use advanced technologies, including airborne sensors, that map the earth's internal structure from above, as well as high-resolution chemical analysis to fingerprint carbon molecules at the molecular level. By studying the Coal Creek watershed in Colorado, we will integrate these new data into powerful computer models to predict how water and carbon transport will change as temperatures rise and weather patterns become more extreme. Ultimately, the project seeks to reveal how the underground \"plumbing\" of the earth acts as a gatekeeper for the water quality and environmental health of our planet.",
+  "fieldOfScience": "Hydrology",
+  "researchAreas": "Climate change; Climate science; Geology; Hydrology; Modeling"
+ },
+ {
+  "pi": "Rosemary Smith",
+  "institution": "Idaho State University",
+  "position": "Professor Emeritus",
+  "name": "Behavior and Ecology of Burying Beetles",
+  "description": "The primary project explores many questions related to the behavior and ecology of the burying beetle (Nicrophorus). Burying beetles are well known for their biparental care, which takes place on a small vertebrate carcass (usually a mouse) that they bury underground. The parents prepare the carcass as well as defend it against intruders, ensuring a food supply for their larvae. Behavioral studies provide insight into the factors that influence reproductive and parental decisions and success, such as individual size and age, carcasses quality, soil temperature, and competition from other carrion-feeding species. Long-term (> 25 years) ecological studies provide insight into the factors that influence the distribution and population dynamics of interacting carrion beetle species, including studies linking rodent populations (determined using live capture-mark-release-recapture techniques) to beetle populations (also marked and released), habitat associations based on microclimate, historical range shifts, and the influence of soil temperature and snowmelt on overwinter survival and emergence patterns. Burying beetles and rodent carcasses are also important components of the decomposer food web- and thus we also study their influence on soil nutrients and plant growth._x000D_\nSecondary projects include 1) deployment of motion-activated cameras to detect wildlife behaviors and activity on human trails and at key resources such as mineral licks and sapsucker wells and 2) collection of insects for genetic, identification, and taxonomic purposes.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Community ecology; Food web biology; Insect biology; Long-term research; Phenology; Vertebrate biology"
+ },
+ {
+  "pi": "Jeannie Stamberger",
+  "institution": null,
+  "position": "Research Scientist - Non-academic PhD Scientist",
+  "name": "Long-Term Ground Temperature Data to Study Colias meadii Larval Diapause",
+  "description": "Ground temperatures, used as a proxy for larval body temperature during diapause, are measured with a dense sensor network in the habitats of Colias meadii butterflies. These data, collected every five minutes and 25-100 feet apart for over six years, create a unique record of microclimates in alpine and montane environments. Research at the Rocky Mountain Biological Laboratory (RMBL) has shown that Colias meadii populations above and below treeline exhibit distinct thermal adaptations that affect fitness, and stabilizing selection for these adaptations despite the ability to migrate. However, the effects of the environment on larvae during their long overwintering diapause remain less studied. Other insect studies suggest that extreme cold events, such as exposure to 0\u00b0F prior to lower temperatures, can influence larval survival and adult fitness. By collecting microclimate data at biologically relevant time and space scales in C. meadii habitats, we are building a unique record of potential thermal shocks that could impact these larvae. The dense dataset also allows us to refine coarse measurements like snowmelt dates, which affect phenology, and develop models to assess variability in rapidly changing habitats, influenced by factors like wind and cloud cover. This research adds to RMBL?s long-term data sets, expands the region's microclimate understanding, and contributes to the thermal ecology of Colias butterflies, a genus studied at RMBL for over 50 years.",
+  "fieldOfScience": "Biology",
+  "researchAreas": "Climate change; Climate science; Insect biology; Long-term research; Modeling; Phenology; Snow Science"
+ },
+ {
+  "pi": "Kristina Stinson",
+  "institution": "University of Massachusetts",
+  "position": "Associate Professor",
+  "name": "Ecology and impacts of non-native mustards in the subalpine zone",
+  "description": "Plants in the Brassicaceae (mustard) family are of broad interest to biologists. Phytochemical compounds unique to the Brassicaceae (i.e., glucosinolates) include secondary compounds that deter generalists, attract specialist insect herbivores, and deter fungal pathogen attacks. The specific concentrations and combinations of these compounds vary across different mustard taxa and may also change in response to abiotic conditions and through time. In high altitude meadow ecosystems like those around RMBL, native mustard species such as Boechera stricta, Cardaminecordifolia, and others are important hosts to specialist butterfly larvae. However in recent years, several exotic mustards such as Thlaspi arvense, Lepidium latifolium, Capsella species and Barbarea vulgaris, have been rapidly increasing in abundance across sub-alpine meadow and grassland/sage habitats, posing potential novel ecological and evolutionary interactions with native butterflies. In other ecosystems, invasive mustards are also known to disrupt native plant-mycorrhizal interactions and we have recently found this to be the case in the subalpine zone as well. The current project is a renewal of ongoing research on the ecology and impacts of non-native mustards in sub-alpine ecosystems. Over the next few years, my general plan of study is to begin to comprehensively document spatial and temporal variation in the phytochemistry and distributions of native and non-native mustard plants in the sub-alpine ecosystem around RMBL and the surrounding landscape. My specific research objectives are to: document abundance and distribution of invasive mustard species across local environmental/elevation gradients; measure temporal and spatial variation in the phytotoxicty and fitness of focal Brassicaceae species; and develop new experiments to test phytochemical responses to specific abiotic variables. The work will involve training new PhD students and REU students at RMBL and the research will inform our understanding of novel species interactions across spatial gradients now and under future climate scenarios.",
+  "fieldOfScience": null,
+  "researchAreas": "Climate change; Insect biology; Microbiomes; Phenology; Plant biology"
+ },
+ {
+  "pi": "Mary (Cassie) Stoddard",
+  "institution": "Princeton University",
+  "position": "Full Professor",
+  "name": "Color vision, courtship and foraging in Broad-tailed Hummingbirds",
+  "description": null,
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Long-term research; Pollination; Species Interactions"
+ },
+ {
+  "pi": "Harry Stone",
+  "institution": "Princeton University",
+  "position": "Graduate Student",
+  "name": "Modeling Drivers of Summer Streamflow Changes at the Micro-catchment Scale",
+  "description": "Mountainous watersheds, such as the Colorado River Basin, are key sources for a diversity of human needs and are under threat from climate change. The Colorado has seen a precipitous drop in river flows, endangering the water supply of 1 in 10 Americans. This study posits increased summertime evapotranspiration (ET) from rising temperatures is a primary driver of this water loss. Furthermore, subsurface flow will continue to subsidize high ET-areas causing future streamflow declines as temperatures in the Colorado River Basin continues to accelerate. To investigate these theories, an intensive monitoring and data collection campaign will occur on the representative micro-catchment of Snodgrass Mountain outside Crested Butte, CO to quantify and bound ET dynamics. Data collected on Snodgrass will be then used to help inform a high-resolution hydrologic model of the watershed to simulate future ET trends, with important implications for water supply and management.",
+  "fieldOfScience": "Hydrology",
+  "researchAreas": "Climate change; Hydrology; Snow Science"
+ },
+ {
+  "pi": "BRAD TAYLOR",
+  "institution": "North Carolina State University",
+  "position": "Associate Professor",
+  "name": "Linking changing snowpack to stream ecosystem structure and function",
+  "description": null,
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Aquatic Biology; Biogeochemistry; Climate change; Community ecology; Disease ecology; Food web biology; Hydrology; Long-term research; Species Interactions"
+ },
+ {
+  "pi": "Zachary Taylor",
+  "institution": "Berry College",
+  "position": "Associate Professor",
+  "name": "Paleoenvironmental reconstruction in the Gunnison Basin from sediments",
+  "description": "Lake and fen sediments are rich archives of information about past environments. Near RMBL, these sediments have the potential to reach back 18,000 years to the Last Glacial Maximum. Through the analysis of pollen grains, charcoal fragments, and sediment geochemistry, the goal of this project is to reconstruct past vegetation communities, fire dynamics, and climate in greater RMBL region. Increased understanding of the impacts of past climate changes on ecosystems provides valuable information that will help land managers better prepare for future conditions.",
+  "fieldOfScience": "Geology",
+  "researchAreas": "Biogeochemistry; Climate change; Climate science"
+ },
+ {
+  "pi": "Camille Testard",
+  "institution": "Harvard University",
+  "position": "Post Doc",
+  "name": "Bio-logging to reveal the hidden lives of Yellow-bellied marmots",
+  "description": "The goal of this project is to complement the outstanding long-term data collection on Yellow-bellied marmots at RMBL with bio-logging technologies which will allow for remote and continuous behavioral and physiological tracking. We will densely sample marmots? association patterns and movements throughout the day and year-round. These data will give us novel insight into marmots? subterrain behavior and movement ecology - data that is extremely difficult, if not impossible, to collect via human observations. With these new data in hand, we aim to (1) better understand how an increasingly unpredictable subalpine climate drives marmot social relationships and plasticity, (2) illuminate marmot?s below-ground social lives for the first time and how above- and below-ground behaviors covary, and (3) map wild marmot?s behavior during hibernation and how summer social behavior may drive hibernation survival and success.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Animal Behavior; Climate change; Long-term research"
+ },
+ {
+  "pi": "Scott Thomas",
+  "institution": "Scott Thomas",
+  "position": "Post Doc",
+  "name": "Regional patterns and drivers of tiger salamander life history variation",
+  "description": null,
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Aquatic Biology; Long-term research; Vertebrate biology"
+ },
+ {
+  "pi": "James Thomson",
+  "institution": "University of Toronto",
+  "position": "Professor Emeritus",
+  "name": "Pollination and life history of Erythronium grandiflorum",
+  "description": "(1) On my property at Irwin, I conduct annual experiments to measure the pollination success of an early-flowering lily. (2) In a transplant garden, I annually record flower production and fruiting success in about 230 plants. Two progress reports have been published. When these plants have entered dormancy, I exhume the corms to be weighed and photographed. The data are archived.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Pollination; Other"
+ },
+ {
+  "pi": "Greta Thoresen",
+  "institution": "University of Chicago",
+  "position": "Graduate Student",
+  "name": "Unveiling environmental determinants of nectar phenotypes in a selfer",
+  "description": "The evolutionary transition from outcrossing to self-pollination is known to have consequences for the genetic and morphological traits of flowering plants. However, little is known about how selection has shaped pollinator-reward phenotypes in selfers. By characterizing (1) the genetic and environmental drivers of nectar variation and (2) the ecological and evolutionary consequences of variable nectar traits in Boechera stricta, my research will explore why nectar reward phenotypes persist in this selfing species. During this project, I will phenotype nectar traits in wild populations of B. stricta at RMBL and employ a genome-wide association study under manipulated environmental conditions at the University of Chicago to determine the relative effects of genetic and environmental variation in shaping nectar traits. Furthermore, I will quantify how variation in nectar traits influence insect visitation, and how this may have shaped long-term patterns of genetic variation across the species range. Finally, I will use a common garden experiment to test whether variation in nectar traits influence fitness in natural conditions. Overall, the results will help reveal why selfing species maintain investment in nectar phenotypes, with implications for understanding genetic and environmental controls of gene flow.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Genetics; Insect biology; Plant biology"
+ },
+ {
+  "pi": "Savannah Troy",
+  "institution": "University of Florida",
+  "position": "Post Doc",
+  "name": "Phenological mismatch between birds and insects in montane meadows",
+  "description": "An important frontier in climate change ecology is understanding how community interactions may change because of mismatched phenological shifts. Phenological mismatch between insect prey and American migratory bird species may be emerging and is anticipated to have detrimental consequences on bird reproductive success. Moreover, the abundance and biomass of insect prey in the Rocky Mountains have declined over the past 35 years. Climate effects such as snowmelt timing are drivers of change for many taxa, and consequences may vary by elevation. I ask: Do nest provisioning rates by breeding birds change over time with invertebrate phenology during the summer breeding season in montane wet meadow habitats? Does the peak of insect prey demand by birds align with the current peak of insect abundance and biomass? Does bird reproductive success correlate with invertebrate phenology? And do these dynamics change with elevation? I have established a partnership with the Colorado Parks and Wildlife lead avian biologist (Dr. James Gammonley) with whom I will prepare outcomes of this research for use in guiding management of non-game bird species in the state. I am also studying driver behavior in response to different road signage intended to reduce small animal road mortality. I will experimentally test which style of messaging most reduces observed animal road kill events during peak summer tourism season in the back country.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Community ecology; Food web biology; Insect biology; Vertebrate biology"
+ },
+ {
+  "pi": "Maggie Wagner",
+  "institution": "University of Kansas",
+  "position": "Assistant Professor",
+  "name": "Boechera stricta microbiome evolution II",
+  "description": "The microbes living on and inside plant organs (the microbiome) can greatly impact the health and growth of the host plant. However, despite recent research into the processes and mechanisms behind these relationships, there is still much to learn about how they evolved. This proposal outlines a plan to study the evolution of plant-microbiome interactions using the wild perennial mustard Boechera stricta as a model system. The project will (1) collect longitudinal data on the microbiome composition of plants from wild B. stricta populations along an elevational transect in Gothic Valley over multiple years, (2) isolate bacteria and fungi from roots of the same plants to create a collection of native strains for use in future experiments, and (3) collect soil samples from nearby existing common garden experiments for use as inocula in future experiments. This work will provide preliminary data and resources for future studies and help build a research program focused on the evolution of B. stricta and its microbes in the context of climate change and water stress.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Genetics; Microbiomes; Plant biology; Soil/microbial ecology"
+ },
+ {
+  "pi": "Haruko Wainwright",
+  "institution": "MIT",
+  "position": "Assistant Professor",
+  "name": "Multiscale Heterogeneity of Soil Moisture: Differential Drying",
+  "description": null,
+  "fieldOfScience": "Hydrology",
+  "researchAreas": "Climate science; Hydrology"
+ },
+ {
+  "pi": "Susan Washko",
+  "institution": "Western Colorado University",
+  "position": "Other - if your profession or educational stage is not listed, please select this option",
+  "name": "Aquatic invertebrates in beaver ponds of different successional stages",
+  "description": "As beavers continue to expand their ranges and ecologically engineer streams and wetlands within Colorado, beaver ponds of different ages can be found throughout the landscape. Ponds of different ages have varying levels of sediment accumulation and habitat structure, which could impact which aquatic invertebrates inhabit them. This proposed research aims to determine if older beaver ponds house different aquatic invertebrate communities than newer beaver ponds. Ponds of varying ages and successional stages will be sampled in the Trail Creek drainage and the upper East River valley. Using a 1-m D-net sweep, invertebrates will be caught, identified pondside in the field, enumerated, and released back into the pond. Results will provide insight into the relationship between aquatic invertebrates and beaver engineering.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Aquatic Biology; Community ecology; Insect biology"
+ },
+ {
+  "pi": "Laura Watt",
+  "institution": "Sonoma State University",
+  "position": "Professor Emeritus",
+  "name": "Continuing Archival Research of the Environmental History of RMBL",
+  "description": "This project will continue conducting historical research at the Rocky Mountain Biological Laboratory (RMBL), a high-altitude biological field station located on the Western Slope of the Colorado Rockies. The Lab was built on the site of an old silver mining town, Gothic, which flourished briefly in the early 1880s. In their anthology The Ecology of Place, editors Ian Billick and Mary Price argue that the power of place often motivates ecologists in the field, and that citizens and scientists could work more collaboratively to solve environmental problems if built upon ?a sense of place that sees humans as part of the ecological system, not separate from it.? This project explicitly investigates this more place-based scientific inquiry developing over time, in a place where perennially returning scientists themselves are becoming nearly ?indigenous,? spending entire careers conducting summer field work to understand the dynamics of specific ecosystems or species.",
+  "fieldOfScience": "Other",
+  "researchAreas": "Long-term research; Other"
+ },
+ {
+  "pi": "Caitlin Wells",
+  "institution": "Colorado State University",
+  "position": "Assistant Professor",
+  "name": "Reproductive phenology in golden-mantled ground squirrels",
+  "description": "Mammals living in high-altitude environments must time their reproduction carefully so that offspring are born when food is available. For hibernating squirrels, food does not become available in the spring until melting snow stimulates growth of green vegetation, hence these squirrels often must emerge from hibernation and mate before the snow melts. However, we don?t know what cues females use to anticipate the time of snow melt, in order to determine the correct time to mate, and we don?t know what the consequences are for females that mate too late or too early. This study proposes to address both questions. The results will not only increase our understanding of how mammals adapt to the strong seasonality of high-altitude environments, but it also may enhance our understanding of the effects of climate change. Scientists fear that one consequence of warming temperatures is that the cues that animals use to anticipate seasonal events may no longer accurately predict those events.",
+  "fieldOfScience": null,
+  "researchAreas": "Animal Behavior; Climate change; Genetics; Long-term research; Phenology; Vertebrate biology"
+ },
+ {
+  "pi": "Megan Whiddon",
+  "institution": "University of Massachusetts-Amherst",
+  "position": "Graduate Student",
+  "name": "Ecological Restoration Following Impacts of Invasive Mustards",
+  "description": "Anthropogenic pressures such as global trade, increased human population, and climate change have led to the introduction of non-native species. As these threats intensify, there is an increasing need for understanding their impacts to native ecosystems and creating new tools restoration post-disturbance. Invasive species in high elevation ecosystems such as subalpine meadows of Colorado are becoming more common. Members of the Brassicaceae (mustards) have recently been introduced into these otherwise pristine areas and are a threat to local diversity and community dynamics. This proposal aims to understand an introduced mustard, Thlaspi arvense, its impacts to the native plant and soil-microbial communities, and to test a new restoration method using microbial inoculation in invaded areas. Over the span of 3 summer field seasons, I will conduct field surveys at Rocky Mountain Biological Laboratory to assess T. arvense damage on the diversity and functioning levels of native meadow vegetation and soil communities. A greenhouse experiment will be conducted to test if native microbial inoculation can be used to actively restore diversity and functioning levels post-disturbance. This work has the potential to increase understanding in an area of ecology that is not well understood and provide stakeholders with new, accessible restoration methods.",
+  "fieldOfScience": "Biology",
+  "researchAreas": "Climate change; Community ecology; Plant biology; Soil/microbial ecology"
+ },
+ {
+  "pi": "Howard Whiteman",
+  "institution": "Murray State University",
+  "position": "Full Professor",
+  "name": "Evolutionary Ecology and Conservation Biology of Amphibians",
+  "description": "My proposed research focuses on how climate change is impacting Tiger Salamander populations through both observation and experimentation. Climate change is particularly strong at high elevations and potentially influential on the biology of amphibians. Building upon three decades of research, my collaborators and I are exploring how changes in temperature and precipitation have and continue to change the life history and population dynamics of this species. Specifically, we propose to continue our population monitoring, increase our environmental monitoring, continue implanting internal temperatures within the salamanders themselves, and conduct a series of experiments aimed at understanding how elevation, temperature, and density may interact to affect important developmental milestones. Additionally, my lab proposes to continue our work at understanding the disease issues affecting Boreal Toads and to explore methods that can aid the restoration of this state-endangered species.",
+  "fieldOfScience": null,
+  "researchAreas": "Animal Behavior; Aquatic Biology; Climate change; Community ecology; Disease ecology; Food web biology; Long-term research; Modeling; Phenology; Species Interactions; Theory; Vertebrate biology"
+ },
+ {
+  "pi": "Kenneth Whitney",
+  "institution": "University of New Mexico",
+  "position": "Full Professor",
+  "name": "Evolutionary Ecology of Floral Color",
+  "description": "Flower color is central to plant-pollinator interactions, but several outstanding questions remain. How do floral colors vary geographically, i.e. across elevations or between habitats? What are the roles of abiotic agents (e.g. climate) and biotic agents (e.g. pollinators) in shaping floral colors within communities and across gradients? Has climate change shifted the timing or composition of floral colors presented to pollinators? The proposed research will attempt to answer these and other questions by expanding a database of floral spectra from flowering species in the RMBL area. This database can be used to estimate both 'raw' and pollinator-relevant measures of color for each plant species, which in turn can be connected to other RMBL datasets and ongoing experiments (e.g. phenology datasets, vegetation surveys) to answer the specific questions.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Plant biology; Pollination; Species Interactions"
+ },
+ {
+  "pi": "Rick Williams",
+  "institution": "Idaho State University",
+  "position": "Professor Emeritus",
+  "name": "Expanding Natural History and Community Science Resources at RMBL",
+  "description": "Natural history collections and community science are increasingly recognized as important data sources for the study of global change biology. Natural history collections, such as herbaria, document changing diversity, distribution, phenology, morphology and genetics over decades and centuries. They also provide many opportunities for education and outreach in taxonomy, ecology and conservation. Community science initiatives, such as iNaturalist, likewise expand the range, in time and space, of data generated on species distributions and phenology and provide an engaging platform for education and outreach in natural history. The natural history collections and curated iNaturalist observations at RMBL serve an increasingly wide array of users and the herbarium is an important resource for plant identification and data archiving for scientists, students and the public. Over the next 5 years I plan to expand and improve the collections, facilitate access to collection data, and utilize natural history collections and community science for research, education and outreach.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Climate change; Community ecology; Genetics; Insect biology; Landscape biology; Long-term research; Phenology; Plant biology"
+ },
+ {
+  "pi": "Kenneth Hurst Williams",
+  "institution": "Lawrence Berkeley National Lab",
+  "position": "Full Professor",
+  "name": "Watershed Function Science Focus Area",
+  "description": "Watersheds provide key resources for human populations, with pressing demands for clean water, food, and energy. In parallel, changing hydroclimate, diminished snowpack, and interacting temperature-driven disturbances, are significantly reshaping interactions within watersheds. The Watershed Function Scientific Focus Area (SFA) is addressing the grand challenges of understanding how mountainous watershed functions respond and adapt to increasing disturbances. Our focus is on understanding the interactions of warming and drought with hydro-biogeochemical functioning in mountainous watersheds of the Upper Colorado River Basin and their retention or release of water, carbon, nitrogen, and other biologically critical elements. Our multi-lab SFA will identify watershed functional traits, which are observable characteristics that mechanistically link to ecosystem performance. These traits will be assessed within a new trait-based hydro-biogeochemical modeling capability (ATS-EcoSIM) that considers watershed compartments? hydrological, ecological, and biogeochemical interactions and adaptation in response to disturbances and feedbacks. High-resolution process-based models will be used to achieve mechanistic understanding across scales. Combining remote sensing, field-based observations, laboratory experiments, and machine learning (ML), we will decipher patterns of watershed functional trait covariance and develop ML-based surrogate models to transfer and scale mechanisms. Our research is organized into three Research Focus Areas (RFAs) and a ModEx integration core, addressing hypotheses related to disturbance impacts and resilience, pathways of adaptation, and trait covariance, aggregation, and transfer. Our goal is to gain a predictive understanding of mountainous watershed function and provide valuable insights for sustainable water resource management, land use planning, and climate change adaptation in mountainous regions worldwide.",
+  "fieldOfScience": "Earth Systems Science",
+  "researchAreas": "Atmospheric Science; Biogeochemistry; Climate change; Climate science; Geology; Hydrology; Long-term research; Microbiomes; Microbiology; Modeling; Soil/microbial ecology; Snow Science"
+ },
+ {
+  "pi": "Anne Worley",
+  "institution": "University of Manitoba",
+  "position": "Associate Professor",
+  "name": "Geographic variation in floral shape and scent in Polemonium brandegeei",
+  "description": "We are studying honey Jacob?s ladder (Polemonium brandegeei), a subalpine perennial plant with strongly scented, creamy flowers and skunky leaves. This species is visited by many pollinator groups, including hummingbirds, hawkmoths, and solitary bees. Variation among populations in floral visitors may affect natural selection on floral scent, colour and shape. However, changes in environmental conditions (e.g., temperature, moisture levels) may also cause populations to differ in floral traits. We are comparing flower shape, colour and scent in natural populations ranging from New Mexico to Wyoming to plants from these populations grown in a common greenhouse environment. This study will help our understanding of the relative effects of genetics and environment on floral traits, and potential responses to changes in pollinator abundance.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Plant biology; Pollination; Species Interactions"
+ },
+ {
+  "pi": "Marshall Worsham",
+  "institution": "Lawrence Berkeley National Laboratory",
+  "position": "Post Doc",
+  "name": "Soil moisture and growth responses to climate extremes in subalpine forests",
+  "description": "The large objective of this project is to clarify the how environmental and community factors condition subalpine forest responses to climate extremes. Subalpine forests are outsize contributors to the hydrological budget of the Rocky Mountains, but they are exposed to increasing water and temperature stresses associated with climate change. Prior research in these systems has not adequately described the seasonally varying relationships between plant-available water, atmospheric demand, and tree growth. To address these knowledge gaps, I aim to (1) maintain an existing sensor network monitoring soil volumetric water content (?), temperature, conductivity, and atmospheric fluxes to evaluate spatial and temporal variability in soil water dynamics; and (2) to conclude an ongoing dendrochronology campaign seeking to quantify how tree growth rates vary over space and time, across species, and with the instrumented climate record of the watershed. My proposed research is motivated by three core expectations: (1) where water availability is the limiting factor in tree productivity, moisture deficit will be associated with low growth, but there may be other limiting factors present (radiation, pests, or pathogens) that override water limitation; (2) to sustain productivity, trees alternate uptake between shallow and deep water sources where possible and may also redistribute water to replenish dry pools; (3) water availability and plant water use vary across sites as a function of precipitation input, soil properties, and species traits. This effort will shed needed light on the coupling vegetation dynamics and hydrology in headwater forests.",
+  "fieldOfScience": "Ecology and Evolutionary biology",
+  "researchAreas": "Biogeochemistry; Climate change; Community ecology; Hydrology; Long-term research; Plant biology; Snow Science"
+ },
+ {
+  "pi": "Carrie Wu",
+  "institution": "University of Richmond",
+  "position": "Full Professor",
+  "name": "Long-term ecophysiological responses in a montane plant hybrid zone",
+  "description": "Climate change is causing significant alterations to temperature and precipitation patterns, including more intense and frequent climatic events that can negatively impact species persistence. My overarching goal is to understand whether rapid evolution in response to accelerating climate change can rescue natural populations from extinction, leveraging the unique long-term data set amassed for Ipomopsis wildflowers in the Colorado Rocky Mountains. Over 20 years ago, I determined that the genetic structure of this hybrid zone depends on a mixture of pollinator and habitat-mediated selection; in summer 2026 I will revisit Poverty Gulch, CO to measure the ecophysiological and floral traits that I?ve shown to influence fitness in this system, and determine if these populations have been able to track documented environmental change.",
+  "fieldOfScience": "Biology",
+  "researchAreas": "Long-term research; Plant biology"
+ },
+ {
+  "pi": "Guillermo Zapata",
+  "institution": "University of Georgia",
+  "position": "Graduate Student",
+  "name": "The Praxis of Climate Change Researchers",
+  "description": "Although there are landmark works that study the life worlds of scientists such as \"Laboratory Life\" by Bruno Latour, little attention has been paid to the ethical foundations that motivate scientists in the field. Using work such as \"Because This Land Is Who We Are: Indigenous Practices of Environmental Repossession\" as a model, this project intends to interview scientists working at RMBL in an attempt at a philosophical exploration of the virtues, experiences, and ideologies that shape the work happening on the front-line of climate change. Research at RMBL will be paired with similar ethnographies, such as of those involved in the Novel Ecosystem conference, and researchers at the University of Georgia Marine Institute at Sapelo Island.",
+  "fieldOfScience": "Other",
+  "researchAreas": null
+ }
+]
