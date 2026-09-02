@@ -246,6 +246,16 @@ export const Publications: CollectionConfig = {
       },
     },
     {
+      name: 'rmblResearchScore',
+      type: 'number',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description:
+          'Pipeline-computed likelihood this is RMBL research (0–6; author overlap + text markers + PI match). Sort the review queue by this, highest first.',
+      },
+    },
+    {
       name: 'dataSource',
       type: 'select',
       required: true,
