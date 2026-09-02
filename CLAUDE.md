@@ -168,6 +168,8 @@ scripts/
   update-sources.ts           — Incremental source change detection (pipeline phase 0)
 
   # Discovery (find new items)
+  ingest-curated-papers.ts    — Ingest the hand-curated RMBL papers list (scripts/data/rmbl-curated-papers-2026.json, CrossRef-enriched). Matches by DOI then title trigram; asserts rmbl_research='yes' as an admin curation on matches; inserts the rest (data_source='manual'). Idempotent; --dry-run/--target=neon. Needs pg_trgm (installed on local + Neon).
+  score-rmbl-research.ts      — RMBL-Research auto-assignment prototype: scores papers via known-author overlap (leave-self-out) + RMBL text markers + project-PI match. --evaluate reports recall vs curated ground truth; default ranks the rmbl_research-NULL triage queue into scripts/output/rmbl-research-triage.csv. Read-only.
   discover-publications.ts    — Publication discovery via OpenAlex + CrossRef
   discover-datasets.ts        — Dataset discovery (7 repository sources)
   discover-datasets-from-vlm.ts — Resolve VLM-extracted DOIs into new datasets via DataCite
