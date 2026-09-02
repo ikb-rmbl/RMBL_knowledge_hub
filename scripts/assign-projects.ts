@@ -231,7 +231,11 @@ async function main() {
       // Check if project already has embedding
       const { rows: [embRow] } = await db.query('SELECT embedding FROM projects WHERE id = $1', [project.id])
       if (embRow?.embedding) {
-        projectEmbedding = embRow.embedding as any
+        // pgvector returns the stored vector as its text form "[0.1,...]"
+        const e = embRow.embedding
+        projectEmbedding = Array.isArray(e)
+          ? e
+          : String(e).replace(/^\[|\]$/g, '').split(',').map(Number)
       } else {
         projectEmbedding = await embedText(descText)
         if (projectEmbedding && !dryRun) {

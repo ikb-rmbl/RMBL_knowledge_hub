@@ -101,6 +101,58 @@ async function main() {
     console.log(`  ${mentions.length} entity mentions: ${Object.entries(byColl).map(([k,v]) => `${k}=${v}`).join(', ')}`)
     }
 
+    if (sections.has('projects_rels')) {
+    // Project item assignments (assign-projects.ts output). Row ids for
+    // recently inserted projects/publications/datasets DIVERGE between
+    // local and Neon, so raw-id copying would corrupt — remap through
+    // stable keys instead: project name, item DOI → title, doc source_url.
+    console.log('\n--- Project item assignments (projects_rels, remapped) ---')
+    const keyOf = (doi: string | null, title: string | null) =>
+      doi ? `doi:${doi.toLowerCase().replace(/^https?:\/\/doi\.org\//, '')}` : title ? `t:${title.toLowerCase()}` : null
+    const buildMap = async (dbc: pg.Pool, sql: string, key: (r: any) => string | null) => {
+      const m = new Map<string, number>()
+      for (const r of (await dbc.query(sql)).rows) {
+        const k = key(r)
+        if (k && !m.has(k)) m.set(k, r.id)
+      }
+      return m
+    }
+    const nProjects = await buildMap(neon, 'SELECT id, name FROM projects', (r) => r.name?.toLowerCase() ?? null)
+    const nPubs = await buildMap(neon, 'SELECT id, doi, title FROM publications', (r) => keyOf(r.doi, r.title))
+    const nData = await buildMap(neon, 'SELECT id, doi, title FROM datasets', (r) => keyOf(r.doi, r.title))
+    const nDocs = await buildMap(neon, 'SELECT id, source_url, title FROM documents', (r) => r.source_url ?? (r.title ? `t:${r.title.toLowerCase()}` : null))
+
+    const { rows: links } = await local.query(`
+      SELECT r."order", r.path, p.name AS project_name,
+             pub.doi AS pub_doi, pub.title AS pub_title,
+             ds.doi AS ds_doi, ds.title AS ds_title,
+             doc.source_url AS doc_url, doc.title AS doc_title
+      FROM projects_rels r
+      JOIN projects p ON p.id = r.parent_id
+      LEFT JOIN publications pub ON pub.id = r.publications_id
+      LEFT JOIN datasets ds ON ds.id = r.datasets_id
+      LEFT JOIN documents doc ON doc.id = r.documents_id
+      ORDER BY r.id`)
+    await neon.query('TRUNCATE projects_rels RESTART IDENTITY')
+    let ok = 0
+    let unmapped = 0
+    for (const l of links) {
+      const projectId = nProjects.get(l.project_name?.toLowerCase())
+      let col: string | null = null
+      let itemId: number | undefined
+      if (l.pub_doi || l.pub_title) { col = 'publications_id'; itemId = nPubs.get(keyOf(l.pub_doi, l.pub_title)!) }
+      else if (l.ds_doi || l.ds_title) { col = 'datasets_id'; itemId = nData.get(keyOf(l.ds_doi, l.ds_title)!) }
+      else if (l.doc_url || l.doc_title) { col = 'documents_id'; itemId = nDocs.get(l.doc_url ?? `t:${l.doc_title.toLowerCase()}`) }
+      if (!projectId || !col || !itemId) { unmapped++; continue }
+      await neon.query(
+        `INSERT INTO projects_rels (parent_id, path, "order", ${col}) VALUES ($1, $2, $3, $4)`,
+        [projectId, l.path, l.order, itemId],
+      )
+      ok++
+    }
+    console.log(`  ${ok} assignments synced, ${unmapped} unmappable (missing counterpart on Neon)`)
+    }
+
     if (sections.has('frontiers')) {
     // 3. Frontiers (and child tables: neighborhoods/entities/source_statements links)
     console.log('\n--- Frontiers ---')
