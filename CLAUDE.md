@@ -169,7 +169,7 @@ scripts/
 
   # Discovery (find new items)
   ingest-curated-papers.ts    — Ingest the hand-curated RMBL papers list (scripts/data/rmbl-curated-papers-2026.json, CrossRef-enriched). Matches by DOI then title trigram; asserts rmbl_research='yes' as an admin curation on matches; inserts the rest (data_source='manual'). Idempotent; --dry-run/--target=neon. Needs pg_trgm (installed on local + Neon).
-  score-rmbl-research.ts      — RMBL-Research auto-assignment prototype: scores papers via known-author overlap (leave-self-out) + RMBL text markers + project-PI match. --evaluate reports recall vs curated ground truth; default ranks the rmbl_research-NULL triage queue into scripts/output/rmbl-research-triage.csv. Read-only.
+  score-rmbl-research.ts      — RMBL-Research scoring (core in lib/rmbl-research-score.ts): known-author overlap (leave-self-out) + RMBL text markers + project-PI match. --apply writes publications.rmbl_research_score for the triage queue (pipeline LOAD phase runs this automatically; --target=neon for prod); --evaluate reports recall vs curated ground truth (92%@0.5); default writes ranked CSV. Admin sidebar shows the score read-only — sort the review queue by it.
   discover-publications.ts    — Publication discovery via OpenAlex + CrossRef
   discover-datasets.ts        — Dataset discovery (7 repository sources)
   discover-datasets-from-vlm.ts — Resolve VLM-extracted DOIs into new datasets via DataCite

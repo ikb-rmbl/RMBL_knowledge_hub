@@ -150,6 +150,14 @@ async function runLoad(): Promise<void> {
   } catch (err) {
     console.error('Load phase failed — is the Payload server running?')
   }
+
+  // Newly discovered papers land with rmbl_research NULL — score them so the
+  // admin triage queue arrives pre-ranked (direct SQL, no server needed).
+  try {
+    execSync('npx tsx scripts/score-rmbl-research.ts --apply', opts)
+  } catch (err) {
+    console.error('RMBL-research scoring failed — continuing')
+  }
 }
 
 // ---------------------------------------------------------------------------
