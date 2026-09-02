@@ -218,7 +218,8 @@ scripts/
   manage-topics.ts            — 40-topic thematic taxonomy organize + assignment (pipeline phase 5)
   build-authors.ts            — Author registry build + dedup (pipeline phase 6)
   tag-student-authors.ts      — Student-author auto-detection → publication_student_authors (custom SQL table keyed on author_name so it survives author rebuilds; student papers + theses structural seed; REU awaits cohort roster; --dry-run/--target=neon). Feeds /metrics dashboard.
-  seed-projects.ts            — Seed projects from research plan data
+  seed-projects.ts            — Seed projects from research plan data (2024 list; superseded by update-projects-2026.ts for refreshes)
+  update-projects-2026.ts     — Reconcile projects against the 2026 active plan list (scripts/data/research-plans-2026.json): PI + name-trigram matching updates in place (curation-aware), new plans inserted, unrenewed plans marked completed. --dry-run/--target=neon.
   assign-projects.ts          — Auto-discover and assign items to projects (embeddings + author + text)
   seed-places-gnis.ts         — Seed places from GNIS authoritative data (668 locations)
 
