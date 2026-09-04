@@ -31,7 +31,7 @@ const REPO_LABELS: Record<string, string> = { s3: 'RMBL SDP', ess_dive: 'ESS-DIV
 function buildUrl(params: Record<string, string>, overrides: Record<string, string | undefined>): string {
   const merged: Record<string, string | undefined> = { ...params, ...overrides }
   const p = new URLSearchParams()
-  for (const k of ['q', 'place', 'protocol', 'species', 'license', 'repo', 'format', 'keyword', 'download', 'longterm', 'haspub', 'from', 'to', 'sort']) {
+  for (const k of ['q', 'place', 'protocol', 'species', 'license', 'repo', 'format', 'keyword', 'variable', 'download', 'longterm', 'haspub', 'from', 'to', 'sort']) {
     if (merged[k]) p.set(k, merged[k]!)
   }
   if (merged.page && merged.page !== '1') p.set('page', merged.page)
@@ -66,6 +66,7 @@ export default async function DatasetsBrowse({ searchParams }: { searchParams: P
     push(`EXISTS (SELECT 1 FROM datasets_data_format f WHERE f.parent_id = d.id AND f.value = $${i})`, params.format)
   }
   if (params.keyword) push(`d.keywords @> ARRAY[$${i}]::text[]`, params.keyword)
+  if (params.variable) push(`d.variables @> ARRAY[$${i}]::text[]`, params.variable)
   if (params.download === '1') push(`d.download_url IS NOT NULL`)
   if (params.haspub === '1') {
     push(`(EXISTS (SELECT 1 FROM references_cited rc WHERE rc.target_dataset_id = d.id)
@@ -112,9 +113,10 @@ export default async function DatasetsBrowse({ searchParams }: { searchParams: P
       db.query(`SELECT repository AS v, count(*)::int AS n FROM datasets WHERE repository IS NOT NULL GROUP BY 1 ORDER BY n DESC`),
       db.query(`SELECT f.value AS v, count(DISTINCT f.parent_id)::int AS n FROM datasets_data_format f GROUP BY 1 ORDER BY n DESC LIMIT 8`),
       db.query(`SELECT v, count(*)::int AS n FROM (SELECT unnest(keywords) AS v FROM datasets) u GROUP BY 1 ORDER BY n DESC LIMIT 14`),
+      db.query(`SELECT v, count(*)::int AS n FROM (SELECT unnest(variables) AS v FROM datasets) u GROUP BY 1 ORDER BY n DESC LIMIT 14`),
     ]),
   ])
-  const [placeFacet, protocolFacet, speciesFacet, licenseFacet, repoFacet, formatFacet, keywordFacet] = facets.map((f) => f.rows)
+  const [placeFacet, protocolFacet, speciesFacet, licenseFacet, repoFacet, formatFacet, keywordFacet, variableFacet] = facets.map((f) => f.rows)
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const fmtYear = (d: string | null) => (d ? new Date(d).getUTCFullYear() : null)
@@ -204,6 +206,20 @@ export default async function DatasetsBrowse({ searchParams }: { searchParams: P
           {entityFacetBlock('Place', 'place', placeFacet)}
           {entityFacetBlock('Method', 'protocol', protocolFacet)}
           {entityFacetBlock('Taxon', 'species', speciesFacet, true)}
+
+          {variableFacet.length > 0 && (
+            <div className="filter-group">
+              <h2 className="filter-label">Variables</h2>
+              {variableFacet.map((r: any) => (
+                <label key={r.v} style={{ display: 'block' }}>
+                  <Link href={buildUrl(params, { variable: params.variable === r.v ? undefined : r.v, page: undefined })} style={facetLink(params.variable === r.v)}>
+                    {r.v} ({r.n})
+                  </Link>
+                </label>
+              ))}
+              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>from ESS-DIVE data dictionaries</div>
+            </div>
+          )}
 
           {keywordFacet.length > 0 && (
             <div className="filter-group">
