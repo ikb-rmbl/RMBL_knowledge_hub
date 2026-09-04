@@ -180,6 +180,7 @@ export default async function DatasetsBrowse({ searchParams }: { searchParams: P
           <Link href={buildUrl(params, { download: params.download === '1' ? undefined : '1', page: undefined })} style={chip(params.download === '1')}>
             Direct download
           </Link>
+          <Link href="/explore/datasets" style={{ marginLeft: 'auto', padding: '6px 14px', fontSize: '12px', borderRadius: 'var(--radius-sm)', background: 'var(--color-accent)', color: '#fff', textDecoration: 'none' }}>Explore Dataset Graph</Link>
         </div>
 
         <p className="results-count" aria-live="polite">
