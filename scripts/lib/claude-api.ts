@@ -17,6 +17,7 @@ const MODEL_PRICING: Record<string, { input: number; output: number }> = {
   'claude-sonnet-4-6':         { input: 3,  output: 15 },
   'claude-opus-4-7':           { input: 15, output: 75 },
   'claude-haiku-4-5-20251001': { input: 1,  output: 5  },
+  'claude-opus-5':             { input: 5,  output: 25 },
 }
 const FALLBACK_PRICING = { input: 3, output: 15 }
 
