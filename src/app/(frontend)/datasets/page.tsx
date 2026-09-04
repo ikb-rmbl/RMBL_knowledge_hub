@@ -153,7 +153,7 @@ export default async function DatasetsBrowse({ searchParams }: { searchParams: P
   ].filter(Boolean).join(' · ')
 
   return (
-    <div style={{ maxWidth: '1100px' }}>
+    <>
       <div className="search-results-header">
         <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 16px' }}>Datasets</h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginBottom: '16px' }}>
@@ -325,6 +325,6 @@ export default async function DatasetsBrowse({ searchParams }: { searchParams: P
           )}
         </div>
       </div>
-    </div>
+    </>
   )
 }
