@@ -122,9 +122,9 @@ export default async function DatasetsBrowse({ searchParams }: { searchParams: P
   const fmtYear = (d: string | null) => (d ? new Date(d).getUTCFullYear() : null)
 
   const chip = (active: boolean): React.CSSProperties => ({
-    padding: '4px 12px', borderRadius: '14px', fontSize: '13px', textDecoration: 'none',
-    border: '1px solid var(--border)', color: active ? '#fff' : 'var(--fg-2)',
-    background: active ? 'var(--accent)' : 'var(--color-surface)',
+    padding: '6px 14px', borderRadius: 'var(--r-pill)', fontSize: 'var(--fs-caption)', textDecoration: 'none',
+    border: '1px solid var(--color-border)', color: active ? '#fff' : 'inherit',
+    background: active ? 'var(--color-badge-data)' : 'var(--color-surface)',
   })
   const facetLink = (active: boolean): React.CSSProperties => ({
     fontWeight: active ? 700 : 400, color: active ? 'var(--color-accent)' : 'inherit', textDecoration: 'none', fontSize: '13px',
@@ -144,32 +144,47 @@ export default async function DatasetsBrowse({ searchParams }: { searchParams: P
     </div>
   )
 
-  return (
-    <div className="detail" style={{ maxWidth: '1100px' }}>
-      <h1>Datasets</h1>
-      <p style={{ color: 'var(--fg-2)', maxWidth: '75ch' }}>
-        {total.toLocaleString()} research datasets from RMBL, the Spatial Data Platform, and partner
-        repositories. Coverage filters use <strong>data years</strong> (when measurements were made),
-        not publication dates.
-      </p>
+  const activeSummary = [
+    params.q ? `matching “${params.q}”` : null,
+    params.longterm === '1' ? 'long-term records' : null,
+    params.haspub === '1' ? 'with companion publication' : null,
+    params.download === '1' ? 'direct download' : null,
+    from || to ? `covering ${from ?? '…'}–${to ?? '…'}` : null,
+  ].filter(Boolean).join(' · ')
 
-      {/* Quick chips + search */}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', margin: '14px 0' }}>
-        <Link href={buildUrl(params, { longterm: params.longterm === '1' ? undefined : '1', page: undefined })} style={chip(params.longterm === '1')}>
-          Long-term records (10+ yrs)
-        </Link>
-        <Link href={buildUrl(params, { haspub: params.haspub === '1' ? undefined : '1', page: undefined })} style={chip(params.haspub === '1')}>
-          Has companion publication
-        </Link>
-        <Link href={buildUrl(params, { download: params.download === '1' ? undefined : '1', page: undefined })} style={chip(params.download === '1')}>
-          Direct download
-        </Link>
-        <form action="/datasets" method="GET" style={{ display: 'inline-flex', gap: '6px', marginLeft: 'auto' }}>
-          {params.sort && <input type="hidden" name="sort" value={params.sort} />}
-          <input name="q" defaultValue={params.q || ''} placeholder="Search datasets…" aria-label="Search datasets"
-                 style={{ padding: '5px 10px', fontSize: '13px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', minWidth: '190px' }} />
-          <button type="submit" style={{ padding: '5px 12px', fontSize: '13px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer' }}>Go</button>
+  return (
+    <div style={{ maxWidth: '1100px' }}>
+      <div className="search-results-header">
+        <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 16px' }}>Datasets</h1>
+        <p style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginBottom: '16px' }}>
+          Research datasets from RMBL, the Spatial Data Platform, and partner repositories.
+          Coverage filters use <strong>data years</strong> (when measurements were made), not publication dates.
+        </p>
+        <form className="search-form" action="/datasets" method="GET">
+          <label htmlFor="datasets-q" className="sr-only">Search datasets</label>
+          <input id="datasets-q" className="search-input" type="text" name="q" aria-label="Search datasets"
+                 defaultValue={params.q || ''} placeholder="Search datasets..." />
+          {Object.entries(params).filter(([k, v]) => !['q', 'page'].includes(k) && v).map(([k, v]) => (
+            <input key={k} type="hidden" name={k} value={v} />
+          ))}
+          <button className="search-button" type="submit">Search</button>
         </form>
+
+        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
+          <Link href={buildUrl(params, { longterm: params.longterm === '1' ? undefined : '1', page: undefined })} style={chip(params.longterm === '1')}>
+            Long-term records (10+ yrs)
+          </Link>
+          <Link href={buildUrl(params, { haspub: params.haspub === '1' ? undefined : '1', page: undefined })} style={chip(params.haspub === '1')}>
+            Has companion publication
+          </Link>
+          <Link href={buildUrl(params, { download: params.download === '1' ? undefined : '1', page: undefined })} style={chip(params.download === '1')}>
+            Direct download
+          </Link>
+        </div>
+
+        <p className="results-count" aria-live="polite">
+          {total.toLocaleString()} dataset{total === 1 ? '' : 's'}{activeSummary ? ` · ${activeSummary}` : ''}
+        </p>
       </div>
 
       <div className="search-layout">
