@@ -151,8 +151,19 @@ export function normalizeStacCollection(
   }
 }
 
-/** Publication year for a new record: data vintage (temporal start), else now. */
+/**
+ * Publication year for a new record: the SDP RELEASE year, not data vintage —
+ * a 2026-released canopy product spanning 2021–2026 was published in 2026.
+ * Release years derived from S3 object dates (2026-09): R1→2020, R2/R3→2021,
+ * R4→2023, R5/R6→2025, R7→2026, basemaps→2021. Falls back to temporal start,
+ * then the current year, for ids outside the known pattern.
+ */
+const RELEASE_YEARS: Record<string, number> = { '1': 2020, '2': 2021, '3': 2021, '4': 2023, '5': 2025, '6': 2025, '7': 2026 }
+
 export function publicationYearFor(rec: SdpStacRecord): number {
+  const m = rec.catalogId.match(/^R(\d)/)
+  if (m && RELEASE_YEARS[m[1]]) return RELEASE_YEARS[m[1]]
+  if (rec.catalogId.startsWith('BM')) return 2021
   const y = rec.temporalStart ? new Date(rec.temporalStart).getUTCFullYear() : NaN
   return Number.isFinite(y) ? y : new Date().getUTCFullYear()
 }
