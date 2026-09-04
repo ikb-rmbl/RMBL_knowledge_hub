@@ -37,6 +37,7 @@ export interface StacCollection {
     temporal?: { interval?: (string | null)[][] }
   }
   deprecated?: boolean
+  summaries?: { gsd?: number[] }
   'rmbl:catalog_id'?: string
   'rmbl:domain'?: string
   'rmbl:type'?: string
@@ -121,6 +122,8 @@ export interface SdpStacRecord {
   sampleAssetUrl: string | null
   nItems: number
   collectionJsonUrl: string
+  /** Ground sample distance in meters (STAC summaries.gsd). */
+  gsd: number | null
 }
 
 export function normalizeStacCollection(
@@ -148,6 +151,7 @@ export function normalizeStacCollection(
     sampleAssetUrl,
     nItems,
     collectionJsonUrl,
+    gsd: typeof c.summaries?.gsd?.[0] === 'number' ? c.summaries.gsd[0] : null,
   }
 }
 

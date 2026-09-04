@@ -253,6 +253,7 @@ async function main() {
             'temporal_extent_end = $10',
             'repository = \'s3\'',
             'full_text = $12',
+            'gsd = $13',
             'updated_at = NOW()',
           ]
           await db.query(
@@ -270,6 +271,7 @@ async function main() {
               rec.temporalEnd,
               row.id,
               description,
+              rec.gsd,
             ],
           )
         }
@@ -290,9 +292,9 @@ async function main() {
                title, description, publication_year, spatial_extent,
                temporal_extent_start, temporal_extent_end, download_url,
                repository, external_catalog_url, spatial_description, license,
-               resource_type, data_publisher, full_text, sdp_catalog_id,
+               resource_type, data_publisher, full_text, sdp_catalog_id, gsd,
                created_at, updated_at
-             ) VALUES ($1,$2,$3,$4,$5,$6,$7,'s3',$8,$9,$10,'dataset','RMBL',$12,$11,NOW(),NOW())
+             ) VALUES ($1,$2,$3,$4,$5,$6,$7,'s3',$8,$9,$10,'dataset','RMBL',$12,$11,$13,NOW(),NOW())
              RETURNING id`,
             [
               rec.title,
@@ -307,6 +309,7 @@ async function main() {
               rec.license,
               rec.catalogId,
               description,
+              rec.gsd,
             ],
           )
           const newId = res.rows[0].id

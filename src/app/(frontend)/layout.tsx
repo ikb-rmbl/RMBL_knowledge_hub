@@ -30,7 +30,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <button className="nav-dropdown-trigger" aria-haspopup="true">Sources</button>
                 <div className="nav-dropdown-menu">
                   <Link href="/search?type=publications">Publications</Link>
-                  <Link href="/search?type=datasets">Datasets</Link>
+                  <Link href="/datasets">Datasets</Link>
                   <Link href="/search?type=documents">Documents</Link>
                   <Link href="/stories">Stories</Link>
                 </div>
