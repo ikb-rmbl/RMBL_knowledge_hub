@@ -108,8 +108,22 @@ describe('normalizeStacCollection', () => {
 })
 
 describe('publicationYearFor', () => {
-  it('uses the temporal start year', () => {
+  it('uses the SDP release year from the catalog id (R6 → 2025)', () => {
     const rec = normalizeStacCollection(COLLECTION, 'rmbl-sdp-gt', 'u', null, 1)!
+    expect(publicationYearFor(rec)).toBe(2025)
+  })
+
+  it('falls back to temporal start for ids outside the release pattern', () => {
+    const rec = normalizeStacCollection(
+      { ...COLLECTION, 'rmbl:catalog_id': 'XX999' }, 'rmbl-sdp-gt', 'u', null, 1,
+    )!
+    expect(publicationYearFor(rec)).toBe(2021)
+  })
+
+  it('dates basemaps to 2021', () => {
+    const rec = normalizeStacCollection(
+      { ...COLLECTION, 'rmbl:catalog_id': 'BM008' }, 'rmbl-sdp-gt', 'u', null, 1,
+    )!
     expect(publicationYearFor(rec)).toBe(2021)
   })
 })
