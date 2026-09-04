@@ -105,6 +105,7 @@ src/
     search/page.tsx              — Unified search with faceted filtering + entity knowledge cards
     publications/[id]/page.tsx   — Publication detail
     documents/[id]/page.tsx      — Document detail
+    datasets/page.tsx            — Datasets browse: long-term-record/companion-pub/download chips, data-coverage year range (data years, not publication), place/method/taxon facets (entity_mentions), keyword facet (EML keywords via backfill-dataset-attributes), format/license/repository facets, citation + coverage sorts
     datasets/[id]/page.tsx       — Dataset detail
     authors/page.tsx             — Author browse
     authors/[id]/page.tsx        — Author detail with project cards, sortable/filterable works
@@ -182,6 +183,7 @@ scripts/
   enrich-dataset-metadata.ts  — DataCite/EML/RMBL-SDP metadata enrichment for datasets
   enrich-document-summaries.ts — Build summaries from extracted document type + agencies + entities
   backfill-pdf-sizes.ts       — Backfill PDF file sizes via HEAD requests
+  backfill-dataset-attributes.ts — Datasets browse Tier-2 backfill: formats (SDP→geotiff + download_url extension + EML physical) into datasets_data_format; keywords (EML <keyword> harvest via DataONE object API; attributeLists are rare on ESS-DIVE) into datasets.keywords text[]. Idempotent; --dry-run/--limit/--force/--target=neon.
   audit-pdf-rights.ts         — Redistribution-rights audit for served PDFs (rmbl.org/S3-hosted only; external links out of scope). Classifies via publication type + Unpaywall license/OA status into pdf_rights_basis; writes scripts/output/pdf-rights-worklist.csv for review/unknown rows. --dry-run/--force/--limit/--target=neon.
                               # NOTE: pdf-staging/publications/ files are named pub_<payload id>.pdf — NOT the pdf-manifest's pub:<source id> localPath scheme. Match staged files by publications.id. 1,683/1,693 rmbl.org-served PDFs archived there (2026-08-28); 10 unrecoverable (4 junk links, 6 already 404 on the legacy site).
   migrate-pdf-links.ts        — Relink rights-cleared publications (rmbl_owned/oa_licensed/oa_published) from the retiring rmbl.org file store to the public S3 serving bucket. HEAD-verifies each file in the bucket first; curation-aware; --dry-run/--limit/--target=neon. Buckets: s3://rmbl-hub-pdfs/publications/ (public read on that prefix only) serves; s3://rmbl-hub-pdfs-private/pdf-staging/ archives everything incl. review/unknown. Re-run after triage clears more papers (upload to the public bucket first).
