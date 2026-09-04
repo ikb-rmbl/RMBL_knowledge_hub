@@ -33,7 +33,19 @@ const PAD = { top: 16, right: 150, bottom: 32, left: 44 }
 
 export default function PublicationsMetricsChart({ series, yearMin, yearMax }: Props) {
   const [hoverYear, setHoverYear] = useState<number | null>(null)
+  // Legend-toggled-off series keys. The Y axis rescales to what's visible.
+  const [hidden, setHidden] = useState<Set<string>>(new Set())
   const svgRef = useRef<SVGSVGElement>(null)
+
+  const visible = useMemo(() => series.filter((s) => !hidden.has(s.key)), [series, hidden])
+
+  const toggle = (key: string) =>
+    setHidden((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
 
   const years = useMemo(() => {
     const ys: number[] = []
@@ -42,8 +54,8 @@ export default function PublicationsMetricsChart({ series, yearMin, yearMax }: P
   }, [yearMin, yearMax])
 
   const maxVal = useMemo(
-    () => Math.max(1, ...series.flatMap((s) => years.map((y) => s.values[y] ?? 0))),
-    [series, years],
+    () => Math.max(1, ...visible.flatMap((s) => years.map((y) => s.values[y] ?? 0))),
+    [visible, years],
   )
 
   const x = (year: number) =>
@@ -107,14 +119,14 @@ export default function PublicationsMetricsChart({ series, yearMin, yearMax }: P
             converge — final-year values are often close together) */}
         {(() => {
           const MIN_GAP = 15
-          const labelYs = series
+          const labelYs = visible
             .map((s, i) => ({ i, y: y(s.values[yearMax] ?? 0) + 4 }))
             .sort((a, b) => a.y - b.y)
           for (let k = 1; k < labelYs.length; k++) {
             if (labelYs[k].y - labelYs[k - 1].y < MIN_GAP) labelYs[k].y = labelYs[k - 1].y + MIN_GAP
           }
           const yById = new Map(labelYs.map((l) => [l.i, l.y]))
-          return series.map((s, i) => (
+          return visible.map((s, i) => (
             <g key={s.key}>
               <path d={pathFor(s)} fill="none" stroke={s.color} strokeWidth={2} strokeLinejoin="round" />
               <text x={W - PAD.right + 8} y={yById.get(i)} fontSize={12} fill="var(--fg-2)">
@@ -128,7 +140,7 @@ export default function PublicationsMetricsChart({ series, yearMin, yearMax }: P
         {hoverYear !== null && (
           <g>
             <line x1={tooltipX} x2={tooltipX} y1={PAD.top} y2={H - PAD.bottom} stroke="var(--color-text-muted)" strokeWidth={1} opacity={0.7} />
-            {series.map((s) => (
+            {visible.map((s) => (
               <circle key={s.key} cx={tooltipX} cy={y(s.values[hoverYear] ?? 0)} r={4} fill={s.color} stroke="var(--color-surface)" strokeWidth={2} />
             ))}
           </g>
@@ -154,7 +166,7 @@ export default function PublicationsMetricsChart({ series, yearMin, yearMax }: P
           }}
         >
           <div style={{ fontWeight: 700, marginBottom: '4px', color: 'var(--fg-1)' }}>{hoverYear}</div>
-          {series.map((s) => (
+          {visible.map((s) => (
             <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
               <span aria-hidden style={{ width: '14px', height: '2px', background: s.color, display: 'inline-block' }} />
               <strong style={{ color: 'var(--fg-1)' }}>{s.values[hoverYear] ?? 0}</strong>
@@ -164,14 +176,32 @@ export default function PublicationsMetricsChart({ series, yearMin, yearMax }: P
         </div>
       )}
 
-      {/* legend (mirrors the mark: line keys) */}
-      <div style={{ display: 'flex', gap: '18px', flexWrap: 'wrap', marginTop: '8px', fontSize: '13px', color: 'var(--fg-2)' }}>
-        {series.map((s) => (
-          <span key={s.key} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <span aria-hidden style={{ width: '18px', height: '2px', background: s.color, display: 'inline-block' }} />
-            {s.label}
-          </span>
-        ))}
+      {/* legend (mirrors the mark: line keys); click toggles a series and
+          the Y axis rescales to what remains visible */}
+      <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center', marginTop: '8px', fontSize: '13px', color: 'var(--fg-2)' }}>
+        {series.map((s) => {
+          const off = hidden.has(s.key)
+          return (
+            <button
+              key={s.key}
+              type="button"
+              onClick={() => toggle(s.key)}
+              aria-pressed={!off}
+              title={off ? `Show ${s.label}` : `Hide ${s.label}`}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                background: 'none', border: 'none', padding: '2px 4px', cursor: 'pointer',
+                font: 'inherit', color: 'inherit',
+                opacity: off ? 0.4 : 1,
+                textDecoration: off ? 'line-through' : 'none',
+              }}
+            >
+              <span aria-hidden style={{ width: '18px', height: '2px', background: s.color, display: 'inline-block' }} />
+              {s.label}
+            </button>
+          )
+        })}
+        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>click to toggle</span>
       </div>
     </div>
   )
