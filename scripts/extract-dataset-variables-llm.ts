@@ -110,7 +110,8 @@ async function syncToNeon() {
   try {
     const { rows } = await local.query(
       `SELECT doi, title, variables, variable_units, gcmd_variables,
-              temporal_extent_start, temporal_extent_end, data_ongoing, temporal_resolution, cited_references
+              temporal_extent_start, temporal_extent_end, data_ongoing, temporal_resolution, cited_references,
+              embedding::text AS embedding
        FROM datasets WHERE gcmd_variables IS NOT NULL`,
     )
     console.log(`Syncing ${rows.length} extracted rows to Neon`)
@@ -123,9 +124,10 @@ async function syncToNeon() {
                temporal_extent_start = COALESCE(temporal_extent_start, $4),
                temporal_extent_end = COALESCE(temporal_extent_end, $5),
                data_ongoing = $6, temporal_resolution = $7, cited_references = $8,
-               updated_at = NOW() WHERE lower(doi) = lower($9)`,
+               embedding = COALESCE($9::vector, embedding),
+               updated_at = NOW() WHERE lower(doi) = lower($10)`,
           [r.variables, r.variable_units, r.gcmd_variables, r.temporal_extent_start, r.temporal_extent_end,
-           r.data_ongoing, r.temporal_resolution, JSON.stringify(r.cited_references), r.doi],
+           r.data_ongoing, r.temporal_resolution, JSON.stringify(r.cited_references), r.embedding, r.doi],
         )
       }
       if (res.rowCount) { byDoi++; continue }
@@ -134,9 +136,10 @@ async function syncToNeon() {
                temporal_extent_start = COALESCE(temporal_extent_start, $4),
                temporal_extent_end = COALESCE(temporal_extent_end, $5),
                data_ongoing = $6, temporal_resolution = $7, cited_references = $8,
-               updated_at = NOW() WHERE lower(title) = lower($9)`,
+               embedding = COALESCE($9::vector, embedding),
+               updated_at = NOW() WHERE lower(title) = lower($10)`,
         [r.variables, r.variable_units, r.gcmd_variables, r.temporal_extent_start, r.temporal_extent_end,
-         r.data_ongoing, r.temporal_resolution, JSON.stringify(r.cited_references), r.title],
+         r.data_ongoing, r.temporal_resolution, JSON.stringify(r.cited_references), r.embedding, r.title],
       )
       if (res.rowCount) byTitle++
       else missed++
