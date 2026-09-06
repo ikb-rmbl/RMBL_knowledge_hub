@@ -233,7 +233,7 @@ export default async function DatasetsBrowse({ searchParams }: { searchParams: P
                   </Link>
                 </label>
               ))}
-              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>from ESS-DIVE data dictionaries</div>
+              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>extracted from metadata, matched to NASA GCMD vocabulary</div>
             </div>
           )}
 

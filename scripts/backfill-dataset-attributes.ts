@@ -174,78 +174,8 @@ async function main() {
     console.log(`\r  ${done}/${candidates.length}`)
     console.log(`Keywords: ${varSet} datasets populated, ${emlMiss} without fetchable EML`)
 
-    // --- 3. VARIABLES from ESS-DIVE dd.csv data dictionaries ---
-    // ESS-DIVE's file-level metadata reporting format standardizes a data
-    // dictionary (dd.csv / <name>_dd.csv) whose Column_or_Row_Name column
-    // lists the actual measured variables. Discover package files via the
-    // DataONE index (isDocumentedBy), download dd files from the ESS-DIVE
-    // member node, and harvest the first CSV column.
-    const { rows: ddCandidates } = await db.query(`
-      SELECT id, external_catalog_url FROM datasets d
-      WHERE repository = 'ess_dive' AND external_catalog_url ~* '/view/'
-        ${force ? '' : 'AND variables IS NULL'}
-      ORDER BY id ${limit ? `LIMIT ${limit}` : ''}
-    `)
-    console.log(`Variables (dd.csv): ${ddCandidates.length} ESS-DIVE datasets to process`)
-    let ddSet = 0
-    let noDd = 0
-    done = 0
-    for (const r of ddCandidates) {
-      done++
-      if (done % 25 === 0) process.stdout.write(`\r  ${done}/${ddCandidates.length}`)
-      const pid = decodeURIComponent(r.external_catalog_url.match(/\/view\/(.+?)(?:\?|$)/)![1])
-      let ddPids: string[] = []
-      try {
-        // The /view/ pid is usually the DOI, which is the SERIES id — the
-        // versioned metadata object carries the `documents` file-pid list.
-        const q1 = encodeURIComponent(`seriesId:"${pid}" OR id:"${pid}"`)
-        const res1 = await fetch(
-          `https://cn.dataone.org/cn/v2/query/solr/?q=${q1}&fl=identifier,documents&sort=${encodeURIComponent('dateUploaded desc')}&rows=1&wt=json`,
-        )
-        const meta = res1.ok ? (await res1.json()).response.docs[0] : null
-        const filePids: string[] = (meta?.documents ?? []).filter((p: string) => p !== meta.identifier).slice(0, 60)
-        if (filePids.length > 0) {
-          await sleep(120)
-          const q2 = encodeURIComponent(filePids.map((p) => `id:"${p}"`).join(' OR '))
-          const res2 = await fetch(`https://cn.dataone.org/cn/v2/query/solr/?q=${q2}&fl=identifier,fileName&rows=100&wt=json`)
-          if (res2.ok) {
-            const docs = (await res2.json()).response.docs as { identifier: string; fileName?: string }[]
-            ddPids = docs.filter((x) => /(^|_)dd\.csv$/i.test(x.fileName ?? '')).map((x) => x.identifier)
-          }
-        }
-      } catch { /* index miss — treated as no dd */ }
-      await sleep(150)
-      if (ddPids.length === 0) {
-        noDd++
-        if (!dryRun) await db.query(`UPDATE datasets SET variables = '{}' WHERE id = $1`, [r.id])
-        continue
-      }
-      const vars = new Set<string>()
-      for (const ddPid of ddPids.slice(0, 4)) {
-        try {
-          const res = await fetch(`https://data.ess-dive.lbl.gov/catalog/d1/mn/v2/object/${encodeURIComponent(ddPid)}`)
-          if (!res.ok) continue
-          const csv = await res.text()
-          const lines = csv.split(/\r?\n/)
-          if (!/column_or_row_name/i.test(lines[0] ?? '')) continue
-          for (const line of lines.slice(1)) {
-            const first = line.split(',')[0]?.replace(/^"|"$/g, '')
-            const v = first && normalizeVariable(first)
-            if (v) vars.add(v)
-          }
-        } catch { /* skip unreadable dd file */ }
-        await sleep(150)
-      }
-      const list = [...vars].slice(0, 60)
-      if (dryRun) {
-        if (list.length) ddSet++
-        continue
-      }
-      await db.query(`UPDATE datasets SET variables = $1, updated_at = NOW() WHERE id = $2`, [list, r.id])
-      if (list.length) ddSet++
-    }
-    console.log(`\r  ${done}/${ddCandidates.length}`)
-    console.log(`Variables: ${ddSet} datasets with dd.csv variables, ${noDd} without a data dictionary`)
+    // Variables extraction moved to extract-dataset-variables-llm.ts (LLM +
+    // GCMD matching) — it replaced the mechanical dd.csv harvest 2026-09-06.
   } finally {
     await db.end()
   }
