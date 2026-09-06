@@ -31,7 +31,7 @@ const REPO_LABELS: Record<string, string> = { s3: 'RMBL SDP', ess_dive: 'ESS-DIV
 function buildUrl(params: Record<string, string>, overrides: Record<string, string | undefined>): string {
   const merged: Record<string, string | undefined> = { ...params, ...overrides }
   const p = new URLSearchParams()
-  for (const k of ['q', 'place', 'protocol', 'species', 'license', 'repo', 'format', 'keyword', 'variable', 'download', 'longterm', 'haspub', 'from', 'to', 'sort']) {
+  for (const k of ['q', 'place', 'protocol', 'species', 'license', 'repo', 'format', 'keyword', 'variable', 'download', 'longterm', 'ongoing', 'haspub', 'freq', 'from', 'to', 'sort']) {
     if (merged[k]) p.set(k, merged[k]!)
   }
   if (merged.page && merged.page !== '1') p.set('page', merged.page)
@@ -76,6 +76,8 @@ export default async function DatasetsBrowse({ searchParams }: { searchParams: P
     push(`d.temporal_extent_start IS NOT NULL AND d.temporal_extent_end IS NOT NULL
       AND extract(year FROM d.temporal_extent_end) - extract(year FROM d.temporal_extent_start) >= 10`)
   }
+  if (params.ongoing === '1') push(`d.data_ongoing = true`)
+  if (params.freq) push(`d.temporal_resolution = $${i}`, params.freq)
   // Data-coverage overlap (data years, NOT publication year)
   const from = params.from && /^\d{4}$/.test(params.from) ? parseInt(params.from) : null
   const to = params.to && /^\d{4}$/.test(params.to) ? parseInt(params.to) : null
@@ -114,9 +116,11 @@ export default async function DatasetsBrowse({ searchParams }: { searchParams: P
       db.query(`SELECT f.value AS v, count(DISTINCT f.parent_id)::int AS n FROM datasets_data_format f GROUP BY 1 ORDER BY n DESC LIMIT 8`),
       db.query(`SELECT v, count(*)::int AS n FROM (SELECT unnest(keywords) AS v FROM datasets) u GROUP BY 1 ORDER BY n DESC LIMIT 14`),
       db.query(`SELECT v, count(*)::int AS n FROM (SELECT unnest(variables) AS v FROM datasets) u GROUP BY 1 ORDER BY n DESC LIMIT 14`),
+      db.query(`SELECT temporal_resolution AS v, count(*)::int AS n FROM datasets WHERE temporal_resolution IS NOT NULL GROUP BY 1
+                ORDER BY array_position(ARRAY['sub-daily','daily','weekly','monthly','annual','multi-year','one-time'], temporal_resolution)`),
     ]),
   ])
-  const [placeFacet, protocolFacet, speciesFacet, licenseFacet, repoFacet, formatFacet, keywordFacet, variableFacet] = facets.map((f) => f.rows)
+  const [placeFacet, protocolFacet, speciesFacet, licenseFacet, repoFacet, formatFacet, keywordFacet, variableFacet, freqFacet] = facets.map((f) => f.rows)
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const fmtYear = (d: string | null) => (d ? new Date(d).getUTCFullYear() : null)
@@ -147,6 +151,8 @@ export default async function DatasetsBrowse({ searchParams }: { searchParams: P
   const activeSummary = [
     params.q ? `matching “${params.q}”` : null,
     params.longterm === '1' ? 'long-term records' : null,
+    params.ongoing === '1' ? 'ongoing collection' : null,
+    params.freq ? `${params.freq} sampling` : null,
     params.haspub === '1' ? 'with companion publication' : null,
     params.download === '1' ? 'direct download' : null,
     from || to ? `covering ${from ?? '…'}–${to ?? '…'}` : null,
@@ -173,6 +179,9 @@ export default async function DatasetsBrowse({ searchParams }: { searchParams: P
         <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
           <Link href={buildUrl(params, { longterm: params.longterm === '1' ? undefined : '1', page: undefined })} style={chip(params.longterm === '1')}>
             Long-term records (10+ yrs)
+          </Link>
+          <Link href={buildUrl(params, { ongoing: params.ongoing === '1' ? undefined : '1', page: undefined })} style={chip(params.ongoing === '1')}>
+            Ongoing collection
           </Link>
           <Link href={buildUrl(params, { haspub: params.haspub === '1' ? undefined : '1', page: undefined })} style={chip(params.haspub === '1')}>
             Has companion publication
@@ -222,6 +231,19 @@ export default async function DatasetsBrowse({ searchParams }: { searchParams: P
           {entityFacetBlock('Place', 'place', placeFacet)}
           {entityFacetBlock('Method', 'protocol', protocolFacet)}
           {entityFacetBlock('Taxon', 'species', speciesFacet, true)}
+
+          {freqFacet.length > 0 && (
+            <div className="filter-group">
+              <h2 className="filter-label">Sampling Frequency</h2>
+              {freqFacet.map((r: any) => (
+                <label key={r.v} style={{ display: 'block' }}>
+                  <Link href={buildUrl(params, { freq: params.freq === r.v ? undefined : r.v, page: undefined })} style={facetLink(params.freq === r.v)}>
+                    {r.v} ({r.n})
+                  </Link>
+                </label>
+              ))}
+            </div>
+          )}
 
           {variableFacet.length > 0 && (
             <div className="filter-group">

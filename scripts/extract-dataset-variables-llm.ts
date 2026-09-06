@@ -12,6 +12,11 @@
  *
  * Writes:
  *   datasets.variables       text[]  — canonical names (the /datasets facet)
+ *   datasets.temporal_extent_start/end — filled ONLY where NULL, from stated
+ *                                      data-collection years (never pub dates)
+ *   datasets.data_ongoing    bool    — collection explicitly continuing
+ *   datasets.temporal_resolution text — sub-daily … one-time
+ *   datasets.cited_references jsonb  — companion papers [{doi, citation, evidence}]
  *   datasets.variable_units  text[]  — units, position-aligned ('' = unstated);
  *                                      only units the metadata explicitly states
  *   datasets.gcmd_variables  text[]  — GCMD paths, position-aligned with names
@@ -45,7 +50,7 @@ const limit = limitArg ? parseInt(limitArg) : undefined
 const report = process.argv.includes('--report')
 const MODEL = process.argv.find((a) => a.startsWith('--model='))?.split('=')[1] ?? 'claude-opus-5'
 const CONCURRENCY = 4
-const reportRows: { id: number; title: string; repository: string; vars: any[] }[] = []
+const reportRows: { id: number; title: string; repository: string; vars: any[]; data_years?: any; resolution?: string | null; cited?: any[] }[] = []
 
 const taxonomy = JSON.parse(fs.readFileSync('scripts/data/gcmd-science-keywords.json', 'utf8'))
 const gcmdPaths: string[] = taxonomy.paths
@@ -63,10 +68,12 @@ function buildTask(d: {
   variables: string[] | null
   repository: string
   sdp_catalog_id: string | null
+  doi?: string | null
 }): string {
   const parts = [
     `TITLE: ${d.title}`,
     `REPOSITORY: ${d.repository}${d.sdp_catalog_id ? ` (SDP product ${d.sdp_catalog_id})` : ''}`,
+    d.doi ? `THIS DATASET'S OWN DOI (never a cited publication): ${d.doi}` : null,
     d.description ? `DESCRIPTION: ${d.description.slice(0, 4000)}` : null,
     d.methods ? `METHODS: ${d.methods.slice(0, 2000)}` : null,
     d.keywords?.length ? `EXISTING KEYWORDS (EML harvest): ${d.keywords.join(', ')}` : null,
@@ -84,7 +91,16 @@ Rules:
 - For each variable pick the single best GCMD path COPIED VERBATIM from the taxonomy above. If nothing in the list is a reasonable fit, use null — do not force a match.
 - Typically 1-10 variables per dataset. If the metadata is too thin to identify any, return an empty list.
 
-Respond with ONLY a JSON object: {"variables": [{"name": "...", "unit": "..." | null, "unit_evidence": "..." | null, "gcmd": "TOPIC > TERM > ..." | null}]}`
+Also extract, from the SAME metadata:
+- data_years: the years the DATA WERE COLLECTED, only when the metadata states them (title year ranges like "(2002 - 2021)" count). NEVER use the publication or release date as a collection year. "ongoing" is true only when collection is explicitly described as continuing ("and continuing", "ongoing", "long-term monitoring ... to present").
+- temporal_resolution: how often observations were made, only when stated or unambiguous from the design. One of: "sub-daily", "daily", "weekly", "monthly", "annual", "multi-year", "one-time". A single survey/campaign or a static map layer is "one-time". Use null when unclear.
+- cited_publications: companion or source papers this dataset accompanies or derives from ("Data from Smith et al. 2024...", an explicitly cited paper DOI). Include the DOI when present (bare form, e.g. "10.1234/abc"), and the citation string as written. Quote the metadata fragment in "evidence". Do NOT list the dataset's own DOI. Empty list if none.
+
+Respond with ONLY a JSON object:
+{"variables": [{"name": "...", "unit": "..." | null, "unit_evidence": "..." | null, "gcmd": "TOPIC > TERM > ..." | null}],
+ "data_years": {"start": YYYY | null, "end": YYYY | null, "ongoing": true | false | null},
+ "temporal_resolution": "..." | null,
+ "cited_publications": [{"doi": "..." | null, "citation": "...", "evidence": "..."}]}`
 }
 
 async function syncToNeon() {
@@ -93,7 +109,9 @@ async function syncToNeon() {
   const neon = new pg.Pool({ connectionString: process.env.NEON_DIRECT_URL })
   try {
     const { rows } = await local.query(
-      `SELECT doi, title, variables, variable_units, gcmd_variables FROM datasets WHERE gcmd_variables IS NOT NULL`,
+      `SELECT doi, title, variables, variable_units, gcmd_variables,
+              temporal_extent_start, temporal_extent_end, data_ongoing, temporal_resolution, cited_references
+       FROM datasets WHERE gcmd_variables IS NOT NULL`,
     )
     console.log(`Syncing ${rows.length} extracted rows to Neon`)
     let byDoi = 0, byTitle = 0, missed = 0
@@ -101,14 +119,24 @@ async function syncToNeon() {
       let res = { rowCount: 0 } as { rowCount: number | null }
       if (r.doi) {
         res = await neon.query(
-          `UPDATE datasets SET variables = $1, variable_units = $2, gcmd_variables = $3, updated_at = NOW() WHERE lower(doi) = lower($4)`,
-          [r.variables, r.variable_units, r.gcmd_variables, r.doi],
+          `UPDATE datasets SET variables = $1, variable_units = $2, gcmd_variables = $3,
+               temporal_extent_start = COALESCE(temporal_extent_start, $4),
+               temporal_extent_end = COALESCE(temporal_extent_end, $5),
+               data_ongoing = $6, temporal_resolution = $7, cited_references = $8,
+               updated_at = NOW() WHERE lower(doi) = lower($9)`,
+          [r.variables, r.variable_units, r.gcmd_variables, r.temporal_extent_start, r.temporal_extent_end,
+           r.data_ongoing, r.temporal_resolution, JSON.stringify(r.cited_references), r.doi],
         )
       }
       if (res.rowCount) { byDoi++; continue }
       res = await neon.query(
-        `UPDATE datasets SET variables = $1, variable_units = $2, gcmd_variables = $3, updated_at = NOW() WHERE lower(title) = lower($4)`,
-        [r.variables, r.variable_units, r.gcmd_variables, r.title],
+        `UPDATE datasets SET variables = $1, variable_units = $2, gcmd_variables = $3,
+               temporal_extent_start = COALESCE(temporal_extent_start, $4),
+               temporal_extent_end = COALESCE(temporal_extent_end, $5),
+               data_ongoing = $6, temporal_resolution = $7, cited_references = $8,
+               updated_at = NOW() WHERE lower(title) = lower($9)`,
+        [r.variables, r.variable_units, r.gcmd_variables, r.temporal_extent_start, r.temporal_extent_end,
+         r.data_ongoing, r.temporal_resolution, JSON.stringify(r.cited_references), r.title],
       )
       if (res.rowCount) byTitle++
       else missed++
@@ -129,7 +157,8 @@ async function main() {
   const db = new pg.Pool({ connectionString: process.env.DATABASE_URL })
   try {
     const { rows: candidates } = await db.query(`
-      SELECT id, title, description, methods, keywords, variables, repository, sdp_catalog_id
+      SELECT id, title, description, methods, keywords, variables, repository, sdp_catalog_id,
+             doi, temporal_extent_start
       FROM datasets
       ${force ? '' : 'WHERE gcmd_variables IS NULL'}
       ORDER BY id ${limit ? `LIMIT ${limit}` : ''}
@@ -141,6 +170,8 @@ async function main() {
     let extracted = 0
     let empty = 0
     let invalidPaths = 0
+    let yearsFilled = 0
+    let withCitedRefs = 0
 
     const processOne = async (d: any) => {
       const res = await callClaude({
@@ -160,9 +191,11 @@ async function main() {
       })
       totalCost += res.cost
       let vars: { name: string; unit?: string | null; unit_evidence?: string | null; gcmd: string | null }[] = []
+      let parsed: any = {}
       try {
         const m = res.text.match(/\{[\s\S]*\}/)
-        vars = JSON.parse(m ? m[0] : res.text).variables ?? []
+        parsed = JSON.parse(m ? m[0] : res.text)
+        vars = parsed.variables ?? []
       } catch {
         throw new Error(`unparseable response for dataset ${d.id}`)
       }
@@ -180,11 +213,40 @@ async function main() {
       }
       if (names.length) extracted++
       else empty++
-      if (report) reportRows.push({ id: d.id, title: d.title, repository: d.repository, vars })
+
+      // --- three companion extractions ---
+      const yrs = parsed.data_years ?? {}
+      const yearOk = (y: any) => Number.isInteger(y) && y >= 1900 && y <= 2027
+      const start = yearOk(yrs.start) ? yrs.start : null
+      const end = yearOk(yrs.end) ? yrs.end : start
+      const RESOLUTIONS = new Set(['sub-daily', 'daily', 'weekly', 'monthly', 'annual', 'multi-year', 'one-time'])
+      const resolution = RESOLUTIONS.has(parsed.temporal_resolution) ? parsed.temporal_resolution : null
+      const selfDoi = d.doi?.toLowerCase().replace(/^https?:\/\/doi\.org\//, '')
+      const cited = (parsed.cited_publications ?? [])
+        .filter((c: any) => c?.citation && c.evidence)
+        .map((c: any) => ({
+          doi: c.doi ? String(c.doi).toLowerCase().replace(/^https?:\/\/doi\.org\//, '') : null,
+          citation: String(c.citation).slice(0, 500),
+          evidence: String(c.evidence).slice(0, 300),
+        }))
+        .filter((c: any) => !c.doi || c.doi !== selfDoi)
+        .slice(0, 10)
+      if (start) yearsFilled++
+      if (cited.length) withCitedRefs++
+
+      if (report) reportRows.push({ id: d.id, title: d.title, repository: d.repository, vars, data_years: { start, end, ongoing: yrs.ongoing ?? null }, resolution, cited })
       if (!dryRun) {
         await db.query(
-          `UPDATE datasets SET variables = $1, variable_units = $2, gcmd_variables = $3, updated_at = NOW() WHERE id = $4`,
-          [names, units, gcmds, d.id],
+          `UPDATE datasets SET
+             variables = $1, variable_units = $2, gcmd_variables = $3,
+             temporal_extent_start = CASE WHEN temporal_extent_start IS NULL AND $4::int IS NOT NULL
+                                          THEN make_timestamptz($4::int, 1, 1, 0, 0, 0) ELSE temporal_extent_start END,
+             temporal_extent_end   = CASE WHEN temporal_extent_end IS NULL AND $5::int IS NOT NULL
+                                          THEN make_timestamptz($5::int, 12, 31, 0, 0, 0) ELSE temporal_extent_end END,
+             data_ongoing = $6, temporal_resolution = $7, cited_references = $8,
+             updated_at = NOW()
+           WHERE id = $9`,
+          [names, units, gcmds, start, end, yrs.ongoing ?? null, resolution, JSON.stringify(cited), d.id],
         )
       }
     }
@@ -197,11 +259,15 @@ async function main() {
       `Done: ${extracted} datasets with variables, ${empty} empty, ${errors} errors, ` +
         `${invalidPaths} hallucinated GCMD paths dropped`,
     )
+    console.log(`Extras: ${yearsFilled} with data years, ${withCitedRefs} with cited publications`)
     console.log(`Cost: $${totalCost.toFixed(2)}`)
     if (report) {
       const lines = [`# Unit extraction pilot — ${MODEL}`, '']
       for (const r of reportRows.sort((a, b) => a.id - b.id)) {
         lines.push(`## [${r.repository}] ${r.title}`, '')
+        if (r.data_years?.start) lines.push(`*data years:* ${r.data_years.start}–${r.data_years.end}${r.data_years.ongoing ? ' (ongoing)' : ''}`)
+        if (r.resolution) lines.push(`*resolution:* ${r.resolution}`)
+        for (const c of r.cited ?? []) lines.push(`*cites:* ${c.citation}${c.doi ? ` [${c.doi}]` : ''} · "${c.evidence}"`)
         if (!r.vars.length) lines.push('_(no variables)_')
         for (const v of r.vars) {
           lines.push(`- **${v.name}** — unit: ${v.unit ?? '—'}${v.unit_evidence ? ` · evidence: "${v.unit_evidence}"` : ''}`)
