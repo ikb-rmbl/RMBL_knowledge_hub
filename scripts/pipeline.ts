@@ -249,6 +249,8 @@ async function runEntities(): Promise<void> {
       execSync(`npx tsx scripts/extract-dataset-variables-llm.ts ${flags}`, opts)
       // Match newly-extracted companion citations into datasets_rels
       execSync(`npx tsx scripts/link-dataset-citations.ts ${flags}`, opts)
+      // Provenance flag for new datasets (fills NULLs only; curation-aware)
+      execSync(`npx tsx scripts/score-dataset-origin.ts ${dryRun ? '' : '--apply'}`, opts)
     } else {
       console.warn('ANTHROPIC_API_KEY not set — skipping dataset variable extraction')
     }

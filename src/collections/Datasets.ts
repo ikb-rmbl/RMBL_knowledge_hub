@@ -178,6 +178,29 @@ export const Datasets: CollectionConfig = {
       },
     },
     {
+      name: 'rmblOrigin',
+      type: 'select',
+      options: [
+        { label: 'Yes — RMBL/Gunnison Basin data', value: 'yes' },
+        { label: 'No — external reference dataset', value: 'no' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description:
+          'Was this data produced by RMBL/Gunnison Basin research (vs an external reference dataset researchers use, e.g. Daymet)? Auto-seeded by score-dataset-origin.ts; unset = needs review.',
+      },
+    },
+    {
+      name: 'rmblOriginScore',
+      type: 'number',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description:
+          'Pipeline-computed provenance score (SDP/ESS-DIVE + basin place markers + creator overlap − global-product markers). Sort the review queue by this.',
+      },
+    },
+    {
       name: 'sdpCatalogId',
       type: 'text',
       admin: {

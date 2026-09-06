@@ -18,7 +18,7 @@ export const CURATABLE_FIELDS: Record<string, string[]> = {
   datasets: [
     'title', 'description', 'doi', 'publicationYear', 'downloadUrl',
     'externalCatalogUrl', 'spatialDescription', 'license', 'resourceType',
-    'dataPublisher', 'repository', 'methods',
+    'dataPublisher', 'repository', 'methods', 'rmblOrigin',
   ],
   documents: [
     'title', 'summary', 'dateOriginal', 'sourceUrl', 'pdfLink',
