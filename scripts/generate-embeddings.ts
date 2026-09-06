@@ -51,6 +51,23 @@ function prepareDatasetText(row: any): string {
     parts.push(row.methods.split(/\s+/).slice(0, 500).join(' '))
   }
   if (row.spatial_description) parts.push(`Location: ${row.spatial_description}`)
+  // LLM-extracted structured fields (extract-dataset-variables-llm.ts) — these
+  // carry the measurement semantics for datasets with thin descriptions
+  if (row.variables?.length) {
+    const vars = row.variables.map((v: string, i: number) => {
+      const unit = row.variable_units?.[i]
+      return unit ? `${v} (${unit})` : v
+    })
+    parts.push(`Measured variables: ${vars.join(', ')}`)
+  }
+  if (row.gcmd_variables?.length) {
+    // GCMD leaf terms only — full paths repeat topic prefixes without adding meaning
+    const leaves = [...new Set(row.gcmd_variables.filter(Boolean).map((p: string) => p.split(' > ').pop()!.toLowerCase()))]
+    if (leaves.length) parts.push(`Science keywords: ${leaves.join(', ')}`)
+  }
+  if (row.keywords?.length) parts.push(`Keywords: ${row.keywords.join(', ')}`)
+  if (row.temporal_resolution) parts.push(`Sampling frequency: ${row.temporal_resolution}`)
+  if (row.data_ongoing) parts.push('Data collection is ongoing')
   return parts.join('. ').slice(0, 32000)
 }
 
