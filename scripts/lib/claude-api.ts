@@ -17,6 +17,7 @@ const MODEL_PRICING: Record<string, { input: number; output: number }> = {
   'claude-sonnet-4-6':         { input: 3,  output: 15 },
   'claude-opus-4-7':           { input: 15, output: 75 },
   'claude-haiku-4-5-20251001': { input: 1,  output: 5  },
+  'claude-opus-5':             { input: 5,  output: 25 },
 }
 const FALLBACK_PRICING = { input: 3, output: 15 }
 
@@ -76,7 +77,9 @@ export async function callClaude(options: {
     const pricing = priceFor(model)
 
     return {
-      text: data.content?.[0]?.text || '',
+      // concatenate all text blocks — thinking-capable models (opus-5+) may
+      // emit a thinking block before the text, so content[0] is not reliable
+      text: (data.content ?? []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('') || '',
       inputTokens,
       outputTokens,
       cost: (inputTokens * pricing.input + outputTokens * pricing.output) / 1_000_000,
