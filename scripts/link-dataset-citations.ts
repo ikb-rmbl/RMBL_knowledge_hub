@@ -26,7 +26,7 @@ async function main() {
   try {
     const { rows } = await db.query(`
       SELECT id, cited_references FROM datasets
-      WHERE jsonb_array_length(coalesce(cited_references, '[]'::jsonb)) > 0
+      WHERE jsonb_typeof(cited_references) = 'array' AND jsonb_array_length(cited_references) > 0
     `)
     console.log(`${rows.length} datasets with cited references`)
     let byDoi = 0, byTitle = 0, already = 0, unmatched = 0
