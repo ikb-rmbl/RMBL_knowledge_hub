@@ -239,6 +239,22 @@ async function runEntities(): Promise<void> {
   } catch (err) {
     console.error('Species backfill failed — continuing')
   }
+
+  try {
+    // LLM variable/metadata extraction for datasets that haven't been
+    // processed yet (gcmd_variables IS NULL — new discoveries and SDP-sync
+    // inserts). Incremental, so routine runs cost cents. Requires
+    // ANTHROPIC_API_KEY; skipped with a warning when unset.
+    if (process.env.ANTHROPIC_API_KEY) {
+      execSync(`npx tsx scripts/extract-dataset-variables-llm.ts ${flags}`, opts)
+      // Match newly-extracted companion citations into datasets_rels
+      execSync(`npx tsx scripts/link-dataset-citations.ts ${flags}`, opts)
+    } else {
+      console.warn('ANTHROPIC_API_KEY not set — skipping dataset variable extraction')
+    }
+  } catch (err) {
+    console.error('Dataset variable extraction failed — continuing')
+  }
 }
 
 // ---------------------------------------------------------------------------

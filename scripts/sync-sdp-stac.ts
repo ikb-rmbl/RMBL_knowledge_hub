@@ -346,7 +346,9 @@ async function main() {
     if (!dryRun) {
       writeFileSync(STATE_FILE, JSON.stringify({ catalogVersion: version, syncedAt: new Date().toISOString() }, null, 2))
       if (inserted > 0) {
-        console.log(`\nNext: npx tsx scripts/generate-embeddings.ts  (new rows have no embedding yet)`)
+        console.log(`\nNext for the ${inserted} new rows (or run the pipeline, which covers both):`)
+        console.log(`  npx tsx scripts/generate-embeddings.ts                (no embedding yet)`)
+        console.log(`  npx tsx scripts/extract-dataset-variables-llm.ts      (no variables/years yet; incremental)`)
       }
     }
   } finally {
