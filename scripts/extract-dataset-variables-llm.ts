@@ -77,7 +77,7 @@ function buildTask(d: {
     d.description ? `DESCRIPTION: ${d.description.slice(0, 4000)}` : null,
     d.methods ? `METHODS: ${d.methods.slice(0, 2000)}` : null,
     d.keywords?.length ? `EXISTING KEYWORDS (EML harvest): ${d.keywords.join(', ')}` : null,
-    d.variables?.length ? `EXISTING VARIABLES (dd.csv harvest): ${d.variables.join(', ')}` : null,
+    d.variables?.length ? `EXISTING VARIABLES (dd.csv harvest): ${d.variables.slice(0, 30).join(', ')}` : null,
   ].filter(Boolean)
 
   return `Extract the MEASURED VARIABLES from this dataset's metadata.
@@ -89,7 +89,7 @@ Rules:
 - Use short lowercase canonical names ("soil moisture", not "volumetric soil moisture content at 10cm (VWC_10)"). Do not include units in the name.
 - Report the unit ONLY when the metadata explicitly states it (in the description, methods, keywords, or a column name like "depth [m]"). Never infer a conventional unit — if no unit is stated, use null. For each stated unit, quote the exact metadata fragment that states it in "unit_evidence".
 - For each variable pick the single best GCMD path COPIED VERBATIM from the taxonomy above. If nothing in the list is a reasonable fit, use null — do not force a match.
-- Typically 1-10 variables per dataset. If the metadata is too thin to identify any, return an empty list.
+- Typically 1-10 variables per dataset, NEVER more than 15 — for large data dictionaries, consolidate to the principal measured quantities. If the metadata is too thin to identify any, return an empty list.
 
 Also extract, from the SAME metadata:
 - data_years: the years the DATA WERE COLLECTED, only when the metadata states them (title year ranges like "(2002 - 2021)" count). NEVER use the publication or release date as a collection year. "ongoing" is true only when collection is explicitly described as continuing ("and continuing", "ongoing", "long-term monitoring ... to present").
@@ -180,7 +180,7 @@ async function main() {
       const res = await callClaude({
         apiKey,
         model: MODEL,
-        maxTokens: 2000,
+        maxTokens: 8000,
         messages: [
           {
             role: 'user',
@@ -195,11 +195,23 @@ async function main() {
       totalCost += res.cost
       let vars: { name: string; unit?: string | null; unit_evidence?: string | null; gcmd: string | null }[] = []
       let parsed: any = {}
+      if (!res.text.trim()) {
+        // safety-classifier refusal (e.g. bio category on disease-evolution
+        // datasets) — record as processed-empty rather than erroring forever
+        console.error(`
+  [${d.id}] empty response (likely refusal) — marking processed-empty`)
+        empty++
+        if (!dryRun) await db.query(`UPDATE datasets SET gcmd_variables = '{}' WHERE id = $1`, [d.id])
+        return
+      }
       try {
         const m = res.text.match(/\{[\s\S]*\}/)
         parsed = JSON.parse(m ? m[0] : res.text)
         vars = parsed.variables ?? []
       } catch {
+        console.error(`
+  [${d.id}] RESPONSE HEAD: ${res.text.slice(0, 200)}`)
+        console.error(`  [${d.id}] RESPONSE TAIL: ${res.text.slice(-200)}`)
         throw new Error(`unparseable response for dataset ${d.id}`)
       }
       const names: string[] = []
@@ -255,8 +267,15 @@ async function main() {
     }
 
     // Warm the prompt cache with a single call before fanning out
-    await processOne(candidates[0])
-    const { errors } = await runConcurrent(candidates.slice(1), CONCURRENCY, processOne, 'extract')
+    let warmErrors = 0
+    try {
+      await processOne(candidates[0])
+    } catch (e: any) {
+      console.error(`  warm call failed (${e.message}) — continuing`)
+      warmErrors = 1
+    }
+    const { errors: runErrors } = await runConcurrent(candidates.slice(1), CONCURRENCY, processOne, 'extract')
+    const errors = runErrors + warmErrors
 
     console.log(
       `Done: ${extracted} datasets with variables, ${empty} empty, ${errors} errors, ` +

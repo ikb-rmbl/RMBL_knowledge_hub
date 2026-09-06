@@ -77,7 +77,9 @@ export async function callClaude(options: {
     const pricing = priceFor(model)
 
     return {
-      text: data.content?.[0]?.text || '',
+      // concatenate all text blocks — thinking-capable models (opus-5+) may
+      // emit a thinking block before the text, so content[0] is not reliable
+      text: (data.content ?? []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('') || '',
       inputTokens,
       outputTokens,
       cost: (inputTokens * pricing.input + outputTokens * pricing.output) / 1_000_000,
