@@ -277,6 +277,26 @@ async function runCitations(): Promise<void> {
   } catch (err) {
     console.error('Citations phase failed — continuing')
   }
+
+  try {
+    // Re-use assessment Phase 1: internal links always recomputed; OpenAlex
+    // citing works only for datasets unchecked in 30 days.
+    execSync(`npx tsx scripts/assess-dataset-reuse.ts --stale-days=30 ${flags}`, opts)
+  } catch (err) {
+    console.error('Re-use Phase 1 failed — continuing')
+  }
+
+  try {
+    // Phase 2 (companion-forward, LLM): new companion pairs each run;
+    // full re-scan of existing pairs quarterly (~$7). Needs ANTHROPIC_API_KEY.
+    if (process.env.ANTHROPIC_API_KEY) {
+      execSync(`npx tsx scripts/assess-companion-reuse.ts --stale-days=90 ${flags}`, opts)
+    } else {
+      console.warn('ANTHROPIC_API_KEY not set — skipping companion re-use scan')
+    }
+  } catch (err) {
+    console.error('Re-use Phase 2 failed — continuing')
+  }
 }
 
 // ---------------------------------------------------------------------------
