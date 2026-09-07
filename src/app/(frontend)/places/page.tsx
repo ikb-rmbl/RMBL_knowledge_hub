@@ -143,6 +143,9 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
         <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 16px' }}>Places</h1>
         <form className="search-form" action="/places" method="GET">
           <input className="search-input" type="text" name="q" aria-label="Search places" defaultValue={query} placeholder="Search places..." />
+          {Object.entries(params).filter(([k, v]) => !['q', 'page'].includes(k) && v).map(([k, v]) => (
+            <input key={k} type="hidden" name={k} value={String(v)} />
+          ))}
           <button className="search-button" type="submit">Search</button>
         </form>
 

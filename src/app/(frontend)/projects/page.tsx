@@ -98,9 +98,9 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       <div className="search-results-header">
         <form className="search-form" action="/projects" method="GET">
           <input className="search-input" type="text" name="q" aria-label="Search projects" defaultValue={query} placeholder="Search projects..." />
-          {typeFilter && <input type="hidden" name="type" value={typeFilter} />}
-          {statusFilter && <input type="hidden" name="status" value={statusFilter} />}
-          {sortParam !== 'name' && <input type="hidden" name="sort" value={sortParam} />}
+          {Object.entries(params).filter(([k, v]) => !['q', 'page'].includes(k) && v).map(([k, v]) => (
+            <input key={k} type="hidden" name={k} value={String(v)} />
+          ))}
           <button className="search-button" type="submit">Search</button>
         </form>
 

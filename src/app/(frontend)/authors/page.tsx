@@ -150,8 +150,10 @@ export default async function AuthorsPage({ searchParams }: { searchParams: Prom
             defaultValue={query}
             placeholder="Search by name, affiliation, or ORCID..."
           />
-          {sortParam !== 'works' && <input type="hidden" name="sort" value={sortParam} />}
-          {filterParam && <input type="hidden" name="filter" value={filterParam} />}
+          {/* letter is intentionally dropped: a text search replaces alphabet browsing */}
+          {Object.entries(params).filter(([k, v]) => !['q', 'page', 'letter'].includes(k) && v).map(([k, v]) => (
+            <input key={k} type="hidden" name={k} value={String(v)} />
+          ))}
           <button className="search-button" type="submit">Search</button>
         </form>
 

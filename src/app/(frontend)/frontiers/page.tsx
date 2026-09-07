@@ -429,10 +429,9 @@ export default async function FrontiersPage({
         <form className="search-form" action="/frontiers" method="GET">
           <label htmlFor="fr-q" className="sr-only">Search frontiers</label>
           <input id="fr-q" className="search-input" type="text" name="q" aria-label="Search frontiers" defaultValue={query} placeholder="Search frontiers..." />
-          {sort !== 'breadth' && <input type="hidden" name="sort" value={sort} />}
-          {mgmtFilter && <input type="hidden" name="mgmt" value={mgmtFilter} />}
-          {reachFilter && <input type="hidden" name="reach" value={reachFilter} />}
-          {topicFilter && <input type="hidden" name="topic" value={String(topicFilter)} />}
+          {Object.entries(params).filter(([k, v]) => !['q', 'page'].includes(k) && v).map(([k, v]) => (
+            <input key={k} type="hidden" name={k} value={String(v)} />
+          ))}
           <button className="search-button" type="submit">Search</button>
         </form>
         <p className="results-count" aria-live="polite">
