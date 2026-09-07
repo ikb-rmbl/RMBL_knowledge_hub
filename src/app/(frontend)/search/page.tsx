@@ -583,13 +583,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         <form className="search-form" action="/search" method="GET">
           <label htmlFor="search-q" className="sr-only">Search publications, datasets, and documents</label>
           <input id="search-q" className="search-input" type="text" name="q" defaultValue={query} placeholder="Search..." />
-          {typeFilter && <input type="hidden" name="type" value={typeFilter} />}
-          {topicFilter && <input type="hidden" name="topic" value={topicFilter} />}
-          {pubTypeFilter && <input type="hidden" name="pubType" value={pubTypeFilter} />}
-          {yearFrom && <input type="hidden" name="yearFrom" value={String(yearFrom)} />}
-          {yearTo && <input type="hidden" name="yearTo" value={String(yearTo)} />}
-          {neighborhoodParam && <input type="hidden" name="neighborhood" value={neighborhoodParam} />}
-          {sortParam !== defaultSort && <input type="hidden" name="sort" value={sortParam} />}
+          {Object.entries(params).filter(([k, v]) => !['q', 'page'].includes(k) && v).map(([k, v]) => (
+            <input key={k} type="hidden" name={k} value={String(v)} />
+          ))}
           <button className="search-button" type="submit">Search</button>
         </form>
 
@@ -738,12 +734,10 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           <div className="filter-group">
             <h2 className="filter-label">Date Range</h2>
             <form action="/search" method="GET" className="date-filter-form">
-              {/* Carry forward all current params */}
-              {query && <input type="hidden" name="q" value={query} />}
-              {typeFilter && <input type="hidden" name="type" value={typeFilter} />}
-              {topicFilter && <input type="hidden" name="topic" value={topicFilter} />}
-              {pubTypeFilter && <input type="hidden" name="pubType" value={pubTypeFilter} />}
-              {sortParam !== defaultSort && <input type="hidden" name="sort" value={sortParam} />}
+              {/* Carry forward all current params except the form's own year inputs */}
+              {Object.entries(params).filter(([k, v]) => !['yearFrom', 'yearTo', 'page'].includes(k) && v).map(([k, v]) => (
+                <input key={k} type="hidden" name={k} value={String(v)} />
+              ))}
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <label htmlFor="yearFrom" className="sr-only">From year</label>
                 <input

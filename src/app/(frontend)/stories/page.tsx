@@ -127,9 +127,9 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
         <form className="search-form" action="/stories" method="GET">
           <label htmlFor="stories-q" className="sr-only">Search stories</label>
           <input id="stories-q" className="search-input" type="text" name="q" aria-label="Search stories" defaultValue={query} placeholder="Search stories..." />
-          {typeFilter && <input type="hidden" name="type" value={typeFilter} />}
-          {yearFrom && <input type="hidden" name="yearFrom" value={String(yearFrom)} />}
-          {yearTo && <input type="hidden" name="yearTo" value={String(yearTo)} />}
+          {Object.entries(params).filter(([k, v]) => !['q', 'page'].includes(k) && v).map(([k, v]) => (
+            <input key={k} type="hidden" name={k} value={String(v)} />
+          ))}
           <button className="search-button" type="submit">Search</button>
         </form>
 

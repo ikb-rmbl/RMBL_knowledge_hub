@@ -154,6 +154,9 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
         <h1 style={{ fontSize: '22px', fontWeight: 600, margin: '0 0 16px' }}>Concepts</h1>
         <form className="search-form" action="/concepts" method="GET">
           <input className="search-input" type="text" name="q" aria-label="Search concepts" defaultValue={query} placeholder="Search concepts..." />
+          {Object.entries(params).filter(([k, v]) => !['q', 'page'].includes(k) && v).map(([k, v]) => (
+            <input key={k} type="hidden" name={k} value={String(v)} />
+          ))}
           <button className="search-button" type="submit">Search</button>
         </form>
 

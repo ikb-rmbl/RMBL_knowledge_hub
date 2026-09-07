@@ -134,7 +134,9 @@ export default async function NeighborhoodsPage({ searchParams }: { searchParams
         <form className="search-form" action="/neighborhoods" method="GET">
           <label htmlFor="nbr-q" className="sr-only">Search neighborhoods</label>
           <input id="nbr-q" className="search-input" type="text" name="q" aria-label="Search neighborhoods" defaultValue={query} placeholder="Search neighborhoods..." />
-          {focusFilter && <input type="hidden" name="focus" value={focusFilter} />}
+          {Object.entries(params).filter(([k, v]) => !['q', 'page'].includes(k) && v).map(([k, v]) => (
+            <input key={k} type="hidden" name={k} value={String(v)} />
+          ))}
           <button className="search-button" type="submit">Search</button>
         </form>
 
