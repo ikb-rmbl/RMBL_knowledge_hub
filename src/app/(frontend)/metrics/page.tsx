@@ -35,7 +35,7 @@ const SERIES_META = [
 export default async function MetricsPage() {
   const db = getDb()
 
-  const [{ rows: perYear }, { rows: [totals] }, { rows: datasetsPerYear }] = await Promise.all([
+  const [{ rows: perYear }, { rows: [totals] }, { rows: datasetsPerYear }, { rows: [reuse] }, { rows: reusePerYear }] = await Promise.all([
     db.query(`
       SELECT p.year::int AS year,
              count(*)::int AS pubs_all,
@@ -70,6 +70,35 @@ export default async function MetricsPage() {
        GROUP BY 1 ORDER BY 1`,
       [YEAR_MIN],
     ),
+    // FAIR R-rate — official denominator: RMBL-origin datasets WITH a DOI
+    // (untracked-without-DOI ≠ not re-used; see specification/dataset-reuse-design.md)
+    db.query(`
+      SELECT
+        (SELECT count(*) FROM datasets WHERE rmbl_origin = 'yes')::int AS rmbl_datasets,
+        (SELECT count(*) FROM datasets WHERE rmbl_origin = 'no')::int AS reference_datasets,
+        (SELECT count(*) FROM datasets WHERE rmbl_origin IS NULL)::int AS unreviewed_datasets,
+        (SELECT count(*) FROM datasets WHERE rmbl_origin = 'yes' AND doi IS NOT NULL)::int AS doi_denominator,
+        (SELECT count(*) FROM datasets WHERE rmbl_origin = 'yes' AND doi IS NOT NULL AND reuse_independent)::int AS independent,
+        (SELECT count(*) FROM datasets WHERE rmbl_origin = 'yes' AND doi IS NOT NULL
+           AND publication_year <= extract(year FROM now())::int - 5)::int AS aged_denominator,
+        (SELECT count(*) FROM datasets WHERE rmbl_origin = 'yes' AND doi IS NOT NULL AND reuse_independent
+           AND publication_year <= extract(year FROM now())::int - 5)::int AS aged_independent,
+        (SELECT count(DISTINCT e.dataset_id) FROM dataset_reuse_events e
+           JOIN datasets d ON d.id = e.dataset_id
+           WHERE e.use_class = 'data_used' AND e.independence = 'independent'
+             AND d.rmbl_origin = 'yes' AND d.doi IS NOT NULL)::int AS verified
+    `),
+    db.query(`
+      SELECT e.citing_year::int AS year,
+             count(*) FILTER (WHERE e.independence = 'independent')::int AS independent,
+             count(*) FILTER (WHERE e.independence IN ('same_group', 'collaborators'))::int AS own_group
+      FROM dataset_reuse_events e
+      JOIN datasets d ON d.id = e.dataset_id
+      WHERE d.rmbl_origin = 'yes' AND d.doi IS NOT NULL
+        AND e.confidence > 0 AND e.citing_year IS NOT NULL
+        AND e.citing_year >= 2000 AND e.citing_year <= extract(year FROM now())::int
+      GROUP BY 1 ORDER BY 1
+    `),
   ])
 
   const dsByYear = new Map<number, number>(datasetsPerYear.map((r: any) => [r.year, r.n]))
@@ -86,6 +115,25 @@ export default async function MetricsPage() {
   }
 
   const haveReuData = totals.reu_pubs > 0
+
+  // FAIR re-use tiles + series (official DOI'd RMBL-origin denominator)
+  const pct = (n: number, d: number) => (d > 0 ? `${Math.round((n / d) * 100)}%` : '—')
+  const reuseTiles = [
+    { label: 'Independently re-used', value: pct(reuse.independent, reuse.doi_denominator), note: `${reuse.independent} of ${reuse.doi_denominator} DOI'd RMBL datasets` },
+    { label: 'Re-used (5+ yrs old)', value: pct(reuse.aged_independent, reuse.aged_denominator), note: `${reuse.aged_independent} of ${reuse.aged_denominator} published 5+ years ago` },
+    { label: 'Verified data use', value: reuse.verified.toLocaleString(), note: 'independent teams whose citation context confirms the data was used' },
+  ]
+  // separate chart, so palette slots restart — teal for the headline series,
+  // gray for the deliberate own-group context line (drawn first, sits under)
+  const reuseSeries: MetricsSeries[] = [
+    { key: 'own_group', label: 'Creators & collaborators', color: '#7d7a70',
+      values: Object.fromEntries(reusePerYear.map((r: any) => [r.year, r.own_group])) },
+    { key: 'independent', label: 'Independent re-use', color: '#0f7d9e',
+      values: Object.fromEntries(reusePerYear.map((r: any) => [r.year, r.independent])) },
+  ]
+  const reuseYears = reusePerYear.map((r: any) => r.year)
+  const reuseYearMin = reuseYears.length ? reuseYears[0] : 2000
+  const reuseYearMax = reuseYears.length ? reuseYears[reuseYears.length - 1] : new Date().getFullYear()
   const series: MetricsSeries[] = SERIES_META
     // hide the REU series until roster data exists — a flat zero line is noise
     .filter((m) => m.key !== 'reu' || haveReuData)
@@ -99,7 +147,7 @@ export default async function MetricsPage() {
   const tiles = [
     { label: 'All research outputs', value: (totals.total + totals.datasets_total).toLocaleString(), note: `${totals.total.toLocaleString()} papers + ${totals.datasets_total.toLocaleString()} datasets, all provenances` },
     { label: 'Peer-reviewed publications', value: totals.peer.toLocaleString(), note: `RMBL research · ${totals.unreviewed} awaiting review` },
-    { label: 'Datasets', value: totals.datasets_total.toLocaleString(), note: 'RMBL / non-RMBL split pending a dataset provenance flag' },
+    { label: 'RMBL datasets', value: reuse.rmbl_datasets.toLocaleString(), note: `of ${totals.datasets_total.toLocaleString()} total · ${reuse.reference_datasets} reference · ${reuse.unreviewed_datasets} unreviewed` },
     { label: 'Student papers & theses', value: totals.students_theses.toLocaleString(), note: 'reported separately' },
     { label: 'Peer-reviewed w/ student authors', value: totals.student_pubs.toLocaleString(), note: 'tagging incomplete — trend not yet chartable' },
     { label: 'REU publications', value: haveReuData ? totals.reu_pubs.toLocaleString() : '—', note: haveReuData ? undefined : 'awaiting REU cohort roster' },
@@ -113,8 +161,8 @@ export default async function MetricsPage() {
         <strong> Peer-reviewed publications from RMBL research are the primary metric</strong>;
         student papers and theses are reported separately, and &ldquo;all research
         outputs&rdquo; counts every paper and dataset in the Commons regardless of
-        provenance. Datasets are not yet split by RMBL vs. non-RMBL origin (a dataset
-        provenance flag is planned). Student authorship on peer-reviewed papers is
+        provenance. Datasets are split by provenance: RMBL/Gunnison Basin data vs. external
+        reference datasets researchers use. Student authorship on peer-reviewed papers is
         inferred from student papers and theses plus manual curation.
       </p>
 
@@ -127,6 +175,58 @@ export default async function MetricsPage() {
             {t.note && <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '2px' }}>{t.note}</div>}
           </div>
         ))}
+      </div>
+
+      <div className="detail-section">
+        <h2 style={{ margin: 0 }}>Data re-use — the R in FAIR</h2>
+        <p style={{ color: 'var(--fg-2)', maxWidth: '68ch', marginTop: '8px' }}>
+          Evidence that RMBL datasets are re-used by research groups <strong>independent</strong> of
+          their creators (no shared authors, no co-authorship ties), from formal data citations
+          plus citations of companion papers whose context indicates the data itself was used.
+          Denominator: RMBL-origin datasets with a DOI — datasets without one cannot be tracked
+          externally. All figures are lower bounds; teaching, agency, and field use leave no
+          citation trace.
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', margin: '16px 0 8px' }}>
+          {reuseTiles.map((t) => (
+            <div key={t.label} style={{ background: 'var(--color-surface)', border: '1px solid var(--border)', borderRadius: '8px', padding: '14px 16px' }}>
+              <div style={{ fontSize: '32px', fontWeight: 700, color: 'var(--fg-1)', lineHeight: 1.1 }}>{t.value}</div>
+              <div style={{ fontSize: '13px', color: 'var(--fg-2)', marginTop: '4px' }}>{t.label}</div>
+              {t.note && <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '2px' }}>{t.note}</div>}
+            </div>
+          ))}
+        </div>
+
+        {reuseSeries.length > 0 && (
+          <>
+            <h3 style={{ marginTop: '20px', marginBottom: '4px' }}>Re-use events by citing year</h3>
+            <PublicationsMetricsChart series={reuseSeries} yearMin={reuseYearMin} yearMax={reuseYearMax} />
+            <details style={{ marginTop: '12px' }}>
+              <summary style={{ cursor: 'pointer', fontSize: '14px', color: 'var(--fg-2)' }}>Data table</summary>
+              <div style={{ overflowX: 'auto', marginTop: '8px' }}>
+                <table style={{ borderCollapse: 'collapse', fontSize: '13px' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ padding: '4px 10px', borderBottom: '1px solid var(--border)', textAlign: 'left' }}>Year</th>
+                      <th style={{ padding: '4px 10px', borderBottom: '1px solid var(--border)', textAlign: 'right' }}>Independent</th>
+                      <th style={{ padding: '4px 10px', borderBottom: '1px solid var(--border)', textAlign: 'right' }}>Creators &amp; collaborators</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reusePerYear.map((r: any) => (
+                      <tr key={r.year}>
+                        <td style={{ padding: '3px 10px' }}>{r.year}</td>
+                        <td style={{ padding: '3px 10px', textAlign: 'right' }}>{r.independent}</td>
+                        <td style={{ padding: '3px 10px', textAlign: 'right' }}>{r.own_group}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          </>
+        )}
       </div>
 
       <div className="detail-section">
