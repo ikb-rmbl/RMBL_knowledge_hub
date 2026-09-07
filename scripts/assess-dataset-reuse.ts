@@ -24,7 +24,11 @@
  * "family given-initial" name.
  *
  * Usage:
- *   npx tsx scripts/assess-dataset-reuse.ts [--dry-run] [--limit=N] [--skip-openalex]
+ *   npx tsx scripts/assess-dataset-reuse.ts [--dry-run] [--limit=N] [--skip-openalex] [--stale-days=N]
+ *
+ * --stale-days=N gates the OpenAlex channel to datasets not checked in N days
+ * (reuse_checked_at) — the pipeline runs with 30 so routine runs only touch
+ * new or stale datasets. Internal links are always recomputed (cheap).
  */
 
 import pg from 'pg'
@@ -35,6 +39,8 @@ const dryRun = process.argv.includes('--dry-run')
 const skipOpenalex = process.argv.includes('--skip-openalex')
 const limitArg = process.argv.find((a) => a.startsWith('--limit='))?.split('=')[1]
 const limit = limitArg ? parseInt(limitArg) : undefined
+const staleDaysArg = process.argv.find((a) => a.startsWith('--stale-days='))?.split('=')[1]
+const staleDays = staleDaysArg ? parseInt(staleDaysArg) : 0 // 0 = check everything
 const MAILTO = process.env.OPENALEX_MAILTO || 'ikb@rmbl.org'
 
 function nameKey(family?: string | null, given?: string | null): string | null {
@@ -153,6 +159,7 @@ async function main() {
       const { rows: doiDatasets } = await db.query(`
         SELECT id, doi FROM datasets
         WHERE doi IS NOT NULL AND external_citation_count > 0
+          ${staleDays > 0 ? `AND (reuse_checked_at IS NULL OR reuse_checked_at < now() - interval '${staleDays} days')` : ''}
         ORDER BY external_citation_count DESC ${limit ? `LIMIT ${limit}` : ''}
       `)
       console.log(`Channel 2 (OpenAlex): checking ${doiDatasets.length} cited DOI'd datasets`)
@@ -206,6 +213,7 @@ async function main() {
             if (!page.results?.length) break
           }
           if (fetched > 0) externalDatasets++
+          if (!dryRun) await db.query(`UPDATE datasets SET reuse_checked_at = now() WHERE id = $1`, [d.id])
         } catch {
           /* skip dataset on API error */
         }

@@ -28,7 +28,7 @@ const BATCH = 200
 
 const args = process.argv.slice(2)
 const onlyArg = args.find((a) => a.startsWith('--only='))?.split('=')[1]
-const sections = new Set(onlyArg ? onlyArg.split(',').map((s) => s.trim()) : ['neighborhoods', 'entity_mentions', 'frontiers', 'planning', 'era_primers', 'futures', 'references_cited'])
+const sections = new Set(onlyArg ? onlyArg.split(',').map((s) => s.trim()) : ['neighborhoods', 'entity_mentions', 'frontiers', 'planning', 'era_primers', 'futures', 'references_cited', 'reuse'])
 
 async function main() {
   console.log('Sync Bulk Tables to Neon')
@@ -524,6 +524,69 @@ async function main() {
         console.log(`  · ${t.padEnd(36)} (skipped — ${err.message?.slice(0, 60)})`)
       }
     }
+
+    if (sections.has('reuse')) {
+    // Dataset re-use assessment: events + rollups + provenance flag.
+    // dataset_id is remapped via DOI (then lower(title)) — raw ids can
+    // diverge between local and Neon for recently-inserted datasets.
+    console.log('\n--- Dataset re-use ---')
+    const { rows: localDs } = await local.query(`SELECT id, doi, title FROM datasets`)
+    const { rows: neonDs } = await neon.query(`SELECT id, doi, title FROM datasets`)
+    const neonByDoi = new Map<string, number>()
+    const neonByTitle = new Map<string, number>()
+    for (const d of neonDs) {
+      if (d.doi) neonByDoi.set(d.doi.toLowerCase(), d.id)
+      neonByTitle.set(d.title.toLowerCase(), d.id)
+    }
+    const idMap = new Map<number, number>()
+    for (const d of localDs) {
+      const nid = (d.doi && neonByDoi.get(d.doi.toLowerCase())) || neonByTitle.get(d.title.toLowerCase())
+      if (nid) idMap.set(d.id, nid)
+    }
+
+    await neon.query('TRUNCATE dataset_reuse_events')
+    const { rows: events } = await local.query('SELECT * FROM dataset_reuse_events ORDER BY id')
+    let evSynced = 0, evUnmapped = 0
+    for (let i = 0; i < events.length; i += BATCH) {
+      const batch = events.slice(i, i + BATCH).filter((e) => {
+        if (!idMap.has(e.dataset_id)) { evUnmapped++; return false }
+        return true
+      })
+      if (!batch.length) continue
+      const cols = ['dataset_id', 'channel', 'citing_publication_id', 'citing_doi', 'citing_title',
+                    'citing_year', 'use_class', 'independence', 'evidence', 'confidence', 'extracted_at']
+      const allVals: any[] = []
+      const valueSets: string[] = []
+      for (const e of batch) {
+        const offset = allVals.length
+        valueSets.push('(' + cols.map((_, j) => `$${offset + j + 1}`).join(',') + ')')
+        for (const c of cols) allVals.push(c === 'dataset_id' ? idMap.get(e.dataset_id) : e[c] ?? null)
+      }
+      await neon.query(`INSERT INTO dataset_reuse_events (${cols.join(',')}) VALUES ${valueSets.join(',')} ON CONFLICT DO NOTHING`, allVals)
+      evSynced += batch.length
+    }
+    console.log(`  ${evSynced} events (${evUnmapped} unmapped)`)
+
+    const { rows: rollups } = await local.query(
+      `SELECT id, reuse_internal_count, reuse_external_count, reuse_independent,
+              rmbl_origin, rmbl_origin_score, reuse_checked_at FROM datasets`)
+    let rSynced = 0
+    for (const r of rollups) {
+      const nid = idMap.get(r.id)
+      if (!nid) continue
+      // rmbl_origin honors Neon-side curation (admin triage happens there)
+      await neon.query(
+        `UPDATE datasets SET reuse_internal_count = $1, reuse_external_count = $2,
+           reuse_independent = $3, rmbl_origin_score = $4, reuse_checked_at = $5,
+           ${'rmbl_origin = CASE WHEN curated_fields @> \'["rmblOrigin"]\'::jsonb THEN rmbl_origin ELSE COALESCE(rmbl_origin, $6) END'}
+         WHERE id = $7`,
+        [r.reuse_internal_count, r.reuse_external_count, r.reuse_independent,
+         r.rmbl_origin_score, r.reuse_checked_at, r.rmbl_origin, nid])
+      rSynced++
+    }
+    console.log(`  ${rSynced} dataset rollups`)
+    }
+
   } finally {
     await local.end()
     await neon.end()

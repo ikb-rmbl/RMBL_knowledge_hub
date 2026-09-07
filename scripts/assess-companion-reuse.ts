@@ -23,7 +23,11 @@
  * dataset_reuse_scan).
  *
  * Usage:
- *   npx tsx scripts/assess-companion-reuse.ts [--dry-run] [--limit=N] [--model=...]
+ *   npx tsx scripts/assess-companion-reuse.ts [--dry-run] [--limit=N] [--model=...] [--stale-days=N]
+ *
+ * Default: only pairs never scanned. --stale-days=N also re-scans pairs whose
+ * marker is older than N days (new citing papers accrue over time) — the
+ * pipeline uses 90 for a quarterly refresh (~\$7/full corpus).
  */
 
 import pg from 'pg'
@@ -35,6 +39,8 @@ const dryRun = process.argv.includes('--dry-run')
 const force = process.argv.includes('--force')
 const limitArg = process.argv.find((a) => a.startsWith('--limit='))?.split('=')[1]
 const limit = limitArg ? parseInt(limitArg) : undefined
+const staleDaysArg = process.argv.find((a) => a.startsWith('--stale-days='))?.split('=')[1]
+const staleDays = staleDaysArg ? parseInt(staleDaysArg) : 0 // 0 = new pairs only (marker check)
 const MODEL = process.argv.find((a) => a.startsWith('--model='))?.split('=')[1] ?? 'claude-opus-5'
 const S2_BASE = 'https://api.semanticscholar.org/graph/v1'
 
@@ -125,7 +131,8 @@ async function main() {
         ${force ? '' : `AND NOT EXISTS (
           SELECT 1 FROM dataset_reuse_events e
           WHERE e.dataset_id = d.id AND e.channel = 'companion_forward'
-            AND e.evidence = 'scan_marker:' || p.id)`}
+            AND e.evidence = 'scan_marker:' || p.id
+            ${staleDays > 0 ? `AND e.extracted_at > now() - interval '${staleDays} days'` : ''})`}
       ORDER BY d.id ${limit ? `LIMIT ${limit}` : ''}
     `)
     console.log(`${pairs.length} (dataset, companion paper) pairs to scan, model ${MODEL}${dryRun ? ' (dry-run)' : ''}`)
@@ -194,12 +201,13 @@ Respond with ONLY a JSON array, one entry per numbered paper, in order:
           events++
         }
       }
-      // scan marker so re-runs skip this pair
+      // scan marker so re-runs skip this pair (extracted_at refresh drives --stale-days)
       if (!dryRun) {
         await db.query(
           `INSERT INTO dataset_reuse_events (dataset_id, channel, citing_doi, use_class, independence, evidence, confidence)
            VALUES ($1,'companion_forward',$2,'unclear','unknown',$3,0)
-           ON CONFLICT (dataset_id, channel, coalesce(citing_publication_id, -1), coalesce(citing_doi, '')) DO NOTHING`,
+           ON CONFLICT (dataset_id, channel, coalesce(citing_publication_id, -1), coalesce(citing_doi, ''))
+           DO UPDATE SET extracted_at = now()`,
           [pair.dataset_id, `scan:${pair.pub_id}`, `scan_marker:${pair.pub_id}`],
         )
       }
