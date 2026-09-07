@@ -19,6 +19,12 @@ Three orthogonal classifications per event:
 The FAIR-R headline is: **fraction of datasets with ≥1 `data_used` × `independent` event**,
 sliced by repository, dataset age, long-term vs one-time, and over time.
 
+**Official denominator (per Ian, 2026-09-07): RMBL-origin datasets WITH a DOI**
+(`rmbl_origin = 'yes' AND doi IS NOT NULL`, n=563). Datasets without DOIs (195
+RMBL-origin, mostly SDP products) are excluded — they cannot be tracked
+externally, so including them conflates "not re-used" with "not trackable."
+Report them separately as the DOI-minting opportunity.
+
 ## The two hard problems
 
 1. **Citation indirection.** Researchers who re-use data usually cite the
