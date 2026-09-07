@@ -5,7 +5,7 @@
  * and abstract reconstruction from inverted index format.
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'fs'
 import { OUTPUT_DIR } from './config.js'
 import { titleSimilarity } from './doi-utils.js'
 import type { NormalizedPublication } from './types.js'
@@ -84,6 +84,7 @@ export function isPubDuplicate(
 // ---------------------------------------------------------------------------
 
 export function saveDiscoveredPublications(source: string, pubs: NormalizedPublication[]): void {
+  mkdirSync(OUTPUT_DIR, { recursive: true })
   const path = `${OUTPUT_DIR}/publications-discovered-${source}.json`
   writeFileSync(path, JSON.stringify(pubs, null, 2))
   console.log(`Saved ${pubs.length} publications to ${path}`)

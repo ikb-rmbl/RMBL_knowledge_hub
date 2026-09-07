@@ -127,17 +127,31 @@ interface OpenAlexPage {
   meta: { count: number; next_cursor: string | null }
 }
 
+// RMBL's ROR id — works formally attributed to the institution in OpenAlex
+// (~1,300 as of 2026-09). The ROR sweep is precision-first: affiliation-vetted
+// papers that string search only reaches via the relevance filter.
+const RMBL_ROR = '030tcms06'
+
 async function fetchOpenAlexPage(
   searchTerm: string,
   cursor: string = '*',
+  rorFilter = false,
 ): Promise<OpenAlexPage | null> {
+    // OpenAlex type vocabulary (NOT CrossRef's): 'article', not 'journal-article'.
+  // The old filter silently excluded every journal article from OpenAlex
+  // discovery — only chapters/books/theses ever came through.
+  const typeFilter = 'type:article|book-chapter|dissertation|book|review|conference-paper'
   const params = new URLSearchParams({
-    search: searchTerm,
-    filter: 'type:journal-article|book-chapter|dissertation|book|review|proceedings-article',
     per_page: '200',
     cursor,
     mailto: OPENALEX_MAILTO,
   })
+  if (rorFilter) {
+    params.set('filter', `${typeFilter},authorships.institutions.ror:${searchTerm}`)
+  } else {
+    params.set('search', searchTerm)
+    params.set('filter', typeFilter)
+  }
 
   try {
     const res = await fetch(`${OPENALEX_API}/works?${params}`)
@@ -152,13 +166,13 @@ async function fetchOpenAlexPage(
   }
 }
 
-async function searchOpenAlex(searchTerm: string, maxResults: number): Promise<any[]> {
+async function searchOpenAlex(searchTerm: string, maxResults: number, rorFilter = false): Promise<any[]> {
   const results: any[] = []
   let cursor = '*'
   let pages = 0
 
   while (results.length < maxResults) {
-    const page = await fetchOpenAlexPage(searchTerm, cursor)
+    const page = await fetchOpenAlexPage(searchTerm, cursor, rorFilter)
     if (!page || !page.results || page.results.length === 0) break
 
     results.push(...page.results)
@@ -238,6 +252,16 @@ async function main() {
     console.log('\n--- OpenAlex Discovery ---')
     const allResults = new Map<string, any>()
 
+    console.log(`  ROR sweep (${RMBL_ROR})...`)
+    const rorWorks = await searchOpenAlex(RMBL_ROR, 10000, true)
+    console.log(`  ${rorWorks.length} works attributed to RMBL in OpenAlex`)
+    const rorIds = new Set<string>()
+    for (const w of rorWorks) {
+      if (!w.id) continue
+      rorIds.add(w.id)
+      if (!allResults.has(w.id)) allResults.set(w.id, w)
+    }
+
     for (const term of SEARCH_TERMS) {
       process.stdout.write(`  "${term}"...`)
       const results = await searchOpenAlex(term, limit)
@@ -273,8 +297,9 @@ async function main() {
       dedupIndex.titles.push({ title, year: work.publication_year || 0 })
     }
 
-    // Relevance filter
-    const oaRelevant = oaNew.filter(isRelevantOpenAlex)
+    // Relevance filter — ROR-attributed works are affiliation-vetted and skip
+    // the text filter (institution_research triage decides their fate instead)
+    const oaRelevant = oaNew.filter((w) => rorIds.has(w.id) || isRelevantOpenAlex(w))
     console.log(`  After dedup: ${oaNew.length} (${oaDupes} duplicates)`)
     console.log(`  After relevance filter: ${oaRelevant.length} (${oaNew.length - oaRelevant.length} filtered)`)
 

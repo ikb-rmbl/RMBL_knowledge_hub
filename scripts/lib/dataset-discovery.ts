@@ -5,7 +5,7 @@
  * and normalization utilities shared across all discovery sources.
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'fs'
 import { OUTPUT_DIR } from './config.js'
 import { titleSimilarity } from './doi-utils.js'
 import type { NormalizedDataset } from './types.js'
@@ -88,6 +88,7 @@ export function isDuplicate(
  * Save discovered datasets to their source-specific output file.
  */
 export function saveDiscoveredDatasets(source: string, datasets: NormalizedDataset[]): void {
+  mkdirSync(OUTPUT_DIR, { recursive: true })
   const filename = source === 'dataone' ? 'datasets-discovered.json' : `datasets-discovered-${source}.json`
   const path = `${OUTPUT_DIR}/${filename}`
   writeFileSync(path, JSON.stringify(datasets, null, 2))
