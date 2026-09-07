@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { deduplicateAuthors, type AuthorRecord } from '../lib/author-dedup.js'
+import { deduplicateAuthors, givenNamesCompatible, type AuthorRecord } from '../lib/author-dedup.js'
 
 function makeAuthor(overrides: Partial<AuthorRecord>): AuthorRecord {
   return {
@@ -111,5 +111,49 @@ describe('deduplicateAuthors', () => {
     const { result } = deduplicateAuthors(authors)
     expect(result[0].publicationIds).toEqual(expect.arrayContaining(['1', '2', '3']))
     expect(result[0].publicationIds).toHaveLength(3)
+  })
+})
+
+describe('givenNamesCompatible', () => {
+  it('matches initials against full given names ("B. L." ~ "Barbara L.")', () => {
+    expect(givenNamesCompatible('B. L.', 'Barbara L.')).toBe(true)
+  })
+
+  it('matches middle-initial vs full middle name ("David W." ~ "David William")', () => {
+    expect(givenNamesCompatible('David W.', 'David William')).toBe(true)
+  })
+
+  it('rejects spelling variants ("Nickolas M." vs "Nicholas M.")', () => {
+    expect(givenNamesCompatible('Nickolas M.', 'Nicholas M.')).toBe(false)
+  })
+
+  it('rejects different middle initials ("R. J." vs "R. A.")', () => {
+    expect(givenNamesCompatible('R. J.', 'R. A.')).toBe(false)
+  })
+
+  it('rejects different first initials', () => {
+    expect(givenNamesCompatible('Barbara', 'David')).toBe(false)
+  })
+
+  it('rejects empty given names', () => {
+    expect(givenNamesCompatible('', 'Barbara')).toBe(false)
+    expect(givenNamesCompatible('', '')).toBe(false)
+  })
+
+  it('matches identical names ignoring dots and case', () => {
+    expect(givenNamesCompatible('david w.', 'David W')).toBe(true)
+  })
+})
+
+describe('deduplicateAuthors dot-normalized prefix merge', () => {
+  it('merges "David W." with "David William" (previously blocked by the dot)', () => {
+    const authors = [
+      makeAuthor({ id: 'a1', familyName: 'Inouye', givenName: 'David W.', publicationIds: ['1'] }),
+      makeAuthor({ id: 'a2', familyName: 'Inouye', givenName: 'David William', publicationIds: ['2'] }),
+    ]
+    const { result, nameMerges } = deduplicateAuthors(authors)
+    expect(result).toHaveLength(1)
+    expect(nameMerges).toBe(1)
+    expect(result[0].givenName).toBe('David William')
   })
 })

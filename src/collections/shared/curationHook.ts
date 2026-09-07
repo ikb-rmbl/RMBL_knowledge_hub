@@ -27,8 +27,11 @@ export function curationHookFor(curatableFields: string[]): CollectionBeforeChan
   if (curatableFields.length === 0) {
     return ({ data }) => data
   }
-  return ({ data, originalDoc, req }) => {
-    if (!originalDoc) return data
+  return ({ data, originalDoc, operation, req }) => {
+    // Payload passes originalDoc as {} (not undefined) on create, so gate on
+    // the operation — otherwise every field present at create is falsely
+    // marked admin-curated (bulk loaders created thousands of such rows).
+    if (operation === 'create' || !originalDoc) return data
     // Pipeline scripts pass ?context[pipeline]=true so their writes don't
     // get falsely marked as admin-curated.
     if (req?.context?.pipeline) return data
