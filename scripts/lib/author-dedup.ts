@@ -41,6 +41,39 @@ function initialsMatch(a: string, b: string): boolean {
   return true
 }
 
+/**
+ * Whether two given-name forms plausibly denote the same person:
+ * initials must agree, and token-wise each token of the shorter form must
+ * be a prefix of the corresponding token of the longer form. Handles
+ * "B. L." ~ "Barbara L." and "David W." ~ "David William"; rejects
+ * spelling variants ("Nickolas" vs "Nicholas") — those need external
+ * evidence like shared works.
+ */
+export function givenNamesCompatible(a: string, b: string): boolean {
+  if (!a || !b) return false
+  if (!initialsMatch(a, b)) return false
+  // Compact all-caps runs are initials ("JA" ~ "J. A."), split before comparing
+  const norm = (s: string) =>
+    s
+      .replace(/\./g, ' ')
+      .split(/\s+/)
+      .map((t) => (/^[A-Z]{2,3}$/.test(t) ? t.split('').join(' ') : t))
+      .join(' ')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim()
+  const na = norm(a)
+  const nb = norm(b)
+  if (na === nb) return true
+  const [shortT, longT] = na.length <= nb.length ? [na.split(' '), nb.split(' ')] : [nb.split(' '), na.split(' ')]
+  return shortT.every((t, i) => longT[i]?.startsWith(t))
+}
+
+/** Initials-only agreement — weaker than givenNamesCompatible; callers must add external evidence (e.g. shared works) before merging on this alone. */
+export function givenInitialsMatch(a: string, b: string): boolean {
+  return initialsMatch(a, b)
+}
+
 function mergeAuthors(primary: AuthorRecord, secondary: AuthorRecord): AuthorRecord {
   const familyName = primary.familyName.length >= secondary.familyName.length ? primary.familyName : secondary.familyName
   const givenName = primary.givenName.length >= secondary.givenName.length ? primary.givenName : secondary.givenName
@@ -104,16 +137,9 @@ export function deduplicateAuthors(authors: AuthorRecord[]): { result: AuthorRec
       for (let j = i + 1; j < group.length; j++) {
         if (namesMerged.has(group[j].id)) continue
         const a = group[i], b = group[j]
-        if (!initialsMatch(a.givenName, b.givenName)) continue
-
-        const aIsInitials = a.givenName.replace(/\./g, '').replace(/\s/g, '').length <= 4
-        const bIsInitials = b.givenName.replace(/\./g, '').replace(/\s/g, '').length <= 4
-
-        if (!aIsInitials && !bIsInitials) {
-          const aGiven = a.givenName.toLowerCase()
-          const bGiven = b.givenName.toLowerCase()
-          if (aGiven !== bGiven && !aGiven.startsWith(bGiven) && !bGiven.startsWith(aGiven)) continue
-        }
+        // Token-wise prefix compatibility (dot-normalized) — the old check
+        // compared raw strings, so "David W." never matched "David William".
+        if (!givenNamesCompatible(a.givenName, b.givenName)) continue
 
         const merged = mergeAuthors(a, b)
         Object.assign(group[i], merged)

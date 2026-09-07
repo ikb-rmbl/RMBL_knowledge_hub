@@ -7,6 +7,7 @@
  */
 
 import { titleSimilarity } from './doi-utils.js'
+import { givenNamesCompatible } from './author-dedup.js'
 
 // ---------------------------------------------------------------------------
 // Match Index — pre-built maps for O(1) lookups
@@ -18,6 +19,7 @@ export interface MatchIndex {
   byOrcid: Map<string, any>
   byName: Map<string, any>
   byFamilyGiven: Map<string, any>
+  byFamily: Map<string, any[]>
   all: any[]
 }
 
@@ -32,6 +34,7 @@ export function buildMatchIndex(candidates: any[]): MatchIndex {
   const byOrcid = new Map<string, any>()
   const byName = new Map<string, any>()
   const byFamilyGiven = new Map<string, any>()
+  const byFamily = new Map<string, any[]>()
 
   for (const c of candidates) {
     if (c.doi) byDoi.set(c.doi.toLowerCase(), c)
@@ -46,10 +49,13 @@ export function buildMatchIndex(candidates: any[]): MatchIndex {
     if (c.family_name) {
       const key = `${c.family_name.toLowerCase()}|${(c.given_name || '').toLowerCase()}`
       byFamilyGiven.set(key, c)
+      const fam = c.family_name.toLowerCase()
+      if (!byFamily.has(fam)) byFamily.set(fam, [])
+      byFamily.get(fam)!.push(c)
     }
   }
 
-  return { byDoi, bySourceUrl, byOrcid, byName, byFamilyGiven, all: candidates }
+  return { byDoi, bySourceUrl, byOrcid, byName, byFamilyGiven, byFamily, all: candidates }
 }
 
 // ---------------------------------------------------------------------------
@@ -140,6 +146,22 @@ export function matchAuthor(record: any, _candidates: any[], index?: MatchIndex)
     const key = `${record.family_name.toLowerCase()}|${(record.given_name || '').toLowerCase()}`
     const nameMatch = idx.byFamilyGiven.get(key)
     if (nameMatch) return { match: nameMatch, confidence: 'high' }
+
+    // Variant-form tier: "B. L." vs "Barbara L.", "David W." vs "David
+    // William". Registry rebuilds can change the canonical given-name form;
+    // without this tier such rows sync as brand-new authors (duplicates).
+    // Only accept an unambiguous single candidate — two compatible
+    // candidates means we can't tell which person this is.
+    if (record.given_name) {
+      const bucket = idx.byFamily.get(record.family_name.toLowerCase()) || []
+      const compatible = bucket.filter(
+        (c) =>
+          c.given_name &&
+          givenNamesCompatible(record.given_name, c.given_name) &&
+          !(record.orcid && c.orcid && record.orcid !== c.orcid),
+      )
+      if (compatible.length === 1) return { match: compatible[0], confidence: 'high' }
+    }
   }
   return { match: null, confidence: 'none' }
 }

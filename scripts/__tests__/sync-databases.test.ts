@@ -273,3 +273,51 @@ describe('Edge cases', () => {
     expect(mergeField(undefined, undefined, 'curated', 'pull')).toBeUndefined()
   })
 })
+
+describe('Author variant-form matching (tier 3)', () => {
+  const candidates = [
+    { id: 1, orcid: '0000-0001-8416-5037', family_name: 'Waser', given_name: 'Nickolas M.' },
+    { id: 2, orcid: null, family_name: 'Peckarsky', given_name: 'B. L.' },
+    { id: 3, orcid: null, family_name: 'Inouye', given_name: 'David W.' },
+    { id: 4, orcid: null, family_name: 'Inouye', given_name: 'B. D.' },
+    { id: 5, orcid: null, family_name: 'Doe', given_name: 'Jane' },
+    { id: 6, orcid: null, family_name: 'Doe', given_name: 'J. R.' },
+  ]
+  const index = buildMatchIndex(candidates)
+
+  it('matches full given name against initials form ("Barbara L." -> "B. L.")', () => {
+    const result = matchAuthor({ orcid: null, family_name: 'Peckarsky', given_name: 'Barbara L.' }, candidates, index)
+    expect(result.match?.id).toBe(2)
+    expect(result.confidence).toBe('high')
+  })
+
+  it('matches middle-initial form against full middle name', () => {
+    const result = matchAuthor({ orcid: null, family_name: 'Inouye', given_name: 'David William' }, candidates, index)
+    expect(result.match?.id).toBe(3)
+  })
+
+  it('does NOT match when first initials differ (B. D. vs David)', () => {
+    const result = matchAuthor({ orcid: null, family_name: 'Inouye', given_name: 'Rebecca S.' }, candidates, index)
+    expect(result.match).toBeNull()
+  })
+
+  it('does NOT match spelling variants without exact/prefix agreement', () => {
+    const result = matchAuthor({ orcid: null, family_name: 'Waser', given_name: 'Nicholas M.' }, candidates, index)
+    expect(result.match).toBeNull()
+  })
+
+  it('does NOT match when two candidates are both compatible (ambiguous)', () => {
+    // "J. Doe" is compatible with both "Jane Doe" and "J. R. Doe"
+    const result = matchAuthor({ orcid: null, family_name: 'Doe', given_name: 'J.' }, candidates, index)
+    expect(result.match).toBeNull()
+  })
+
+  it('does NOT match across conflicting ORCIDs', () => {
+    const result = matchAuthor(
+      { orcid: '0000-0002-9999-9999', family_name: 'Waser', given_name: 'Nickolas Michael' },
+      candidates,
+      index,
+    )
+    expect(result.match).toBeNull()
+  })
+})

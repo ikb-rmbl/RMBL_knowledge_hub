@@ -77,7 +77,9 @@ export async function createRecord(
   collection: string,
   data: Record<string, unknown>,
 ): Promise<{ id: string } | null> {
-  const res = await fetch(`${PAYLOAD_API}/${collection}`, {
+  // createRecord is only called from pipeline scripts — always flag the write
+  // as pipeline so the curation hook can never treat it as an admin edit.
+  const res = await fetch(`${PAYLOAD_API}/${collection}?context[pipeline]=true`, {
     method: 'POST',
     headers: authHeaders(),
     body: JSON.stringify(data),
