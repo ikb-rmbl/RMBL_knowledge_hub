@@ -253,7 +253,10 @@ function mergeRecord(
   const unioned = [...new Set([...localCurated, ...remoteCurated])]
   // Only include this column when the target table actually has it (every
   // curatable table does, but the sync touches a handful that don't).
-  merged[CURATED_FIELDS_COLUMN] = JSON.stringify(unioned)
+  // Keep this a real array: the write paths stringify jsonb values exactly
+  // once. Pre-stringifying here double-encoded curated_fields on push (jsonb
+  // string instead of array) and made the changed-detection always fire.
+  merged[CURATED_FIELDS_COLUMN] = unioned
 
   // Did anything user-visible change?
   let changed = false
@@ -316,7 +319,11 @@ async function pullCollection(
         if (changed && !dryRun) {
           const fields = [...config.curatedFields, ...config.pipelineFields, CURATED_FIELDS_COLUMN].filter((f) => merged[f] !== undefined)
           const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ')
-          const values = fields.map((f) => merged[f])
+          // jsonb columns need exactly one JSON.stringify (arrays would
+          // otherwise be sent as Postgres array literals)
+          const values = fields.map((f) =>
+            f === CURATED_FIELDS_COLUMN && merged[f] !== null ? JSON.stringify(merged[f]) : merged[f],
+          )
           await localDb.query(
             `UPDATE ${config.table} SET ${setClause}, updated_at = NOW() WHERE id = $1`,
             [match.id, ...values],
