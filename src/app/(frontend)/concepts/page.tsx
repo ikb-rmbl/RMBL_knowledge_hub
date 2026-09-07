@@ -26,7 +26,7 @@ export default async function ConceptsPage({ searchParams }: { searchParams: Pro
   const typeFilter = params.type || ''
   const scopeFilter = params.scope || ''
   const neighborhoodParam = params.neighborhood || ''
-  const page = Math.max(1, parseInt(params.page || '1'))
+  const page = Math.min(400, Math.max(1, parseInt(params.page || '1') || 1))
   const offset = (page - 1) * PAGE_SIZE
 
   const db = getDb()

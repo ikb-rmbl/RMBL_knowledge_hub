@@ -21,7 +21,7 @@ export default async function ProtocolsPage({ searchParams }: { searchParams: Pr
   const categoryFilter = params.category || ''
   const showUnapproved = params.show === 'all'
   const neighborhoodParam = params.neighborhood || ''
-  const page = Math.max(1, parseInt(params.page || '1'))
+  const page = Math.min(400, Math.max(1, parseInt(params.page || '1') || 1))
   const offset = (page - 1) * PAGE_SIZE
 
   const db = getDb()

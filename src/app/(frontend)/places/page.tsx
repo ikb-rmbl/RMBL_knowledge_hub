@@ -23,7 +23,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
   const typeFilter = params.type || ''
   const showAll = params.show === 'all'
   const neighborhoodParam = params.neighborhood || ''
-  const page = Math.max(1, parseInt(params.page || '1'))
+  const page = Math.min(400, Math.max(1, parseInt(params.page || '1') || 1))
   const offset = (page - 1) * PAGE_SIZE
 
   const db = getDb()

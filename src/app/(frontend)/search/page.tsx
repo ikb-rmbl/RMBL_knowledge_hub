@@ -119,7 +119,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const yearTo = params.yearTo ? parseInt(params.yearTo) : null
   const defaultSort = query ? 'relevance' : (typeFilter === 'publications' ? 'most-cited' : 'newest')
   const sortParam = params.sort || defaultSort
-  const page = Math.max(1, parseInt(params.page || '1'))
+  const page = Math.min(400, Math.max(1, parseInt(params.page || '1') || 1))
 
   const payload = await getPayload({ config })
   const neighborhoodParam = params.neighborhood || ''
