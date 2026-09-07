@@ -9,7 +9,16 @@ import { PAYLOAD_API, PAYLOAD_ADMIN_EMAIL, PAYLOAD_ADMIN_PASSWORD, PAYLOAD_BASE_
 
 let authToken: string | null = null
 
+function assertSafeTarget() {
+  if (PAYLOAD_API.startsWith('http://') && !/^http:\/\/(localhost|127\.0\.0\.1)/.test(PAYLOAD_API)) {
+    throw new Error(
+      `PAYLOAD_BASE_URL is a remote http:// URL (${PAYLOAD_API}) — admin credentials would travel unencrypted. Use https://.`,
+    )
+  }
+}
+
 export async function ensureAuth(): Promise<void> {
+  assertSafeTarget()
   if (authToken) return
 
   // Try to log in

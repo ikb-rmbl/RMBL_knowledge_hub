@@ -43,7 +43,7 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
   const sortParam = params.sort || 'newest'
   const yearFrom = params.yearFrom ? parseInt(params.yearFrom) : null
   const yearTo = params.yearTo ? parseInt(params.yearTo) : null
-  const page = Math.max(1, parseInt(params.page || '1'))
+  const page = Math.min(400, Math.max(1, parseInt(params.page || '1') || 1))
   const offset = (page - 1) * PAGE_SIZE
   const db = getDb()
 

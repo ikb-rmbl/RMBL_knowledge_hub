@@ -20,7 +20,7 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
   const kingdomFilter = params.kingdom || ''
   const familyFilter = params.family || ''
   const neighborhoodParam = params.neighborhood || ''
-  const page = Math.max(1, parseInt(params.page || '1'))
+  const page = Math.min(400, Math.max(1, parseInt(params.page || '1') || 1))
   const offset = (page - 1) * PAGE_SIZE
 
   const db = getDb()

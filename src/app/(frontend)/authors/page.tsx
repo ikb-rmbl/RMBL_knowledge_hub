@@ -49,7 +49,7 @@ export default async function AuthorsPage({ searchParams }: { searchParams: Prom
   const sortParam = params.sort || 'works'
   const filterParam = params.filter || ''
   const neighborhoodParam = params.neighborhood || ''
-  const page = Math.max(1, parseInt(params.page || '1'))
+  const page = Math.min(400, Math.max(1, parseInt(params.page || '1') || 1))
 
   const payload = await getPayload({ config })
   const db = getDb()

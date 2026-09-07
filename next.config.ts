@@ -10,6 +10,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // baseline security headers on every route
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        ],
+      },
+      {
         source: '/api/v1/:path*',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },

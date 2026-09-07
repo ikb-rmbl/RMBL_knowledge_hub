@@ -42,7 +42,7 @@ function buildUrl(params: Record<string, string>, overrides: Record<string, stri
 export default async function DatasetsBrowse({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const params = await searchParams
   const db = getDb()
-  const page = Math.max(1, parseInt(params.page || '1'))
+  const page = Math.min(400, Math.max(1, parseInt(params.page || '1') || 1))
   const offset = (page - 1) * PAGE_SIZE
   const sort = params.sort || 'newest'
 
