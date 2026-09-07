@@ -263,7 +263,10 @@ async function loadPublications() {
 
   if (existingCount === 0) {
     // Fresh load: main file + discovered
-    pubs = JSON.parse(readFileSync(`${OUTPUT_DIR}/publications-normalized.json`, 'utf-8'))
+    // Legacy Pubs-DB export — optional now that the source is retired
+    pubs = existsSync(`${OUTPUT_DIR}/publications-normalized.json`)
+      ? JSON.parse(readFileSync(`${OUTPUT_DIR}/publications-normalized.json`, 'utf-8'))
+      : []
     const discoveredFiles = readdirSync(OUTPUT_DIR).filter(
       (f) => f.startsWith('publications-discovered-') && f.endsWith('.json'),
     )
@@ -420,7 +423,10 @@ async function loadDatasets() {
 
   if (existingCount === 0) {
     // Fresh load
-    datasets = JSON.parse(readFileSync(`${OUTPUT_DIR}/data-catalog-normalized.json`, 'utf-8'))
+    // Legacy Data-Catalog export — optional now that the source is retired
+    datasets = existsSync(`${OUTPUT_DIR}/data-catalog-normalized.json`)
+      ? JSON.parse(readFileSync(`${OUTPUT_DIR}/data-catalog-normalized.json`, 'utf-8'))
+      : []
     const beforeTomb = datasets.length
     datasets = datasets.filter((d) => !isTombstoned('datasets', d, tombstones))
     if (beforeTomb !== datasets.length) console.log(`  ${beforeTomb - datasets.length} skipped (tombstoned)`)

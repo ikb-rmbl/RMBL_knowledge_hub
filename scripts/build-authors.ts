@@ -109,7 +109,9 @@ async function runFullBuild() {
 
   // Step 1: Extract from Publications (main + discovered)
   console.log('\nStep 1: Extracting from Publications...')
-  const pubs: NormalizedPublication[] = JSON.parse(readFileSync(`${OUTPUT_DIR}/publications-normalized.json`, 'utf-8'))
+  const pubs: NormalizedPublication[] = existsSync(`${OUTPUT_DIR}/publications-normalized.json`)
+    ? JSON.parse(readFileSync(`${OUTPUT_DIR}/publications-normalized.json`, 'utf-8'))
+    : []
   const discoveredPubFiles = readdirSync(OUTPUT_DIR).filter(
     (f) => f.startsWith('publications-discovered-') && f.endsWith('.json'),
   )
@@ -163,7 +165,9 @@ async function runFullBuild() {
 
   // Step 2: Extract from Datasets
   console.log('\nStep 2: Extracting from Datasets...')
-  const datasets: any[] = JSON.parse(readFileSync(`${OUTPUT_DIR}/data-catalog-normalized.json`, 'utf-8'))
+  const datasets: any[] = existsSync(`${OUTPUT_DIR}/data-catalog-normalized.json`)
+    ? JSON.parse(readFileSync(`${OUTPUT_DIR}/data-catalog-normalized.json`, 'utf-8'))
+    : []
   let datasetAuthorsAdded = 0
 
   for (const ds of datasets) {
@@ -207,7 +211,9 @@ async function runFullBuild() {
 
   // Step 3: Extract from Documents
   console.log('\nStep 3: Extracting from Documents...')
-  const docs: NormalizedDocument[] = JSON.parse(readFileSync(`${OUTPUT_DIR}/sustainable-library-normalized.json`, 'utf-8'))
+  const docs: NormalizedDocument[] = existsSync(`${OUTPUT_DIR}/sustainable-library-normalized.json`)
+    ? JSON.parse(readFileSync(`${OUTPUT_DIR}/sustainable-library-normalized.json`, 'utf-8'))
+    : []
   let docAuthorsFound = 0
   let docAuthorsNew = 0
 
