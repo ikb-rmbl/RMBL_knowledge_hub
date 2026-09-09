@@ -157,3 +157,17 @@ describe('deduplicateAuthors dot-normalized prefix merge', () => {
     expect(result[0].givenName).toBe('David William')
   })
 })
+
+describe('parenthesized nicknames', () => {
+  it('matches a curated nickname form against the plain form', () => {
+    expect(givenNamesCompatible('Barbara (Bobby)', 'Barbara L.')).toBe(true)
+  })
+
+  it('ignores the nickname when comparing initials', () => {
+    expect(givenNamesCompatible('B. (Bobby)', 'Barbara')).toBe(true)
+  })
+
+  it('still rejects genuinely different names despite nicknames', () => {
+    expect(givenNamesCompatible('Barbara (Bobby)', 'David')).toBe(false)
+  })
+})

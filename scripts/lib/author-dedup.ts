@@ -17,10 +17,15 @@ export interface AuthorRecord {
   documentIds: string[]
 }
 
+/** Curated display forms may carry parenthesized nicknames ("Barbara (Bobby)") — never treat them as name tokens */
+function stripParentheticals(s: string): string {
+  return s.replace(/\([^)]*\)/g, ' ')
+}
+
 function initialsMatch(a: string, b: string): boolean {
   if (!a || !b) return false
   const getInitials = (s: string) =>
-    s.replace(/\./g, ' ').trim().split(/\s+/).map((p) => p.charAt(0).toUpperCase()).filter(Boolean)
+    stripParentheticals(s).replace(/\./g, ' ').trim().split(/\s+/).map((p) => p.charAt(0).toUpperCase()).filter(Boolean)
 
   const ai = getInitials(a)
   const bi = getInitials(b)
@@ -54,7 +59,7 @@ export function givenNamesCompatible(a: string, b: string): boolean {
   if (!initialsMatch(a, b)) return false
   // Compact all-caps runs are initials ("JA" ~ "J. A."), split before comparing
   const norm = (s: string) =>
-    s
+    stripParentheticals(s)
       .replace(/\./g, ' ')
       .split(/\s+/)
       .map((t) => (/^[A-Z]{2,3}$/.test(t) ? t.split('').join(' ') : t))

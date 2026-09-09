@@ -28,8 +28,17 @@
  * are treated as uncurated for survivor selection and their curated_fields
  * are cleared. Rows edited after creation keep their curation untouched.
  *
+ * --purge-shells (requires --artifact-since): after merging, delete rows
+ * created on/after the cutoff that have zero authors_rels and no inbound
+ * references and no curation — sync inserts author rows without their rels,
+ * so unmatched variants arrive as empty shells that the shared-works merge
+ * tier cannot reach. Legit new authors purged here are re-created (with
+ * rels) by the next authors push from the merged source registry. Use only
+ * on the sync TARGET (--target=neon): on the source DB a legit zero-work
+ * author has no upstream to re-create it.
+ *
  * Usage:
- *   npx tsx scripts/merge-duplicate-authors.ts [--dry-run] [--target=neon] [--min-shared-works=3] [--artifact-since=2026-09-07]
+ *   npx tsx scripts/merge-duplicate-authors.ts [--dry-run] [--target=neon] [--min-shared-works=3] [--artifact-since=2026-09-07] [--purge-shells]
  */
 
 import pg from 'pg'
@@ -42,6 +51,7 @@ const target = args.find((a) => a.startsWith('--target='))?.split('=')[1] || 'lo
 const minSharedArg = args.find((a) => a.startsWith('--min-shared-works='))
 const MIN_SHARED_WORKS = minSharedArg ? parseInt(minSharedArg.split('=')[1], 10) : 3
 const artifactSince = args.find((a) => a.startsWith('--artifact-since='))?.split('=')[1] || null
+const purgeShells = args.includes('--purge-shells')
 
 interface AuthorRow {
   id: number
@@ -255,6 +265,39 @@ async function main() {
       console.error(`  FAILED cluster around ${survivor.id} "${survivor.display_name}":`, (err as Error).message)
     } finally {
       client.release()
+    }
+  }
+
+  // Purge sync-inserted metadata shells: rows created on/after the artifact
+  // cutoff with no relationship rows and no inbound references. Sync copies
+  // author rows but not authors_rels, so unmatched inserts arrive as empty
+  // shells — spelling-variant duplicates among them can't be caught by the
+  // shared-works tier (no works to share). Legitimate new authors purged here
+  // are re-created by the next authors push from the merged source registry.
+  if (purgeShells) {
+    if (!artifactSince) throw new Error('--purge-shells requires --artifact-since=YYYY-MM-DD')
+    if (!dryRun) {
+      const { rowCount } = await db.query(
+        `DELETE FROM authors a
+         WHERE a.created_at >= $1::timestamptz
+           AND a.curated_fields::text = '[]'
+           AND NOT EXISTS (SELECT 1 FROM authors_rels ar WHERE ar.parent_id = a.id)
+           AND NOT EXISTS (SELECT 1 FROM projects p WHERE p.pi_author_id = a.id)
+           AND NOT EXISTS (SELECT 1 FROM publication_student_authors s WHERE s.author_id = a.id)`,
+        [artifactSince],
+      )
+      console.log(`Purged ${rowCount} zero-link shell rows created since ${artifactSince}`)
+    } else {
+      const { rows } = await db.query(
+        `SELECT count(*)::int AS n FROM authors a
+         WHERE a.created_at >= $1::timestamptz
+           AND a.curated_fields::text = '[]'
+           AND NOT EXISTS (SELECT 1 FROM authors_rels ar WHERE ar.parent_id = a.id)
+           AND NOT EXISTS (SELECT 1 FROM projects p WHERE p.pi_author_id = a.id)
+           AND NOT EXISTS (SELECT 1 FROM publication_student_authors s WHERE s.author_id = a.id)`,
+        [artifactSince],
+      )
+      console.log(`Would purge ${rows[0].n} zero-link shell rows created since ${artifactSince}`)
     }
   }
 
