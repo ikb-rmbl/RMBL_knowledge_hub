@@ -23,8 +23,18 @@
  *   (read-only access is enough; created in the Neon console from a
  *   timestamp before 2026-09-07 00:00 UTC).
  *
+ * --heuristic mode (used 2026-09-09 — the PITR retention window had already
+ * passed the incident): no snapshot needed. Discriminator: Payload admin
+ * writes curated_fields as a proper jsonb ARRAY; the (fixed) sync bug always
+ * wrote jsonb STRINGS. Array-typed rows are therefore admin-authored (real)
+ * and left untouched; string-typed rows are sync-written pollution and are
+ * cleared — except a 'displayName' flag is kept where display_name deviates
+ * from the canonical `given family` form (verified against the data: 5 rows,
+ * all pipeline formatting drift, kept out of caution).
+ *
  * Usage:
  *   SNAPSHOT_DATABASE_URL=postgres://... npx tsx scripts/restore-curated-from-pitr.ts [--dry-run] [--target=neon|local] [--incident-date=2026-09-07]
+ *   npx tsx scripts/restore-curated-from-pitr.ts --heuristic [--dry-run] [--target=neon|local]
  */
 
 import pg from 'pg'
@@ -32,6 +42,7 @@ import './lib/config.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
+const heuristic = args.includes('--heuristic')
 const target = args.find((a) => a.startsWith('--target='))?.split('=')[1] || 'neon'
 const incidentDate = args.find((a) => a.startsWith('--incident-date='))?.split('=')[1] || '2026-09-07'
 
@@ -54,72 +65,109 @@ const sameSet = (a: string[], b: string[]) =>
   a.length === b.length && [...a].sort().join('|') === [...b].sort().join('|')
 
 async function main() {
-  const snapshotUrl = process.env.SNAPSHOT_DATABASE_URL
-  if (!snapshotUrl) throw new Error('SNAPSHOT_DATABASE_URL is not set (PITR branch connection string)')
   const targetUrl = target === 'neon' ? process.env.NEON_DIRECT_URL : process.env.DATABASE_URL
   if (!targetUrl) throw new Error(`${target === 'neon' ? 'NEON_DIRECT_URL' : 'DATABASE_URL'} is not set`)
-
-  const snap = new pg.Pool({ connectionString: snapshotUrl, max: 2 })
   const db = new pg.Pool({ connectionString: targetUrl, max: 2 })
 
-  console.log(`Target: ${target}${dryRun ? ' (dry run)' : ''}; incident cutoff: ${incidentDate}`)
+  console.log(`Target: ${target}${dryRun ? ' (dry run)' : ''}; mode: ${heuristic ? 'heuristic' : 'snapshot'}`)
 
-  // Sanity check: the snapshot must predate the incident
-  const { rows: snapCheck } = await snap.query(
-    `SELECT count(*)::int AS n FROM authors WHERE created_at >= $1::timestamptz`,
-    [incidentDate],
-  )
-  if (snapCheck[0].n > 0) {
-    throw new Error(
-      `Snapshot contains ${snapCheck[0].n} authors created on/after ${incidentDate} — branch timestamp is too late. Recreate it from before the incident.`,
+  if (heuristic) {
+    // --- 1. Authors: string-typed curated_fields are sync-written pollution.
+    // Clear them, keeping a displayName flag only where the display form
+    // actually deviates from the canonical pipeline form (a dropped flag on a
+    // canonical value is a no-op, so nothing user-visible is lost).
+    const { rows } = await db.query(`
+      SELECT id, display_name, given_name, family_name, curated_fields
+      FROM authors WHERE jsonb_typeof(curated_fields) = 'string'
+    `)
+    let cleared = 0
+    let keptDisplay = 0
+    for (const row of rows) {
+      const flags = decodeCurated(row.curated_fields)
+      const canonical = row.given_name ? `${row.given_name} ${row.family_name}` : row.family_name
+      const keep = flags.includes('displayName') && row.display_name !== canonical ? ['displayName'] : []
+      if (keep.length > 0) {
+        keptDisplay++
+        console.log(`  keeping displayName flag: ${row.id} "${row.display_name}" (canonical: "${canonical}")`)
+      } else {
+        cleared++
+      }
+      if (!dryRun) {
+        await db.query(`UPDATE authors SET curated_fields = $2::jsonb WHERE id = $1`, [
+          row.id,
+          JSON.stringify(keep),
+        ])
+      }
+    }
+    console.log(`Authors: ${cleared} polluted rows cleared, ${keptDisplay} kept a displayName flag (deviating value)`)
+  } else {
+    const snapshotUrl = process.env.SNAPSHOT_DATABASE_URL
+    if (!snapshotUrl) throw new Error('SNAPSHOT_DATABASE_URL is not set (PITR branch connection string)')
+    const snap = new pg.Pool({ connectionString: snapshotUrl, max: 2 })
+
+    // Sanity check: the snapshot must predate the incident
+    const { rows: snapCheck } = await snap.query(
+      `SELECT count(*)::int AS n FROM authors WHERE created_at >= $1::timestamptz`,
+      [incidentDate],
     )
-  }
-
-  // --- 1. Authors: restore real curation from the snapshot ------------------
-  const { rows: snapAuthors } = await snap.query(
-    `SELECT id, curated_fields FROM authors WHERE curated_fields::text NOT IN ('[]', 'null')`,
-  )
-  const snapCurated = new Map<number, string[]>()
-  for (const r of snapAuthors) {
-    const decoded = decodeCurated(r.curated_fields)
-    if (decoded.length > 0) snapCurated.set(r.id, decoded)
-  }
-  console.log(`Snapshot: ${snapCurated.size} authors with real curated flags`)
-
-  const { rows: current } = await db.query(
-    `SELECT id, curated_fields FROM authors WHERE created_at < $1::timestamptz`,
-    [incidentDate],
-  )
-
-  let restored = 0
-  let cleared = 0
-  let reencoded = 0
-  let unchanged = 0
-  for (const row of current) {
-    const expected = snapCurated.get(row.id) ?? []
-    const currentDecoded = decodeCurated(row.curated_fields)
-    const wasDoubleEncoded = typeof row.curated_fields === 'string'
-
-    if (sameSet(currentDecoded, expected) && !wasDoubleEncoded) {
-      unchanged++
-      continue
+    if (snapCheck[0].n > 0) {
+      throw new Error(
+        `Snapshot contains ${snapCheck[0].n} authors created on/after ${incidentDate} — branch timestamp is too late. Recreate it from before the incident.`,
+      )
     }
-    if (!dryRun) {
-      await db.query(`UPDATE authors SET curated_fields = $2::jsonb WHERE id = $1`, [
-        row.id,
-        JSON.stringify(expected),
-      ])
+
+    // --- 1. Authors: restore real curation from the snapshot ----------------
+    const { rows: snapAuthors } = await snap.query(
+      `SELECT id, curated_fields FROM authors WHERE curated_fields::text NOT IN ('[]', 'null')`,
+    )
+    const snapCurated = new Map<number, string[]>()
+    for (const r of snapAuthors) {
+      const decoded = decodeCurated(r.curated_fields)
+      if (decoded.length > 0) snapCurated.set(r.id, decoded)
     }
-    if (expected.length > 0 && !sameSet(currentDecoded, expected)) restored++
-    else if (expected.length === 0 && currentDecoded.length > 0) cleared++
-    else reencoded++
+    console.log(`Snapshot: ${snapCurated.size} authors with real curated flags`)
+
+    const { rows: current } = await db.query(
+      `SELECT id, curated_fields FROM authors WHERE created_at < $1::timestamptz`,
+      [incidentDate],
+    )
+
+    let restored = 0
+    let cleared = 0
+    let reencoded = 0
+    let unchanged = 0
+    for (const row of current) {
+      const expected = snapCurated.get(row.id) ?? []
+      const currentDecoded = decodeCurated(row.curated_fields)
+      const wasDoubleEncoded = typeof row.curated_fields === 'string'
+
+      if (sameSet(currentDecoded, expected) && !wasDoubleEncoded) {
+        unchanged++
+        continue
+      }
+      if (!dryRun) {
+        await db.query(`UPDATE authors SET curated_fields = $2::jsonb WHERE id = $1`, [
+          row.id,
+          JSON.stringify(expected),
+        ])
+      }
+      if (expected.length > 0 && !sameSet(currentDecoded, expected)) restored++
+      else if (expected.length === 0 && currentDecoded.length > 0) cleared++
+      else reencoded++
+    }
+    console.log(
+      `Authors: ${restored} restored to snapshot flags, ${cleared} cleared (pure pollution), ${reencoded} re-encoded only, ${unchanged} unchanged`,
+    )
+    await snap.end()
   }
-  console.log(
-    `Authors: ${restored} restored to snapshot flags, ${cleared} cleared (pure pollution), ${reencoded} re-encoded only, ${unchanged} unchanged`,
-  )
 
   // --- 2. Other tables: fix double-encoding in place (content unchanged) ----
   for (const table of ENCODING_ONLY_TABLES) {
+    const { rows: colCheck } = await db.query(
+      `SELECT 1 FROM information_schema.columns WHERE table_name = $1 AND column_name = 'curated_fields'`,
+      [table],
+    )
+    if (colCheck.length === 0) continue
     const { rows } = await db.query(
       `SELECT id, curated_fields FROM ${table} WHERE jsonb_typeof(curated_fields) = 'string'`,
     )
@@ -137,7 +185,6 @@ async function main() {
     if (fixed > 0) console.log(`${table}: ${fixed} double-encoded rows normalized`)
   }
 
-  await snap.end()
   await db.end()
   console.log(dryRun ? '\nDry run — no changes made.' : '\nDone.')
 }
