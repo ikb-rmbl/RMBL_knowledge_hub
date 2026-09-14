@@ -190,8 +190,11 @@ async function main() {
              p.year as pub_year, p.publication_type as pub_type
       FROM entity_candidates ec
       LEFT JOIN publications p ON p.id = ec.source_item_id AND ec.source_collection = 'publications'
+      -- ALL candidates, not just unresolved: this is a full rebuild (DELETEs
+      -- every protocol + mention below), so the old resolved_entity_id filter
+      -- dropped previously-resolved candidates' mentions on re-runs (same bug
+      -- as cluster-concepts — lost 5,247 protocol->publication candidates).
       WHERE ec.entity_type = 'protocol'
-        AND ec.resolved_entity_id IS NULL
       ORDER BY ec.id
     `)
     const candidates = rows.slice(0, limit)
