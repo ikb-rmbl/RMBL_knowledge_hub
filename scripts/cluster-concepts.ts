@@ -74,7 +74,12 @@ async function main() {
     const { rows } = await db.query(`
       SELECT ec.id, ec.raw_name, ec.raw_attributes, ec.source_item_id, ec.source_collection, p.year as pub_year
       FROM entity_candidates ec LEFT JOIN publications p ON p.id = ec.source_item_id AND ec.source_collection = 'publications'
-      WHERE ec.entity_type = 'concept' AND ec.resolved_entity_id IS NULL ORDER BY ec.id
+      -- ALL candidates, not just unresolved: this script is a full rebuild
+      -- (it DELETEs every concept + mention below), so filtering on the
+      -- previous run's resolved_entity_id silently drops those candidates'
+      -- mentions from the rebuild. That bug wiped all 18K concept->publication
+      -- mentions when the April 2026 document re-cluster ran.
+      WHERE ec.entity_type = 'concept' ORDER BY ec.id
     `)
     console.log(`\nLoaded ${rows.length} unresolved concept candidates`)
     if (rows.length === 0) { console.log('Nothing to cluster.'); return }
