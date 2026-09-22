@@ -297,6 +297,7 @@ scripts/
   sync-to-neon.ts             — Production sync modes: full / safe / schema / verify
   sync-databases.ts           — Bidirectional incremental sync with curation-aware merge
   sync-bulk-to-neon.ts        — Targeted sync for SQL-only tables (--only=neighborhoods|entity_mentions|frontiers|planning|references_cited|futures|era_primers|reuse). reuse = dataset_reuse_events + rollups + rmbl_origin (dataset ids remapped via DOI/title; rmbl_origin honors Neon-side curation). entity_mentions covers ALL collections; references_cited is the citation graph.
+  sync-publication-children.ts — Push the Payload child tables publications_authors + publications_keywords to Neon. No other sync path covers them (sync-databases walks parent columns; sync-bulk covers custom SQL tables), so they drift — which stayed invisible until authors/keywords entered search_vector and Advanced Search started querying them. Matches on publication id AND title hash (mismatches skipped, never overwritten); per-publication replace, local wins; leaves Neon-only parents alone. --dry-run/--target=neon.
   sync-replace-entities.ts    — Bulk replace for entity tables (species, places, protocols, concepts, stakeholders) — TRUNCATE+INSERT pattern; needed when canonical IDs shift after a re-cluster.
 
   # Diagnostics
