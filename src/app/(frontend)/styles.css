@@ -691,6 +691,90 @@ a:hover {
   margin: 0 0 var(--s-4);
 }
 
+/* ===== Advanced Publication Search ===== */
+
+/* The count line and the advanced toggle share a row; when the panel opens it
+   claims a full-width row of its own so the form isn't squeezed beside the
+   count, and nothing below it is overlapped. */
+.results-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+.results-bar .results-count { margin-bottom: var(--s-4); }
+
+.advanced-search { margin-bottom: var(--s-4); }
+.advanced-search[open] { flex: 1 1 100%; }
+.advanced-search > summary {
+  font-size: 14px;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+  list-style: none;
+}
+.advanced-search > summary::-webkit-details-marker { display: none; }
+.advanced-search > summary::marker { content: ''; }
+/* Arrow follows the element's own open state — a server-rendered glyph would
+   go stale the moment the user toggles the panel client-side. */
+.advanced-search > summary::after { content: ' \2193'; }
+.advanced-search[open] > summary::after { content: ' \2191'; }
+
+.advanced-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--s-3) var(--s-4);
+  align-items: end;
+  margin-top: var(--s-3);
+  padding: var(--s-4);
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.advanced-field { display: flex; flex-direction: column; gap: 4px; }
+.advanced-field label {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--fg-3);
+}
+.advanced-field input,
+.advanced-field select {
+  padding: 6px 8px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--fg-1);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  min-width: 0;
+}
+.advanced-years { display: flex; align-items: center; gap: var(--s-2); }
+.advanced-years input { width: 100%; }
+.advanced-years span { color: var(--fg-3); }
+
+/* Actions take a row of their own so the labels never wrap inside a
+   190px grid cell. */
+.advanced-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.advanced-actions button {
+  white-space: nowrap;
+  padding: 7px 14px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.advanced-actions a { font-size: 13px; color: var(--fg-3); white-space: nowrap; }
+
 /* ===== Filters Sidebar ===== */
 
 .filters {

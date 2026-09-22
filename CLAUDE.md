@@ -27,7 +27,7 @@ Unified search platform for environmental knowledge from the Rocky Mountain Biol
 - **Node.js:** v22 via fnm
 - **Language:** TypeScript (strict mode)
 - **Frontend:** React server components, plain CSS, RMBL brand styling
-- **Search:** PostgreSQL tsvector + pgvector hybrid (keyword + semantic similarity)
+- **Search:** PostgreSQL tsvector + pgvector hybrid (keyword + semantic similarity). `publications.search_vector` = title(A) + abstract/author names/keywords(B) + full text(C); author + keyword weights are kept fresh by AFTER triggers on `publications_authors` / `publications_keywords` (see `scripts/sql/z-2026-09-22-01-*`), since the parent BEFORE-trigger can't see child rows at INSERT time
 - **Embeddings:** Voyage AI voyage-4 (1024 dimensions) via REST API
 - **Scripts:** Run via `npx tsx scripts/<name>.ts`
 
@@ -89,7 +89,7 @@ scripts/export-database.sh   # Export database dump for sharing (excludes sensit
 src/
   payload.config.ts              — Payload CMS configuration (push: false, env validation, S3 conditional)
   collections/                   — 15 Payload collections (Documents, Publications, Datasets, Stories, Topics, Authors, Projects, Species, Places, Protocols, Concepts, Stakeholders, Eras, Flags, Users, Media)
-  services/                      — 7 service modules (search, graph, neighborhoods, frontiers, entities, items, related)
+  services/                      — 8 service modules (search, publication-query, graph, neighborhoods, frontiers, entities, items, related)
   admin/components/              — Custom Payload admin React components (FlagsForItem, CuratedFields sidebar widgets)
   collections/shared/access.ts   — Shared access control (publicReadAuthWrite)
   collections/shared/constants.ts — Shared field option constants
@@ -102,7 +102,7 @@ src/
     page.tsx                     — Home page
     layout.tsx                   — Site layout (RMBL header, footer)
     styles.css                   — RMBL brand styling
-    search/page.tsx              — Unified search with faceted filtering + entity knowledge cards
+    search/page.tsx              — Unified search with faceted filtering + entity knowledge cards; publications Advanced Search panel (folded `<details>` next to "export", URL-param driven — title/author/keyword/journal/doi + type + year range, ANDed; legacy "Year, Type, Author" and "Author (A-Z)" sorts)
     publications/[id]/page.tsx   — Publication detail
     documents/[id]/page.tsx      — Document detail
     datasets/page.tsx            — Datasets browse: long-term-record/companion-pub/download chips, data-coverage year range (data years, not publication), place/method/taxon facets (entity_mentions), keyword facet (EML keywords via backfill-dataset-attributes), format/license/repository facets, citation + coverage sorts
@@ -297,6 +297,7 @@ scripts/
   sync-to-neon.ts             — Production sync modes: full / safe / schema / verify
   sync-databases.ts           — Bidirectional incremental sync with curation-aware merge
   sync-bulk-to-neon.ts        — Targeted sync for SQL-only tables (--only=neighborhoods|entity_mentions|frontiers|planning|references_cited|futures|era_primers|reuse). reuse = dataset_reuse_events + rollups + rmbl_origin (dataset ids remapped via DOI/title; rmbl_origin honors Neon-side curation). entity_mentions covers ALL collections; references_cited is the citation graph.
+  sync-publication-children.ts — Push the Payload child tables publications_authors + publications_keywords to Neon. No other sync path covers them (sync-databases walks parent columns; sync-bulk covers custom SQL tables), so they drift — which stayed invisible until authors/keywords entered search_vector and Advanced Search started querying them. Matches on publication id AND title hash (mismatches skipped, never overwritten); per-publication replace, local wins; leaves Neon-only parents alone. --dry-run/--target=neon.
   sync-replace-entities.ts    — Bulk replace for entity tables (species, places, protocols, concepts, stakeholders) — TRUNCATE+INSERT pattern; needed when canonical IDs shift after a re-cluster.
 
   # Diagnostics
@@ -430,10 +431,12 @@ See `docs/git-workflow.md` for branching, stacking, and merging patterns. Short 
 - `build-authors.ts --load-payload` clears and rebuilds all authors — safe to re-run but destructive
 - Projects table created manually via SQL (`scripts/sql/add-projects.sql`), not via Payload push
 - `sync-databases.ts` requires `NEON_DIRECT_URL` environment variable
+- **`npm run sync:schema` re-runs EVERY file in `scripts/sql/` against Neon**, in sort order, swallowing errors — it is not incremental and keeps no applied-migrations ledger. That sweeps in the one-shot data migrations (e.g. `backfill-publication-provenance.sql`, whose own header warns it resets hand-corrected `discovery_method`). To deploy one new migration, run it directly: `psql "$NEON_DIRECT_URL" < scripts/sql/<file>.sql`
 - `load-to-payload.ts` has incremental dedup (DOI + title+year for publications, DOI + title for datasets) plus a tombstone check that skips records matching `duplicate_tombstones` — safe to re-run
 - **Pipeline writes that go through Payload REST must pass `{ pipeline: true }` to `patchRecord`** — otherwise the curation hook treats the script's writes as admin edits and falsely marks fields as curated. The flag adds `?context[pipeline]=true` which the hook checks.
 - **`curated_fields` stores camelCase Payload field names**, not snake_case DB column names. `curatedSafe`/`curatedSkipClause` handle the conversion internally; if you write raw SQL against the column, remember to query for camelCase.
 - **Admin delete = tombstone**: any delete on Publications/Datasets/Documents/Stories writes a `duplicate_tombstones` row before removal. If you delete a row for some non-duplicate reason and want the pipeline to reintroduce it, `DELETE FROM duplicate_tombstones WHERE id = <n>` after the fact.
+- `/search` has three query paths: FTS (text query, no filters), advanced SQL (any Advanced Search field — publications only, composes text + fields properly), and Payload (browse with filters). The Payload path degrades a text query to `title ILIKE`, so prefer routing new combined text+filter work through `src/services/publication-query.ts` rather than extending it
 - Pipeline scripts auto-load `.env` via `config.ts` import — no need for manual `source .env`
 - Stories collection created manually via SQL (`scripts/sql/add-stories.sql`), not via Payload push
 - Stories full text is stored for search indexing but NOT displayed on detail pages (copyright)

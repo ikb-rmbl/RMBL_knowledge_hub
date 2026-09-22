@@ -4,7 +4,13 @@ import config from '@/payload.config'
 import type { Where } from 'payload'
 import { getBadgeLabel, getBadgeClass } from '../lib/badges'
 import { getDb } from '../lib/db'
-import { search as ftsSearch, type SearchSort } from '@/services/search'
+import { search as ftsSearch, advancedSearchPublications, type SearchSort } from '@/services/search'
+import {
+  parsePublicationFilters,
+  hasAdvancedFilters,
+  ADVANCED_FIELDS,
+  type PublicationSort,
+} from '@/services/publication-query'
 import { richTitle } from '../lib/rich-title'
 import { SHOW_PROJECT_LINKS } from '../lib/feature-flags'
 
@@ -35,6 +41,7 @@ const PUB_TYPE_OPTIONS = [
   { value: 'other', label: 'Other' },
 ]
 
+// Sorts offered for every collection.
 const SORT_OPTIONS = [
   { value: 'relevance', label: 'Relevance' },
   { value: 'newest', label: 'Date (Newest)' },
@@ -44,6 +51,22 @@ const SORT_OPTIONS = [
   { value: 'most-cited', label: 'Most Cited' },
   { value: 'most-cited-internal', label: 'Most Cited (in Hub)' },
 ]
+
+// Orderings carried over from the legacy RMBL Publications DB. They depend on
+// first-author lookup, so they're only offered on the publications view.
+const PUB_SORT_OPTIONS = [
+  { value: 'year-type-author', label: 'Year, Type, Author' },
+  { value: 'author', label: 'Author (A-Z)' },
+]
+
+// Labels for the advanced panel's fields, in render order.
+const ADVANCED_FIELD_LABELS: Record<(typeof ADVANCED_FIELDS)[number], string> = {
+  title: 'Title',
+  author: 'Author',
+  keyword: 'Keyword',
+  journal: 'Journal',
+  doi: 'DOI',
+}
 
 interface SearchParams {
   q?: string
@@ -57,6 +80,14 @@ interface SearchParams {
   sort?: string
   page?: string
   neighborhood?: string
+  // Advanced-search panel fields (publications only)
+  title?: string
+  author?: string
+  keyword?: string
+  journal?: string
+  doi?: string
+  /** '1' keeps the advanced panel unfolded across navigations. */
+  adv?: string
 }
 
 type ResultItem = {
@@ -86,6 +117,8 @@ function buildUrl(current: SearchParams, overrides: Record<string, string | unde
   if (merged.yearTo) p.set('yearTo', merged.yearTo)
   if (merged.sort) p.set('sort', merged.sort)
   if (merged.neighborhood) p.set('neighborhood', merged.neighborhood)
+  for (const f of ADVANCED_FIELDS) if (merged[f]) p.set(f, merged[f] as string)
+  if (merged.adv) p.set('adv', merged.adv)
   if (merged.page && merged.page !== '1') p.set('page', merged.page)
   return `/search?${p.toString()}`
 }
@@ -117,7 +150,20 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const projectFilter = params.project && /^\d+$/.test(params.project) ? parseInt(params.project) : null
   const yearFrom = params.yearFrom ? parseInt(params.yearFrom) : null
   const yearTo = params.yearTo ? parseInt(params.yearTo) : null
-  const defaultSort = query ? 'relevance' : (typeFilter === 'publications' ? 'most-cited' : 'newest')
+
+  // Advanced (field-scoped) publication search. Any filled panel field routes
+  // the whole page through the publications-only SQL path, which — unlike the
+  // Payload path below — composes text and field filters without degrading to
+  // `title ILIKE`.
+  const advFilters = parsePublicationFilters(params as Record<string, string | undefined>)
+  const useAdvanced = hasAdvancedFilters(advFilters)
+  // Panel stays unfolded while its fields are in play, or when explicitly opened.
+  const advOpen = useAdvanced || params.adv === '1'
+
+  const defaultSort = useAdvanced
+    // The legacy database's default ordering, for a form that mirrors it.
+    ? (query ? 'relevance' : 'year-type-author')
+    : query ? 'relevance' : (typeFilter === 'publications' ? 'most-cited' : 'newest')
   const sortParam = params.sort || defaultSort
   const page = Math.min(400, Math.max(1, parseInt(params.page || '1') || 1))
 
@@ -126,12 +172,12 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   // Use tsvector full-text search when there's a query text
   // This provides ranked results with stemming and snippet highlighting
-  const useFts = Boolean(query) && !topicFilter && !pubTypeFilter && !rmblFilter && !projectFilter && !yearFrom && !yearTo && !neighborhoodParam
+  const useFts = Boolean(query) && !useAdvanced && !topicFilter && !pubTypeFilter && !rmblFilter && !projectFilter && !yearFrom && !yearTo && !neighborhoodParam
   let results: ResultItem[] = []
   let totalResults = 0
 
   // Neighborhood-filtered browse: raw SQL path
-  if (neighborhoodParam) {
+  if (neighborhoodParam && !useAdvanced) {
     const db = getDb()
     const offset = (page - 1) * PAGE_SIZE
     const searchPubs = !typeFilter || typeFilter === 'publications'
@@ -218,7 +264,38 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     }
   }
 
-  if (!useFts && !neighborhoodParam) {
+  if (useAdvanced) {
+    // Project assignments live on the Projects side, so resolve them to ids
+    // the same way the Payload path does.
+    let projectPubIds: number[] | null = null
+    if (projectFilter) {
+      const { rows } = await getDb().query(
+        `SELECT publications_id FROM projects_rels WHERE parent_id = $1 AND path = 'publications' AND publications_id IS NOT NULL`,
+        [projectFilter],
+      )
+      projectPubIds = rows.map((r: any) => r.publications_id)
+    }
+    const adv = await advancedSearchPublications(
+      getDb(),
+      { ...advFilters, projectPubIds, topicIds },
+      { sortBy: sortParam as PublicationSort, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE },
+    )
+    results = adv.results.map((r) => ({
+      collection: r.type,
+      subtype: r.subtype,
+      id: String(r.id),
+      title: r.title,
+      snippet: r.snippet,
+      year: r.year,
+      meta: r.meta,
+      rank: r.rank,
+      externalCitationCount: r.externalCitationCount,
+      internalCitationCount: r.internalCitationCount,
+    }))
+    totalResults = adv.total
+  }
+
+  if (!useFts && !neighborhoodParam && !useAdvanced) {
   // Payload-based search (used when browsing with filters but no text query,
   // or when combining text query with topic/date/pubType filters)
 
@@ -564,6 +641,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       )
     : { rows: [] }
   if (yearFrom || yearTo) activeFilters.push(`years: ${yearFrom || '...'}-${yearTo || '...'}`)
+  for (const f of ADVANCED_FIELDS) {
+    if (params[f]) activeFilters.push(`${ADVANCED_FIELD_LABELS[f].toLowerCase()}: ${params[f]}`)
+  }
 
   return (
     <>
@@ -603,11 +683,24 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           )}
         </div>
 
+        <div className="results-bar">
         <p className="results-count" aria-live="polite">
           {totalResults.toLocaleString()} result{totalResults !== 1 ? 's' : ''}
           {activeFilters.length > 0 ? ` — ${activeFilters.join(', ')}` : ''}
           {totalResults > 0 && (() => {
-            const exportParams = new URLSearchParams({ format: 'csl', ...(query ? { q: query } : {}), ...(typeFilter ? { type: typeFilter } : {}) })
+            // Carry the publication filters into the export so the file
+            // matches the result set on screen, not just `q`.
+            const exportParams = new URLSearchParams({
+              format: 'csl',
+              ...(query ? { q: query } : {}),
+              ...(typeFilter ? { type: typeFilter } : {}),
+              ...(useAdvanced ? { type: 'publications' } : {}),
+              ...Object.fromEntries(
+                (['pubType', 'yearFrom', 'yearTo', 'rmbl', ...ADVANCED_FIELDS] as const)
+                  .filter((k) => params[k])
+                  .map((k) => [k, String(params[k])]),
+              ),
+            })
             const cslUrl = `/api/v1/export-search?${exportParams.toString()}`
             exportParams.set('format', 'ris')
             const risUrl = `/api/v1/export-search?${exportParams.toString()}`
@@ -625,6 +718,62 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
             )
           })()}
         </p>
+
+        {/* Advanced publication search — folded by default, opens in place.
+            Every field is a plain GET param, so a built query is shareable
+            and bookmarkable like the rest of the search surface. */}
+        <details className="advanced-search" open={advOpen}>
+          <summary>advanced search</summary>
+          <form className="advanced-panel" action="/search" method="GET">
+            {/* Advanced search is publications-only; carry the rest forward. */}
+            <input type="hidden" name="type" value="publications" />
+            <input type="hidden" name="adv" value="1" />
+            {Object.entries(params)
+              .filter(([k, v]) => v && !['type', 'adv', 'page', 'pubType', 'yearFrom', 'yearTo', ...ADVANCED_FIELDS].includes(k))
+              .map(([k, v]) => (
+                <input key={k} type="hidden" name={k} value={String(v)} />
+              ))}
+
+            {ADVANCED_FIELDS.map((f) => (
+              <div className="advanced-field" key={f}>
+                <label htmlFor={`adv-${f}`}>{ADVANCED_FIELD_LABELS[f]}</label>
+                <input id={`adv-${f}`} type="text" name={f} defaultValue={params[f] || ''} />
+              </div>
+            ))}
+
+            <div className="advanced-field">
+              <label htmlFor="adv-type">Publication Type</label>
+              <select id="adv-type" name="pubType" defaultValue={pubTypeFilter}>
+                <option value="">All types</option>
+                {PUB_TYPE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="advanced-field">
+              <label htmlFor="adv-yearFrom">Year Range</label>
+              <div className="advanced-years">
+                <input id="adv-yearFrom" type="number" name="yearFrom" placeholder="From"
+                  defaultValue={yearFrom || ''} min={1900} max={2030} aria-label="Year start" />
+                <span aria-hidden="true">-</span>
+                <input id="adv-yearTo" type="number" name="yearTo" placeholder="To"
+                  defaultValue={yearTo || ''} min={1900} max={2030} aria-label="Year end" />
+              </div>
+            </div>
+
+            <div className="advanced-actions">
+              <button type="submit">Search publications</button>
+              {useAdvanced && (
+                <Link href={buildUrl(params, {
+                  ...Object.fromEntries(ADVANCED_FIELDS.map((f) => [f, undefined])),
+                  adv: '1', page: undefined,
+                })}>Clear fields</Link>
+              )}
+            </div>
+          </form>
+        </details>
+        </div>
       </div>
 
       <div className="search-layout">
@@ -632,7 +781,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           {/* Sort */}
           <div className="filter-group">
             <h2 className="filter-label">Sort By</h2>
-            {SORT_OPTIONS.map((opt) => (
+            {[...SORT_OPTIONS, ...((typeFilter === 'publications' || useAdvanced) ? PUB_SORT_OPTIONS : [])].map((opt) => (
               <label key={opt.value}>
                 <Link
                   href={buildUrl(params, { sort: opt.value === defaultSort ? undefined : opt.value, page: undefined })}
