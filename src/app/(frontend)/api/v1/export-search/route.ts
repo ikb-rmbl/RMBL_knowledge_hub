@@ -5,11 +5,17 @@
  *
  * Runs the same search query but fetches ALL matching IDs,
  * then bulk-exports citations. Avoids sending thousands of IDs from the client.
+ *
+ * Publications also honor the advanced-search fields (title/author/keyword/
+ * journal/doi/year/type/rmbl) via the shared builder, so exporting from an
+ * advanced result set hands back exactly what's on screen rather than every
+ * publication matching `q` alone.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getDb } from '../../../lib/db'
 import { checkRateLimit } from '../lib/rate-limit'
+import { buildPublicationWhere, parsePublicationFilters } from '@/services/publication-query'
 import {
   publicationToRIS, datasetToRIS, documentToRIS,
   publicationToBibTeX, datasetToBibTeX, documentToBibTeX,
@@ -48,11 +54,14 @@ export async function GET(request: NextRequest) {
   const qParams = query ? [query] : []
 
   if (searchPubs) {
-    const where = tsCondition || 'TRUE'
+    const pubFilters = parsePublicationFilters(
+      Object.fromEntries(searchParams.entries()) as Record<string, string | undefined>,
+    )
+    const pubWhere = buildPublicationWhere(pubFilters, 1)
     const { rows: pubs } = await pool.query(
-      `SELECT id, title, year, journal, doi, abstract, publication_type, volume, issue, pages
-       FROM publications WHERE ${where} ORDER BY year DESC NULLS LAST LIMIT ${MAX_EXPORT}`,
-      qParams,
+      `SELECT p.id, p.title, p.year, p.journal, p.doi, p.abstract, p.publication_type, p.volume, p.issue, p.pages
+       FROM publications p WHERE ${pubWhere.sql} ORDER BY p.year DESC NULLS LAST LIMIT ${MAX_EXPORT}`,
+      pubWhere.params,
     )
     if (pubs.length > 0) {
       const pubIds = pubs.map((p: any) => p.id)

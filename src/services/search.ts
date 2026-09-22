@@ -10,6 +10,12 @@
  */
 
 import type pg from 'pg'
+import {
+  buildPublicationWhere,
+  publicationOrderBy,
+  type PublicationFilters,
+  type PublicationSort,
+} from './publication-query'
 
 export interface SearchResult {
   id: number
@@ -32,6 +38,10 @@ export type SearchSort =
   | 'title-desc'
   | 'most-cited'
   | 'most-cited-internal'
+  // Legacy RMBL Publications DB orderings; only meaningful for publications,
+  // other collections fall back to their date sort.
+  | 'year-type-author'
+  | 'author'
 
 export interface SearchOptions {
   query: string
@@ -66,6 +76,11 @@ function orderBySql(sortBy: SearchSort, collection: 'documents' | 'publications'
       return (collection === 'publications' || collection === 'datasets') ? 'external_citation_count DESC NULLS LAST' : 'rank DESC'
     case 'most-cited-internal':
       return (collection === 'publications' || collection === 'datasets') ? 'internal_citation_count DESC NULLS LAST' : 'rank DESC'
+    case 'year-type-author':
+    case 'author':
+      // Publications go through advancedSearchPublications for these; any
+      // other collection in a mixed result set falls back to newest-first.
+      return `${dateCol} DESC NULLS LAST`
     case 'relevance':
     default:
       return 'rank DESC'
@@ -208,4 +223,94 @@ export async function search(pool: pg.Pool, opts: SearchOptions): Promise<Search
     total,
     query,
   }
+}
+
+/**
+ * Advanced publications search — field-scoped query behind the `/search`
+ * advanced panel. Unlike `search()`, every filter composes in SQL, so a text
+ * query can be combined with Author/Keyword/Year/Type without degrading to
+ * the `title ILIKE` fallback the page's Payload path uses.
+ *
+ * Snippets come from ts_headline only when there's a free-text `q`; a pure
+ * field query (e.g. author=Inouye) falls back to the abstract, matching what
+ * the non-FTS result cards already show.
+ */
+export async function advancedSearchPublications(
+  pool: pg.Pool,
+  filters: PublicationFilters,
+  opts: { sortBy?: PublicationSort; limit?: number; offset?: number } = {},
+): Promise<{ results: SearchResult[]; total: number }> {
+  const { sortBy = 'relevance', limit = 20, offset = 0 } = opts
+  const safeLimit = Math.min(Math.max(1, limit), 100)
+  const safeOffset = Math.max(0, offset)
+
+  const where = buildPublicationWhere(filters, 1)
+  const params = [...where.params]
+  let next = params.length + 1
+
+  // Rank/snippet need their own copy of the query text; `q` already supplied
+  // one parameter inside the WHERE, but reusing its index here would couple
+  // this SQL to the builder's internal ordering.
+  const qIndex = filters.q ? next++ : null
+  if (filters.q) params.push(filters.q)
+
+  const rankSql = qIndex
+    ? `ts_rank(p.search_vector, plainto_tsquery('english', $${qIndex}))`
+    : '0'
+  const snippetSql = qIndex
+    ? `ts_headline('english', coalesce(p.abstract, p.full_text, p.title, ''),
+         plainto_tsquery('english', $${qIndex}), ${HEADLINE_OPTS})`
+    : `left(coalesce(p.abstract, ''), 300)`
+
+  // Relevance only means something with a text query; without one, fall back
+  // to the legacy default ordering rather than an arbitrary rank of 0.
+  const effectiveSort: PublicationSort =
+    sortBy === 'relevance' && !filters.q ? 'year-type-author' : sortBy
+  const orderSql =
+    effectiveSort === 'relevance' ? `${rankSql} DESC` : publicationOrderBy(effectiveSort)
+
+  const limitIdx = next++
+  const offsetIdx = next++
+
+  const { rows } = await pool.query(
+    `SELECT p.id, p.title, p.year, p.journal, p.doi, p.publication_type,
+            ${snippetSql} as snippet,
+            ${rankSql} as rank,
+            coalesce(p.external_citation_count, 0) as external_citation_count,
+            (SELECT count(*)::int FROM references_cited r WHERE r.target_publication_id = p.id) as internal_citation_count,
+            (SELECT string_agg(f.family, ', ')
+             FROM (SELECT a.family FROM publications_authors a
+                   WHERE a._parent_id = p.id ORDER BY a._order LIMIT 3) f) as author_list,
+            (SELECT count(*)::int FROM publications_authors a WHERE a._parent_id = p.id) as author_count
+     FROM publications p
+     WHERE ${where.sql}
+     ORDER BY ${orderSql}
+     LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+    [...params, safeLimit, safeOffset],
+  )
+
+  const { rows: [{ n }] } = await pool.query(
+    `SELECT count(*)::int as n FROM publications p WHERE ${where.sql}`,
+    where.params,
+  )
+
+  const results: SearchResult[] = rows.map((row: any) => ({
+    id: row.id,
+    type: 'publication' as const,
+    title: row.title,
+    snippet: row.snippet || '',
+    rank: parseFloat(row.rank) || 0,
+    year: row.year || null,
+    subtype: row.publication_type || null,
+    meta: [
+      row.author_list ? (row.author_count > 3 ? `${row.author_list} et al.` : row.author_list) : '',
+      row.year ? String(row.year) : '',
+      row.journal || '',
+      row.doi ? `DOI: ${row.doi}` : '',
+    ].filter(Boolean),
+    externalCitationCount: row.external_citation_count,
+    internalCitationCount: row.internal_citation_count,
+  }))
+
+  return { results, total: n }
 }
