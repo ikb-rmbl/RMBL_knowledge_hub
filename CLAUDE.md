@@ -431,6 +431,7 @@ See `docs/git-workflow.md` for branching, stacking, and merging patterns. Short 
 - `build-authors.ts --load-payload` clears and rebuilds all authors — safe to re-run but destructive
 - Projects table created manually via SQL (`scripts/sql/add-projects.sql`), not via Payload push
 - `sync-databases.ts` requires `NEON_DIRECT_URL` environment variable
+- **`npm run sync:schema` re-runs EVERY file in `scripts/sql/` against Neon**, in sort order, swallowing errors — it is not incremental and keeps no applied-migrations ledger. That sweeps in the one-shot data migrations (e.g. `backfill-publication-provenance.sql`, whose own header warns it resets hand-corrected `discovery_method`). To deploy one new migration, run it directly: `psql "$NEON_DIRECT_URL" < scripts/sql/<file>.sql`
 - `load-to-payload.ts` has incremental dedup (DOI + title+year for publications, DOI + title for datasets) plus a tombstone check that skips records matching `duplicate_tombstones` — safe to re-run
 - **Pipeline writes that go through Payload REST must pass `{ pipeline: true }` to `patchRecord`** — otherwise the curation hook treats the script's writes as admin edits and falsely marks fields as curated. The flag adds `?context[pipeline]=true` which the hook checks.
 - **`curated_fields` stores camelCase Payload field names**, not snake_case DB column names. `curatedSafe`/`curatedSkipClause` handle the conversion internally; if you write raw SQL against the column, remember to query for camelCase.
