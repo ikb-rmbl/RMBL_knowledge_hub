@@ -25,6 +25,15 @@ export const Projects: CollectionConfig = {
       },
     },
     {
+      name: 'planId',
+      type: 'text',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
+        description: "RMBL research plan ID (e.g. RS2024-913). Source key — set by the plan ingest, not by hand.",
+      },
+    },
+    {
       name: 'description',
       type: 'textarea',
       admin: {
@@ -120,6 +129,15 @@ export const Projects: CollectionConfig = {
       relationTo: 'projects',
       admin: {
         description: 'Parent program/campaign this research plan belongs to',
+      },
+    },
+    {
+      name: 'renewsProject',
+      type: 'relationship',
+      relationTo: 'projects',
+      admin: {
+        description:
+          'Earliest filing of this continuing study, when the plan was re-filed under a new plan ID. Auto-detected by the plan ingest; edit to fix a chain it missed.',
       },
     },
     {

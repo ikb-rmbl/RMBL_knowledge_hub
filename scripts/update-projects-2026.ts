@@ -1,4 +1,10 @@
 /**
+ * SUPERSEDED (2026-09-22) by ingest-research-plans.ts, which loads the full
+ * 2022-2026 plan export keyed on plan_id. Kept for reference only: this script
+ * matches on PI + title trigram alone and has no notion of plan IDs or renewal
+ * chains, so re-running it now would re-title rows it no longer identifies
+ * correctly. Do not run it.
+ *
  * Update the Projects collection from the 2026 Active Research Plan list
  * (scripts/data/research-plans-2026.json, from "Research Plan List for
  * web_2026_06_09.xlsx").

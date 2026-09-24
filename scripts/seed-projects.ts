@@ -1,4 +1,9 @@
 /**
+ * SUPERSEDED (2026-09-22) for research plans by ingest-research-plans.ts, which
+ * loads the full 2022-2026 plan export keyed on plan_id. Still the only source
+ * for the 10 programs / campaigns below, which no export covers. Do not re-run
+ * the research-plan half.
+ *
  * Seed Projects Collection
  *
  * Populates the Projects collection from two hardcoded sources:

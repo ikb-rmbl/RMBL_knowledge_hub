@@ -66,17 +66,37 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const projects = await payload.find({
     collection: 'projects',
     where,
-    limit: 200,
+    limit: 500,
     sort: sortParam,
     depth: 0,
   })
 
   // Group by type for display — exclude child plans from top-level list
   const programs = projects.docs.filter((p) => p.projectType === 'program' || p.projectType === 'campaign')
-  const plans = projects.docs.filter((p) => p.projectType === 'research_plan' && !p.parentProject)
+  const allPlans = projects.docs.filter((p) => p.projectType === 'research_plan' && !p.parentProject)
+
+  // A continuing study re-filed under new plan IDs has one row per filing,
+  // chained by renewsProject to the earliest. Show the current filing once and
+  // count the rest, so a long-running project is one entry rather than four.
+  const chainRoot = (p: (typeof allPlans)[number]) =>
+    (typeof p.renewsProject === 'object' ? p.renewsProject?.id : p.renewsProject) ?? p.id
+  const chains = new Map<number, typeof allPlans>()
+  for (const p of allPlans) {
+    const root = chainRoot(p) as number
+    if (!chains.has(root)) chains.set(root, [])
+    chains.get(root)!.push(p)
+  }
+  const earlierFilings = new Map<number, number>()
+  const plans = [...chains.values()]
+    .map((chain) => {
+      const current = chain.reduce((a, b) => ((b.endYear ?? 0) > (a.endYear ?? 0) ? b : a))
+      earlierFilings.set(current.id as number, chain.length - 1)
+      return current
+    })
+    .sort((a, b) => allPlans.indexOf(a) - allPlans.indexOf(b))
 
   // Collect unique fields of science for sidebar
-  const allProjects = await payload.find({ collection: 'projects', limit: 200, depth: 0 })
+  const allProjects = await payload.find({ collection: 'projects', limit: 500, depth: 0 })
   const fieldCounts = new Map<string, number>()
   for (const p of allProjects.docs) {
     const field = p.fieldOfScience as string
@@ -224,7 +244,17 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                     </div>
                     <div className="result-card-meta">
                       {project.pi && <span>PI: {project.pi as string}</span>}
+                      {(project.startYear || project.endYear) && (
+                        <span>{project.startYear || '?'}&ndash;{project.endYear || 'present'}</span>
+                      )}
+                      {project.status && <span>{project.status as string}</span>}
                       {project.fieldOfScience && <span>{project.fieldOfScience as string}</span>}
+                      {(earlierFilings.get(project.id as number) ?? 0) > 0 && (
+                        <span>
+                          +{earlierFilings.get(project.id as number)} earlier filing
+                          {earlierFilings.get(project.id as number) === 1 ? '' : 's'}
+                        </span>
+                      )}
                     </div>
                   </Link>
                 ))}

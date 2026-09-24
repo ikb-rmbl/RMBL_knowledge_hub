@@ -29,7 +29,7 @@ export const CURATABLE_FIELDS: Record<string, string[]> = {
   projects: [
     'name', 'description', 'projectType', 'status', 'pi', 'piAuthorId',
     'fieldOfScience', 'researchAreas', 'startYear', 'endYear',
-    'discoveryKeywords', 'autoDiscoveryEnabled', 'parentProject',
+    'discoveryKeywords', 'autoDiscoveryEnabled', 'parentProject', 'renewsProject',
     // item assignments: hand-edited lists survive assign-projects re-runs
     'publications', 'datasets', 'documents',
   ],
