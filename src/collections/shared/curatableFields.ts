@@ -13,7 +13,7 @@ export const CURATABLE_FIELDS: Record<string, string[]> = {
     'title', 'abstract', 'year', 'journal', 'volume', 'issue', 'pages',
     'doi', 'publisher', 'pdfLink', 'externalUrl', 'publicationType',
     'dataSource', 'discoveryMethod', 'pdfRestricted', 'pdfSourceDescription',
-    'pdfAcquiredAt', 'rmblResearch',
+    'pdfAcquiredAt', 'rmblResearch', 'sfaProgram', 'sailProgram',
   ],
   datasets: [
     'title', 'description', 'doi', 'publicationYear', 'downloadUrl',

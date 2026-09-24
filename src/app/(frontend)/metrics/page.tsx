@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { getDb } from '../lib/db'
 import PublicationsMetricsChart, { type MetricsSeries } from '../components/PublicationsMetricsChart'
 import { SHOW_STUDENT_AUTHOR_SERIES } from '../lib/feature-flags'
+import { getAnnualReporting, type ReportingRow } from '@/services/reporting-metrics'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,13 +30,13 @@ const SERIES_META = [
   { key: 'students_theses', label: 'Student papers & theses', color: '#5e8b2f' },
   { key: 'datasets', label: 'Datasets', color: '#c05a6e' },
   { key: 'student', label: 'Peer-reviewed w/ student authors', color: '#F05028' },
-  { key: 'reu', label: 'REU students', color: '#9a4ec4' },
+  { key: 'reu', label: 'Peer-reviewed w/ REU authors', color: '#9a4ec4' },
 ] as const
 
 export default async function MetricsPage() {
   const db = getDb()
 
-  const [{ rows: perYear }, { rows: [totals] }, { rows: datasetsPerYear }, { rows: [reuse] }, { rows: reusePerYear }] = await Promise.all([
+  const [{ rows: perYear }, { rows: [totals] }, { rows: datasetsPerYear }, { rows: [reuse] }, { rows: reusePerYear }, reporting] = await Promise.all([
     db.query(`
       SELECT p.year::int AS year,
              count(*)::int AS pubs_all,
@@ -99,7 +100,9 @@ export default async function MetricsPage() {
         AND e.citing_year >= 2000 AND e.citing_year <= extract(year FROM now())::int
       GROUP BY 1 ORDER BY 1
     `),
+    getAnnualReporting(db),
   ])
+  const thisYear = new Date().getFullYear()
 
   const dsByYear = new Map<number, number>(datasetsPerYear.map((r: any) => [r.year, r.n]))
   const allYears = [...new Set([...perYear.map((r: any) => r.year), ...dsByYear.keys()])].sort()
@@ -176,6 +179,8 @@ export default async function MetricsPage() {
           </div>
         ))}
       </div>
+
+      <AnnualReporting rows={reporting} thisYear={thisYear} />
 
       <div className="detail-section">
         <h2 style={{ margin: 0 }}>Data re-use — the R in FAIR</h2>
@@ -268,9 +273,83 @@ export default async function MetricsPage() {
 
       <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', maxWidth: '68ch' }}>
         Review queue: <Link href="/search?type=publications">discovered publications</Link> without an
-        RMBL-research determination are triaged in the admin panel. REU counts appear once the
-        cohort roster is loaded.
+        RMBL-research determination are triaged in the admin panel, as are papers whose SFA/SAIL
+        status is not yet classified.
       </p>
     </div>
   )
 }
+
+const th = { padding: '6px 10px', borderBottom: '1px solid var(--border)', textAlign: 'right' as const, verticalAlign: 'bottom' as const, fontWeight: 600 }
+const td = { padding: '4px 10px', textAlign: 'right' as const, fontVariantNumeric: 'tabular-nums' as const, whiteSpace: 'nowrap' as const }
+const muted = { color: 'var(--color-text-muted)', fontSize: '12px', marginLeft: '6px' }
+
+/** Computed value, with the previously reported figure beside it when one exists. */
+function Cell({ value, reported, pending }: { value: number | null; reported?: number | null; pending?: number | null }) {
+  if (value == null) return <td style={{ ...td, color: 'var(--color-text-muted)' }} title="Program not yet running">—</td>
+  return (
+    <td style={td}>
+      {value}
+      {pending ? <span style={muted} title={`${pending} not yet classified`}>+{pending}?</span> : null}
+      {reported != null && <span style={muted} title="Previously reported">({reported})</span>}
+    </td>
+  )
+}
+
+/**
+ * The figures RMBL reports each year, computed from the Commons, beside what
+ * was previously reported (legacy Publications Database era). Definitions live
+ * in src/services/reporting-metrics.ts.
+ */
+function AnnualReporting({ rows, thisYear }: { rows: ReportingRow[]; thisYear: number }) {
+  return (
+    <div className="detail-section">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '8px' }}>
+        <h2 style={{ margin: 0 }}>Annual reporting</h2>
+        <a href="/metrics/reporting-csv" style={{ fontSize: '13px', color: 'var(--accent)' }}>Download CSV</a>
+      </div>
+      <p style={{ color: 'var(--fg-2)', maxWidth: '68ch', marginTop: '8px' }}>
+        The numbers RMBL reports each year. Figures in <span style={{ color: 'var(--color-text-muted)' }}>(parentheses)</span> are
+        what was previously reported, where a figure exists; <span style={{ color: 'var(--color-text-muted)' }}>+N?</span> is
+        papers not yet classified (usually no full text), so the count could rise by up to N.
+      </p>
+      <div style={{ overflowX: 'auto', marginTop: '12px' }}>
+        <table style={{ borderCollapse: 'collapse', fontSize: '14px' }}>
+          <thead>
+            <tr>
+              <th style={{ ...th, textAlign: 'left' }}>Year</th>
+              <th style={th}>Peer-reviewed<br />journal articles</th>
+              <th style={th}>SFA papers</th>
+              <th style={th}>SAIL papers</th>
+              <th style={th}>Student papers</th>
+              <th style={th}>REU authors</th>
+              <th style={th}>Articles w/<br />REU author</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.year}>
+                <td style={{ ...td, textAlign: 'left' }}>
+                  {r.year}
+                  {r.year === thisYear && <span style={muted}>to date</span>}
+                </td>
+                <Cell value={r.articles} reported={r.reported.articles} />
+                <Cell value={r.sfa} reported={r.reported.sfa} pending={r.sfaUnclassified} />
+                <Cell value={r.sail} pending={r.sailUnclassified} />
+                <Cell value={r.studentPapers} />
+                <Cell value={r.reuAuthors} reported={r.reported.undergradAuthors} />
+                <Cell value={r.reuArticles} reported={r.reported.undergradArticles} />
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <ul style={{ fontSize: '13px', color: 'var(--color-text-muted)', maxWidth: '72ch', paddingLeft: '18px', marginTop: '12px' }}>
+        <li><strong>Journal articles</strong>: publications reviewed as RMBL research, type journal article.</li>
+        <li><strong>SFA</strong>: supported by the DOE Watershed Function Scientific Focus Area; <strong>SAIL</strong>: uses ARM SAIL campaign (2021–2023) data. Both read from each paper&rsquo;s acknowledgments, with the supporting quote kept for review.</li>
+        <li><strong>REU</strong> columns count RMBL REU students only (cohort roster 1991–2020 plus the REU program&rsquo;s publication list). Earlier reports counted all undergraduate authors, so those figures run higher; recent years fill in as REU students publish.</li>
+      </ul>
+    </div>
+  )
+}
+
