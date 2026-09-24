@@ -60,6 +60,43 @@ const nextConfig: NextConfig = {
           },
         ],
       })),
+      // CDN-cache the item detail surface (Sep 2026 botnet round 3). The
+      // scrapers moved here once the browse paths above were cached +
+      // challenged: detail pages were the only surface that was neither, and
+      // every one is `force-dynamic`, so each hit cost a function invocation
+      // plus a Neon query. At the time of writing that was ~85% of all
+      // invocations (~280K/day) against ~33K distinct URLs, nearly all of it
+      // repeat walks of the same list.
+      //
+      // Longer TTL than the browse paths: detail content only changes when the
+      // pipeline runs, so an hour of staleness is cheap, and the day-long
+      // stale-while-revalidate means a re-walk is served from the edge even
+      // after the TTL lapses. Deliberately NOT paired with a Challenge rule —
+      // robots.txt invites ClaudeBot/GPTBot/PerplexityBot and these pages are
+      // the canonical indexable content.
+      ...[
+        '/authors/:id',
+        '/publications/:id',
+        '/places/:id',
+        '/species/:id',
+        '/concepts/:id',
+        '/documents/:id',
+        '/datasets/:id',
+        '/protocols/:id',
+        '/stories/:id',
+        '/projects/:id',
+        '/neighborhoods/:id',
+        '/frontiers/:id',
+        '/eras/:slug',
+      ].map((source) => ({
+        source,
+        headers: [
+          {
+            key: 'Vercel-CDN-Cache-Control',
+            value: 'public, s-maxage=3600, stale-while-revalidate=86400',
+          },
+        ],
+      })),
     ]
   },
   images: {
