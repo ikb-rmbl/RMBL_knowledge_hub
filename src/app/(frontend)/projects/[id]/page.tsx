@@ -45,6 +45,20 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
     ? (typeof project.parentProject === 'object' ? project.parentProject : null)
     : null
 
+  // Renewal chain: this study's other filings. renewsProject points at the
+  // earliest filing, so the chain is that root plus everything pointing at it.
+  const rootId =
+    (typeof project.renewsProject === 'object' ? project.renewsProject?.id : project.renewsProject) ??
+    project.id
+  const chain = await payload.find({
+    collection: 'projects',
+    where: { or: [{ id: { equals: rootId } }, { renewsProject: { equals: rootId } }] },
+    limit: 50,
+    sort: 'startYear',
+    depth: 0,
+  })
+  const otherFilings = chain.docs.filter((p) => p.id !== project.id)
+
   return (
     <div className="detail">
       <Link href="/projects" className="detail-back">
@@ -70,6 +84,11 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
             <strong>Principal Investigator:</strong> {project.pi as string}
           </div>
         )}
+        {project.planId && (
+          <div>
+            <strong>Research Plan ID:</strong> {project.planId as string}
+          </div>
+        )}
         {project.status && (
           <div>
             <strong>Status:</strong> {project.status as string}
@@ -88,6 +107,19 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
         {(project.startYear || project.endYear) && (
           <div>
             <strong>Period:</strong> {project.startYear || '?'} &ndash; {project.endYear || 'present'}
+          </div>
+        )}
+        {otherFilings.length > 0 && (
+          <div>
+            <strong>Other filings of this study:</strong>{' '}
+            {otherFilings.map((f, i) => (
+              <span key={f.id}>
+                {i > 0 && ', '}
+                <Link href={`/projects/${f.id}`}>
+                  {f.planId ? `${f.planId} ` : ''}({f.startYear || '?'}&ndash;{f.endYear || '?'})
+                </Link>
+              </span>
+            ))}
           </div>
         )}
         <div>

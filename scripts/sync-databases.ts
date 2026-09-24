@@ -106,9 +106,14 @@ const COLLECTIONS: Record<string, CollectionConfig> = {
   projects: {
     table: 'projects',
     matchFields: matchProject,
-    pipelineFields: ['embedding'],
+    // plan_id is the research-plan export's own key, so it is safe to carry
+    // across. renews_project_id is NOT: it is a projects.id, and those diverge
+    // between local and Neon for rows inserted on one side only. Production
+    // gets its chains from `ingest-research-plans.ts --target=neon`, which
+    // recomputes them from plan_id.
+    pipelineFields: ['embedding', 'plan_id'],
     curatedFields: ['name', 'description', 'project_type', 'status', 'pi', 'pi_author_id', 'field_of_science', 'research_areas', 'start_year', 'end_year', 'discovery_keywords', 'auto_discovery_enabled', 'parent_project_id'],
-    skipFields: ['id', 'created_at', 'updated_at'],
+    skipFields: ['id', 'created_at', 'updated_at', 'renews_project_id'],
   },
 }
 

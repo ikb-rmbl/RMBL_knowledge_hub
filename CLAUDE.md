@@ -8,7 +8,7 @@ Unified search platform for environmental knowledge from the Rocky Mountain Biol
 - **Datasets** (1,473) — research datasets from 8 discovery sources; 173 SDP spatial products synced from the STAC catalog (`sdp_catalog_id`, "Explore in SDP Browser" deep links)
 - **Stories** (841) — news articles from CB News, Gunnison Times, LexisNexis (13 LLM-classified types; full text stored for search, not displayed for copyright)
 - **Authors** (7,512) — deduplicated cross-collection author registry with ORCID enrichment
-- **Projects** (118) — research plans and programs with auto-discovered item assignments
+- **Projects** (310) — 300 research plans (2022–2026 filings, keyed on RMBL's own `plan_id` e.g. `RS2024-913`) + 10 programs/campaigns, with auto-discovered item assignments. A continuing study re-filed under a new plan ID is a separate row chained to the earliest filing via `renews_project_id` (distinct from `parent_project_id`, which means program membership); the browse page shows the current filing and counts the rest
 - **Species** (4,334) — taxonomic entities with ITIS validation and external links
 - **Places** (8,225) — geographic entities with coordinates and hierarchy
 - **Protocols** (1,474) — research methods with embedding-based clustering
@@ -226,8 +226,9 @@ scripts/
   manage-topics.ts            — 40-topic thematic taxonomy organize + assignment (pipeline phase 5)
   build-authors.ts            — Author registry build + dedup (pipeline phase 6)
   tag-student-authors.ts      — Student-author auto-detection → publication_student_authors (custom SQL table keyed on author_name so it survives author rebuilds; student papers + theses structural seed; REU awaits cohort roster; --dry-run/--target=neon). Feeds /metrics dashboard.
-  seed-projects.ts            — Seed projects from research plan data (2024 list; superseded by update-projects-2026.ts for refreshes)
-  update-projects-2026.ts     — Reconcile projects against the 2026 active plan list (scripts/data/research-plans-2026.json): PI + name-trigram matching updates in place (curation-aware), new plans inserted, unrenewed plans marked completed. --dry-run/--target=neon.
+  ingest-research-plans.ts    — Load the full research plan export (scripts/data/research-plans-2022-2026.csv, 297 plans): one project row per plan_id, status derived from the end date, renewals chained within a PI by title trigram >= 0.45 into renews_project_id. Reconciles against existing rows by plan_id, then PI + title (newest filing first, so the current plan keeps the curated item list). Curation-aware; idempotent; --dry-run/--target=neon/--csv=. Superseded seed-projects.ts + update-projects-2026.ts.
+  seed-projects.ts            — SUPERSEDED. Seeded projects from the 2024 plan list + the 10 programs/campaigns (still the only source for those).
+  update-projects-2026.ts     — SUPERSEDED by ingest-research-plans.ts. Reconciled against the 2026 active-plan list with no plan_id concept; do not re-run.
   assign-projects.ts          — Auto-discover and assign items to projects (embeddings + author + text)
   seed-places-gnis.ts         — Seed places from GNIS authoritative data (668 locations)
 
@@ -344,7 +345,8 @@ specification/               — Project specs (functionality + implementation v
 - `payload-client.ts` — Payload REST API auth, CRUD, pagination. `patchRecord(..., { pipeline: true })` opts out of curation tracking.
 - `concurrency.ts` — `runConcurrent()`, `runBatch()`, `sleep()`
 - `record-matching.ts` — Tiered record matching (DOI, title similarity, ORCID, name) + field merge logic
-- `curation.ts` — `curatedSafe(col, expr)` and `curatedSkipClause(cols)` helpers for building SQL UPDATEs that respect per-row `curated_fields`
+- `curation.ts` — `curatedSafe(col, expr, fieldName?)` and `curatedSkipClause(cols)` helpers for building SQL UPDATEs that respect per-row `curated_fields`. Pass `fieldName` for relationship columns, where the Payload field is not a plain camelCase of the column (`renews_project_id` → `renewsProject`)
+- `csv.ts` — RFC 4180 CSV parser (`parseCsv` / `readCsvFile`). Handles quoted fields containing newlines, which the ad-hoc line-splitters in `seed-places-gnis.ts` and `ingest-manual-pdfs.ts` do not; `readCsvFile(path, 'windows-1252')` for Salesforce exports
 - `dedup-keys.ts` — `extractKeys(collection, doc)` + `matchesAnyTombstone(keys, tombstones)` for the duplicate-tombstones flow
 - `crossref-client.ts` — CrossRef + Unpaywall API queries (strict/relaxed modes)
 - `topic-rules.ts` — 40 thematic topic categories + matching helpers
@@ -430,6 +432,8 @@ See `docs/git-workflow.md` for branching, stacking, and merging patterns. Short 
 - `generate-embeddings.ts` requires `VOYAGE_API_KEY` environment variable
 - `build-authors.ts --load-payload` clears and rebuilds all authors — safe to re-run but destructive
 - Projects table created manually via SQL (`scripts/sql/add-projects.sql`), not via Payload push
+- **`projects.renews_project_id` is excluded from `sync-databases.ts`** — it holds a `projects.id`, and those diverge between local and Neon. Production gets its renewal chains from `ingest-research-plans.ts --target=neon`, which recomputes them from `plan_id`. (`parent_project_id` has the same hazard and is *not* yet excluded — it syncs raw.)
+- `ingest-research-plans.ts` leaves alone any existing project with no counterpart in the plan export (pre-2022 filings, non-plan projects) and lists them in its report rather than marking them completed
 - `sync-databases.ts` requires `NEON_DIRECT_URL` environment variable
 - **`npm run sync:schema` re-runs EVERY file in `scripts/sql/` against Neon**, in sort order, swallowing errors — it is not incremental and keeps no applied-migrations ledger. That sweeps in the one-shot data migrations (e.g. `backfill-publication-provenance.sql`, whose own header warns it resets hand-corrected `discovery_method`). To deploy one new migration, run it directly: `psql "$NEON_DIRECT_URL" < scripts/sql/<file>.sql`
 - `load-to-payload.ts` has incremental dedup (DOI + title+year for publications, DOI + title for datasets) plus a tombstone check that skips records matching `duplicate_tombstones` — safe to re-run

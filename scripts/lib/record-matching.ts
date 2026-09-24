@@ -171,7 +171,13 @@ export function matchTopic(record: any, _candidates: any[], index?: MatchIndex):
   return nameMatch ? { match: nameMatch, confidence: 'exact' } : { match: null, confidence: 'none' }
 }
 
-export function matchProject(record: any, _candidates: any[], index?: MatchIndex): MatchResult {
+export function matchProject(record: any, candidates: any[], index?: MatchIndex): MatchResult {
+  // plan_id (RS2024-913) first: renewals of the same study are separate rows
+  // that can share an identical name, so the name index alone is ambiguous.
+  if (record.plan_id) {
+    const planMatch = candidates.find((c) => c.plan_id === record.plan_id)
+    if (planMatch) return { match: planMatch, confidence: 'exact' }
+  }
   const nameMatch = index!.byName.get(record.name?.toLowerCase())
   return nameMatch ? { match: nameMatch, confidence: 'exact' } : { match: null, confidence: 'none' }
 }

@@ -28,9 +28,14 @@ function snakeToCamel(s: string): string {
  *     `UPDATE datasets SET ${sets.join(', ')}, updated_at = NOW() WHERE id = $3`,
  *     [title, description, id],
  *   )
+ *
+ * `fieldName` overrides the derived camelCase name for the columns where the
+ * Payload field is not a plain camelCase of the column — relationships, whose
+ * column carries an `_id` suffix the field name does not (`renews_project_id`
+ * is the field `renewsProject`).
  */
-export function curatedSafe(column: string, valueExpr: string): string {
-  const camel = snakeToCamel(column)
+export function curatedSafe(column: string, valueExpr: string, fieldName?: string): string {
+  const camel = fieldName ?? snakeToCamel(column)
   // jsonb @> with a single-element array tests for membership.
   return `${column} = CASE WHEN curated_fields @> '["${camel}"]'::jsonb THEN ${column} ELSE ${valueExpr} END`
 }
