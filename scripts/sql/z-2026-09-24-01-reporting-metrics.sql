@@ -3,15 +3,16 @@
 --
 -- sfa_program / sail_program: tri-state like rmbl_research — 'yes' / 'no' /
 -- NULL (= not yet classified). Text, not boolean, so a Payload select save
--- can't collapse NULL to false. Set by scripts/classify-funding-programs.ts
--- from each paper's acknowledgments; admins override via the sidebar, and the
--- curation hook then protects the cell from re-classification.
---   SFA  = supported by the DOE Watershed Function Scientific Focus Area
---          (LBNL; formerly the Genomes-to-Watershed SFA)
---   SAIL = uses data from / is part of the ARM SAIL campaign (2021-2023)
+-- can't collapse NULL to false. Set by scripts/classify-funding-programs.ts;
+-- admins override via the sidebar, and the curation hook then protects the
+-- cell from re-classification.
+--   SFA  = on the Watershed Function SFA's own publication list (authoritative)
+--   SAIL = uses data from / is part of the ARM SAIL campaign (2021-2023),
+--          from each paper's text
 ALTER TABLE publications ADD COLUMN IF NOT EXISTS sfa_program varchar;
 ALTER TABLE publications ADD COLUMN IF NOT EXISTS sail_program varchar;
--- {sfa: {method, quote}, sail: {method, quote}}; method = llm | no_cue | project_link
+-- {sfa: {method: sfa_list|not_on_sfa_list, siteId, ack: {flag, method, quote}},
+--  sail: {method: llm|llm_unverified|no_cue|project_link, quote}}
 ALTER TABLE publications ADD COLUMN IF NOT EXISTS funding_program_evidence jsonb;
 ALTER TABLE publications ADD COLUMN IF NOT EXISTS funding_programs_checked_at timestamptz;
 

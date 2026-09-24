@@ -262,13 +262,13 @@ export const Publications: CollectionConfig = {
       label: 'SFA paper',
       type: 'select',
       options: [
-        { label: 'Yes — supported by the Watershed Function SFA', value: 'yes' },
+        { label: 'Yes — on the Watershed Function SFA publication list', value: 'yes' },
         { label: 'No', value: 'no' },
       ],
       admin: {
         position: 'sidebar',
         description:
-          'Supported by the DOE Watershed Function Scientific Focus Area (LBNL). Auto-set from acknowledgments by classify-funding-programs.ts; your edit sticks.',
+          "Listed on the Watershed Function SFA's publication list (watershed.lbl.gov). Auto-set by classify-funding-programs.ts; your edit sticks.",
       },
     },
     {
@@ -291,7 +291,7 @@ export const Publications: CollectionConfig = {
       admin: {
         position: 'sidebar',
         readOnly: true,
-        description: 'How the SFA/SAIL flags were set: method (llm / no_cue / project_link / llm_unverified) and the supporting quote.',
+        description: 'How the SFA/SAIL flags were set. SFA: sfa_list / not_on_sfa_list, with the acknowledgment classifier verdict under "ack". SAIL: llm / no_cue / project_link / llm_unverified, with the supporting quote.',
       },
     },
     {

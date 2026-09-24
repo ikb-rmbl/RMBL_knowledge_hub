@@ -4,13 +4,18 @@
  * Two annual-reporting counts ("SFA papers", "SAIL papers") that used to be
  * tallied by hand. Tri-state like rmbl_research: 'yes' / 'no' / NULL.
  *
- *   SFA  — supported by the DOE Watershed Function Scientific Focus Area
- *          (LBNL; earlier the Genomes-to-Watershed SFA). Funding/support, not
- *          merely citing SFA papers or working in the East River.
+ *   SFA  — ON THE WATERSHED FUNCTION SFA'S OWN PUBLICATION LIST
+ *          (scripts/data/sfa-publications-*.json, a snapshot of
+ *          watershed.lbl.gov/research-results/publications/). Ian's call,
+ *          2026-09-24: the list is authoritative. Listed RMBL articles are
+ *          'yes', every other RMBL article is 'no'. The classifier's own
+ *          acknowledgment verdict is kept as evidence (evidence.sfa.ack) and
+ *          feeds a worklist of papers that acknowledge SFA support but are not
+ *          listed — suggestions for the SFA, not counted.
  *   SAIL — uses data from, or is part of, the ARM Surface Atmosphere
- *          Integrated field Laboratory campaign (2021-2023).
+ *          Integrated field Laboratory campaign (2021-2023). Classifier only.
  *
- * Per paper (RMBL-research journal articles, year >= MIN_YEAR):
+ * Classifier, per paper (RMBL-research journal articles, year >= MIN_YEAR):
  *   - full text with an acknowledgments/funding section but no SFA/SAIL cue
  *     anywhere → both 'no' (method no_cue)
  *   - cue present → Claude reads ±WINDOW chars around every cue and answers
@@ -27,12 +32,19 @@
  *
  * Usage:
  *   npx tsx scripts/classify-funding-programs.ts [--dry-run] [--limit=N] [--force] [--model=...]
+ *   npx tsx scripts/classify-funding-programs.ts --sfa-list-only   # re-apply the SFA list, no LLM
+ *   npx tsx scripts/classify-funding-programs.ts --refresh-sfa-list  # re-fetch the list snapshot first
  *   npx tsx scripts/classify-funding-programs.ts --sync-neon   # copy local results to Neon by DOI/title (no LLM)
+ *
+ * Worklist → scripts/output/sfa-list-worklist.csv
  *
  * Writes directly to PostgreSQL — no dev server needed.
  */
 
+import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'fs'
+import { join } from 'path'
 import pg from 'pg'
+import { JSDOM } from 'jsdom'
 import './lib/config.js' // .env auto-load
 import { callClaude, parseJsonResponse } from './lib/claude-api.js'
 import { runConcurrent } from './lib/concurrency.js'
@@ -42,6 +54,8 @@ const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
 const force = args.includes('--force')
 const syncNeon = args.includes('--sync-neon')
+const sfaListOnly = args.includes('--sfa-list-only')
+const refreshSfaList = args.includes('--refresh-sfa-list')
 const limit = Number(args.find((a) => a.startsWith('--limit='))?.split('=')[1] ?? 0)
 const MODEL = args.find((a) => a.startsWith('--model='))?.split('=')[1] ?? 'claude-sonnet-5'
 const CONCURRENCY = 4
@@ -62,8 +76,18 @@ const MAX_CONTEXT = 12000
 const ACK_SECTION = /acknowledg|funding|financial support|supported by|grant/i
 const CUE = /scientific focus area|science focus area|\bSFA\b|watershed function|genomes[- ]to[- ]watershed|DE-AC02-05CH11231|lawrence berkeley|\bLBNL\b|\bSAIL\b|surface atmosphere integrated|atmospheric radiation measurement|\bARM\b/gi
 
+const SFA_LIST_URL = 'https://watershed.lbl.gov/research-results/publications/'
+const DATA_DIR = join(import.meta.dirname, 'data')
+const OUTPUT_DIR = join(import.meta.dirname, 'output')
+
 type Flag = 'yes' | 'no' | null
-interface Evidence { method: 'llm' | 'llm_unverified' | 'no_cue' | 'project_link'; quote?: string }
+interface Evidence {
+  method: 'llm' | 'llm_unverified' | 'no_cue' | 'project_link' | 'sfa_list' | 'not_on_sfa_list'
+  quote?: string
+  siteId?: string
+  /** SFA only: the classifier's acknowledgment verdict, kept once the list decides. */
+  ack?: { flag: Flag; method: string; quote?: string }
+}
 interface Result { id: number; sfa: Flag; sail: Flag; evidence: { sfa: Evidence; sail: Evidence }; checked: boolean }
 
 const PROMPT = `You classify a scientific paper for two annual-reporting counts at the Rocky Mountain Biological Laboratory. Below are excerpts from the paper's full text around funding/program keywords (acknowledgments, funding statements, methods).
@@ -297,12 +321,149 @@ async function copyToNeon(local: pg.Pool) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// SFA publication list
+// ---------------------------------------------------------------------------
+
+interface SfaEntry { siteId: string; year: number | null; authors: string | null; title: string | null; journal: string | null; doi: string | null }
+
+/** Fetch + parse the SFA's publication page into a dated snapshot. */
+async function fetchSfaList(): Promise<string> {
+  const res = await fetch(SFA_LIST_URL, { headers: { 'User-Agent': 'RMBL Knowledge Commons (ikb@rmbl.org)' } })
+  if (!res.ok) throw new Error(`SFA list fetch failed: ${res.status}`)
+  const doc = new JSDOM(await res.text()).window.document
+  const entries: SfaEntry[] = []
+  for (const li of doc.querySelectorAll('#citations-list > li')) {
+    const text = (sel: string) => li.querySelector(sel)?.textContent?.replace(/\s+/g, ' ').trim() || null
+    const em = li.querySelector('em')
+    let title = text('.title')
+    if (!title && em) {
+      // Some entries leave the title untagged: the text between the year and
+      // the journal <em>.
+      let t = ''
+      for (let n = em.previousSibling; n && !(n as Element).classList?.contains('year'); n = n.previousSibling) {
+        t = (n.textContent ?? '') + t
+      }
+      title = t.replace(/^\)\.\s*/, '').replace(/\s*\.\s*$/, '').replace(/\s+/g, ' ').trim() || null
+    }
+    const href = li.querySelector('a.doi')?.getAttribute('href') ?? ''
+    const year = Number(li.getAttribute('data-year'))
+    entries.push({
+      siteId: li.getAttribute('data-id') ?? '',
+      year: Number.isFinite(year) && year > 0 ? year : null,
+      authors: text('.author'),
+      title,
+      journal: em?.textContent?.trim() || null,
+      doi: href.includes('doi.org/') ? href.split('doi.org/')[1].trim().toLowerCase() : null,
+    })
+  }
+  if (entries.length < 100) throw new Error(`SFA list parse found only ${entries.length} entries — page layout changed?`)
+  const stamp = new Date().toISOString().slice(0, 7)
+  const file = join(DATA_DIR, `sfa-publications-${stamp}.json`)
+  writeFileSync(file, JSON.stringify({ source: SFA_LIST_URL, retrieved: new Date().toISOString().slice(0, 10), entries }, null, 1) + '\n')
+  console.log(`SFA list: fetched ${entries.length} entries → ${file.split('/').slice(-3).join('/')}`)
+  return file
+}
+
+function latestSfaSnapshot(): string {
+  const files = readdirSync(DATA_DIR).filter((f) => /^sfa-publications-\d{4}-\d{2}\.json$/.test(f)).sort()
+  if (!files.length) throw new Error('No SFA list snapshot in scripts/data — run with --refresh-sfa-list')
+  return join(DATA_DIR, files[files.length - 1])
+}
+
+/**
+ * SFA list is authoritative for sfa_program on RMBL articles: listed → 'yes',
+ * otherwise 'no'. The classifier's verdict moves to evidence.sfa.ack.
+ */
+async function applySfaList(db: pg.Pool) {
+  const file = refreshSfaList ? await fetchSfaList() : latestSfaSnapshot()
+  const snap = JSON.parse(readFileSync(file, 'utf8'))
+  const entries: SfaEntry[] = snap.entries
+  console.log(`\nSFA list: ${entries.length} entries (retrieved ${snap.retrieved})`)
+
+  // Match by DOI, else title trigram within ±1 year. Prefer the article row
+  // when a DOI is shared (a student paper can carry the article's DOI).
+  const { rows: matches } = await db.query<{ site_id: string; pub_id: number | null; rmbl_research: string | null; publication_type: string | null }>(
+    `WITH l AS (
+       SELECT * FROM unnest($1::text[], $2::text[], $3::int[], $4::text[]) AS t(site_id, doi, year, title)
+     ), m AS (
+       SELECT l.site_id, coalesce(
+         (SELECT p.id FROM publications p WHERE l.doi IS NOT NULL AND lower(p.doi) = l.doi
+           ORDER BY (p.publication_type = 'article') DESC LIMIT 1),
+         (SELECT p.id FROM publications p
+           WHERE l.title IS NOT NULL AND abs(coalesce(p.year, 0) - l.year) <= 1
+             AND similarity(lower(p.title), lower(l.title)) > 0.8
+           ORDER BY similarity(lower(p.title), lower(l.title)) DESC LIMIT 1)) AS pub_id
+       FROM l)
+     SELECT m.site_id, m.pub_id, p.rmbl_research, p.publication_type
+       FROM m LEFT JOIN publications p ON p.id = m.pub_id`,
+    [entries.map((e) => e.siteId), entries.map((e) => e.doi), entries.map((e) => e.year), entries.map((e) => e.title)],
+  )
+  const listed = new Map<number, string>() // pub id → site id
+  for (const m of matches) if (m.pub_id != null) listed.set(m.pub_id, m.site_id)
+  const notInCommons = matches.filter((m) => m.pub_id == null).length
+  const unreviewed = matches.filter((m) => m.pub_id != null && m.rmbl_research == null)
+
+  const { rows: articles } = await db.query<{ id: number; year: number; title: string; doi: string | null; sfa_program: Flag; evidence: any }>(
+    `SELECT id, year, title, doi, sfa_program, funding_program_evidence AS evidence
+       FROM publications
+      WHERE rmbl_research = 'yes' AND publication_type = 'article' AND year >= $1`,
+    [MIN_YEAR],
+  )
+
+  const worklist: string[][] = [['reason', 'publication_id', 'year', 'doi', 'title', 'evidence']]
+  const writes: { id: number; flag: Flag; evidence: any }[] = []
+  let yes = 0
+  for (const a of articles) {
+    const prev = a.evidence?.sfa as Evidence | undefined
+    // The classifier verdict, whether still in place or already moved to ack.
+    const ack = prev?.ack ?? (prev && prev.method !== 'sfa_list' && prev.method !== 'not_on_sfa_list'
+      ? { flag: a.sfa_program, method: prev.method, quote: prev.quote } : undefined)
+    const siteId = listed.get(a.id)
+    const flag: Flag = siteId ? 'yes' : 'no'
+    if (flag === 'yes') yes++
+    const ackYes = ack?.method === 'llm' && !!ack.quote
+    if (!siteId && ackYes) {
+      worklist.push(['acknowledges SFA, not on SFA list', String(a.id), String(a.year), a.doi ?? '', a.title, ack!.quote!.replace(/\s+/g, ' ')])
+    }
+    writes.push({
+      id: a.id,
+      flag,
+      evidence: { ...(a.evidence ?? {}), sfa: { method: siteId ? 'sfa_list' : 'not_on_sfa_list', siteId, ack } },
+    })
+  }
+  for (const u of unreviewed) {
+    worklist.push(['on SFA list, RMBL-research unreviewed', String(u.pub_id), '', '', '', `type=${u.publication_type}`])
+  }
+
+  console.log(
+    `  ${listed.size} matched in the Commons (${notInCommons} not in the Commons — SFA work outside RMBL); ` +
+      `${yes} RMBL articles → SFA yes, ${articles.length - yes} → no; ` +
+      `${worklist.length - 1} worklist rows`,
+  )
+  mkdirSync(OUTPUT_DIR, { recursive: true })
+  const csvCell = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v)
+  writeFileSync(join(OUTPUT_DIR, 'sfa-list-worklist.csv'), worklist.map((r) => r.map(csvCell).join(',')).join('\n') + '\n')
+  console.log('  Worklist → scripts/output/sfa-list-worklist.csv')
+
+  if (dryRun) return
+  for (const w of writes) {
+    await db.query(
+      `UPDATE publications SET ${curatedSafe('sfa_program', '$2')}, funding_program_evidence = $3 WHERE id = $1`,
+      [w.id, w.flag, JSON.stringify(w.evidence)],
+    )
+  }
+}
+
 async function main() {
   if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set')
   const db = new pg.Pool({ connectionString: process.env.DATABASE_URL })
   try {
     if (syncNeon) await copyToNeon(db)
-    else await classify(db)
+    else {
+      if (!sfaListOnly) await classify(db)
+      await applySfaList(db)
+    }
   } finally {
     await db.end()
   }

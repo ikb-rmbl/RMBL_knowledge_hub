@@ -7,9 +7,11 @@
  *
  * Definitions (all over RMBL-research journal articles unless noted):
  *   articles       rmbl_research = 'yes' AND publication_type = 'article'
- *   sfa / sail     sfa_program / sail_program = 'yes' (classify-funding-programs.ts);
- *                  *Unclassified = still NULL (no full text, or a quote that
- *                  failed verification) — the count could rise by up to this much
+ *   sfa            on the Watershed Function SFA's own publication list
+ *                  (sfa_program = 'yes'; list is authoritative — see
+ *                  classify-funding-programs.ts)
+ *   sail           sail_program = 'yes' (acknowledgment/text classifier)
+ *   *Unclassified  still NULL — the count could rise by up to this much
  *   studentPapers  publication_type = 'student_paper' (all provenances)
  *   reuAuthors     distinct REU-tagged authors (tag-reu-authors.ts)
  *   reuArticles    articles with ≥1 REU-tagged author
