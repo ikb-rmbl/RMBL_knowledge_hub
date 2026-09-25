@@ -165,9 +165,9 @@ function matchCitation(c: Citation, pubs: Pub[], byDoi: Map<string, Pub>): Pub |
 interface RosterStudent { first: string; last: string; cohort: number; mentorKeys: Set<string>; derived: boolean }
 
 function loadRoster(): RosterStudent[] {
-  const read = (file: string, derived: boolean) => readCsvFile(file).map((r) => ({ ...r, derived }))
+  const read = (file: string, derived: boolean) => readCsvFile(file).map((row) => ({ row, derived }))
   const rows = [...read(ROSTER_CSV, false), ...(existsSync(DERIVED_ROSTER_CSV) ? read(DERIVED_ROSTER_CSV, true) : [])]
-  return rows.map((r) => {
+  return rows.map(({ row: r, derived }) => {
     const mentorKeys = new Set<string>()
     if (r.mentor_last) surnameKeys(r.mentor_last).forEach((k) => mentorKeys.add(k))
     // Free-text mentor column: "Brad Taylor/ Andrew Barnes", "A and B", ...
@@ -175,7 +175,7 @@ function loadRoster(): RosterStudent[] {
       const words = part.trim().split(/\s+/).filter(Boolean)
       if (words.length >= 2) surnameKeys(words[words.length - 1]).forEach((k) => mentorKeys.add(k))
     }
-    return { first: r.student_first.trim(), last: r.student_last.trim(), cohort: Number(r.cohort_year), mentorKeys, derived: r.derived }
+    return { first: r.student_first.trim(), last: r.student_last.trim(), cohort: Number(r.cohort_year), mentorKeys, derived }
   }).filter((s) => s.last && s.cohort)
 }
 
