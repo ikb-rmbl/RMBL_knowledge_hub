@@ -9,6 +9,9 @@ import {
   parsePublicationFilters,
   hasAdvancedFilters,
   ADVANCED_FIELDS,
+  PROGRAM_FILTERS,
+  parseProgram,
+  type ProgramKey,
   type PublicationSort,
 } from '@/services/publication-query'
 import { richTitle } from '../lib/rich-title'
@@ -74,6 +77,7 @@ interface SearchParams {
   topic?: string
   pubType?: string
   rmbl?: string
+  program?: string
   project?: string
   yearFrom?: string
   yearTo?: string
@@ -143,7 +147,11 @@ function payloadSort(sortParam: string, collection: 'documents' | 'publications'
 export default async function SearchPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams
   const query = params.q || ''
-  const typeFilter = params.type || ''
+  // Program membership exists only on publications: it implies that type, and
+  // is ignored under any other type.
+  const programParam = parseProgram(params.program)
+  const typeFilter = params.type || (programParam ? 'publications' : '')
+  const programFilter = typeFilter === 'publications' ? programParam : undefined
   const topicFilter = params.topic || ''
   const pubTypeFilter = params.pubType || ''
   const rmblFilter = params.rmbl === 'yes'
@@ -172,7 +180,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   // Use tsvector full-text search when there's a query text
   // This provides ranked results with stemming and snippet highlighting
-  const useFts = Boolean(query) && !useAdvanced && !topicFilter && !pubTypeFilter && !rmblFilter && !projectFilter && !yearFrom && !yearTo && !neighborhoodParam
+  const useFts = Boolean(query) && !useAdvanced && !topicFilter && !pubTypeFilter && !rmblFilter && !programFilter && !projectFilter && !yearFrom && !yearTo && !neighborhoodParam
   let results: ResultItem[] = []
   let totalResults = 0
 
@@ -323,6 +331,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   if (topicIds.length > 0) Object.assign(pubWhere, topicWhere('researchTopics'))
   if (pubTypeFilter) pubWhere.publicationType = { equals: pubTypeFilter }
   if (rmblFilter) pubWhere.rmblResearch = { equals: 'yes' }
+  if (programFilter) pubWhere[PROGRAM_FILTERS[programFilter].payloadField] = { equals: 'yes' }
   // Project filter: assignments live on the Projects side (projects_rels),
   // so resolve the project's publication ids once and filter by id.
   let projectPubIds: number[] | null = null
@@ -376,6 +385,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         if (query) { whereClauses.push(`title ILIKE $${paramIdx}`); params.push(`%${query}%`); paramIdx++ }
         if (pubTypeFilter) { whereClauses.push(`publication_type = $${paramIdx}`); params.push(pubTypeFilter); paramIdx++ }
         if (rmblFilter) { whereClauses.push(`rmbl_research = 'yes'`) }
+        if (programFilter) { whereClauses.push(`${PROGRAM_FILTERS[programFilter].column} = 'yes'`) }
         if (projectPubIds) { whereClauses.push(`p.id = ANY($${paramIdx})`); params.push(projectPubIds.length > 0 ? projectPubIds : [-1]); paramIdx++ }
         if (yearFrom) { whereClauses.push(`year >= $${paramIdx}`); params.push(yearFrom); paramIdx++ }
         if (yearTo) { whereClauses.push(`year <= $${paramIdx}`); params.push(yearTo); paramIdx++ }
@@ -626,11 +636,22 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   if (topicFilter) activeFilters.push(`topic: ${topicFilter}`)
   if (pubTypeFilter) activeFilters.push(`type: ${PUB_TYPE_OPTIONS.find((o) => o.value === pubTypeFilter)?.label}`)
   if (rmblFilter) activeFilters.push('RMBL research only')
+  if (programFilter) activeFilters.push(PROGRAM_FILTERS[programFilter].label)
   let projectName: string | null = null
   if (projectFilter) {
     const { rows: [proj] } = await getDb().query('SELECT name FROM projects WHERE id = $1', [projectFilter])
     projectName = proj?.name ?? null
     if (projectName) activeFilters.push(`project: ${projectName}`)
+  }
+  // Program / campaign facet counts (curated flags only)
+  const programCounts: Partial<Record<ProgramKey, number>> = {}
+  if (!typeFilter || typeFilter === 'publications') {
+    const { rows: [pc] } = await getDb().query(
+      `SELECT ${(Object.keys(PROGRAM_FILTERS) as ProgramKey[])
+        .map((k) => `count(*) FILTER (WHERE ${PROGRAM_FILTERS[k].column} = 'yes')::int AS ${k}`)
+        .join(', ')} FROM publications`,
+    )
+    for (const k of Object.keys(PROGRAM_FILTERS) as ProgramKey[]) programCounts[k] = pc[k]
   }
   // Top projects by publication count for the sidebar facet
   const { rows: projectFacet } = (SHOW_PROJECT_LINKS && (!typeFilter || typeFilter === 'publications'))
@@ -696,7 +717,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               ...(typeFilter ? { type: typeFilter } : {}),
               ...(useAdvanced ? { type: 'publications' } : {}),
               ...Object.fromEntries(
-                (['pubType', 'yearFrom', 'yearTo', 'rmbl', ...ADVANCED_FIELDS] as const)
+                (['pubType', 'yearFrom', 'yearTo', 'rmbl', 'program', ...ADVANCED_FIELDS] as const)
                   .filter((k) => params[k])
                   .map((k) => [k, String(params[k])]),
               ),
@@ -815,6 +836,26 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                   RMBL research only
                 </Link>
               </label>
+              {/* Programs & campaigns: only those with curated membership
+                  (PROGRAM_FILTERS); counts are over RMBL research. */}
+              <h3 className="filter-sublabel">Programs &amp; campaigns</h3>
+              {(Object.keys(PROGRAM_FILTERS) as ProgramKey[]).map((key) => (
+                <label key={key}>
+                  <Link
+                    href={buildUrl(params, {
+                      program: programFilter === key ? undefined : key,
+                      type: typeFilter || 'publications',
+                      page: undefined,
+                    })}
+                    style={{
+                      fontWeight: programFilter === key ? 700 : 400,
+                      color: programFilter === key ? 'var(--color-accent)' : 'inherit',
+                    }}
+                  >
+                    {PROGRAM_FILTERS[key].label} ({programCounts[key] ?? 0})
+                  </Link>
+                </label>
+              ))}
             </div>
           )}
 
