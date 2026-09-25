@@ -1,0 +1,2478 @@
+{
+ "source": "https://watershed.lbl.gov/research-results/publications/",
+ "retrieved": "2026-09-24",
+ "entries": [
+  {
+   "siteId": "1981",
+   "year": 2026,
+   "authors": "Chen, H., Thibaut, R., Chou, C., Xiong, C., & Wu, Y.",
+   "title": "A ModEx Framework for Watershed Subsurface Investigation With Limited Geophysical Data Using Machine Learning and Hydrologic Modeling",
+   "journal": "Geophysical Research Letters",
+   "doi": "10.1029/2025gl119953"
+  },
+  {
+   "siteId": "1986",
+   "year": 2026,
+   "authors": "Eligator, L., Clem, S., Toolin, R., Parrish, E., Arora, B., Berkowitz, A. R., Doerr, E., Ederer, A., Hahnenberger, M., Hayes, J., Hill, K. M., Hood, A., Moore, A., Muste, M., Ramos-Chavez, J., Sosa-Gonzalez, V., & Boyer, E. W.",
+   "title": "Promoting critical zone science literacy through education and outreach",
+   "journal": "Environmental Research Communications",
+   "doi": "10.1088/2515-7620/ae5ede"
+  },
+  {
+   "siteId": "2120",
+   "year": 2026,
+   "authors": "Gibson, L. D., Cowherd, M., Aiken, A. C., Rudisill, W. J., Riihimaki, L. D., & Feldman, D.",
+   "title": "The dual role of snowfall in impacting surface albedo and spring snowmelt in the Upper Colorado River Basin",
+   "journal": null,
+   "doi": "10.1038/s41612-026-01446-0"
+  },
+  {
+   "siteId": "1985",
+   "year": 2026,
+   "authors": "Li, L., Christensen, J. N., Bill, M., Dong, W., Wu, Y., Beutler, C., Sprenger, M., Gulick, B. W., Bone, S. E., Faybishenko, B., Sanders, J., Chou, C., Henderson, A., Bouskill, N. J., Williams, K. H., & Gilbert, B.",
+   "title": "Depth of nutrient uptake by deep-rooted plants is regulated by water availability",
+   "journal": "Proceedings of the National Academy of Sciences",
+   "doi": "10.1073/pnas.2528407123"
+  },
+  {
+   "siteId": "2121",
+   "year": 2026,
+   "authors": "Newcomer, M. E., González-Pinzón, R., Siirila-Woodburn, E. R., Peña, J., Underwood, J. C., Webster, J. P., Whelton, A. J., Im, J., Paramasamy, D., Ulrich, C., Ajami, N., Meyer, R. S., Jagannathan, K., Xin, S., Oshun, M., Schram, T., Seymour, D., & Maples, S.",
+   "title": "Facilitating water resilience in wildfire affected communities: lessons learned from rapid response research",
+   "journal": "Frontiers in Water",
+   "doi": "10.3389/frwa.2026.1741106"
+  },
+  {
+   "siteId": "1983",
+   "year": 2026,
+   "authors": "Siirila-Woodburn, E. R., Thiros, N., Newcomer, M., Rudisill, W., Dennedy-Frank, P. J., Feldman, D., Sprenger, M., Carroll, Rosemary. W. H., Williams, K. H., & Brodie, E.",
+   "title": "Warming and snow loss increase reliance on old groundwater in a Colorado River headwater",
+   "journal": "Nature Geoscience",
+   "doi": "10.1038/s41561-026-01945-y"
+  },
+  {
+   "siteId": "1984",
+   "year": 2026,
+   "authors": "Sorensen, P. O., Karaoz, U., Beller, H. R., Bill, M., Bouskill, N. J., Banfied, J. F., Chu, R. K., Hoyt, D. W., Eder, E., Eloe-Fadrosh, E., Sharrar, A., Tfaily, M. M., Toyoda, J., Tolic, N., Wang, S., Wong, A. R., Williams, K. H., Zhong, Y., & Brodie, E. L.",
+   "title": "Multi-omics reveals nitrogen dynamics associated with soil microbial blooms during snowmelt",
+   "journal": "Nature Microbiology",
+   "doi": "10.1038/s41564-025-02213-2"
+  },
+  {
+   "siteId": "1980",
+   "year": 2026,
+   "authors": "Stewart, B. D., Bone, S. E., Spielman-Sun, E., Marcus, M. A., Pierce, S., Boye, K., & Noël, V.",
+   "title": "Organic colloid composition in variable-redox porewaters within a mountainous floodplain",
+   "journal": "Water Research",
+   "doi": "10.1016/j.watres.2026.125556"
+  },
+  {
+   "siteId": "1982",
+   "year": 2026,
+   "authors": "Stolze, L., Dwivedi, D., Steefel, C., Molins, S., Dong, W., Beutler, C., Newman, A., & Williams, K.",
+   "title": "Model‐Based Interpretation of Solute Exports and Carbon Partitioning During Shale Weathering in a Mountainous Hillslope",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2025wr041597"
+  },
+  {
+   "siteId": "2118",
+   "year": 2026,
+   "authors": "Warix, S., Johnson, K., Swift Bird, K., Beutler, C., Shirley, A., Brown, W. S., & Williams, K. H.",
+   "title": "Upgradient Storage Features Control Timing and Magnitude of Solute Export at Stream Outlets",
+   "journal": "Geophysical Research Letters",
+   "doi": "10.1029/2025gl119121"
+  },
+  {
+   "siteId": "1951",
+   "year": 2025,
+   "authors": "Berkelhammer, M., Page, G. F. M., Zurek, F., Still, C., Carbone, M. S., Talavera, W., Hildebrand, L., Byron, J., Inthabandith, K., Kucinski, A., Carlson, M., Foss, K., Brown, W., Carroll, R. W. H., Simonpietri, A., Worsham, M., Breckheimer, I., Ryken, A., Maxwell, R., … Williams, K. H.",
+   "title": "Canopy structure modulates the sensitivity of subalpine forest stands to interannual snowpack and precipitation variability",
+   "journal": "Hydrology and Earth System Sciences",
+   "doi": "10.5194/hess-29-701-2025"
+  },
+  {
+   "siteId": "1952",
+   "year": 2025,
+   "authors": "Carroll, R. W. H., Manning, A. H., & Williams, K. H.",
+   "title": "The Role of Bedrock Circulation Depth and Porosity in Mountain Streamflow Response to Prolonged Drought",
+   "journal": "Geophysical Research Letters",
+   "doi": "10.1029/2024gl112927"
+  },
+  {
+   "siteId": "1953",
+   "year": 2025,
+   "authors": "Dwivedi, D., Poeppl, R. E., & Wohl, E.",
+   "title": "Hydrological connectivity: a review and emerging strategies for integrating measurement, modeling, and management",
+   "journal": "Frontiers in Water",
+   "doi": "10.3389/frwa.2025.1496199"
+  },
+  {
+   "siteId": "1954",
+   "year": 2025,
+   "authors": "Dwivedi, D.; Pöppl, R. E.; Wohl, E.",
+   "title": "Investigating Connectivity to Advance the Predictive Understanding of Watershed Processes and the Earth’s Critical Zone, Frontiers Media SA.",
+   "journal": "Frontiers Media SA",
+   "doi": null
+  },
+  {
+   "siteId": "1955",
+   "year": 2025,
+   "authors": "El Halabi, L., Mital, U., & Dwivedi, D.",
+   "title": "Modeling Spatial Distribution of Snow Water Equivalent Using Transfer Learning Across Mountainous Basins",
+   "journal": "Journal of Geophysical Research: Machine Learning and Computation",
+   "doi": "10.1029/2024jh000278"
+  },
+  {
+   "siteId": "1956",
+   "year": 2025,
+   "authors": "Flexer, V., van Leeuwen, C., Niinimäki, K., Piao, S., Siirila-Woodburn, E. R., & Wang-Erlandsson, L.",
+   "title": "Reflecting on impactful articles at Nature Reviews Earth & Environment",
+   "journal": "Nature Reviews Earth & Environment",
+   "doi": "10.1038/s43017-024-00623-0"
+  },
+  {
+   "siteId": "1957",
+   "year": 2025,
+   "authors": "Freeman, E. C., Mudunuru, M. K., Feeser, K. L., McClure, E. A., González-Pinzón, R., Ward, C. S., Bottos, E. M., Krause, S., Peña, J., & Newcomer, M. E.",
+   "title": "Molecular diversity of dissolved organic matter reflects macroecological patterns in river networks",
+   "journal": "Scientific Reports",
+   "doi": "10.1038/s41598-025-12835-5"
+  },
+  {
+   "siteId": "1958",
+   "year": 2025,
+   "authors": "Guimond, J. A., Grande, E., Michael, H. A., Pratt, D., Herndon, E., Noyce, G. L., Ward, N. D., Forbrich, I., Regier, P., Berens, M. J., & Arora, B.",
+   "title": "The hidden influence of terrestrial groundwater on salt marsh function and resilience",
+   "journal": "Nature Water",
+   "doi": "10.1038/s44221-024-00384-6"
+  },
+  {
+   "siteId": "2117",
+   "year": 2025,
+   "authors": "Johnsen, T. K., Bi, X., Chou, C., Varadharajan, C., Wu, Y., Skone, J., & Ramakrishnan, L.",
+   "title": "Denoising Autoencoder for Reconstructing Sensor Observation Data and Predicting Evapotranspiration: Noisy and Missing Values Repair and Uncertainty Quantification",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2024wr039831"
+  },
+  {
+   "siteId": "1960",
+   "year": 2025,
+   "authors": "Johnson, K., Williams, K. H., Christensen, J. N., Carroll, R. W. H., Li, L., Beutler, C., Bird, K. S., Dong, W., & Sullivan, P. L.",
+   "title": "Hidden Features: How Subsurface and Landscape Heterogeneity Govern Hydrologic Connectivity and Stream Chemistry in a Montane Watershed",
+   "journal": "Hydrological Processes",
+   "doi": "10.1002/hyp.70085"
+  },
+  {
+   "siteId": "2119",
+   "year": 2025,
+   "authors": "Joshi, B., Dwivedi, D., Rahman, Md. M., Sena, M. G., Moore, E. R., Galella, J. G., Peipoch, M., Kan, J., Imhoff, P., & Inamdar, S.",
+   "title": "Modeling the Competition and Controls for Denitrification and Dissimilatory Nitrate Reduction to Ammonium (DNRA) in Riparian Sediments",
+   "journal": "Journal of Geophysical Research: Biogeosciences",
+   "doi": "10.1029/2025jg009072"
+  },
+  {
+   "siteId": "1961",
+   "year": 2025,
+   "authors": "Kar, K. K., Haggerty, R., Sharma, H., Dwivedi, D., & Roy, T.",
+   "title": "Evapotranspiration Partitioning Using Flux Tower Data in a Semi‐Arid Ecosystem",
+   "journal": "Hydrological Processes",
+   "doi": "10.1002/hyp.70083"
+  },
+  {
+   "siteId": "1962",
+   "year": 2025,
+   "authors": "Lacroix, E. M., Gomes, A., Honeyman, A. S., Huy, K. R., Fendorf, S., Noël, V., & Aeppli, M.",
+   "title": "Soil carbon concentration drives anoxic microsites across horizons, textures, and aggregate position in a California grassland",
+   "journal": "Geoderma",
+   "doi": "10.1016/j.geoderma.2025.117165"
+  },
+  {
+   "siteId": "1963",
+   "year": 2025,
+   "authors": "Ladau, J., Fahimipour, A. K., Newcomer, M. E., Brown, J. B., Vora, G. J., Melby, M. K., & Maresca, J. A.",
+   "title": "Microbial inoculants and invasions: a call to action",
+   "journal": "Trends in Microbiology",
+   "doi": "10.1016/j.tim.2025.04.018"
+  },
+  {
+   "siteId": "1976",
+   "year": 2025,
+   "authors": "Li, B., Sprenger, M., Wyatt, B. M., Giménez, D., Hirmas, D. R., Ajami, H., Wiekenkamp, I., Groh, J., Nimmo, J. R., Amato, M. T., Singh, N. K., Crompton, O., Araki, R., Xu, T., & Sullivan, P. L.",
+   "title": "Ubiquity and Causes of Soil Water Preferential Flow Across 17 Ecoregions",
+   "journal": "Geophysical Research Letters",
+   "doi": "10.1029/2025gl118045"
+  },
+  {
+   "siteId": "1964",
+   "year": 2025,
+   "authors": "Li, Z., Riley, W. J., Marschmann, G. L., Karaoz, U., Shirley, I. A., Wu, Q., Bouskill, N. J., Chang, K.-Y., Crill, P. M., Grant, R. F., King, E., Saleska, S. R., Sullivan, M. B., Tang, J., Varner, R. K., Woodcroft, B. J., Wrighton, K. C., & Brodie, E. L.",
+   "title": "A framework for integrating genomics, microbial traits, and ecosystem biogeochemistry",
+   "journal": "Nature Communications",
+   "doi": "10.1038/s41467-025-57386-5"
+  },
+  {
+   "siteId": "1979",
+   "year": 2025,
+   "authors": "Martin, V., Winnick, M., Saccardi, B., Bill, M., Conrad, M. E., Carroll, R. W. H., & Maher, K.",
+   "title": "Evaluating solute dynamics and methane transformation in high-elevation Rocky Mountain fens using a transporter-transformer framework",
+   "journal": "Chemical Geology",
+   "doi": "10.1016/j.chemgeo.2025.123129"
+  },
+  {
+   "siteId": "1975",
+   "year": 2025,
+   "authors": "Nimmo, J. R., Wiekenkamp, I., Araki, R., Groh, J., Singh, N. K., Crompton, O., Wyatt, B. M., Ajami, H., Giménez, D., Hirmas, D. R., Sullivan, P. L., & Sprenger, M.",
+   "title": "Identifying preferential flow from soil moisture time series: Review of methodologies",
+   "journal": "Vadose Zone Journal",
+   "doi": "10.1002/vzj2.70017"
+  },
+  {
+   "siteId": "1973",
+   "year": 2025,
+   "authors": "Popp, A. L., Beria, H., Sprenger, M., Ala‐Aho, P., Coenders‐Gerrits, M., Groh, J., Klaus, J., Knapp, J. L. A., Koren, G., Bakiri, I., Xu Fei, E., Gillon, M., Harman, C., Hissler, C., Holmes, T., Jeelani, G., Kalvans, A., Montemagno, A., Zeray Öztürk, E., … Kirchner, J. W.",
+   "title": "Recent Advances in Tracer‐Aided Mixing Modeling of Water in the Critical Zone",
+   "journal": "Reviews of Geophysics",
+   "doi": "10.1029/2024rg000866"
+  },
+  {
+   "siteId": "1965",
+   "year": 2025,
+   "authors": "Rasmussen, A. N., Langenfeld, K., Tolar, B. B., Perzan, Z., Maher, K., Cardarelli, E. L., Bargar, J. R., Boye, K., & Francis, C. A.",
+   "title": "Floodplain nitrifiers harbor the genetic potential for utilizing a wide range of organic nitrogen compounds",
+   "journal": null,
+   "doi": "10.1128/msystems.00829-25"
+  },
+  {
+   "siteId": "1966",
+   "year": 2025,
+   "authors": "Rasmussen, A. N., Tolar, B. B., Bargar, J. R., Boye, K., & Francis, C. A.",
+   "title": "Metagenome‐Assembled Genomes for Oligotrophic Nitrifiers From a Mountainous Gravelbed Floodplain",
+   "journal": "Environmental Microbiology",
+   "doi": "10.1111/1462-2920.70060"
+  },
+  {
+   "siteId": "2116",
+   "year": 2025,
+   "authors": "Sena, M. G., Joshi, B., Rahman, Md. M., Peipoch, M., Kan, J., Moore, E., Afsar, M., Jin, Y., Dwivedi, D., Peck, E., & Inamdar, S.",
+   "title": "High‐Frequency Soil Redox Data Provide Novel Insights Into Biogeochemical Hot Spots and Hot Moments",
+   "journal": "Hydrological Processes",
+   "doi": "10.1002/hyp.70367"
+  },
+  {
+   "siteId": "1967",
+   "year": 2025,
+   "authors": "Slosson, J. R., Larsen, I. J., Winnick, M. J., Marmolejo‐Cossío, J. M., & Williams, K. H.",
+   "title": "Linking Surface Processes, Solute Generation, and CO2 Budgets Across Lithological and Land Cover Gradients in Rocky Mountain Watersheds",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2023wr036850"
+  },
+  {
+   "siteId": "1968",
+   "year": 2025,
+   "authors": "Sprenger, M., Seeger, S., Berkelhammer, M., Bogie, N. A., Hess, R. J., Brown, W. S., Kuppel, S., & Knighton, J.",
+   "title": "Opportunistic Short‐Term Water Uptake Dynamics by Subalpine Trees Observed via In Situ Water Isotope Measurements",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2024wr039171"
+  },
+  {
+   "siteId": "1969",
+   "year": 2025,
+   "authors": "Stegen, J., Burgin, A. J., Busch, M. H., Fisher, J. B., Ladau, J., Abrahamson, J., Kinsman-Costello, L., Li, L., Chen, X., Datry, T., McDowell, N., Tatariw, C., Braswell, A., Deines, J. M., Guimond, J. A., Regier, P., Rod, K., Bam, E. K. P., Fluet-Chouinard, E., … Patel, K. F.",
+   "title": "Reviews and syntheses: Variable inundation across Earth’s terrestrial ecosystems",
+   "journal": "Biogeosciences",
+   "doi": "10.5194/bg-22-995-2025"
+  },
+  {
+   "siteId": "1970",
+   "year": 2025,
+   "authors": "Thiros, N. E., Woodburn, E. R., Gardner, W. P., Dennedy‐Frank, J. P., & Williams, K. H.",
+   "title": "Matrix Diffusion Controls Mountain Hillslope Groundwater Ages and Inferred Storage Dynamics",
+   "journal": "Groundwater",
+   "doi": "10.1111/gwat.13475"
+  },
+  {
+   "siteId": "1971",
+   "year": 2025,
+   "authors": "Wang, L., Babey, T., Perzan, Z., Pierce, S., Briggs, M., Boye, K., & Maher, K.",
+   "title": "Quantifying Groundwater Response and Uncertainty in Beaver‐Influenced Mountainous Floodplains Using Machine Learning‐Based Model Calibration",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2024wr039192"
+  },
+  {
+   "siteId": "1987",
+   "year": 2025,
+   "authors": "Wang, L., Billings, S. A., Li, L., Hirmas, D. R., Johnson, K., Kerins, D., Pachon, J., Beutler, C., Jarecke, K. M., Varikuti, V., Unruh, M., Ajami, H., Barnard, H., Flores, A. N., Williams, K., & Sullivan, P. L.",
+   "title": "Soil signals of key mechanisms driving greater protection of organic carbon under aspen compared to spruce forests in a North American montane ecosystem",
+   "journal": "Biogeosciences",
+   "doi": "10.5194/bg-22-6097-2025"
+  },
+  {
+   "siteId": "1974",
+   "year": 2025,
+   "authors": "Wang, L., Xu, Z., Wang, C., Thibaut, R., Ulrich, C., Sprenger, M., Uhlemann, S., Wu, Y., King, E., Wainwright, H., Carroll, R. W. H., Beutler, C., Williams, K. H., & Dafflon, B.",
+   "title": "The Role of Snowmelt and Subsurface Heterogeneity in Headwater Hydrology of a Mountainous Catchment in Colorado: A Model‐Data Integration Approach",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2025wr040651"
+  },
+  {
+   "siteId": "1972",
+   "year": 2025,
+   "authors": "Worsham, H. M., Wainwright, H. M., Powell, T. L., Falco, N., & Kueppers, L. M.",
+   "title": "Abiotic influences on continuous conifer forest structure across a subalpine watershed",
+   "journal": "Remote Sensing of Environment",
+   "doi": "10.1016/j.rse.2024.114587"
+  },
+  {
+   "siteId": "1132",
+   "year": 2024,
+   "authors": "Anderson, C. G., Tfaily, M. M., Chu, R. K., Tolić, N., Fox, P. M., Nico, P. S., Fendorf, S., & Keiluweit, M.",
+   "title": "Seasonal Controls on Microbial Depolymerization and Oxidation of Organic Matter in Floodplain Soils",
+   "journal": "Environmental Science & Technology",
+   "doi": "10.1021/acs.est.4c05109"
+  },
+  {
+   "siteId": "1133",
+   "year": 2024,
+   "authors": "Arora, B., Seybold, E., & Jin, L.",
+   "title": "Editorial: Women in critical zone science",
+   "journal": "Frontiers in Water",
+   "doi": "10.3389/frwa.2024.1404317"
+  },
+  {
+   "siteId": "1134",
+   "year": 2024,
+   "authors": "Babey, T., Perzan, Z., Pierce, S., Rogers, B., Wang, L., Carroll, R. W. H., Bargar, J. R., Boye, K., & Maher, K.",
+   "title": "Mountainous Floodplain Connectivity in Response to Hydrological Transitions",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2024wr037162"
+  },
+  {
+   "siteId": "1135",
+   "year": 2024,
+   "authors": "Bouskill, N. J., Newcomer, M., Carroll, R. W. H., Beutler, C., Bill, M., Brown, W. S., Conrad, M., Dong, W. S., Falco, N., Maavara, T., Newman, A., Sorensen, P. O., Tokunaga, T. K., Wan, J., Wainwright, H., Zhu, Q., Brodie, E. L., & Williams, K. H.",
+   "title": "A Tale of Two Catchments: Causality Analysis and Isotope Systematics Reveal Mountainous Watershed Traits That Regulate the Retention and Release of Nitrogen",
+   "journal": "Journal of Geophysical Research: Biogeosciences",
+   "doi": "10.1029/2023jg007532"
+  },
+  {
+   "siteId": "1949",
+   "year": 2024,
+   "authors": "Brelsford, C., Jones, A., Pandey, B., Vahmani, P., Allen‐Dumas, M., Rastogi, D., Sparks, K., Bukovsky, M., Dronova, I., Hong, T., Iwaniec, D. M., Newcomer, M. E., Reid, S. C., & Zheng, Z.",
+   "title": "Cities Are Concentrators of Complex, MultiSectoral Interactions Within the Human‐Earth System",
+   "journal": null,
+   "doi": "10.1029/2024ef004481"
+  },
+  {
+   "siteId": "1136",
+   "year": 2024,
+   "authors": "Carroll, R. W. H., Niswonger, R. G., Ulrich, C., Varadharajan, C., Siirila-Woodburn, E. R., & Williams, K. H.",
+   "title": "Declining groundwater storage expected to amplify mountain streamflow reductions in a warmer world",
+   "journal": "Nature Water",
+   "doi": "10.1038/s44221-024-00239-0"
+  },
+  {
+   "siteId": "1138",
+   "year": 2024,
+   "authors": "Enquist, B. J., Kempes, C. P., & West, G. B.",
+   "title": "Developing a predictive science of the biosphere requires the integration of scientific cultures",
+   "journal": "Proceedings of the National Academy of Sciences",
+   "doi": "10.1073/pnas.2209196121"
+  },
+  {
+   "siteId": "1959",
+   "year": 2024,
+   "authors": "Herndon, E., Ma, L., Newcomer, M., & Shiller, A. M.",
+   "title": "Trace elements and their isotopes in streams and rivers",
+   "journal": "Treatise on Geochemistry",
+   "doi": "10.1016/b978-0-323-99762-1.00022-x"
+  },
+  {
+   "siteId": "1139",
+   "year": 2024,
+   "authors": "Hu, X., Chen, C., Chen, D., Noël, V., Oji, H., Ghoshal, S., Lowry, G. V., Tratnyek, P. G., Lin, D., Zhu, L., & Xu, J.",
+   "title": "Lattice engineered nanoscale Fe0 for selective reductions",
+   "journal": "Nature Water",
+   "doi": "10.1038/s44221-023-00175-5"
+  },
+  {
+   "siteId": "1140",
+   "year": 2024,
+   "authors": "Janot, N., Dunham-Cheatham, S. M., Lezama Pacheco, J. S., Cerrato, J. M., Alessi, D. S., Noël, V., Lee, E., Pham, D. Q., Suvorova, E., Bernier-Latmani, R., Williams, K. H., Long, P. E., & Bargar, J. R.",
+   "title": "Reducing Conditions Influence U(IV) Accumulation in Sediments during In Situ Bioremediation",
+   "journal": "ACS Earth and Space Chemistry",
+   "doi": "10.1021/acsearthspacechem.3c00271"
+  },
+  {
+   "siteId": "1141",
+   "year": 2024,
+   "authors": "Johnson, K., Christensen, J. N., Payton Gardner, W., Sprenger, M., Li, L., Williams, K. H., Carroll, R. W. H., Thiros, N., Brown, W., Beutler, C., Newman, A., & Sullivan, P. L.",
+   "title": "Shifting groundwater fluxes in bedrock fractures: Evidence from stream water radon and water isotopes",
+   "journal": "Journal of Hydrology",
+   "doi": "10.1016/j.jhydrol.2024.131202"
+  },
+  {
+   "siteId": "1142",
+   "year": 2024,
+   "authors": "Karaoz, U., Emerson, J. B., & Brodie, E. L.",
+   "title": "Molecular and associated approaches for studying soil biota and their functioning",
+   "journal": "Soil Microbiology, Ecology and Biochemistry",
+   "doi": "10.1016/b978-0-12-822941-5.00006-5"
+  },
+  {
+   "siteId": "1950",
+   "year": 2024,
+   "authors": "Kerins, D., Sadayappan, K., Zhi, W., Sullivan, P. L., Williams, K. H., Carroll, R. W. H., Barnard, H. R., Sprenger, M., Dong, W., Perdrial, J., & Li, L.",
+   "title": "Hydrology Outweighs Temperature in Driving Production and Export of Dissolved Carbon in a Snowy Mountain Catchment",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2023wr036077"
+  },
+  {
+   "siteId": "1143",
+   "year": 2024,
+   "authors": "Noël, V., Boye, K., Naughton, H. R., Lacroix, E. M., Aeppli, M., Kumar, N., Fendorf, S., & Webb, S. M.",
+   "title": "X-ray chemical imaging for assessing redox microsites within soils and sediments",
+   "journal": "Frontiers in Environmental Chemistry",
+   "doi": "10.3389/fenvc.2024.1329887"
+  },
+  {
+   "siteId": "1144",
+   "year": 2024,
+   "authors": "Rasmussen, A. N., Tolar, B. B., Bargar, J. R., Boye, K., & Francis, C. A.",
+   "title": "Diverse and unconventional methanogens, methanotrophs, and methylotrophs in metagenome-assembled genomes from subsurface sediments of the Slate River floodplain, Crested Butte, CO, USA",
+   "journal": null,
+   "doi": "10.1128/msystems.00314-24"
+  },
+  {
+   "siteId": "1145",
+   "year": 2024,
+   "authors": "Rudisill, W. J., Flores, A. N., Marshall, H. P., Siirila-Woodburn, E., Feldman, D. R., Rhoades, A. M., Xu, Z., & Morales, A.",
+   "title": "Cold-Season Precipitation Sensitivity to Microphysical Parameterizations: Hydrologic Evaluations Leveraging Snow Lidar Datasets",
+   "journal": "Journal of Hydrometeorology",
+   "doi": "10.1175/jhm-d-22-0217.1"
+  },
+  {
+   "siteId": "1146",
+   "year": 2024,
+   "authors": "Rushworth, D. D., Schenkeveld, W. D. C., Kumar, N., Noël, V., Dewulf, J., van Helmond, N. A. G. M., Slomp, C. P., Lehmann, M. F., & Kraemer, S. M.",
+   "title": "Solid phase speciation controls copper mobilisation from marine sediments by methanobactin",
+   "journal": "Science of The Total Environment",
+   "doi": "10.1016/j.scitotenv.2024.173046"
+  },
+  {
+   "siteId": "1147",
+   "year": 2024,
+   "authors": "Spielman-Sun, E., Boye, K., Dwivedi, D., Engel, M., Thompson, A., Kumar, N., & Noël, V.",
+   "title": "A Critical Look at Colloid Generation, Stability, and Transport in Redox-Dynamic Environments: Challenges and Perspectives",
+   "journal": "ACS Earth and Space Chemistry",
+   "doi": "10.1021/acsearthspacechem.3c00255"
+  },
+  {
+   "siteId": "1148",
+   "year": 2024,
+   "authors": "Sprenger, M., Carroll, R. W. H., Marchetti, D., Bern, C., Beria, H., Brown, W., Newman, A., Beutler, C., & Williams, K. H.",
+   "title": "Stream water sourcing from high-elevation snowpack inferred from stable isotopes of water: a novel application of d-excess values",
+   "journal": "Hydrology and Earth System Sciences",
+   "doi": "10.5194/hess-28-1711-2024"
+  },
+  {
+   "siteId": "1149",
+   "year": 2024,
+   "authors": "Stolze, L., Arora, B., Dwivedi, D., Steefel, C. I., Bandai, T., Wu, Y., & Nico, P.",
+   "title": "Climate forcing controls on carbon terrestrial fluxes during shale weathering",
+   "journal": "Proceedings of the National Academy of Sciences",
+   "doi": "10.1073/pnas.2400230121"
+  },
+  {
+   "siteId": "1150",
+   "year": 2024,
+   "authors": "Thiros, N. E., Siirila-Woodburn, E. R., Sprenger, M., Williams, K. H., Dennedy-Frank, J. P., Carroll, R. W. H., & Gardner, W. P.",
+   "title": "Old-Aged groundwater contributes to mountain hillslope hydrologic dynamics",
+   "journal": "Journal of Hydrology",
+   "doi": "10.1016/j.jhydrol.2024.131193"
+  },
+  {
+   "siteId": "1151",
+   "year": 2024,
+   "authors": "Uhlemann, S., Peruzzo, L., Chou, C., Williams, K. H., Wielandt, S., Wang, C., Falco, N., Wu, Y., Carr, B., Meldrum, P., Chambers, J., & Dafflon, B.",
+   "title": "Variations in Bedrock and Vegetation Cover Modulate Subsurface Water Flow Dynamics of a Mountainous Hillslope",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2023wr036137"
+  },
+  {
+   "siteId": "1152",
+   "year": 2024,
+   "authors": "Wainwright, H. M., Dafflon, B., Siirila-Woodburn, E. R., Falco, N., Wu, Y., Breckheimer, I., & Carroll, R. W. H.",
+   "title": "Model and remote-sensing-guided experimental design and hypothesis generation for monitoring snow-soil–plant interactions",
+   "journal": "Frontiers in Water",
+   "doi": "10.3389/frwa.2023.1220146"
+  },
+  {
+   "siteId": "1153",
+   "year": 2024,
+   "authors": "Wan, J., Tokunaga, T. K., Beutler, C. A., Newman, A. W., Dong, W., Bill, M., Brown, W. S., Henderson, A. N., Tran, A. P., & Williams, K. H.",
+   "title": "Hydrological control of rock carbon fluxes from shale weathering",
+   "journal": "Nature Water",
+   "doi": "10.1038/s44221-024-00293-8"
+  },
+  {
+   "siteId": "1154",
+   "year": 2024,
+   "authors": "Zheng, J., Scheibe, T. D., Boye, K., & Song, H.-S.",
+   "title": "Thermodynamic control on the decomposition of organic matter across different electron acceptors",
+   "journal": "Soil Biology and Biochemistry",
+   "doi": "10.1016/j.soilbio.2024.109364"
+  },
+  {
+   "siteId": "1109",
+   "year": 2023,
+   "authors": "Arora, B., Kuppel, S., Wellen, C., Oswald, C., Groh, J., Payandi-Rolland, D., Stegen, J., & Coffinet, S.",
+   "title": "Building Cross-Site and Cross-Network collaborations in critical zone science",
+   "journal": "Journal of Hydrology",
+   "doi": "10.1016/j.jhydrol.2023.129248"
+  },
+  {
+   "siteId": "1110",
+   "year": 2023,
+   "authors": "Brookfield, A. E., Ajami, H., Carroll, R. W. H., Tague, C., Sullivan, P. L., & Condon, L. E.",
+   "title": "Recent advances in integrated hydrologic models: Integration of new domains",
+   "journal": "Journal of Hydrology",
+   "doi": "10.1016/j.jhydrol.2023.129515"
+  },
+  {
+   "siteId": "1111",
+   "year": 2023,
+   "authors": "Carrero, S., Slotznick, S. P., Fakra, S. C., Sitar, M. C., Bone, S. E., Mauk, J. L., Manning, A. H., Swanson-Hysell, N. L., Williams, K. H., Banfield, J. F., & Gilbert, B.",
+   "title": "Mineralogical, magnetic and geochemical data constrain the pathways and extent of weathering of mineralized sedimentary rocks",
+   "journal": "Geochimica et Cosmochimica Acta",
+   "doi": "10.1016/j.gca.2022.11.005"
+  },
+  {
+   "siteId": "1112",
+   "year": 2023,
+   "authors": "Chacón-Labella, J., Hinojo-Hinojo, C., Bohner, T., Castorena, M., Violle, C., Vandvik, V., & Enquist, B. J.",
+   "title": "How to improve scaling from traits to ecosystem processes",
+   "journal": "Trends in Ecology & Evolution",
+   "doi": "10.1016/j.tree.2022.10.007"
+  },
+  {
+   "siteId": "1137",
+   "year": 2023,
+   "authors": "Chou, C., Peruzzo, L., Falco, N., Hao, Z., Mary, B., Wang, J., & Wu, Y.",
+   "title": "Improving evapotranspiration computation with electrical resistivity tomography in a maize field",
+   "journal": "Vadose Zone Journal",
+   "doi": "10.1002/vzj2.20290"
+  },
+  {
+   "siteId": "1113",
+   "year": 2023,
+   "authors": "Coclet, C., Sorensen, P. O., Karaoz, U., Wang, S., Brodie, E. L., Eloe-Fadrosh, E. A., & Roux, S.",
+   "title": "Virus diversity and activity is driven by snowmelt and host dynamics in a high-altitude watershed soil ecosystem",
+   "journal": "Microbiome",
+   "doi": "10.1186/s40168-023-01666-z"
+  },
+  {
+   "siteId": "1114",
+   "year": 2023,
+   "authors": "Dafflon, B., Léger, E., Falco, N., Wainwright, H. M., Peterson, J., Chen, J., Williams, K. H., & Hubbard, S. S.",
+   "title": "Advanced monitoring of soil-vegetation co-dynamics reveals the successive controls of snowmelt on soil moisture and on plant seasonal dynamics in a mountainous watershed",
+   "journal": "Frontiers in Earth Science",
+   "doi": "10.3389/feart.2023.976227"
+  },
+  {
+   "siteId": "1115",
+   "year": 2023,
+   "authors": "de Boer, G., White, A., Cifelli, R., Intrieri, J., Rose Abel, M., Mahoney, K., Meyers, T., Lantz, K., Hamilton, J., Currier, W., Sedlar, J., Cox, C., Hulm, E., Riihimaki, L. D., Adler, B., Bianco, L., Morales, A., Wilczak, J., Elston, J., … Webb, R. S.",
+   "title": "Supporting Advancement in Weather and Water Prediction in the Upper Colorado River Basin: The SPLASH Campaign",
+   "journal": "Bulletin of the American Meteorological Society",
+   "doi": "10.1175/bams-d-22-0147.1"
+  },
+  {
+   "siteId": "1116",
+   "year": 2023,
+   "authors": "Engel, M., Noël, V., Pierce, S., Kovarik, L., Kukkadapu, R. K., Pacheco, J. S. L., Qafoku, O., Runyon, J. R., Chorover, J., Zhou, W., Cliff, J., Boye, K., & Bargar, J. R.",
+   "title": "Structure and composition of natural ferrihydrite nano-colloids in anoxic groundwater",
+   "journal": "Water Research",
+   "doi": "10.1016/j.watres.2023.119990"
+  },
+  {
+   "siteId": "1117",
+   "year": 2023,
+   "authors": "Faybishenko, B.",
+   "title": "A Concept of Fuzzy Dual Permeability of Fractured Porous Media",
+   "journal": "Water",
+   "doi": "10.3390/w15213752"
+  },
+  {
+   "siteId": "1118",
+   "year": 2023,
+   "authors": "Faybishenko, B.; Sadiq, R.; Deshpande, A.",
+   "title": "Fuzzy Systems Modeling in Environmental and Health Risk Assessment",
+   "journal": null,
+   "doi": null
+  },
+  {
+   "siteId": "1119",
+   "year": 2023,
+   "authors": "Feldman, D. R., Aiken, A. C., Boos, W. R., Carroll, R. W. H., Chandrasekar, V., Collis, S., Creamean, J. M., de Boer, G., Deems, J., DeMott, P. J., Fan, J., Flores, A. N., Gochis, D., Grover, M., Hill, T. C. J., Hodshire, A., Hulm, E., Hume, C. C., Jackson, R., … Xu, Z.",
+   "title": "The Surface Atmosphere Integrated Field Laboratory (SAIL) Campaign",
+   "journal": "Bulletin of the American Meteorological Society",
+   "doi": "10.1175/bams-d-22-0049.1"
+  },
+  {
+   "siteId": "1120",
+   "year": 2023,
+   "authors": "Gilbert, B., Carrero, S., Dong, W., Joe-Wong, C., Arora, B., Fox, P., Nico, P., & Williams, K. H.",
+   "title": "River thorium concentrations can record bedrock fracture processes including some triggered by distant seismic events",
+   "journal": "Nature Communications",
+   "doi": "10.1038/s41467-023-37784-3"
+  },
+  {
+   "siteId": "1121",
+   "year": 2023,
+   "authors": "Knabe, D., Dwivedi, D., Wang, H., Griebler, C., & Engelhardt, I.",
+   "title": "Numerical investigations to identify environmental factors for field-scale reactive transport of pathogens at riverbank filtration sites",
+   "journal": "Advances in Water Resources",
+   "doi": "10.1016/j.advwatres.2023.104389"
+  },
+  {
+   "siteId": "1122",
+   "year": 2023,
+   "authors": "Lacroix, E. M., Aeppli, M., Boye, K., Brodie, E., Fendorf, S., Keiluweit, M., Naughton, H. R., Noël, V., & Sihi, D.",
+   "title": "Consider the Anoxic Microsite: Acknowledging and Appreciating Spatiotemporal Redox Heterogeneity in Soils and Sediments",
+   "journal": "ACS Earth and Space Chemistry",
+   "doi": "10.1021/acsearthspacechem.3c00032"
+  },
+  {
+   "siteId": "1123",
+   "year": 2023,
+   "authors": "Maitner, B. S., Halbritter, A. H., Telford, R. J., Strydom, T., Chacon, J., Lamanna, C., Sloat, L. L., Kerkhoff, A. J., Messier, J., Rasmussen, N., Pomati, F., Merz, E., Vandvik, V., & Enquist, B. J.",
+   "title": "Bootstrapping outperforms community‐weighted approaches for estimating the shapes of phenotypic distributions",
+   "journal": "Methods in Ecology and Evolution",
+   "doi": "10.1111/2041-210x.14160"
+  },
+  {
+   "siteId": "1124",
+   "year": 2023,
+   "authors": "Massoud, E. C., Hoffman, F., Shi, Z., Tang, J., Alhajjar, E., Barnes, M., Braghiere, R. K., Cardon, Z., Collier, N., Crompton, O., Dennedy-Frank, P. J., Gautam, S., Gonzalez-Meler, M. A., Green, J. K., Koven, C., Levine, P., MacBean, N., Mao, J., Mills, R. T., … Zarakas, C.",
+   "title": "Perspectives on Artificial Intelligence for Predictions in Ecohydrology",
+   "journal": "Artificial Intelligence for the Earth Systems",
+   "doi": "10.1175/aies-d-23-0005.1"
+  },
+  {
+   "siteId": "1125",
+   "year": 2023,
+   "authors": "Merow, C., Boyle, B., Enquist, B. J., Feng, X., Kass, J. M., Maitner, B. S., McGill, B., Owens, H., Park, D. S., Paz, A., Pinilla-Buitrago, G. E., Urban, M. C., Varela, S., & Wilson, A. M.",
+   "title": "Better incentives are needed to reward academic software development",
+   "journal": "Nature Ecology & Evolution",
+   "doi": "10.1038/s41559-023-02008-w"
+  },
+  {
+   "siteId": "1126",
+   "year": 2023,
+   "authors": "Naughton, H. R., Tolar, B. B., Dewey, C., Keiluweit, M., Nico, P. S., & Fendorf, S.",
+   "title": "Reactive iron, not fungal community, drives organic carbon oxidation potential in floodplain soils",
+   "journal": "Soil Biology and Biochemistry",
+   "doi": "10.1016/j.soilbio.2023.108962"
+  },
+  {
+   "siteId": "1127",
+   "year": 2023,
+   "authors": "Orlowski, N., Rinderer, M., Dubbert, M., Ceperley, N., Hrachowitz, M., Gessler, A., Rothfuss, Y., Sprenger, M., Heidbüchel, I., Kübert, A., Beyer, M., Zuecco, G., & McCarter, C.",
+   "title": "Challenges in studying water fluxes within the soil-plant-atmosphere continuum: A tracer-based perspective on pathways to progress",
+   "journal": "Science of The Total Environment",
+   "doi": "10.1016/j.scitotenv.2023.163510"
+  },
+  {
+   "siteId": "1128",
+   "year": 2023,
+   "authors": "Rudisill, W., Flores, A., & Carroll, R.",
+   "title": "Evaluating 3 decades of precipitation in the Upper Colorado River basin from a high-resolution regional climate model",
+   "journal": "Geoscientific Model Development",
+   "doi": "10.5194/gmd-16-6531-2023"
+  },
+  {
+   "siteId": "1129",
+   "year": 2023,
+   "authors": "Spielman-Sun, E., Bland, G., Wielinski, J., Frouté, L., Kovscek, A. R., Lowry, G. V., Bargar, J. R., & Noël, V.",
+   "title": "Environmental impact of solution pH on the formation and migration of iron colloids in deep subsurface energy systems",
+   "journal": "Science of The Total Environment",
+   "doi": "10.1016/j.scitotenv.2023.166409"
+  },
+  {
+   "siteId": "1099",
+   "year": 2023,
+   "authors": "Stolze, L., Arora, B., Dwivedi, D., Steefel, C., Li, Z., Carrero, S., Gilbert, B., Nico, P., & Bill, M.",
+   "title": "Aerobic respiration controls on shale weathering",
+   "journal": "Geochimica et Cosmochimica Acta",
+   "doi": "10.1016/j.gca.2022.11.002"
+  },
+  {
+   "siteId": "1130",
+   "year": 2023,
+   "authors": "Thiros, N. E., Siirila‐Woodburn, E. R., Dennedy‐Frank, P. J., Williams, K. H., & Gardner, W. P.",
+   "title": "Constraining Bedrock Groundwater Residence Times in a Mountain System With Environmental Tracer Observations and Bayesian Uncertainty Quantification",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2022wr033282"
+  },
+  {
+   "siteId": "1045",
+   "year": 2022,
+   "authors": "Arora, B., Briggs, M. A., Zarnetske, J. P., Stegen, J., Gomez-Velez, J. D., Dwivedi, D., & Steefel, C.",
+   "title": "Hot Spots and Hot Moments in the Critical Zone: Identification of and Incorporation into Reactive Transport Models",
+   "journal": null,
+   "doi": "10.1007/978-3-030-95921-0_2"
+  },
+  {
+   "siteId": "1077",
+   "year": 2022,
+   "authors": "Arora, B., Currin, A., Dwivedi, D., Fru, M. I. N., Kumar, N., McLeod, C. L., & Roman, D. C.",
+   "title": "Volcanology, Geochemistry, and Petrology Perspectives on Integrated, Coordinated, Open, Networked (ICON) Science",
+   "journal": "Earth and Space Science",
+   "doi": "10.1029/2021ea002120"
+  },
+  {
+   "siteId": "1078",
+   "year": 2022,
+   "authors": "Benettin, P., Rodriguez, N. B., Sprenger, M., Kim, M., Klaus, J., Harman, C. J., van der Velde, Y., Hrachowitz, M., Botter, G., McGuire, K. J., Kirchner, J. W., Rinaldo, A., & McDonnell, J. J.",
+   "title": "Transit Time Estimation in Catchments: Recent Developments and Future Directions",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2022wr033096"
+  },
+  {
+   "siteId": "1079",
+   "year": 2022,
+   "authors": "Carroll, R. W. H., Deems, J., Maxwell, R., Sprenger, M., Brown, W., Newman, A., Beutler, C., Bill, M., Hubbard, S. S., & Williams, K. H.",
+   "title": "Variability in observed stable water isotopes in snowpack across a mountainous watershed in Colorado",
+   "journal": "Hydrological Processes",
+   "doi": "10.1002/hyp.14653"
+  },
+  {
+   "siteId": "1080",
+   "year": 2022,
+   "authors": "Carroll, R. W. H., Deems, J., Sprenger, M., Maxwell, R., Brown, W., Newman, A., Beutler, C., & Williams, K. H.",
+   "title": "Modeling Snow Dynamics and Stable Water Isotopes Across Mountain Landscapes",
+   "journal": "Geophysical Research Letters",
+   "doi": "10.1029/2022gl098780"
+  },
+  {
+   "siteId": "1081",
+   "year": 2022,
+   "authors": "Chen, J., Dafflon, B., Wainwright, H. M., Tran, A. P., & Hubbard, S. S.",
+   "title": "A Subseasonal Regime Approach for Assessing Intra-annual Variability of Evapotranspiration and Application to the Upper Colorado River Basin",
+   "journal": "Frontiers in Water",
+   "doi": "10.3389/frwa.2021.739131"
+  },
+  {
+   "siteId": "1082",
+   "year": 2022,
+   "authors": "Dafflon, B., Wielandt, S., Lamb, J., McClure, P., Shirley, I., Uhlemann, S., Wang, C., Fiolleau, S., Brunetti, C., Akins, F. H., Fitzpatrick, J., Pullman, S., Busey, R., Ulrich, C., Peterson, J., & Hubbard, S. S.",
+   "title": "A distributed temperature profiling system for vertically and laterally dense acquisition of soil and snow temperature",
+   "journal": "The Cryosphere",
+   "doi": "10.5194/tc-16-719-2022"
+  },
+  {
+   "siteId": "1083",
+   "year": 2022,
+   "authors": "Dewey, C., Fox, P. M., Bouskill, N. J., Dwivedi, D., Nico, P., & Fendorf, S.",
+   "title": "Beaver dams overshadow climate extremes in controlling riparian hydrology and water quality",
+   "journal": "Nature Communications",
+   "doi": "10.1038/s41467-022-34022-0"
+  },
+  {
+   "siteId": "1084",
+   "year": 2022,
+   "authors": "Dwivedi, D., Mital, U., Faybishenko, B., Dafflon, B., Varadharajan, C., Agarwal, D., Williams, K. H., Steefel, C. I., & Hubbard, S. S.",
+   "title": "IMPUTATION OF CONTIGUOUS GAPS AND EXTREMES OF SUBHOURLY GROUNDWATER TIME SERIES USING RANDOM FORESTS",
+   "journal": "Journal of Machine Learning for Modeling and Computing",
+   "doi": "10.1615/jmachlearnmodelcomput.2021038774"
+  },
+  {
+   "siteId": "1085",
+   "year": 2022,
+   "authors": "Dwivedi, D., Santos, A. L. D., Barnard, M. A., Crimmins, T. M., Malhotra, A., Rod, K. A., Aho, K. S., Bell, S. M., Bomfim, B., Brearley, F. Q., Cadillo‐Quiroz, H., Chen, J., Gough, C. M., Graham, E. B., Hakkenberg, C. R., Haygood, L., Koren, G., Lilleskov, E. A., Meredith, L. K., … Weintraub‐Leff, S.",
+   "title": "Biogeosciences Perspectives on Integrated, Coordinated, Open, Networked (ICON) Science",
+   "journal": "Earth and Space Science",
+   "doi": "10.1029/2021ea002119"
+  },
+  {
+   "siteId": "1086",
+   "year": 2022,
+   "authors": "Dwivedi, D., Steefel, C. I., Arora, B., Banfield, J., Bargar, J., Boyanov, M. I., Brooks, S. C., Chen, X., Hubbard, S. S., Kaplan, D., Kemner, K. M., Nico, P. S., O’Loughlin, E. J., Pierce, E. M., Painter, S. L., Scheibe, T. D., Wainwright, H. M., Williams, K. H., & Zavarin, M.",
+   "title": "From legacy contamination to watershed systems science: a review of scientific insights and technologies developed through DOE-supported research in water and energy security",
+   "journal": "Environmental Research Letters",
+   "doi": "10.1088/1748-9326/ac59a9"
+  },
+  {
+   "siteId": "1087",
+   "year": 2022,
+   "authors": "Faybishenko, B., Arora, B., Dwivedi, D., & Brodie, E.",
+   "title": "Statistical framework to assess long-term spatio-temporal climate changes: East River mountainous watershed case study",
+   "journal": "Stochastic Environmental Research and Risk Assessment",
+   "doi": "10.1007/s00477-022-02327-7"
+  },
+  {
+   "siteId": "1088",
+   "year": 2022,
+   "authors": "Feldman, D. R., Worden, M., Falco, N., Dennedy‐Frank, P. J., Chen, J., Dafflon, B., & Wainwright, H.",
+   "title": "Three‐Dimensional Surface Downwelling Longwave Radiation Clear‐Sky Effects in the Upper Colorado River Basin",
+   "journal": "Geophysical Research Letters",
+   "doi": "10.1029/2021gl094605"
+  },
+  {
+   "siteId": "1089",
+   "year": 2022,
+   "authors": "Fox, P. M., Carrero, S., Anderson, C., Dewey, C., Keiluweit, M., Conrad, M., Naughton, H. R., Fendorf, S., Carroll, R., Dafflon, B., Malenda‐Lawrence, H., Dwivedi, D., Gilbert, B., Christensen, J. N., Boye, K., Beutler, C., Brown, W., Newman, A., Versteeg, R., … Nico, P. S.",
+   "title": "Sulfur Biogeochemical Cycling and Redox Dynamics in a Shale‐Dominated Mountainous Watershed",
+   "journal": "Journal of Geophysical Research: Biogeosciences",
+   "doi": "10.1029/2021jg006769"
+  },
+  {
+   "siteId": "1090",
+   "year": 2022,
+   "authors": "Karaoz, U., & Brodie, E. L.",
+   "title": "microTrait: A Toolset for a Trait-Based Representation of Microbial Genomes",
+   "journal": "Frontiers in Bioinformatics",
+   "doi": "10.3389/fbinf.2022.918853"
+  },
+  {
+   "siteId": "1091",
+   "year": 2022,
+   "authors": "Maina, F. Z., Siirila-Woodburn, E. R., & Dennedy-Frank, P.-J.",
+   "title": "Assessing the impacts of hydrodynamic parameter uncertainties on simulated evapotranspiration in a mountainous watershed",
+   "journal": "Journal of Hydrology",
+   "doi": "10.1016/j.jhydrol.2022.127620"
+  },
+  {
+   "siteId": "1092",
+   "year": 2022,
+   "authors": "Maina, F. Z., Wainwright, H. M., Dennedy-Frank, P. J., & Siirila-Woodburn, E. R.",
+   "title": "On the similarity of hillslope hydrologic function: a clustering approach based on groundwater changes",
+   "journal": "Hydrology and Earth System Sciences",
+   "doi": "10.5194/hess-26-3805-2022"
+  },
+  {
+   "siteId": "1093",
+   "year": 2022,
+   "authors": "Mital, U., Dwivedi, D., Brown, J. B., & Steefel, C. I.",
+   "title": "Downscaled hyper-resolution (400 m) gridded datasets of daily precipitation and temperature (2008–2019) for the East–Taylor subbasin (western United States)",
+   "journal": "Earth System Science Data",
+   "doi": "10.5194/essd-14-4949-2022"
+  },
+  {
+   "siteId": "1094",
+   "year": 2022,
+   "authors": "Molins, S., Svyatsky, D., Xu, Z., Coon, E. T., & Moulton, J. D.",
+   "title": "A Multicomponent Reactive Transport Model for Integrated Surface‐Subsurface Hydrology Problems",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2022wr032074"
+  },
+  {
+   "siteId": "1095",
+   "year": 2022,
+   "authors": "Rhoades, A. M., Hatchett, B. J., Risser, M. D., Collins, W. D., Bambach, N. E., Huning, L. S., McCrary, R., Siirila-Woodburn, E. R., Ullrich, P. A., Wehner, M. F., Zarzycki, C. M., & Jones, A. D.",
+   "title": "Asymmetric emergence of low-to-no snow in the midlatitudes of the American Cordillera",
+   "journal": "Nature Climate Change",
+   "doi": "10.1038/s41558-022-01518-y"
+  },
+  {
+   "siteId": "1096",
+   "year": 2022,
+   "authors": "Ryken, A. C., Gochis, D., & Maxwell, R. M.",
+   "title": "Unravelling groundwater contributions to evapotranspiration and constraining water fluxes in a high‐elevation catchment",
+   "journal": "Hydrological Processes",
+   "doi": "10.1002/hyp.14449"
+  },
+  {
+   "siteId": "1097",
+   "year": 2022,
+   "authors": "Shuai, P., Chen, X., Mital, U., Coon, E. T., & Dwivedi, D.",
+   "title": "The effects of spatial and temporal resolution of gridded meteorological forcing on watershed hydrological responses",
+   "journal": "Hydrology and Earth System Sciences",
+   "doi": "10.5194/hess-26-2245-2022"
+  },
+  {
+   "siteId": "1098",
+   "year": 2022,
+   "authors": "Sprenger, M., Carroll, R. W. H., Dennedy‐Frank, J., Siirila‐Woodburn, E. R., Newcomer, M. E., Brown, W., Newman, A., Beutler, C., Bill, M., Hubbard, S. S., & Williams, K. H.",
+   "title": "Variability of Snow and Rainfall Partitioning Into Evapotranspiration and Summer Runoff Across Nine Mountainous Catchments",
+   "journal": "Geophysical Research Letters",
+   "doi": "10.1029/2022gl099324"
+  },
+  {
+   "siteId": "1100",
+   "year": 2022,
+   "authors": "Tokunaga, T. K., Tran, A. P., Wan, J., Dong, W., Newman, A. W., Beutler, C. A., Brown, W., Henderson, A. N., & Williams, K. H.",
+   "title": "Quantifying Subsurface Flow and Solute Transport in a Snowmelt‐Recharged Hillslope With Multiyear Water Balance",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2022wr032902"
+  },
+  {
+   "siteId": "1101",
+   "year": 2022,
+   "authors": "Uhlemann, S., Dafflon, B., Wainwright, H. M., Williams, K. H., Minsley, B., Zamudio, K., Carr, B., Falco, N., Ulrich, C., & Hubbard, S.",
+   "title": "Surface parameters and bedrock properties covary across a mountainous watershed: Insights from machine learning and geophysics",
+   "journal": "Science Advances",
+   "doi": "10.1126/sciadv.abj2479"
+  },
+  {
+   "siteId": "1102",
+   "year": 2022,
+   "authors": "Varadharajan, C., Appling, A. P., Arora, B., Christianson, D. S., Hendrix, V. C., Kumar, V., Lima, A. R., Müller, J., Oliver, S., Ombadi, M., Perciano, T., Sadler, J. M., Weierbach, H., Willard, J. D., Xu, Z., & Zwart, J.",
+   "title": "Can machine learning accelerate process understanding and decision‐relevant predictions of river water quality?",
+   "journal": "Hydrological Processes",
+   "doi": "10.1002/hyp.14565"
+  },
+  {
+   "siteId": "1103",
+   "year": 2022,
+   "authors": "Varadharajan, C., Hendrix, V. C., Christianson, D. S., Burrus, M., Wong, C., Hubbard, S. S., & Agarwal, D. A.",
+   "title": "BASIN-3D: A brokering framework to integrate diverse environmental data",
+   "journal": "Computers & Geosciences",
+   "doi": "10.1016/j.cageo.2021.105024"
+  },
+  {
+   "siteId": "1104",
+   "year": 2022,
+   "authors": "Wainwright, H. M., Uhlemann, S., Franklin, M., Falco, N., Bouskill, N. J., Newcomer, M. E., Dafflon, B., Siirila-Woodburn, E. R., Minsley, B. J., Williams, K. H., & Hubbard, S. S.",
+   "title": "Watershed zonation through hillslope clustering for tractably quantifying above- and below-ground watershed heterogeneity and functions",
+   "journal": "Hydrology and Earth System Sciences",
+   "doi": "10.5194/hess-26-429-2022"
+  },
+  {
+   "siteId": "1105",
+   "year": 2022,
+   "authors": "Xu, Z., Molins, S., Özgen‐Xian, I., Dwivedi, D., Svyatsky, D., Moulton, J. D., & Steefel, C.",
+   "title": "Understanding the Hydrogeochemical Response of a Mountainous Watershed Using Integrated Surface‐Subsurface Flow and Reactive Transport Modeling",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2022wr032075"
+  },
+  {
+   "siteId": "1106",
+   "year": 2022,
+   "authors": "Yuan, X., Liu, T., Fox, P., Bhattacharyya, A., Dwivedi, D., Williams, K. H., Davis, J. A., Waite, T. D., & Nico, P. S.",
+   "title": "Production of hydrogen peroxide in an intra-meander hyporheic zone at East River, Colorado",
+   "journal": "Scientific Reports",
+   "doi": "10.1038/s41598-021-04171-1"
+  },
+  {
+   "siteId": "1107",
+   "year": 2022,
+   "authors": "Zhong, Y., Sorensen, P. O., Zhu, G., Jia, X., Liu, J., Shangguan, Z., Wang, R., & Yan, W.",
+   "title": "Differential microbial assembly processes and co‐occurrence networks in the soil‐root continuum along an environmental gradient",
+   "journal": null,
+   "doi": "10.1002/imt2.18"
+  },
+  {
+   "siteId": "1131",
+   "year": 2022,
+   "authors": "Zhong, Y., Yan, W., Canisares, L. P., Wang, S., & Brodie, E. L.",
+   "title": "Alterations in soil pH emerge as a key driver of the impact of global change on soil microbial nitrogen cycling: Evidence from a global meta‐analysis",
+   "journal": "Global Ecology and Biogeography",
+   "doi": "10.1111/geb.13616"
+  },
+  {
+   "siteId": "1108",
+   "year": 2022,
+   "authors": "Zhou, Z., Tran, P. Q., Breister, A. M., Liu, Y., Kieft, K., Cowley, E. S., Karaoz, U., & Anantharaman, K.",
+   "title": "METABOLIC: high-throughput profiling of microbial genomes for functional traits, metabolism, biogeochemistry, and community-scale functional networks",
+   "journal": "Microbiome",
+   "doi": "10.1186/s40168-021-01213-8"
+  },
+  {
+   "siteId": "1042",
+   "year": 2021,
+   "authors": null,
+   "title": "Hydrogeology, Chemical Weathering, and Soil Formation",
+   "journal": null,
+   "doi": null
+  },
+  {
+   "siteId": "1043",
+   "year": 2021,
+   "authors": "Agarwal, D. A., Damerow, J., Varadharajan, C., Christianson, D. S., Pastorello, G. Z., Cheah, Y.-W., & Ramakrishnan, L.",
+   "title": "Balancing the needs of consumers and producers for scientific data collections",
+   "journal": "Ecological Informatics",
+   "doi": "10.1016/j.ecoinf.2021.101251"
+  },
+  {
+   "siteId": "1044",
+   "year": 2021,
+   "authors": "Arora, B., Sullivan, P., Kuppel, S., Yang, X., & Groh, J.",
+   "title": "The Future of Critical Zone Science: Call for Papers",
+   "journal": "Eos",
+   "doi": "10.1029/2021eo157965"
+  },
+  {
+   "siteId": "1046",
+   "year": 2021,
+   "authors": "Burt, E. I., Bill, M., Conrad, M. E., Quispe, A. J. C., Christensen, J. N., Hilton, R. G., Dellinger, M., & West, A. J.",
+   "title": "Conservative transport of dissolved sulfate across the Rio Madre de Dios floodplain in Peru",
+   "journal": "Geology",
+   "doi": "10.1130/g48997.1"
+  },
+  {
+   "siteId": "1047",
+   "year": 2021,
+   "authors": "Buser-Young, J. Z., Lapham, L. L., Thurber, A. R., Williams, K. H., & Colwell, F. S.",
+   "title": "Hidden Processes During Seasonal Isolation of a High-Altitude Watershed",
+   "journal": "Frontiers in Earth Science",
+   "doi": "10.3389/feart.2021.666819"
+  },
+  {
+   "siteId": "1048",
+   "year": 2021,
+   "authors": "Canisares, L. P., Poffenbarger, H., Brodie, E. L., Sorensen, P. O., Karaoz, U., Villegas, D. M., Arango, J., Momesso, L., Crusciol, C. A. C., & Cantarella, H.",
+   "title": "Legacy Effects of Intercropping and Nitrogen Fertilization on Soil N Cycling, Nitrous Oxide Emissions, and the Soil Microbial Community in Tropical Maize Production",
+   "journal": "Frontiers in Soil Science",
+   "doi": "10.3389/fsoil.2021.746433"
+  },
+  {
+   "siteId": "1049",
+   "year": 2021,
+   "authors": "Cantor, A., Kiparsky, M., Hubbard, S. S., Kennedy, R., Pecharroman, L. C., Guivetchi, K., Darling, G., McCready, C., & Bales, R.",
+   "title": "Making a Water Data System Responsive to Information Needs of Decision Makers",
+   "journal": "Frontiers in Climate",
+   "doi": "10.3389/fclim.2021.761444"
+  },
+  {
+   "siteId": "1051",
+   "year": 2021,
+   "authors": "Chen, J., Dafflon, B., Tran, A. P., Falco, N., & Hubbard, S. S.",
+   "title": "A deep learning hybrid predictive modeling (HPM) approach for estimating evapotranspiration and ecosystem respiration",
+   "journal": "Hydrology and Earth System Sciences",
+   "doi": "10.5194/hess-25-6041-2021"
+  },
+  {
+   "siteId": "1052",
+   "year": 2021,
+   "authors": "Chen, X., Lee, R. M., Dwivedi, D., Son, K., Fang, Y., Zhang, X., Graham, E., Stegen, J., Fisher, J. B., Moulton, D., & Scheibe, T. D.",
+   "title": "Integrating field observations and process-based modeling to predict watershed water quality under environmental perturbations",
+   "journal": "Journal of Hydrology",
+   "doi": "10.1016/j.jhydrol.2020.125762"
+  },
+  {
+   "siteId": "1053",
+   "year": 2021,
+   "authors": "Damerow, J. E., Varadharajan, C., Boye, K., Brodie, E. L., Burrus, M., Chadwick, K. D., Crystal-Ornelas, R., Elbashandy, H., Alves, R. J. E., Ely, K. S., Goldman, A. E., Haberman, T., Hendrix, V., Kakalia, Z., Kemner, K. M., Kersting, A. B., Merino, N., O’Brien, F., Perzan, Z., … Agarwal, D.",
+   "title": "Sample Identifiers and Metadata to Support Data Management and Reuse in Multidisciplinary Ecosystem Sciences",
+   "journal": "Data Science Journal",
+   "doi": "10.5334/dsj-2021-011"
+  },
+  {
+   "siteId": "1054",
+   "year": 2021,
+   "authors": "Dwivedi, D., Godsey, S. E., & Scheibe, T. D.",
+   "title": "Editorial: Linking Hydrological and Biogeochemical Processes in Riparian Corridors",
+   "journal": "Frontiers in Water",
+   "doi": "10.3389/frwa.2021.693763"
+  },
+  {
+   "siteId": "1055",
+   "year": 2021,
+   "authors": "Falco, N., Wainwright, H. M., Dafflon, B., Ulrich, C., Soom, F., Peterson, J. E., Brown, J. B., Schaettle, K. B., Williamson, M., Cothren, J. D., Ham, R. G., McEntire, J. A., & Hubbard, S. S.",
+   "title": "Influence of soil heterogeneity on soybean plant development and crop yield evaluated using time-series of UAV and ground-based geophysical imagery",
+   "journal": "Scientific Reports",
+   "doi": "10.1038/s41598-021-86480-z"
+  },
+  {
+   "siteId": "1056",
+   "year": 2021,
+   "authors": "Faybishenko, B., Versteeg, R., Pastorello, G., Dwivedi, D., Varadharajan, C., & Agarwal, D.",
+   "title": "Challenging problems of quality assurance and quality control (QA/QC) of meteorological time series data",
+   "journal": "Stochastic Environmental Research and Risk Assessment",
+   "doi": "10.1007/s00477-021-02106-w"
+  },
+  {
+   "siteId": "1057",
+   "year": 2021,
+   "authors": "Hilton, R. G., Turowski, J. M., Winnick, M., Dellinger, M., Schleppi, P., Williams, K. H., Lawrence, C. R., Maher, K., West, M., & Hayton, A.",
+   "title": "Concentration‐Discharge Relationships of Dissolved Rhenium in Alpine Catchments Reveal Its Use as a Tracer of Oxidative Weathering",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2021wr029844"
+  },
+  {
+   "siteId": "1058",
+   "year": 2021,
+   "authors": "Hunt, A., Egli, M., & Faybishenko, B.",
+   "title": null,
+   "journal": null,
+   "doi": "10.1002/9781119563952.ch14"
+  },
+  {
+   "siteId": "1059",
+   "year": 2021,
+   "authors": "Hunt, A., Faybishenko, B., & Ghanbarian, B.",
+   "title": "Non-linear hydrologic organization",
+   "journal": "Nonlinear Processes in Geophysics",
+   "doi": "10.5194/npg-28-599-2021"
+  },
+  {
+   "siteId": "1060",
+   "year": 2021,
+   "authors": "Kakalia, Z., Varadharajan, C., Alper, E., Brodie, E. L., Burrus, M., Carroll, R. W. H., Christianson, D. S., Dong, W., Hendrix, V. C., Henderson, M., Hubbard, S. S., Johnson, D., Versteeg, R., Williams, K. H., & Agarwal, D. A.",
+   "title": "The Colorado East River Community Observatory Data Collection",
+   "journal": "Hydrological Processes",
+   "doi": "10.1002/hyp.14243"
+  },
+  {
+   "siteId": "1061",
+   "year": 2021,
+   "authors": "Leonard, L. T., Brodie, E. L., Williams, K. H., & Sharp, J. O.",
+   "title": "Effect of elevation, season and accelerated snowmelt on biogeochemical processes during isolated conifer needle litter decomposition",
+   "journal": "PeerJ",
+   "doi": "10.7717/peerj.11926"
+  },
+  {
+   "siteId": "1062",
+   "year": 2021,
+   "authors": "Li, W., Wainwright, H. M., Yan, Q., Zhou, H., Dafflon, B., Wu, Y., Versteeg, R., & Tartakovsky, D. M.",
+   "title": "Estimation of Evapotranspiration Rates and Root Water Uptake Profiles From Soil Moisture Sensor Array Data",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2021wr030747"
+  },
+  {
+   "siteId": "1063",
+   "year": 2021,
+   "authors": "Maavara, T., Siirila-Woodburn, E. R., Maina, F., Maxwell, R. M., Sample, J. E., Chadwick, K. D., Carroll, R., Newcomer, M. E., Dong, W., Williams, K. H., Steefel, C. I., & Bouskill, N. J.",
+   "title": "Modeling geogenic and atmospheric nitrogen through the East River Watershed, Colorado Rocky Mountains",
+   "journal": "PLOS ONE",
+   "doi": "10.1371/journal.pone.0247907"
+  },
+  {
+   "siteId": "1064",
+   "year": 2021,
+   "authors": "Manning, A. H., Ball, L. B., Wanty, R. B., & Williams, K. H.",
+   "title": "Direct Observation of the Depth of Active Groundwater Circulation in an Alpine Watershed",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2020wr028548"
+  },
+  {
+   "siteId": "1050",
+   "year": 2021,
+   "authors": "Matheus Carnevali, P. B., Lavy, A., Thomas, A. D., Crits-Christoph, A., Diamond, S., Méheust, R., Olm, M. R., Sharrar, A., Lei, S., Dong, W., Falco, N., Bouskill, N., Newcomer, M. E., Nico, P., Wainwright, H., Dwivedi, D., Williams, K. H., Hubbard, S., & Banfield, J. F.",
+   "title": "Meanders as a scaling motif for understanding of floodplain soil microbiome and biogeochemical potential at the watershed scale",
+   "journal": "Microbiome",
+   "doi": "10.1186/s40168-020-00957-z"
+  },
+  {
+   "siteId": "1065",
+   "year": 2021,
+   "authors": "Miltenberger, A., Uhlemann, S., Mukerji, T., Williams, K., Dafflon, B., Wang, L., & Wainwright, H.",
+   "title": "Probabilistic Evaluation of Geoscientific Hypotheses With Geophysical Data: Application to Electrical Resistivity Imaging of a Fractured Bedrock Zone",
+   "journal": "Journal of Geophysical Research: Solid Earth",
+   "doi": "10.1029/2021jb021767"
+  },
+  {
+   "siteId": "1066",
+   "year": 2021,
+   "authors": "Molz, F., & Faybishenko, B.",
+   "title": "Mathematical analysis of laboratory microbial experiments demonstrating deterministic chaotic dynamics",
+   "journal": "Biologia Futura",
+   "doi": "10.1007/s42977-021-00079-z"
+  },
+  {
+   "siteId": "1067",
+   "year": 2021,
+   "authors": "Newcomer, M. E., Bouskill, N. J., Wainwright, H., Maavara, T., Arora, B., Siirila‐Woodburn, E. R., Dwivedi, D., Williams, K. H., Steefel, C., & Hubbard, S. S.",
+   "title": "Hysteresis Patterns of Watershed Nitrogen Retention and Loss Over the Past 50 years in United States Hydrological Basins",
+   "journal": "Global Biogeochemical Cycles",
+   "doi": "10.1029/2020gb006777"
+  },
+  {
+   "siteId": "1068",
+   "year": 2021,
+   "authors": "Özgen-Xian, I., Navas-Montilla, A., Dwivedi, D., & Molins, S.",
+   "title": "Hyperbolic Reformulation Approach to Enable Efficient Simulation of Groundwater Flow and Reactive Transport",
+   "journal": "Environmental Engineering Science",
+   "doi": "10.1089/ees.2020.0363"
+  },
+  {
+   "siteId": "1069",
+   "year": 2021,
+   "authors": "Revil, A., Schmutz, M., Abdulsamad, F., Balde, A., Beck, C., Ghorbani, A., & Hubbard, S. S.",
+   "title": "Field-scale estimation of soil properties from spectral induced polarization tomography",
+   "journal": "Geoderma",
+   "doi": "10.1016/j.geoderma.2021.115380"
+  },
+  {
+   "siteId": "1070",
+   "year": 2021,
+   "authors": "Rogers, D. B., Newcomer, M. E., Raberg, J. H., Dwivedi, D., Steefel, C., Bouskill, N., Nico, P., Faybishenko, B., Fox, P., Conrad, M., Bill, M., Brodie, E., Arora, B., Dafflon, B., Williams, K. H., & Hubbard, S. S.",
+   "title": "Modeling the Impact of Riparian Hollows on River Corridor Nitrogen Exports",
+   "journal": "Frontiers in Water",
+   "doi": "10.3389/frwa.2021.590314"
+  },
+  {
+   "siteId": "1071",
+   "year": 2021,
+   "authors": "Siirila-Woodburn, E. R., Rhoades, A. M., Hatchett, B. J., Huning, L. S., Szinai, J., Tague, C., Nico, P. S., Feldman, D. R., Jones, A. D., Collins, W. D., & Kaatz, L.",
+   "title": "A low-to-no snow future and its impacts on water resources in the western United States",
+   "journal": "Nature Reviews Earth & Environment",
+   "doi": "10.1038/s43017-021-00219-y"
+  },
+  {
+   "siteId": "1072",
+   "year": 2021,
+   "authors": "Venkatesh, S., Arora, B., Dwivedi, D., Vezhapperambu, S., & Ramesh, M. V.",
+   "title": "Temporal Variability of Water Quality Parameters at the Elkhorn Slough Estuary using Wavelets",
+   "journal": null,
+   "doi": "10.1109/i2ct51068.2021.9418159"
+  },
+  {
+   "siteId": "1073",
+   "year": 2021,
+   "authors": "Wagner, F. M., & Uhlemann, S.",
+   "title": "An overview of multimethod imaging approaches in environmental geophysics",
+   "journal": null,
+   "doi": "10.1016/bs.agph.2021.06.001"
+  },
+  {
+   "siteId": "1074",
+   "year": 2021,
+   "authors": "Wan, J., Tokunaga, T. K., Brown, W., Newman, A. W., Dong, W., Bill, M., Beutler, C. A., Henderson, A. N., Harvey-Costello, N., Conrad, M. E., Bouskill, N. J., Hubbard, S. S., & Williams, K. H.",
+   "title": "Bedrock weathering contributes to subsurface reactive nitrogen and nitrous oxide emissions",
+   "journal": "Nature Geoscience",
+   "doi": "10.1038/s41561-021-00717-0"
+  },
+  {
+   "siteId": "1075",
+   "year": 2021,
+   "authors": "Waterhouse, H., Arora, B., Spycher, N. F., Nico, P. S., Ulrich, C., Dahlke, H. E., & Horwath, W. R.",
+   "title": "Influence of Agricultural Managed Aquifer Recharge (AgMAR) and Stratigraphic Heterogeneities on Nitrate Reduction in the Deep Subsurface",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2020wr029148"
+  },
+  {
+   "siteId": "1076",
+   "year": 2021,
+   "authors": "Yan, Q., Wainwright, H., Dafflon, B., Uhlemann, S., Steefel, C. I., Falco, N., Kwang, J., & Hubbard, S. S.",
+   "title": "A hybrid data–model approach to map soil thickness in mountain hillslopes",
+   "journal": "Earth Surface Dynamics",
+   "doi": "10.5194/esurf-9-1347-2021"
+  },
+  {
+   "siteId": "1011",
+   "year": 2020,
+   "authors": "Ackerer, J., Steefel, C., Liu, F., Bart, R., Safeeq, M., O’Geen, A., Hunsaker, C., & Bales, R.",
+   "title": "Determining How Critical Zone Structure Constrains Hydrogeochemical Behavior of Watersheds: Learning From an Elevation Gradient in California’s Sierra Nevada",
+   "journal": "Frontiers in Water",
+   "doi": "10.3389/frwa.2020.00023"
+  },
+  {
+   "siteId": "1012",
+   "year": 2020,
+   "authors": "Al-Shayeb, B., Sachdeva, R., Chen, L.-X., Ward, F., Munk, P., Devoto, A., Castelle, C. J., Olm, M. R., Bouma-Gregson, K., Amano, Y., He, C., Méheust, R., Brooks, B., Thomas, A., Lavy, A., Matheus-Carnevali, P., Sun, C., Goltsman, D. S. A., Borton, M. A., … Banfield, J. F.",
+   "title": "Clades of huge phages from across Earth’s ecosystems",
+   "journal": "Nature",
+   "doi": "10.1038/s41586-020-2007-4"
+  },
+  {
+   "siteId": "1013",
+   "year": 2020,
+   "authors": "Arbour, T. J., Gilbert, B., & Banfield, J. F.",
+   "title": "Diverse Microorganisms in Sediment and Groundwater Are Implicated in Extracellular Redox Processes Based on Genomic Analysis of Bioanode Communities",
+   "journal": "Frontiers in Microbiology",
+   "doi": "10.3389/fmicb.2020.01694"
+  },
+  {
+   "siteId": "1014",
+   "year": 2020,
+   "authors": "Arora, B., Burrus, M., Newcomer, M., Steefel, C. I., Carroll, R. W. H., Dwivedi, D., Dong, W., Williams, K. H., & Hubbard, S. S.",
+   "title": "Differential C-Q Analysis: A New Approach to Inferring Lateral Transport and Hydrologic Transients Within Multiple Reaches of a Mountainous Headwater Catchment",
+   "journal": "Frontiers in Water",
+   "doi": "10.3389/frwa.2020.00024"
+  },
+  {
+   "siteId": "1015",
+   "year": 2020,
+   "authors": "Berkelhammer, M., Still, C. J., Ritter, F., Winnick, M., Anderson, L., Carroll, R., Carbone, M., & Williams, K. H.",
+   "title": "Persistence and Plasticity in Conifer Water‐Use Strategies",
+   "journal": "Journal of Geophysical Research: Biogeosciences",
+   "doi": "10.1029/2018jg004845"
+  },
+  {
+   "siteId": "1016",
+   "year": 2020,
+   "authors": "Bryant, S. R., Sawyer, A. H., Briggs, M. A., Saup, C. M., Nelson, A. R., Wilkins, M. J., Christensen, J. N., & Williams, K. H.",
+   "title": "Seasonal manganese transport in the hyporheic zone of a snowmelt-dominated river (East River, Colorado, USA)",
+   "journal": "Hydrogeology Journal",
+   "doi": "10.1007/s10040-020-02146-6"
+  },
+  {
+   "siteId": "1017",
+   "year": 2020,
+   "authors": "Carroll, R. W. H., Gochis, D., & Williams, K. H.",
+   "title": "Efficiency of the Summer Monsoon in Generating Streamflow Within a Snow‐Dominated Headwater Basin of the Colorado River",
+   "journal": "Geophysical Research Letters",
+   "doi": "10.1029/2020gl090856"
+  },
+  {
+   "siteId": "1018",
+   "year": 2020,
+   "authors": "Carroll, R. W. H., Manning, A. H., Niswonger, R., Marchetti, D., & Williams, K. H.",
+   "title": "Baseflow Age Distributions and Depth of Active Groundwater Flow in a Snow‐Dominated Mountain Headwater Basin",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2020wr028161"
+  },
+  {
+   "siteId": "1019",
+   "year": 2020,
+   "authors": "Chadwick, K. D., Brodrick, P. G., Grant, K., Goulden, T., Henderson, A., Falco, N., Wainwright, H., Williams, K. H., Bill, M., Breckheimer, I., Brodie, E. L., Steltzer, H., Williams, C. F. R., Blonder, B., Chen, J., Dafflon, B., Damerow, J., Hancher, M., Khurram, A., … Maher, K.",
+   "title": "Integrating airborne remote sensing and field campaigns for ecology and Earth system science",
+   "journal": "Methods in Ecology and Evolution",
+   "doi": "10.1111/2041-210x.13463"
+  },
+  {
+   "siteId": "1020",
+   "year": 2020,
+   "authors": "Devadoss, J., Falco, N., Dafflon, B., Wu, Y., Franklin, M., Hermes, A., Hinckley, E.-L. S., & Wainwright, H.",
+   "title": "Remote Sensing-Informed Zonation for Understanding Snow, Plant and Soil Moisture Dynamics within a Mountain Ecosystem",
+   "journal": "Remote Sensing",
+   "doi": "10.3390/rs12172733"
+  },
+  {
+   "siteId": "1021",
+   "year": 2020,
+   "authors": "Dong, W., Bhattacharyya, A., Fox, P. M., Bill, M., Dwivedi, D., Carrero, S., Conrad, M., & Nico, P. S.",
+   "title": "Geochemical Controls on Release and Speciation of Fe(II) and Mn(II) From Hyporheic Sediments of East River, Colorado",
+   "journal": "Frontiers in Water",
+   "doi": "10.3389/frwa.2020.562298"
+  },
+  {
+   "siteId": "1022",
+   "year": 2020,
+   "authors": "Druhan, J. L., Guillon, S., Lincker, M., & Arora, B.",
+   "title": "Stable and radioactive carbon isotope partitioning in soils and saturated systems: a reactive transport modeling benchmark study",
+   "journal": "Computational Geosciences",
+   "doi": "10.1007/s10596-020-09937-6"
+  },
+  {
+   "siteId": "1023",
+   "year": 2020,
+   "authors": "Foster, L. M., Williams, K. H., & Maxwell, R. M.",
+   "title": "Resolution matters when modeling climate change in headwaters of the Colorado River",
+   "journal": "Environmental Research Letters",
+   "doi": "10.1088/1748-9326/aba77f"
+  },
+  {
+   "siteId": "1024",
+   "year": 2020,
+   "authors": "Fox, P. M., Bill, M., Heckman, K., Conrad, M., Anderson, C., Keiluweit, M., & Nico, P. S.",
+   "title": "Shale as a Source of Organic Carbon in Floodplain Sediments of a Mountainous Watershed",
+   "journal": "Journal of Geophysical Research: Biogeosciences",
+   "doi": "10.1029/2019jg005419"
+  },
+  {
+   "siteId": "1025",
+   "year": 2020,
+   "authors": "Hermes, A. L., Wainwright, H. M., Wigmore, O., Falco, N., Molotch, N. P., & Hinckley, E.-L. S.",
+   "title": "From Patch to Catchment: A Statistical Framework to Identify and Map Soil Moisture Patterns Across Complex Alpine Terrain",
+   "journal": "Frontiers in Water",
+   "doi": "10.3389/frwa.2020.578602"
+  },
+  {
+   "siteId": "1026",
+   "year": 2020,
+   "authors": "Hubbard, S. S., Varadharajan, C., Wu, Y., Wainwright, H., & Dwivedi, D.",
+   "title": "Emerging technologies and radical collaboration to advance predictive understanding of watershed hydrobiogeochemistry",
+   "journal": "Hydrological Processes",
+   "doi": "10.1002/hyp.13807"
+  },
+  {
+   "siteId": "1028",
+   "year": 2020,
+   "authors": "Hunt, A. G., Faybishenko, B., & Ghanbarian, B.",
+   "title": "Predicting the Water Balance from Optimization of Plant Productivity",
+   "journal": "GSA Today",
+   "doi": "10.1130/gsatg471gw.1"
+  },
+  {
+   "siteId": "1027",
+   "year": 2020,
+   "authors": "Hunt, A., Faybishenko, B., Ghanbarian, B., Egli, M., & Yu, F.",
+   "title": "Predicting Water Cycle Characteristics from Percolation Theory and Observational Data",
+   "journal": "International Journal of Environmental Research and Public Health",
+   "doi": "10.3390/ijerph17030734"
+  },
+  {
+   "siteId": "1029",
+   "year": 2020,
+   "authors": "Leonard, L. T., Mikkelson, K., Hao, Z., Brodie, E. L., Williams, K. H., & Sharp, J. O.",
+   "title": "A comparison of lodgepole and spruce needle chemistry impacts on terrestrial biogeochemical processes during isolated decomposition",
+   "journal": "PeerJ",
+   "doi": "10.7717/peerj.9538"
+  },
+  {
+   "siteId": "1030",
+   "year": 2020,
+   "authors": "Leonard, L., Wilmer, C., Steltzer, H., Williams, K., & Sharp, J.",
+   "title": "Accelerated Snowmelt Protocol to Simulate Climate Change Induced Impacts on Snowpack Dependent Ecosystems",
+   "journal": "BIO-PROTOCOL",
+   "doi": "10.21769/bioprotoc.3557"
+  },
+  {
+   "siteId": "1031",
+   "year": 2020,
+   "authors": "Mary, B., Peruzzo, L., Boaga, J., Cenni, N., Schmutz, M., Wu, Y., Hubbard, S. S., & Cassiani, G.",
+   "title": "Time-lapse monitoring of root water uptake using electrical resistivity tomography and mise-à-la-masse: a vineyard infiltration experiment",
+   "journal": "SOIL",
+   "doi": "10.5194/soil-6-95-2020"
+  },
+  {
+   "siteId": "1032",
+   "year": 2020,
+   "authors": "Méheust, R., Castelle, C. J., Matheus Carnevali, P. B., Farag, I. F., He, C., Chen, L.-X., Amano, Y., Hug, L. A., & Banfield, J. F.",
+   "title": "Groundwater Elusimicrobia are metabolically diverse compared to gut microbiome Elusimicrobia and some have a novel nitrogenase paralog",
+   "journal": "The ISME Journal",
+   "doi": "10.1038/s41396-020-0716-1"
+  },
+  {
+   "siteId": "1033",
+   "year": 2020,
+   "authors": "Meyal, A. Y., Versteeg, R., Alper, E., Johnson, D., Rodzianko, A., Franklin, M., & Wainwright, H.",
+   "title": "Automated Cloud Based Long Short-Term Memory Neural Network Based SWE Prediction",
+   "journal": "Frontiers in Water",
+   "doi": "10.3389/frwa.2020.574917"
+  },
+  {
+   "siteId": "1034",
+   "year": 2020,
+   "authors": "Mital, U., Dwivedi, D., Brown, J. B., Faybishenko, B., Painter, S. L., & Steefel, C. I.",
+   "title": "Sequential Imputation of Missing Spatio-Temporal Precipitation Data Using Random Forests",
+   "journal": "Frontiers in Water",
+   "doi": "10.3389/frwa.2020.00020"
+  },
+  {
+   "siteId": "1035",
+   "year": 2020,
+   "authors": "O’Day, P. A., Nwosu, U. G., Barnes, M. E., Hart, S. C., Berhe, A. A., Christensen, J. N., & Williams, K. H.",
+   "title": "Phosphorus Speciation in Atmospherically Deposited Particulate Matter and Implications for Terrestrial Ecosystem Productivity",
+   "journal": "Environmental Science & Technology",
+   "doi": "10.1021/acs.est.9b06150"
+  },
+  {
+   "siteId": "1036",
+   "year": 2020,
+   "authors": "Özgen-Xian, I., Kesserwani, G., Caviedes-Voullième, D., Molins, S., Xu, Z., Dwivedi, D., Moulton, J. D., & Steefel, C. I.",
+   "title": "Wavelet-based local mesh refinement for rainfall–runoff simulations",
+   "journal": "Journal of Hydroinformatics",
+   "doi": "10.2166/hydro.2020.198"
+  },
+  {
+   "siteId": "1037",
+   "year": 2020,
+   "authors": "Peruzzo, L., Chou, C., Wu, Y., Schmutz, M., Mary, B., Wagner, F. M., Petrov, P., Newman, G., Blancaflor, E. B., Liu, X., Ma, X., & Hubbard, S.",
+   "title": "Imaging of plant current pathways for non-invasive root Phenotyping using a newly developed electrical current source density approach",
+   "journal": "Plant and Soil",
+   "doi": "10.1007/s11104-020-04529-w"
+  },
+  {
+   "siteId": "1038",
+   "year": 2020,
+   "authors": "Peskett, L., MacDonald, A., Heal, K., McDonnell, J., Chambers, J., Uhlemann, S., Upton, K., & Black, A.",
+   "title": "The impact of across-slope forest strips on hillslope subsurface hydrological dynamics",
+   "journal": "Journal of Hydrology",
+   "doi": "10.1016/j.jhydrol.2019.124427"
+  },
+  {
+   "siteId": "1039",
+   "year": 2020,
+   "authors": "Sorensen, P. O., Beller, H. R., Bill, M., Bouskill, N. J., Hubbard, S. S., Karaoz, U., Polussa, A., Steltzer, H., Wang, S., Williams, K. H., Wu, Y., & Brodie, E. L.",
+   "title": "The Snowmelt Niche Differentiates Three Microbial Life Strategies That Influence Soil Nitrogen Availability During and After Winter",
+   "journal": "Frontiers in Microbiology",
+   "doi": "10.3389/fmicb.2020.00871"
+  },
+  {
+   "siteId": "1040",
+   "year": 2020,
+   "authors": "Wainwright, H. M., Steefel, C., Trutner, S. D., Henderson, A. N., Nikolopoulos, E. I., Wilmer, C. F., Chadwick, K. D., Falco, N., Schaettle, K. B., Brown, J. B., Steltzer, H., Williams, K. H., Hubbard, S. S., & Enquist, B. J.",
+   "title": "Satellite-derived foresummer drought sensitivity of plant productivity in Rocky Mountain headwater catchments: spatial heterogeneity and geological-geomorphological control",
+   "journal": "Environmental Research Letters",
+   "doi": "10.1088/1748-9326/ab8fd0"
+  },
+  {
+   "siteId": "1041",
+   "year": 2020,
+   "authors": "Zhi, W., Williams, K. H., Carroll, R. W. H., Brown, W., Dong, W., Kerins, D., & Li, L.",
+   "title": "Significant stream chemistry response to temperature variations in a high-elevation mountain watershed",
+   "journal": "Communications Earth & Environment",
+   "doi": "10.1038/s43247-020-00039-w"
+  },
+  {
+   "siteId": "979",
+   "year": 2019,
+   "authors": "Alexandratos, S. D., Barak, N., Bauer, D., Davidson, F. T., Gibney, B. R., Hubbard, S. S., Taft, H. L., & Westerhof, P.",
+   "title": "Sustaining Water Resources: Environmental and Economic Impact",
+   "journal": "ACS Sustainable Chemistry & Engineering",
+   "doi": "10.1021/acssuschemeng.8b05859"
+  },
+  {
+   "siteId": "980",
+   "year": 2019,
+   "authors": "Arora, B., Dwivedi, D., Faybishenko, B., Jana, R. B., & Wainwright, H. M.",
+   "title": "Understanding and Predicting Vadose Zone Processes",
+   "journal": "Reviews in Mineralogy and Geochemistry",
+   "doi": "10.2138/rmg.2019.85.10"
+  },
+  {
+   "siteId": "981",
+   "year": 2019,
+   "authors": "Arora, B., Wainwright, H. M., Dwivedi, D., Vaughn, L. J. S., Curtis, J. B., Torn, M. S., Dafflon, B., & Hubbard, S. S.",
+   "title": "Evaluating temporal controls on greenhouse gas (GHG) fluxes in an Arctic tundra environment: An entropy-based approach",
+   "journal": "Science of The Total Environment",
+   "doi": "10.1016/j.scitotenv.2018.08.251"
+  },
+  {
+   "siteId": "982",
+   "year": 2019,
+   "authors": "Bill, M., Conrad, M. E., Faybishenko, B., Larsen, J. T., Geller, J. T., Borglin, S. E., & Beller, H. R.",
+   "title": "Use of carbon stable isotopes to monitor biostimulation and electron donor fate in chromium-contaminated groundwater",
+   "journal": "Chemosphere",
+   "doi": "10.1016/j.chemosphere.2019.06.056"
+  },
+  {
+   "siteId": "983",
+   "year": 2019,
+   "authors": "Bouskill, N. J., Conrad, M. E., Bill, M., Brodie, E. L., Cheng, Y., Hobson, C., Forbes, M., Casciotti, K. L., & Williams, K. H.",
+   "title": "Evidence for Microbial Mediated NO3− Cycling Within Floodplain Sediments During Groundwater Fluctuations",
+   "journal": "Frontiers in Earth Science",
+   "doi": "10.3389/feart.2019.00189"
+  },
+  {
+   "siteId": "985",
+   "year": 2019,
+   "authors": "Briggs, M. A., Wang, C., Day-Lewis, F. D., Williams, K. H., Dong, W., & Lane, J. W.",
+   "title": "Return flows from beaver ponds enhance floodplain-to-river metals exchange in alluvial mountain catchments",
+   "journal": "Science of The Total Environment",
+   "doi": "10.1016/j.scitotenv.2019.05.371"
+  },
+  {
+   "siteId": "987",
+   "year": 2019,
+   "authors": "Carroll, R. W. H., Deems, J. S., Niswonger, R., Schumer, R., & Williams, K. H.",
+   "title": "The Importance of Interflow to Groundwater Recharge in a Snowmelt‐Dominated Headwater Basin",
+   "journal": "Geophysical Research Letters",
+   "doi": "10.1029/2019gl082447"
+  },
+  {
+   "siteId": "988",
+   "year": 2019,
+   "authors": "Dangelmayr, M. A., Figueroa, L. A., Williams, K. H., & Long, P. E.",
+   "title": "Characterizing organic carbon dynamics during biostimulation of a uranium contaminated field site",
+   "journal": "Biogeochemistry",
+   "doi": "10.1007/s10533-019-00553-w"
+  },
+  {
+   "siteId": "989",
+   "year": 2019,
+   "authors": "Darrouzet‐Nardi, A., Steltzer, H., Sullivan, P. F., Segal, A., Koltz, A. M., Livensperger, C., Schimel, J. P., & Weintraub, M. N.",
+   "title": "Limited effects of early snowmelt on plants, decomposers, and soil nutrients in Arctic tundra soils",
+   "journal": "Ecology and Evolution",
+   "doi": "10.1002/ece3.4870"
+  },
+  {
+   "siteId": "990",
+   "year": 2019,
+   "authors": "Dwivedi, D., Tang, J., Bouskill, N., Georgiou, K., Chacon, S. S., & Riley, W. J.",
+   "title": "Abiotic and Biotic Controls on Soil Organo–Mineral Interactions: Developing Model Structures to Analyze Why Soil Organic Matter Persists",
+   "journal": "Reviews in Mineralogy and Geochemistry",
+   "doi": "10.2138/rmg.2019.85.11"
+  },
+  {
+   "siteId": "991",
+   "year": 2019,
+   "authors": "Eveillard, D., Bouskill, N. J., Vintache, D., Gras, J., Ward, B. B., & Bourdon, J.",
+   "title": "Probabilistic Modeling of Microbial Metabolic Networks for Integrating Partial Quantitative Knowledge Within the Nitrogen Cycle",
+   "journal": "Frontiers in Microbiology",
+   "doi": "10.3389/fmicb.2018.03298"
+  },
+  {
+   "siteId": "992",
+   "year": 2019,
+   "authors": "Falco, N., Wainwright, H., Dafflon, B., Léger, E., Peterson, J., Steltzer, H., Wilmer, C., Rowland, J. C., Williams, K. H., & Hubbard, S. S.",
+   "title": "Investigating Microtopographic and Soil Controls on a Mountainous Meadow Plant Community Using High‐Resolution Remote Sensing and Surface Geophysical Data",
+   "journal": "Journal of Geophysical Research: Biogeosciences",
+   "doi": "10.1029/2018jg004394"
+  },
+  {
+   "siteId": "993",
+   "year": 2019,
+   "authors": "Fang, Z., Carroll, R. W. H., Schumer, R., Harman, C., Wilusz, D., & Williams, K. H.",
+   "title": "Streamflow partitioning and transit time distribution in snow-dominated basins as a function of climate",
+   "journal": "Journal of Hydrology",
+   "doi": "10.1016/j.jhydrol.2019.01.029"
+  },
+  {
+   "siteId": "996",
+   "year": 2019,
+   "authors": "Lefebvre, P., Noël, V., Lau, K. V., Jemison, N. E., Weaver, K. L., Williams, K. H., Bargar, J. R., & Maher, K.",
+   "title": "Isotopic Fingerprint of Uranium Accumulation and Redox Cycling in Floodplains of the Upper Colorado River Basin",
+   "journal": "Environmental Science & Technology",
+   "doi": "10.1021/acs.est.8b05593"
+  },
+  {
+   "siteId": "997",
+   "year": 2019,
+   "authors": "Libera, A., de Barros, F. P. J., Faybishenko, B., Eddy-Dilek, C., Denham, M., Lipnikov, K., Moulton, D., Maco, B., & Wainwright, H.",
+   "title": "Climate change impact on residual contaminants under sustainable remediation",
+   "journal": "Journal of Contaminant Hydrology",
+   "doi": "10.1016/j.jconhyd.2019.103518"
+  },
+  {
+   "siteId": "999",
+   "year": 2019,
+   "authors": "Mailloux, B. J., Kim, C., Kichuk, T., Nguyen, K., Precht, C., Wang, S., Jewell, T. N. M., Karaoz, U., Brodie, E. L., Williams, K. H., Beller, H. R., & Buchholz, B. A.",
+   "title": "Paired RNA Radiocarbon and Sequencing Analyses Indicate the Importance of Autotrophy in a Shallow Alluvial Aquifer",
+   "journal": "Scientific Reports",
+   "doi": "10.1038/s41598-019-46663-1"
+  },
+  {
+   "siteId": "1000",
+   "year": 2019,
+   "authors": "Malenda, H. F., Sutfin, N. A., Guryan, G., Stauffer, S., Rowland, J. C., Williams, K. H., & Singha, K.",
+   "title": "From Grain to Floodplain: Evaluating heterogeneity of floodplain hydrostatigraphy using sedimentology, geophysics, and remote sensing",
+   "journal": "Earth Surface Processes and Landforms",
+   "doi": "10.1002/esp.4613"
+  },
+  {
+   "siteId": "986",
+   "year": 2019,
+   "authors": "Matheus Carnevali, P. B., Schulz, F., Castelle, C. J., Kantor, R. S., Shih, P. M., Sharon, I., Santini, J. M., Olm, M. R., Amano, Y., Thomas, B. C., Anantharaman, K., Burstein, D., Becraft, E. D., Stepanauskas, R., Woyke, T., & Banfield, J. F.",
+   "title": "Hydrogen-based metabolism as an ancestral trait in lineages sibling to the Cyanobacteria",
+   "journal": "Nature Communications",
+   "doi": "10.1038/s41467-018-08246-y"
+  },
+  {
+   "siteId": "1002",
+   "year": 2019,
+   "authors": "Nelson, A. R., Sawyer, A. H., Gabor, R. S., Saup, C. M., Bryant, S. R., Harris, K. D., Briggs, M. A., Williams, K. H., & Wilkins, M. J.",
+   "title": "Heterogeneity in Hyporheic Flow, Pore Water Chemistry, and Microbial Community Composition in an Alpine Streambed",
+   "journal": "Journal of Geophysical Research: Biogeosciences",
+   "doi": "10.1029/2019jg005226"
+  },
+  {
+   "siteId": "1003",
+   "year": 2019,
+   "authors": "Saito, K., Mikami, S., Andoh, M., Matsuda, N., Kinase, S., Tsuda, S., Yoshida, T., Sato, T., Seki, A., Yamamoto, H., Sanada, Y., Wainwright-Murakami, H., & Takemiya, H.",
+   "title": "Summary of temporal changes in air dose rates and radionuclide deposition densities in the 80 km zone over five years after the Fukushima Nuclear Power Plant accident",
+   "journal": "Journal of Environmental Radioactivity",
+   "doi": "10.1016/j.jenvrad.2018.12.020"
+  },
+  {
+   "siteId": "1004",
+   "year": 2019,
+   "authors": "Saup, C. M., Bryant, S. R., Nelson, A. R., Harris, K. D., Sawyer, A. H., Christensen, J. N., Tfaily, M. M., Williams, K. H., & Wilkins, M. J.",
+   "title": "Hyporheic Zone Microbiome Assembly Is Linked to Dynamic Water Mixing Patterns in Snowmelt‐Dominated Headwater Catchments",
+   "journal": "Journal of Geophysical Research: Biogeosciences",
+   "doi": "10.1029/2019jg005189"
+  },
+  {
+   "siteId": "1005",
+   "year": 2019,
+   "authors": "Sorensen, P. O., Bhatnagar, J. M., Christenson, L., Duran, J., Fahey, T., Fisk, M. C., Finzi, A. C., Groffman, P. M., Morse, J. L., & Templer, P. H.",
+   "title": "Roots Mediate the Effects of Snowpack Decline on Soil Bacteria, Fungi, and Nitrogen Cycling in a Northern Hardwood Forest",
+   "journal": "Frontiers in Microbiology",
+   "doi": "10.3389/fmicb.2019.00926"
+  },
+  {
+   "siteId": "1006",
+   "year": 2019,
+   "authors": "Tokunaga, T. K., Wan, J., Williams, K. H., Brown, W., Henderson, A., Kim, Y., Tran, A. P., Conrad, M. E., Bill, M., Carroll, R. W. H., Dong, W., Xu, Z., Lavy, A., Gilbert, B., Carrero, S., Christensen, J. N., Faybishenko, B., Arora, B., Siirila‐Woodburn, E. R., … Hubbard, S. S.",
+   "title": "Depth‐ and Time‐Resolved Distributions of Snowmelt‐Driven Hillslope Subsurface Flow and Transport and Their Contributions to Surface Waters",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2019wr025093"
+  },
+  {
+   "siteId": "1007",
+   "year": 2019,
+   "authors": "Tran, A. P., Rungee, J., Faybishenko, B., Dafflon, B., & Hubbard, S. S.",
+   "title": "Assessment of Spatiotemporal Variability of Evapotranspiration and Its Governing Factors in a Mountainous Watershed",
+   "journal": "Water",
+   "doi": "10.3390/w11020243"
+  },
+  {
+   "siteId": "1008",
+   "year": 2019,
+   "authors": "Varadharajan, C., Faybishenko, B., Henderson, A., Henderson, M., Hendrix, V. C., Hubbard, S. S., Kakalia, Z., Newman, A., Potter, B., Steltzer, H., Versteeg, R., Agarwal, D. A., Williams, K. H., Wilmer, C., Wu, Y., Brown, W., Burrus, M., Carroll, R. W. H., Christianson, D. S., … Enquist, B. J.",
+   "title": "Challenges in Building an End-to-End System for Acquisition, Management, and Integration of Diverse Data From Sensor Networks in Watersheds: Lessons From a Mountainous Community Observatory in East River, Colorado",
+   "journal": "IEEE Access",
+   "doi": "10.1109/access.2019.2957793"
+  },
+  {
+   "siteId": "1009",
+   "year": 2019,
+   "authors": "Wan, J., Tokunaga, T. K., Williams, K. H., Dong, W., Brown, W., Henderson, A. N., Newman, A. W., & Hubbard, S. S.",
+   "title": "Predicting sedimentary bedrock subsurface weathering fronts and weathering rates",
+   "journal": "Scientific Reports",
+   "doi": "10.1038/s41598-019-53205-2"
+  },
+  {
+   "siteId": "1010",
+   "year": 2019,
+   "authors": "Zhi, W., Li, L., Dong, W., Brown, W., Kaye, J., Steefel, C., & Williams, K. H.",
+   "title": "Distinct Source Water Chemistry Shapes Contrasting Concentration‐Discharge Patterns",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2018wr024257"
+  },
+  {
+   "siteId": "955",
+   "year": 2018,
+   "authors": "Anantharaman, K., Hausmann, B., Jungbluth, S. P., Kantor, R. S., Lavy, A., Warren, L. A., Rappé, M. S., Pester, M., Loy, A., Thomas, B. C., & Banfield, J. F.",
+   "title": "Expanded diversity of microbial groups that shape the dissimilatory sulfur cycle",
+   "journal": "The ISME Journal",
+   "doi": "10.1038/s41396-018-0078-0"
+  },
+  {
+   "siteId": "984",
+   "year": 2018,
+   "authors": "Briggs, M. A., Dawson, C. B., Holmquist‐Johnson, C. L., Williams, K. H., & Lane, J. W.",
+   "title": "Efficient hydrogeological characterization of remote stream corridors using drones",
+   "journal": "Hydrological Processes",
+   "doi": "10.1002/hyp.13332"
+  },
+  {
+   "siteId": "957",
+   "year": 2018,
+   "authors": "Carroll, R. W. H., Bearup, L. A., Brown, W., Dong, W., Bill, M., & Willlams, K. H.",
+   "title": "Factors controlling seasonal groundwater and solute flux from snow‐dominated basins",
+   "journal": "Hydrological Processes",
+   "doi": "10.1002/hyp.13151"
+  },
+  {
+   "siteId": "958",
+   "year": 2018,
+   "authors": "Castelle, C. J., & Banfield, J. F.",
+   "title": "Major New Microbial Groups Expand Diversity and Alter our Understanding of the Tree of Life",
+   "journal": "Cell",
+   "doi": "10.1016/j.cell.2018.02.016"
+  },
+  {
+   "siteId": "959",
+   "year": 2018,
+   "authors": "Christensen, J. N., Dafflon, B., Shiel, A. E., Tokunaga, T. K., Wan, J., Faybishenko, B., Dong, W., Williams, K. H., Hobson, C., Brown, S. T., & Hubbard, S. S.",
+   "title": "Using strontium isotopes to evaluate the spatial variation of groundwater recharge",
+   "journal": "Science of The Total Environment",
+   "doi": "10.1016/j.scitotenv.2018.05.019"
+  },
+  {
+   "siteId": "960",
+   "year": 2018,
+   "authors": "Danesh‐Yazdi, M., Klaus, J., Condon, L. E., & Maxwell, R. M.",
+   "title": "Bridging the gap between numerical solutions of travel time distributions and analytical storage selection functions",
+   "journal": "Hydrological Processes",
+   "doi": "10.1002/hyp.11481"
+  },
+  {
+   "siteId": "961",
+   "year": 2018,
+   "authors": "Dwivedi, D., Arora, B., Steefel, C. I., Dafflon, B., & Versteeg, R.",
+   "title": "Hot Spots and Hot Moments of Nitrogen in a Riparian Corridor",
+   "journal": "Water Resources Research",
+   "doi": "10.1002/2017wr022346"
+  },
+  {
+   "siteId": "962",
+   "year": 2018,
+   "authors": "Dwivedi, D., Steefel, C. I., Arora, B., Newcomer, M., Moulton, J. D., Dafflon, B., Faybishenko, B., Fox, P., Nico, P., Spycher, N., Carroll, R., & Williams, K. H.",
+   "title": "Geochemical Exports to River From the Intrameander Hyporheic Zone Under Transient Hydrologic Conditions: East River Mountainous Watershed, Colorado",
+   "journal": "Water Resources Research",
+   "doi": "10.1029/2018wr023377"
+  },
+  {
+   "siteId": "963",
+   "year": 2018,
+   "authors": "Faybishenko, B.; Molz, F.; Agarwal, D.",
+   "title": "Nonlinear Dynamics Simulations of Microbial Ecological Processes: Model, Diagnostic Parameters of Deterministic Chaos, and Sensitivity Analysis",
+   "journal": null,
+   "doi": null
+  },
+  {
+   "siteId": "972",
+   "year": 2018,
+   "authors": "Flores Orozco, A., Gallistl, J., Bücker, M., & Williams, K. H.",
+   "title": "Decay curve analysis for data error quantification in time-domain induced polarization imaging",
+   "journal": "GEOPHYSICS",
+   "doi": "10.1190/geo2016-0714.1"
+  },
+  {
+   "siteId": "964",
+   "year": 2018,
+   "authors": "Hao, Z., Bechtel, H. A., Kneafsey, T., Gilbert, B., & Nico, P. S.",
+   "title": "Cross-Scale Molecular Analysis of Chemical Heterogeneity in Shale Rocks",
+   "journal": "Scientific Reports",
+   "doi": "10.1038/s41598-018-20365-6"
+  },
+  {
+   "siteId": "965",
+   "year": 2018,
+   "authors": "Holmes, D. E., Orelana, R., Giloteaux, L., Wang, L.-Y., Shrestha, P., Williams, K., Lovley, D. R., & Rotaru, A.-E.",
+   "title": "Potential for Methanosarcina to Contribute to Uranium Reduction during Acetate-Promoted Groundwater Bioremediation",
+   "journal": "Microbial Ecology",
+   "doi": "10.1007/s00248-018-1165-5"
+  },
+  {
+   "siteId": "966",
+   "year": 2018,
+   "authors": "Hubbard, S. S., Williams, K. H., Agarwal, D., Banfield, J., Beller, H., Bouskill, N., Brodie, E., Carroll, R., Dafflon, B., Dwivedi, D., Falco, N., Faybishenko, B., Maxwell, R., Nico, P., Steefel, C., Steltzer, H., Tokunaga, T., Tran, P. A., Wainwright, H., & Varadharajan, C.",
+   "title": "The East River, Colorado, Watershed: A Mountainous Community Testbed for Improving Predictive Understanding of Multiscale Hydrological–Biogeochemical Dynamics",
+   "journal": "Vadose Zone Journal",
+   "doi": "10.2136/vzj2018.03.0061"
+  },
+  {
+   "siteId": "967",
+   "year": 2018,
+   "authors": "Jemison, N. E., Shiel, A. E., Johnson, T. M., Lundstrom, C. C., Long, P. E., & Williams, K. H.",
+   "title": "Field Application of 238U/235U Measurements To Detect Reoxidation and Mobilization of U(IV)",
+   "journal": "Environmental Science & Technology",
+   "doi": "10.1021/acs.est.7b05162"
+  },
+  {
+   "siteId": "995",
+   "year": 2018,
+   "authors": "Lavy, A., McGrath, D. G., Matheus Carnevali, P. B., Wan, J., Dong, W., Tokunaga, T., Thomas, B. C., Williams, K. H., Hubbard, S., & Banfield, J. F.",
+   "title": "Microbial communities across a hillslope-riparian transect shaped by proximity to the stream, groundwater table, and weathered bedrock",
+   "journal": null,
+   "doi": "10.1101/423368"
+  },
+  {
+   "siteId": "968",
+   "year": 2018,
+   "authors": "Liu, X., Li, M., Castelle, C. J., Probst, A. J., Zhou, Z., Pan, J., Liu, Y., Banfield, J. F., & Gu, J.-D.",
+   "title": "Insights into the ecology, evolution, and metabolism of the widespread Woesearchaeotal lineages",
+   "journal": "Microbiome",
+   "doi": "10.1186/s40168-018-0488-2"
+  },
+  {
+   "siteId": "994",
+   "year": 2018,
+   "authors": "M. Foster, L., & M. Maxwell, R.",
+   "title": "Sensitivity analysis of hydraulic conductivity and Manning’s n parameters lead to new method to scale effective hydraulic conductivity across model resolutions",
+   "journal": "Hydrological Processes",
+   "doi": "10.1002/hyp.13327"
+  },
+  {
+   "siteId": "998",
+   "year": 2018,
+   "authors": "Maavara, T., Lauerwald, R., Laruelle, G. G., Akbarzadeh, Z., Bouskill, N. J., Van Cappellen, P., & Regnier, P.",
+   "title": "Nitrous oxide emissions from inland waters: Are IPCC estimates too high?",
+   "journal": "Global Change Biology",
+   "doi": "10.1111/gcb.14504"
+  },
+  {
+   "siteId": "969",
+   "year": 2018,
+   "authors": "Maco, B., Bardos, P., Coulon, F., Erickson‐Mulanax, E., Hansen, L. J., Harclerode, M., Hou, D., Mielbrecht, E., Wainwright, H. M., Yasutaka, T., & Wick, W. D.",
+   "title": "Resilient remediation: Addressing extreme weather and climate change, creating community value",
+   "journal": "Remediation Journal",
+   "doi": "10.1002/rem.21585"
+  },
+  {
+   "siteId": "970",
+   "year": 2018,
+   "authors": "Mary, B., Peruzzo, L., Boaga, J., Schmutz, M., Wu, Y., Hubbard, S. S., & Cassiani, G.",
+   "title": "Small-scale characterization of vine plant root water uptake via 3-D electrical resistivity tomography and mise-à-la-masse method",
+   "journal": "Hydrology and Earth System Sciences",
+   "doi": "10.5194/hess-22-5427-2018"
+  },
+  {
+   "siteId": "1001",
+   "year": 2018,
+   "authors": "Maxwell, R. M., Condon, L. E., Danesh‐Yazdi, M., & Bearup, L. A.",
+   "title": "Exploring source water mixing and transient residence time distributions of outflow and evapotranspiration with an integrated hydrologic model and Lagrangian particle tracking approach",
+   "journal": "Ecohydrology",
+   "doi": "10.1002/eco.2042"
+  },
+  {
+   "siteId": "971",
+   "year": 2018,
+   "authors": "Newcomer, M. E., Hubbard, S. S., Fleckenstein, J. H., Maier, U., Schmidt, C., Thullner, M., Ulrich, C., Flipo, N., & Rubin, Y.",
+   "title": "Influence of Hydrological Perturbations and Riverbed Sediment Characteristics on Hyporheic Zone Respiration of CO2 and N2",
+   "journal": "Journal of Geophysical Research: Biogeosciences",
+   "doi": "10.1002/2017jg004090"
+  },
+  {
+   "siteId": "973",
+   "year": 2018,
+   "authors": "Schmidt, F., Wainwright, H. M., Faybishenko, B., Denham, M., & Eddy-Dilek, C.",
+   "title": "In Situ Monitoring of Groundwater Contamination Using the Kalman Filter",
+   "journal": "Environmental Science & Technology",
+   "doi": "10.1021/acs.est.8b00017"
+  },
+  {
+   "siteId": "974",
+   "year": 2018,
+   "authors": "Sieber, C. M. K., Probst, A. J., Sharrar, A., Thomas, B. C., Hess, M., Tringe, S. G., & Banfield, J. F.",
+   "title": "Recovery of genomes from metagenomes via a dereplication, aggregation and scoring strategy",
+   "journal": "Nature Microbiology",
+   "doi": "10.1038/s41564-018-0171-1"
+  },
+  {
+   "siteId": "975",
+   "year": 2018,
+   "authors": "Tokunaga, T. K., Kim, Y., Wan, J., Bill, M., Conrad, M., & Dong, W.",
+   "title": "Method for Controlling Temperature Profiles and Water Table Depths in Laboratory Sediment Columns",
+   "journal": "Vadose Zone Journal",
+   "doi": "10.2136/vzj2018.04.0085"
+  },
+  {
+   "siteId": "977",
+   "year": 2018,
+   "authors": "Wainwright, H. M., Seki, A., Mikami, S., & Saito, K.",
+   "title": "Characterizing regional-scale temporal evolution of air dose rates after the Fukushima Daiichi Nuclear Power Plant accident",
+   "journal": "Journal of Environmental Radioactivity",
+   "doi": "10.1016/j.jenvrad.2018.04.006"
+  },
+  {
+   "siteId": "1660",
+   "year": 2018,
+   "authors": "Wainwright, H. M.; Arora, B.; Faybishenko, B.; Molins, S.; Hubbard, S. S.; Lipnikov, K.; Moulton, D.; Flach, G.; Eddy-Dilek, C.; Denham, M.",
+   "title": "Sustainable Remediation in Complex Geologic Systems",
+   "journal": null,
+   "doi": null
+  },
+  {
+   "siteId": "976",
+   "year": 2018,
+   "authors": "Wainwright, H., Arora, B., Hubbard, S., Lipnikov, K., Moulton, D., Flach, G., Eddy‐Dilek, C., & Denham, M.",
+   "title": "Sustainable Remediation in Complex Geologic Systems",
+   "journal": "Encyclopedia of Inorganic and Bioinorganic Chemistry",
+   "doi": "10.1002/9781119951438.eibc2562"
+  },
+  {
+   "siteId": "1948",
+   "year": 2018,
+   "authors": "Wan, J., Kim, Y., Mulvihill, M. J., & Tokunaga, T. K.",
+   "title": "Dilution destabilizes engineered ligand-coated nanoparticles in aqueous suspensions",
+   "journal": "Environmental Toxicology and Chemistry",
+   "doi": "10.1002/etc.4103"
+  },
+  {
+   "siteId": "978",
+   "year": 2018,
+   "authors": "Wan, J., Tokunaga, T. K., Dong, W., Williams, K. H., Kim, Y., Conrad, M. E., Bill, M., Riley, W. J., & Hubbard, S. S.",
+   "title": "Deep Unsaturated Zone Contributions to Carbon Cycling in Semiarid Environments",
+   "journal": "Journal of Geophysical Research: Biogeosciences",
+   "doi": "10.1029/2018jg004669"
+  },
+  {
+   "siteId": "956",
+   "year": 2017,
+   "authors": "Arora, B., Davis, J. A., Spycher, N. F., Dong, W., & Wainwright, H. M.",
+   "title": "Comparison of Electrostatic and Non‐Electrostatic Models for U(VI) Sorption on Aquifer Sediments",
+   "journal": "Groundwater",
+   "doi": "10.1111/gwat.12551"
+  },
+  {
+   "siteId": "926",
+   "year": 2017,
+   "authors": "Arora, B., Dwivedi, D., Spycher, N., & Steefel, C.",
+   "title": "On Modeling CO2 Dynamics in a Flood Plain Aquifer",
+   "journal": "Procedia Earth and Planetary Science",
+   "doi": "10.1016/j.proeps.2016.12.103"
+  },
+  {
+   "siteId": "1657",
+   "year": 2017,
+   "authors": "Arora, B.; Cheng, Y.; King, E.; Bouskill, N.; Brodie, E.",
+   "title": "Chapter 27: Modeling microbial energetics and community dynamics",
+   "journal": null,
+   "doi": null
+  },
+  {
+   "siteId": "927",
+   "year": 2017,
+   "authors": "Banfield, J. F., Anantharaman, K., Williams, K. H., & Thomas, B. C.",
+   "title": "Complete 4.55-Megabase-Pair Genome of “ Candidatus Fluviicola riflensis,” Curated from Short-Read Metagenomic Sequences",
+   "journal": "Genome Announcements",
+   "doi": "10.1128/genomea.01299-17"
+  },
+  {
+   "siteId": "928",
+   "year": 2017,
+   "authors": "Bone, S. E., Cahill, M. R., Jones, M. E., Fendorf, S., Davis, J., Williams, K. H., & Bargar, J. R.",
+   "title": "Oxidative Uranium Release from Anoxic Sediments under Diffusion-Limited Conditions",
+   "journal": "Environmental Science & Technology",
+   "doi": "10.1021/acs.est.7b02241"
+  },
+  {
+   "siteId": "929",
+   "year": 2017,
+   "authors": "Boye, K., Noël, V., Tfaily, M. M., Bone, S. E., Williams, K. H., Bargar, J. R., & Fendorf, S.",
+   "title": "Thermodynamically controlled preservation of organic carbon in floodplains",
+   "journal": "Nature Geoscience",
+   "doi": "10.1038/ngeo2940"
+  },
+  {
+   "siteId": "931",
+   "year": 2017,
+   "authors": "Castelle, C. J., Brown, C. T., Thomas, B. C., Williams, K. H., & Banfield, J. F.",
+   "title": "Unusual respiratory capacity and nitrogen metabolism in a Parcubacterium (OD1) of the Candidate Phyla Radiation",
+   "journal": "Scientific Reports",
+   "doi": "10.1038/srep40101"
+  },
+  {
+   "siteId": "932",
+   "year": 2017,
+   "authors": "Daugherty, E. E., Gilbert, B., Nico, P. S., & Borch, T.",
+   "title": "Complexation and Redox Buffering of Iron(II) by Dissolved Organic Matter",
+   "journal": "Environmental Science & Technology",
+   "doi": "10.1021/acs.est.7b03152"
+  },
+  {
+   "siteId": "933",
+   "year": 2017,
+   "authors": "Delahaye, B., Eveillard, D., & Bouskill, N.",
+   "title": "On the Power of Uncertainties in Microbial System Modeling: No Need To Hide Them Anymore",
+   "journal": null,
+   "doi": "10.1128/msystems.00169-17"
+  },
+  {
+   "siteId": "934",
+   "year": 2017,
+   "authors": "Dong, W., Wan, J., Tokunaga, T. K., Gilbert, B., & Williams, K. H.",
+   "title": "Transport and humification of dissolved organic matter within a semi-arid floodplain",
+   "journal": "Journal of Environmental Sciences",
+   "doi": "10.1016/j.jes.2016.12.011"
+  },
+  {
+   "siteId": "935",
+   "year": 2017,
+   "authors": "Dwivedi, D., Steefel, I. C., Arora, B., & Bisht, G.",
+   "title": "Impact of Intra-meander Hyporheic Flow on Nitrogen Cycling",
+   "journal": "Procedia Earth and Planetary Science",
+   "doi": "10.1016/j.proeps.2016.12.102"
+  },
+  {
+   "siteId": "936",
+   "year": 2017,
+   "authors": "Faybishenko, B.",
+   "title": "Detecting dynamic causal inference in nonlinear two-phase fracture flow",
+   "journal": "Advances in Water Resources",
+   "doi": "10.1016/j.advwatres.2017.02.011"
+  },
+  {
+   "siteId": "937",
+   "year": 2017,
+   "authors": "Fox, P. M., Nico, P. S., Tfaily, M. M., Heckman, K., & Davis, J. A.",
+   "title": "Characterization of natural organic matter in low-carbon sediments: Extraction and analytical approaches",
+   "journal": "Organic Geochemistry",
+   "doi": "10.1016/j.orggeochem.2017.08.009"
+  },
+  {
+   "siteId": "938",
+   "year": 2017,
+   "authors": "Jewell, T. N. M., Karaoz, U., Bill, M., Chakraborty, R., Brodie, E. L., Williams, K. H., & Beller, H. R.",
+   "title": "Metatranscriptomic Analysis Reveals Unexpectedly Diverse Microbial Metabolism in a Biogeochemical Hot Spot in an Alluvial Aquifer",
+   "journal": "Frontiers in Microbiology",
+   "doi": "10.3389/fmicb.2017.00040"
+  },
+  {
+   "siteId": "939",
+   "year": 2017,
+   "authors": "Keiluweit, M., Wanzek, T., Kleber, M., Nico, P., & Fendorf, S.",
+   "title": "Anaerobic microsites have an unaccounted role in soil carbon stabilization",
+   "journal": "Nature Communications",
+   "doi": "10.1038/s41467-017-01406-6"
+  },
+  {
+   "siteId": "940",
+   "year": 2017,
+   "authors": "Leroy, P., Li, S., Jougnot, D., Revil, A., & Wu, Y.",
+   "title": "Modeling the evolution of complex conductivity during calcite precipitation on glass beads",
+   "journal": "Geophysical Journal International",
+   "doi": "10.1093/gji/ggx001"
+  },
+  {
+   "siteId": "941",
+   "year": 2017,
+   "authors": "Li, L., Maher, K., Navarre-Sitchler, A., Druhan, J., Meile, C., Lawrence, C., Moore, J., Perdrial, J., Sullivan, P., Thompson, A., Jin, L., Bolton, E. W., Brantley, S. L., Dietrich, W. E., Mayer, K. U., Steefel, C. I., Valocchi, A., Zachara, J., Kocar, B., … Beisman, J.",
+   "title": "Expanding the role of reactive transport models in critical zone processes",
+   "journal": "Earth-Science Reviews",
+   "doi": "10.1016/j.earscirev.2016.09.001"
+  },
+  {
+   "siteId": "942",
+   "year": 2017,
+   "authors": "Noël, V., Boye, K., Kukkadapu, R. K., Bone, S., Lezama Pacheco, J. S., Cardarelli, E., Janot, N., Fendorf, S., Williams, K. H., & Bargar, J. R.",
+   "title": "Understanding controls on redox processes in floodplain sediments of the Upper Colorado River Basin",
+   "journal": "Science of The Total Environment",
+   "doi": "10.1016/j.scitotenv.2017.01.109"
+  },
+  {
+   "siteId": "943",
+   "year": 2017,
+   "authors": "Noël, V., Boye, K., Lezama Pacheco, J. S., Bone, S. E., Janot, N., Cardarelli, E., Williams, K. H., & Bargar, J. R.",
+   "title": "Redox Controls over the Stability of U(IV) in Floodplains of the Upper Colorado River Basin",
+   "journal": "Environmental Science & Technology",
+   "doi": "10.1021/acs.est.7b02203"
+  },
+  {
+   "siteId": "944",
+   "year": 2017,
+   "authors": "Pan, D., Nolan, J., Williams, K. H., Robbins, M. J., & Weber, K. A.",
+   "title": "Abundance and Distribution of Microbial Cells and Viruses in an Alluvial Aquifer",
+   "journal": "Frontiers in Microbiology",
+   "doi": "10.3389/fmicb.2017.01199"
+  },
+  {
+   "siteId": "945",
+   "year": 2017,
+   "authors": "Paul, B. G., Burstein, D., Castelle, C. J., Handa, S., Arambula, D., Czornyj, E., Thomas, B. C., Ghosh, P., Miller, J. F., Banfield, J. F., & Valentine, D. L.",
+   "title": "Retroelement-guided protein diversification abounds in vast lineages of Bacteria and Archaea",
+   "journal": "Nature Microbiology",
+   "doi": "10.1038/nmicrobiol.2017.45"
+  },
+  {
+   "siteId": "946",
+   "year": 2017,
+   "authors": "Reinoso-Maset, E., Steefel, C. I., Um, W., Chorover, J., & O’Day, P. A.",
+   "title": "Rates and mechanisms of uranyl oxyhydroxide mineral dissolution",
+   "journal": "Geochimica et Cosmochimica Acta",
+   "doi": "10.1016/j.gca.2017.03.009"
+  },
+  {
+   "siteId": "947",
+   "year": 2017,
+   "authors": "Saup, C. M., Williams, K. H., Rodríguez-Freire, L., Cerrato, J. M., Johnston, M. D., & Wilkins, M. J.",
+   "title": "Anoxia stimulates microbially catalyzed metal release from Animas River sediments",
+   "journal": "Environmental Science: Processes & Impacts",
+   "doi": "10.1039/c7em00036g"
+  },
+  {
+   "siteId": "948",
+   "year": 2017,
+   "authors": "Varadharajan, C., Beller, H. R., Bill, M., Brodie, E. L., Conrad, M. E., Han, R., Irwin, C., Larsen, J. T., Lim, H.-C., Molins, S., Steefel, C. I., van Hise, A., Yang, L., & Nico, P. S.",
+   "title": "Reoxidation of Chromium(III) Products Formed under Different Biogeochemical Regimes",
+   "journal": "Environmental Science & Technology",
+   "doi": "10.1021/acs.est.6b06044"
+  },
+  {
+   "siteId": "949",
+   "year": 2017,
+   "authors": "Wainwright, H. M., Okumura, M., & Saito, K.",
+   "title": "A Multiscale Bayesian Data Integration Approach for Mapping Radionuclide Contamination",
+   "journal": "Resilience: A New Paradigm of Nuclear Safety",
+   "doi": "10.1007/978-3-319-58768-4_5"
+  },
+  {
+   "siteId": "950",
+   "year": 2017,
+   "authors": "Wainwright, H. M., Seki, A., Chen, J., & Saito, K.",
+   "title": "A multiscale Bayesian data integration approach for mapping air dose rates around the Fukushima Daiichi Nuclear Power Plant",
+   "journal": "Journal of Environmental Radioactivity",
+   "doi": "10.1016/j.jenvrad.2016.11.033"
+  },
+  {
+   "siteId": "951",
+   "year": 2017,
+   "authors": "Winnick, M. J., Carroll, R. W. H., Williams, K. H., Maxwell, R. M., Dong, W., & Maher, K.",
+   "title": "Snowmelt controls on concentration‐discharge relationships and the balance of oxidative and acid‐base weathering fluxes in an alpine catchment, East River, Colorado",
+   "journal": "Water Resources Research",
+   "doi": "10.1002/2016wr019724"
+  },
+  {
+   "siteId": "952",
+   "year": 2017,
+   "authors": "Yabusaki, S. B., Wilkins, M. J., Fang, Y., Williams, K. H., Arora, B., Bargar, J., Beller, H. R., Bouskill, N. J., Brodie, E. L., Christensen, J. N., Conrad, M. E., Danczak, R. E., King, E., Soltanian, M. R., Spycher, N. F., Steefel, C. I., Tokunaga, T. K., Versteeg, R., Waichler, S. R., & Wainwright, H. M.",
+   "title": "Water Table Dynamics and Biogeochemical Cycling in a Shallow, Variably-Saturated Floodplain",
+   "journal": "Environmental Science & Technology",
+   "doi": "10.1021/acs.est.6b04873"
+  },
+  {
+   "siteId": "953",
+   "year": 2017,
+   "authors": "Yuan, X., Nico, P. S., Huang, X., Liu, T., Ulrich, C., Williams, K. H., & Davis, J. A.",
+   "title": "Production of Hydrogen Peroxide in Groundwater at Rifle, Colorado",
+   "journal": "Environmental Science & Technology",
+   "doi": "10.1021/acs.est.6b04803"
+  },
+  {
+   "siteId": "954",
+   "year": 2017,
+   "authors": "Zaremba-Niedzwiedzka, K., Caceres, E. F., Saw, J. H., Bäckström, D., Juzokaite, L., Vancaester, E., Seitz, K. W., Anantharaman, K., Starnawski, P., Kjeldsen, K. U., Stott, M. B., Nunoura, T., Banfield, J. F., Schramm, A., Baker, B. J., Spang, A., & Ettema, T. J. G.",
+   "title": "Asgard archaea illuminate the origin of eukaryotic cellular complexity",
+   "journal": "Nature",
+   "doi": "10.1038/nature21031"
+  },
+  {
+   "siteId": "893",
+   "year": 2016,
+   "authors": "Anantharaman, K., Brown, C. T., Burstein, D., Castelle, C. J., Probst, A. J., Thomas, B. C., Williams, K. H., & Banfield, J. F.",
+   "title": "Analysis of five complete genome sequences for members of the class Peribacteria in the recently recognized Peregrinibacteria bacterial phylum",
+   "journal": "PeerJ",
+   "doi": "10.7717/peerj.1607"
+  },
+  {
+   "siteId": "894",
+   "year": 2016,
+   "authors": "Anantharaman, K., Brown, C. T., Hug, L. A., Sharon, I., Castelle, C. J., Probst, A. J., Thomas, B. C., Singh, A., Wilkins, M. J., Karaoz, U., Brodie, E. L., Williams, K. H., Hubbard, S. S., & Banfield, J. F.",
+   "title": "Thousands of microbial genomes shed light on interconnected biogeochemical processes in an aquifer system",
+   "journal": "Nature Communications",
+   "doi": "10.1038/ncomms13219"
+  },
+  {
+   "siteId": "895",
+   "year": 2016,
+   "authors": "Arora, B., Dwivedi, D., Hubbard, S. S., Steefel, C. I., & Williams, K. H.",
+   "title": "Identifying geochemical hot moments and their controls on a contaminated river floodplain system using wavelet and entropy approaches",
+   "journal": "Environmental Modelling & Software",
+   "doi": "10.1016/j.envsoft.2016.08.005"
+  },
+  {
+   "siteId": "896",
+   "year": 2016,
+   "authors": "Arora, B., Spycher, N. F., Steefel, C. I., Molins, S., Bill, M., Conrad, M. E., Dong, W., Faybishenko, B., Tokunaga, T. K., Wan, J., Williams, K. H., & Yabusaki, S. B.",
+   "title": "Influence of hydrological, biogeochemical and temperature transients on subsurface carbon fluxes in a flood plain environment",
+   "journal": "Biogeochemistry",
+   "doi": "10.1007/s10533-016-0186-8"
+  },
+  {
+   "siteId": "897",
+   "year": 2016,
+   "authors": "Babchin, A. J., Bentsen, R., Faybishenko, B., & Geilikman, M. B.",
+   "title": "On the capillary pressure function in porous media based on relative permeabilities of two immiscible fluids: Application of capillary bundle models and validation using experimental data",
+   "journal": "Advances in Colloid and Interface Science",
+   "doi": "10.1016/j.cis.2015.07.001"
+  },
+  {
+   "siteId": "898",
+   "year": 2016,
+   "authors": "Brown, C. T., Olm, M. R., Thomas, B. C., & Banfield, J. F.",
+   "title": "Measurement of bacterial replication rates in microbial communities",
+   "journal": "Nature Biotechnology",
+   "doi": "10.1038/nbt.3704"
+  },
+  {
+   "siteId": "899",
+   "year": 2016,
+   "authors": "Brown, T. B., Hultine, K. R., Steltzer, H., Denny, E. G., Denslow, M. W., Granados, J., Henderson, S., Moore, D., Nagai, S., SanClements, M., Sánchez‐Azofeifa, A., Sonnentag, O., Tazik, D., & Richardson, A. D.",
+   "title": "Using phenocams to monitor our changing Earth: toward a global phenocam network",
+   "journal": "Frontiers in Ecology and the Environment",
+   "doi": "10.1002/fee.1222"
+  },
+  {
+   "siteId": "930",
+   "year": 2016,
+   "authors": "Burstein, D., Harrington, L. B., Strutt, S. C., Probst, A. J., Anantharaman, K., Thomas, B. C., Doudna, J. A., & Banfield, J. F.",
+   "title": "New CRISPR–Cas systems from uncultivated microbes",
+   "journal": "Nature",
+   "doi": "10.1038/nature21059"
+  },
+  {
+   "siteId": "900",
+   "year": 2016,
+   "authors": "Burstein, D., Sun, C. L., Brown, C. T., Sharon, I., Anantharaman, K., Probst, A. J., Thomas, B. C., & Banfield, J. F.",
+   "title": "Major bacterial lineages are essentially devoid of CRISPR-Cas viral defence systems",
+   "journal": "Nature Communications",
+   "doi": "10.1038/ncomms10613"
+  },
+  {
+   "siteId": "901",
+   "year": 2016,
+   "authors": "Chen, J., Hubbard, S. S., Williams, K. H., & Ficklin, D. L.",
+   "title": "Estimating groundwater dynamics at a Colorado River floodplain site using historical hydrological data and climate information",
+   "journal": "Water Resources Research",
+   "doi": "10.1002/2015wr017777"
+  },
+  {
+   "siteId": "903",
+   "year": 2016,
+   "authors": "Danczak, R. E., Sawyer, A. H., Williams, K. H., Stegen, J. C., Hobson, C., & Wilkins, M. J.",
+   "title": "Seasonal hyporheic dynamics control coupled microbiology and geochemistry in Colorado River sediments",
+   "journal": "Journal of Geophysical Research: Biogeosciences",
+   "doi": "10.1002/2016jg003527"
+  },
+  {
+   "siteId": "904",
+   "year": 2016,
+   "authors": "Danczak, R. E., Yabusaki, S. B., Williams, K. H., Fang, Y., Hobson, C., & Wilkins, M. J.",
+   "title": "Snowmelt Induced Hydrologic Perturbations Drive Dynamic Microbiological and Geochemical Behaviors across a Shallow Riparian Aquifer",
+   "journal": "Frontiers in Earth Science",
+   "doi": "10.3389/feart.2016.00057"
+  },
+  {
+   "siteId": "905",
+   "year": 2016,
+   "authors": "Dwivedi, D.; Arora, B.; Molins, S.; Steefel, C. I.",
+   "title": "Chapter 19: Benchmarking Reactive Transport Codes for Subsurface Environmental Problems",
+   "journal": null,
+   "doi": null
+  },
+  {
+   "siteId": "1654",
+   "year": 2016,
+   "authors": "Dwivedi, D.; Dafflon, B.; Arora, B.; Wainwright, H. M.; Finsterle, S.",
+   "title": "Chapter 20: Spatial Analysis and Geostatistical Methods",
+   "journal": null,
+   "doi": null
+  },
+  {
+   "siteId": "906",
+   "year": 2016,
+   "authors": "Faybishenko, B., Hubbard, S., Brodie, E., Nico, P., Molz, F., Hunt, A., & Pachepsky, Y.",
+   "title": "Preface to the Special Issue of",
+   "journal": "Vadose Zone Journal",
+   "doi": "10.2136/vzj2016.01.0005"
+  },
+  {
+   "siteId": "907",
+   "year": 2016,
+   "authors": "Hug, L. A., Baker, B. J., Anantharaman, K., Brown, C. T., Probst, A. J., Castelle, C. J., Butterfield, C. N., Hernsdorf, A. W., Amano, Y., Ise, K., Suzuki, Y., Dudek, N., Relman, D. A., Finstad, K. M., Amundson, R., Thomas, B. C., & Banfield, J. F.",
+   "title": "A new view of the tree of life",
+   "journal": "Nature Microbiology",
+   "doi": "10.1038/nmicrobiol.2016.48"
+  },
+  {
+   "siteId": "910",
+   "year": 2016,
+   "authors": "Jewell, T. N. M., Karaoz, U., Brodie, E. L., Williams, K. H., & Beller, H. R.",
+   "title": "Metatranscriptomic evidence of pervasive and diverse chemolithoautotrophy relevant to C, S, N and Fe cycling in a shallow alluvial aquifer",
+   "journal": "The ISME Journal",
+   "doi": "10.1038/ismej.2016.25"
+  },
+  {
+   "siteId": "911",
+   "year": 2016,
+   "authors": "Kenwell, A., Navarre-Sitchler, A., Prugue, R., Spear, J. R., Hering, A. S., Maxwell, R. M., Carroll, R. W. H., & Williams, K. H.",
+   "title": "Using geochemical indicators to distinguish high biogeochemical activity in floodplain soils and sediments",
+   "journal": "Science of The Total Environment",
+   "doi": "10.1016/j.scitotenv.2016.04.014"
+  },
+  {
+   "siteId": "912",
+   "year": 2016,
+   "authors": "Long, P. E., Williams, K. H., Hubbard, S. S., & Banfield, J. F.",
+   "title": "Microbial Metagenomics Reveals Climate-Relevant Subsurface Biogeochemical Processes",
+   "journal": "Trends in Microbiology",
+   "doi": "10.1016/j.tim.2016.04.006"
+  },
+  {
+   "siteId": "914",
+   "year": 2016,
+   "authors": "Maxwell, R. M., Condon, L. E., Kollet, S. J., Maher, K., Haggerty, R., & Forrester, M. M.",
+   "title": "The imprint of climate and geology on the residence times of groundwater",
+   "journal": "Geophysical Research Letters",
+   "doi": "10.1002/2015gl066916"
+  },
+  {
+   "siteId": "915",
+   "year": 2016,
+   "authors": "Newcomer, M. E., Hubbard, S. S., Fleckenstein, J. H., Maier, U., Schmidt, C., Thullner, M., Ulrich, C., Flipo, N., & Rubin, Y.",
+   "title": "Simulating bioclogging effects on dynamic riverbed permeability and infiltration",
+   "journal": "Water Resources Research",
+   "doi": "10.1002/2015wr018351"
+  },
+  {
+   "siteId": "916",
+   "year": 2016,
+   "authors": "Pribulick, C. E., Foster, L. M., Bearup, L. A., Navarre‐Sitchler, A. K., Williams, K. H., Carroll, R. W. H., & Maxwell, R. M.",
+   "title": "Contrasting the hydrologic response due to land cover and climate change in a mountain headwaters system",
+   "journal": "Ecohydrology",
+   "doi": "10.1002/eco.1779"
+  },
+  {
+   "siteId": "917",
+   "year": 2016,
+   "authors": "Shiel, A. E., Johnson, T. M., Lundstrom, C. C., Laubach, P. G., Long, P. E., & Williams, K. H.",
+   "title": "Reactive transport of uranium in a groundwater bioreduction study: Insights from high-temporal resolution 238U/235U data",
+   "journal": "Geochimica et Cosmochimica Acta",
+   "doi": "10.1016/j.gca.2016.05.020"
+  },
+  {
+   "siteId": "1656",
+   "year": 2016,
+   "authors": "Tinnacher, R. M.; Dwivedi, D.; Houseworth, J. E.; Reagan, M. T.; Stringfellow, W. T.; Varadharajan, C.; Birkholzer, J. T.",
+   "title": "Chapter 7: Hydraulic Fracturing from the Groundwater Perspective",
+   "journal": null,
+   "doi": null
+  },
+  {
+   "siteId": "918",
+   "year": 2016,
+   "authors": "Tokunaga, T. K., Kim, Y., Conrad, M. E., Bill, M., Hobson, C., Williams, K. H., Dong, W., Wan, J., Robbins, M. J., Long, P. E., Faybishenko, B., Christensen, J. N., & Hubbard, S. S.",
+   "title": "Deep Vadose Zone Respiration Contributions to Carbon Dioxide Fluxes from a Semiarid Floodplain",
+   "journal": "Vadose Zone Journal",
+   "doi": "10.2136/vzj2016.02.0014"
+  },
+  {
+   "siteId": "919",
+   "year": 2016,
+   "authors": "Tran, A. P., Dafflon, B., & Hubbard, S.",
+   "title": "iMatTOUGH: An open-source Matlab-based graphical user interface for pre- and post-processing of TOUGH2 and iTOUGH2 models",
+   "journal": "Computers & Geosciences",
+   "doi": "10.1016/j.cageo.2016.02.006"
+  },
+  {
+   "siteId": "920",
+   "year": 2016,
+   "authors": "Tran, A. P., Dafflon, B., Hubbard, S. S., Kowalsky, M. B., Long, P., Tokunaga, T. K., & Williams, K. H.",
+   "title": "Quantifying shallow subsurface water and heat dynamics using coupled hydrological-thermal-geophysical inversion",
+   "journal": "Hydrology and Earth System Sciences",
+   "doi": "10.5194/hess-20-3477-2016"
+  },
+  {
+   "siteId": "921",
+   "year": 2016,
+   "authors": "Varaljay, V. A., Satagopan, S., North, J. A., Witte, B., Dourado, M. N., Anantharaman, K., Arbing, M. A., McCann, S. H., Oremland, R. S., Banfield, J. F., Wrighton, K. C., & Tabita, F. R.",
+   "title": "Functional metagenomic selection of ribulose 1, 5‐bisphosphate carboxylase/oxygenase from uncultivated bacteria",
+   "journal": "Environmental Microbiology",
+   "doi": "10.1111/1462-2920.13138"
+  },
+  {
+   "siteId": "922",
+   "year": 2016,
+   "authors": "Wainwright, H. M., Flores Orozco, A., Bücker, M., Dafflon, B., Chen, J., Hubbard, S. S., & Williams, K. H.",
+   "title": "Hierarchical Bayesian method for mapping biogeochemical hot spots using induced polarization imaging",
+   "journal": "Water Resources Research",
+   "doi": "10.1002/2015wr017763"
+  },
+  {
+   "siteId": "923",
+   "year": 2016,
+   "authors": "Wang, W. X., Sui, W. H., Faybishenko, B., & Stringfellow, W. T.",
+   "title": "Permeability variations within mining-induced fractured rock mass and its influence on groundwater inrush",
+   "journal": "Environmental Earth Sciences",
+   "doi": "10.1007/s12665-015-5064-5"
+  },
+  {
+   "siteId": "924",
+   "year": 2016,
+   "authors": "Wrighton, K. C., Castelle, C. J., Varaljay, V. A., Satagopan, S., Brown, C. T., Wilkins, M. J., Thomas, B. C., Sharon, I., Williams, K. H., Tabita, F. R., & Banfield, J. F.",
+   "title": "RubisCO of a nucleoside pathway known from Archaea is found in diverse uncultivated phyla in bacteria",
+   "journal": "The ISME Journal",
+   "doi": "10.1038/ismej.2016.53"
+  },
+  {
+   "siteId": "925",
+   "year": 2016,
+   "authors": "Yuan, X., Davis, J. A., & Nico, P. S.",
+   "title": "Iron-Mediated Oxidation of Methoxyhydroquinone under Dark Conditions: Kinetic and Mechanistic Insights",
+   "journal": "Environmental Science & Technology",
+   "doi": "10.1021/acs.est.5b03939"
+  },
+  {
+   "siteId": "902",
+   "year": 2015,
+   "authors": "Cismasu, A. C., Williams, K. H., & Nico, P. S.",
+   "title": "Iron and Carbon Dynamics during Aging and Reductive Transformation of Biogenic Ferrihydrite",
+   "journal": "Environmental Science & Technology",
+   "doi": "10.1021/acs.est.5b03021"
+  },
+  {
+   "siteId": "908",
+   "year": 2015,
+   "authors": "Hug, L. A., Thomas, B. C., Sharon, I., Brown, C. T., Sharma, R., Hettich, R. L., Wilkins, M. J., Williams, K. H., Singh, A., & Banfield, J. F.",
+   "title": "Critical biogeochemical functions in the subsurface are associated with bacteria from new phyla and little studied lineages",
+   "journal": "Environmental Microbiology",
+   "doi": "10.1111/1462-2920.12930"
+  },
+  {
+   "siteId": "909",
+   "year": 2015,
+   "authors": "Janot, N., Lezama Pacheco, J. S., Pham, D. Q., O’Brien, T. M., Hausladen, D., Noël, V., Lallier, F., Maher, K., Fendorf, S., Williams, K. H., Long, P. E., & Bargar, J. R.",
+   "title": "Physico-Chemical Heterogeneity of Organic-Rich Sediments in the Rifle Aquifer, CO: Impact on Uranium Biogeochemistry",
+   "journal": "Environmental Science & Technology",
+   "doi": "10.1021/acs.est.5b03208"
+  }
+ ]
+}

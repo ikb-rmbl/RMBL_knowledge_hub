@@ -256,6 +256,50 @@ export const Publications: CollectionConfig = {
       },
     },
     {
+      // Annual-reporting flags. Tri-state like rmblResearch: unset = not yet
+      // classified (no full text, or a quote that failed verification).
+      name: 'sfaProgram',
+      label: 'SFA paper',
+      type: 'select',
+      options: [
+        { label: 'Yes — on the Watershed Function SFA publication list', value: 'yes' },
+        { label: 'No', value: 'no' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description:
+          "Listed on the Watershed Function SFA's publication list (watershed.lbl.gov). Auto-set by classify-funding-programs.ts; your edit sticks.",
+      },
+    },
+    {
+      name: 'sailProgram',
+      label: 'SAIL paper',
+      type: 'select',
+      options: [
+        { label: 'Yes — uses ARM SAIL campaign data', value: 'yes' },
+        { label: 'No', value: 'no' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description:
+          'Uses data from, or is part of, the ARM SAIL campaign (2021–2023). Auto-set from full text by classify-funding-programs.ts; your edit sticks.',
+      },
+    },
+    {
+      name: 'fundingProgramEvidence',
+      type: 'json',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: 'How the SFA/SAIL flags were set. SFA: sfa_list / not_on_sfa_list, with the acknowledgment classifier verdict under "ack". SAIL: llm / no_cue / project_link / llm_unverified, with the supporting quote.',
+      },
+    },
+    {
+      name: 'fundingProgramsCheckedAt',
+      type: 'date',
+      admin: { hidden: true },
+    },
+    {
       name: 'dataSource',
       type: 'select',
       required: true,

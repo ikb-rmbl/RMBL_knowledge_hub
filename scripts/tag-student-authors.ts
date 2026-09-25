@@ -13,14 +13,13 @@
  *   - windowed co-author inference (detection_method='inferred_window'):
  *     an author with a structural/roster/manual student tag in year Y is
  *     tagged on PEER-REVIEWED pubs (article/chapter/book) they authored
- *     within a window — student papers & REU: [Y-1, Y+1] (summer/course
+ *     within a window — student papers: [Y-1, Y+1] (summer/course
  *     work); theses: [Y-5, Y] (grad-school years leading to the thesis).
  *     Inference rows are re-derivable: delete WHERE detection_method =
  *     'inferred_window' and re-run.
  *
- * REU tagging needs an external cohort roster (no signal exists in the DB) —
- *  load it later with detection_method='roster', student_program='reu';
- *  inference then propagates roster students onto their peer-reviewed papers.
+ * REU tags come from scripts/tag-reu-authors.ts (cohort roster + the REU
+ *  program's publication list) and are NOT propagated by inference here.
  *
  * Usage:
  *   npx tsx scripts/tag-student-authors.ts [--dry-run] [--no-inference] [--target=neon]
@@ -100,7 +99,10 @@ async function main() {
           AND p.publication_type IN ('article', 'chapter', 'book')
           AND p.year IS NOT NULL
           AND (
-            (src.student_program IN ('student_paper', 'reu') AND p.year BETWEEN sp.year - 1 AND sp.year + 1)
+            -- REU is excluded: tag-reu-authors.ts already applies a
+            -- cohort-anchored window, and re-windowing around each tagged
+            -- paper would drift into former REUs' grad-school papers.
+            (src.student_program = 'student_paper' AND p.year BETWEEN sp.year - 1 AND sp.year + 1)
             OR (src.student_program = 'thesis' AND p.year BETWEEN sp.year - 5 AND sp.year)
           )
         ON CONFLICT (publication_id, author_name) DO NOTHING
@@ -122,7 +124,7 @@ async function main() {
         `(${stats.reu} REU, ${stats.curated} curated).`,
     )
     if (stats.reu === 0) {
-      console.log(`  Note: REU tagging awaits the cohort roster (detection_method='roster').`)
+      console.log(`  Note: no REU tags yet — run scripts/tag-reu-authors.ts.`)
     }
   } finally {
     await db.end()
