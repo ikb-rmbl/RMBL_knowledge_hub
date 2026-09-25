@@ -5,6 +5,8 @@ import {
   buildPublicationWhere,
   publicationOrderBy,
   normalizeDoiQuery,
+  parseProgram,
+  PROGRAM_FILTERS,
 } from '../services/publication-query'
 
 describe('parsePublicationFilters', () => {
@@ -136,5 +138,37 @@ describe('publicationOrderBy', () => {
 
   it('falls back to a date ordering for relevance, which needs a rank the caller supplies', () => {
     expect(publicationOrderBy('relevance')).toContain('p.year DESC')
+  })
+})
+
+describe('program filter', () => {
+  it('accepts only known program keys', () => {
+    expect(parseProgram('sfa')).toBe('sfa')
+    expect(parseProgram('sail')).toBe('sail')
+    expect(parseProgram('marmot')).toBeUndefined()
+    expect(parseProgram("sfa'; drop table publications;--")).toBeUndefined()
+    // prototype keys are not programs
+    expect(parseProgram('toString')).toBeUndefined()
+    expect(parseProgram(undefined)).toBeUndefined()
+  })
+
+  it('parses program from the query string', () => {
+    expect(parsePublicationFilters({ program: 'sail' }).program).toBe('sail')
+    expect(parsePublicationFilters({ program: 'nope' }).program).toBeUndefined()
+  })
+
+  it('filters on the curated column without a bind parameter', () => {
+    const w = buildPublicationWhere({ program: 'sfa' })
+    expect(w.sql).toContain(`p.sfa_program = 'yes'`)
+    expect(w.params).toEqual([])
+    expect(buildPublicationWhere({ program: 'sail' }).sql).toContain(`p.sail_program = 'yes'`)
+  })
+
+  it('does not count as an advanced-panel field', () => {
+    expect(hasAdvancedFilters(parsePublicationFilters({ program: 'sfa' }))).toBe(false)
+  })
+
+  it('maps every program to an existing column name', () => {
+    for (const p of Object.values(PROGRAM_FILTERS)) expect(p.column).toMatch(/^[a-z_]+$/)
   })
 })
