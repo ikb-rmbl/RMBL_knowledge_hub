@@ -18,6 +18,10 @@
  *      requirement is what keeps a former REU's later grad-school/PI papers
  *      from being counted. detection_method='roster'
  *
+ *   3. reu-roster-derived.csv (optional) — 2021+ cohorts derived from RMBL
+ *      student papers by extract-reu-cohort.ts, matched exactly like the
+ *      official roster. detection_method='roster_derived'
+ *
  * Only peer-reviewed types (article/chapter/book) are tagged: the metrics are
  * "REU authors on articles" and "articles with ≥1 REU author".
  *
@@ -32,7 +36,7 @@
  * for review. Writes directly to PostgreSQL — no dev server needed.
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import pg from 'pg'
 import { JSDOM } from 'jsdom'
@@ -50,6 +54,10 @@ if (target !== 'local' && target !== 'neon') {
 
 const PRIVATE_DIR = join(import.meta.dirname, 'data', 'private')
 const ROSTER_CSV = join(PRIVATE_DIR, 'reu-roster-1991-2020.csv')
+// Post-2020 cohorts derived from student-paper cover pages by
+// extract-reu-cohort.ts (~70% recall, 96% precision against the official
+// roster's 2015–2019 overlap). Optional.
+const DERIVED_ROSTER_CSV = join(PRIVATE_DIR, 'reu-roster-derived.csv')
 const PUB_LIST_HTML = join(PRIVATE_DIR, 'reu-publications-2024.html')
 const OUTPUT_DIR = join(import.meta.dirname, 'output')
 
@@ -87,7 +95,7 @@ function surnameKeys(family: string): string[] {
 
 interface PubAuthor { given: string; family: string }
 interface Pub { id: number; year: number | null; title: string; doi: string | null; authors: PubAuthor[] }
-interface Tag { publicationId: number; authorName: string; method: 'reu_pub_list' | 'roster'; why: string }
+interface Tag { publicationId: number; authorName: string; method: 'reu_pub_list' | 'roster' | 'roster_derived'; why: string }
 
 function displayName(a: PubAuthor): string {
   return `${a.given ?? ''} ${a.family ?? ''}`.replace(/\s+/g, ' ').trim()
@@ -154,10 +162,12 @@ function matchCitation(c: Citation, pubs: Pub[], byDoi: Map<string, Pub>): Pub |
 // Source 2: cohort roster + mentor co-authorship
 // ---------------------------------------------------------------------------
 
-interface RosterStudent { first: string; last: string; cohort: number; mentorKeys: Set<string> }
+interface RosterStudent { first: string; last: string; cohort: number; mentorKeys: Set<string>; derived: boolean }
 
 function loadRoster(): RosterStudent[] {
-  return readCsvFile(ROSTER_CSV).map((r) => {
+  const read = (file: string, derived: boolean) => readCsvFile(file).map((r) => ({ ...r, derived }))
+  const rows = [...read(ROSTER_CSV, false), ...(existsSync(DERIVED_ROSTER_CSV) ? read(DERIVED_ROSTER_CSV, true) : [])]
+  return rows.map((r) => {
     const mentorKeys = new Set<string>()
     if (r.mentor_last) surnameKeys(r.mentor_last).forEach((k) => mentorKeys.add(k))
     // Free-text mentor column: "Brad Taylor/ Andrew Barnes", "A and B", ...
@@ -165,7 +175,7 @@ function loadRoster(): RosterStudent[] {
       const words = part.trim().split(/\s+/).filter(Boolean)
       if (words.length >= 2) surnameKeys(words[words.length - 1]).forEach((k) => mentorKeys.add(k))
     }
-    return { first: r.student_first.trim(), last: r.student_last.trim(), cohort: Number(r.cohort_year), mentorKeys }
+    return { first: r.student_first.trim(), last: r.student_last.trim(), cohort: Number(r.cohort_year), mentorKeys, derived: r.derived }
   }).filter((s) => s.last && s.cohort)
 }
 
@@ -242,12 +252,15 @@ async function main() {
           (a) => a !== student && a.family && surnameKeys(a.family).some((k) => s.mentorKeys.has(k)),
         )
         if (!mentorOnPaper) continue
-        addTag({ publicationId: p.id, authorName: displayName(student), method: 'roster', why: `${s.first} ${s.last} (${s.cohort})` })
+        addTag({ publicationId: p.id, authorName: displayName(student), method: s.derived ? 'roster_derived' : 'roster', why: `${s.first} ${s.last} (${s.cohort}${s.derived ? ', derived' : ''})` })
         studentsWithPubs.add(`${s.first} ${s.last}`)
         rosterTags++
       }
     }
-    console.log(`  Roster: ${roster.length} students → ${rosterTags} tags for ${studentsWithPubs.size} students (mentor co-authored)`)
+    console.log(
+      `  Roster: ${roster.filter((s) => !s.derived).length} official + ${roster.filter((s) => s.derived).length} derived students → ` +
+        `${rosterTags} tags for ${studentsWithPubs.size} students (mentor co-authored)`,
+    )
 
     // Lag (pub year − cohort year) on the program's own list, for roster
     // students it names — the evidence behind ROSTER_WINDOW.
@@ -256,7 +269,7 @@ async function main() {
       if (t.method !== 'reu_pub_list') continue
       const p = pubMap.get(t.publicationId)!
       const a = p.authors.find((x) => displayName(x) === t.authorName)
-      const s = a && roster.find((r) => authorMatchesStudent(a, r) && p.year != null && r.cohort <= p.year)
+      const s = a && roster.find((r) => !r.derived && authorMatchesStudent(a, r) && p.year != null && r.cohort <= p.year)
       if (s && p.year != null) lags.push(p.year - s.cohort)
     }
     const hist = new Map<number, number>()
@@ -270,7 +283,7 @@ async function main() {
     const bySource = (m: string) => all.filter((t) => t.method === m).length
     console.log(
       `  Combined: ${all.length} REU author tags on ${new Set(all.map((t) => t.publicationId)).size} publications ` +
-        `(${bySource('reu_pub_list')} pub list, ${bySource('roster')} roster-only)`,
+        `(${bySource('reu_pub_list')} pub list, ${bySource('roster')} roster-only, ${bySource('roster_derived')} derived-roster-only)`,
     )
 
     mkdirSync(OUTPUT_DIR, { recursive: true })
@@ -280,9 +293,9 @@ async function main() {
         unmatched.join('\n') +
         `\n\n# Matched, but no bold/starred name equals an author surname (${noAuthor.length})\n` +
         noAuthor.join('\n') +
-        `\n\n# Roster-only tags — not on the program's list; mentor co-authored (${bySource('roster')})\n` +
+        `\n\n# Roster-only tags — not on the program's list; mentor co-authored (${bySource('roster') + bySource('roster_derived')})\n` +
         all
-          .filter((t) => t.method === 'roster')
+          .filter((t) => t.method === 'roster' || t.method === 'roster_derived')
           .map((t) => {
             const p = pubMap.get(t.publicationId)!
             return `#${p.id} ${p.year} ${t.authorName} ← ${t.why} | ${p.authors.map(displayName).join(', ').slice(0, 90)} | ${p.title.slice(0, 70)}`
@@ -301,7 +314,7 @@ async function main() {
       await client.query('BEGIN')
       await client.query(
         `DELETE FROM publication_student_authors
-          WHERE detection_method IN ('reu_pub_list', 'roster') AND NOT curated`,
+          WHERE detection_method IN ('reu_pub_list', 'roster', 'roster_derived') AND NOT curated`,
       )
       let written = 0
       for (const t of all) {

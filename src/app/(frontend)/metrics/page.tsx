@@ -347,7 +347,7 @@ function AnnualReporting({ rows, thisYear }: { rows: ReportingRow[]; thisYear: n
       <ul style={{ fontSize: '13px', color: 'var(--color-text-muted)', maxWidth: '72ch', paddingLeft: '18px', marginTop: '12px' }}>
         <li><strong>Journal articles</strong>: publications reviewed as RMBL research, type journal article.</li>
         <li><strong>SFA</strong>: listed on the <a href="https://watershed.lbl.gov/research-results/publications/">Watershed Function SFA&rsquo;s publication list</a>. <strong>SAIL</strong>: uses ARM SAIL campaign (2021–2023) data, read from each paper&rsquo;s text with the supporting quote kept for review.</li>
-        <li><strong>REU</strong> columns count RMBL REU students only (cohort roster 1991–2020 plus the REU program&rsquo;s publication list). Earlier reports counted all undergraduate authors, so those figures run higher; recent years fill in as REU students publish.</li>
+        <li><strong>REU</strong> columns count RMBL REU students only: the cohort roster (1991–2020), the REU program&rsquo;s publication list, and 2021+ cohorts identified from RMBL student papers (about 70% complete). Earlier reports counted all undergraduate authors, so those figures run higher; recent years fill in as REU students publish, typically 2–4 years after their summer.</li>
       </ul>
     </div>
   )
