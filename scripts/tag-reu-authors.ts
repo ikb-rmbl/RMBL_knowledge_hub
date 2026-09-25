@@ -36,7 +36,7 @@
  * for review. Writes directly to PostgreSQL — no dev server needed.
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import pg from 'pg'
 import { JSDOM } from 'jsdom'
@@ -53,7 +53,11 @@ if (target !== 'local' && target !== 'neon') {
 }
 
 const PRIVATE_DIR = join(import.meta.dirname, 'data', 'private')
-const ROSTER_CSV = join(PRIVATE_DIR, 'reu-roster-1991-2020.csv')
+// Official rosters: reu-roster-1991-2020.csv plus one file per later cohort
+// (reu-roster-2026.csv, written by ingest-student-papers.ts from the REU
+// program's abstracts doc). The derived roster is kept separate below.
+const officialRosters = () =>
+  readdirSync(PRIVATE_DIR).filter((f) => /^reu-roster-\d{4}(-\d{4})?\.csv$/.test(f)).sort().map((f) => join(PRIVATE_DIR, f))
 // Post-2020 cohorts derived from student-paper cover pages by
 // extract-reu-cohort.ts (~70% recall, 96% precision against the official
 // roster's 2015–2019 overlap). Optional.
@@ -166,7 +170,10 @@ interface RosterStudent { first: string; last: string; cohort: number; mentorKey
 
 function loadRoster(): RosterStudent[] {
   const read = (file: string, derived: boolean) => readCsvFile(file).map((row) => ({ row, derived }))
-  const rows = [...read(ROSTER_CSV, false), ...(existsSync(DERIVED_ROSTER_CSV) ? read(DERIVED_ROSTER_CSV, true) : [])]
+  const rows = [
+    ...officialRosters().flatMap((f) => read(f, false)),
+    ...(existsSync(DERIVED_ROSTER_CSV) ? read(DERIVED_ROSTER_CSV, true) : []),
+  ]
   return rows.map(({ row: r, derived }) => {
     const mentorKeys = new Set<string>()
     if (r.mentor_last) surnameKeys(r.mentor_last).forEach((k) => mentorKeys.add(k))
