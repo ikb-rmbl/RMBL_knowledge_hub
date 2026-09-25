@@ -305,14 +305,14 @@ async function copyToNeon(local: pg.Pool) {
            ${curatedSafe('sail_program', '$5')},
            funding_program_evidence = $6,
            funding_programs_checked_at = $7
-         WHERE id = (
+         WHERE id IN (
+           -- every match: the legacy database left a few DOIs duplicated
            SELECT id FROM publications
             WHERE ($1::text IS NOT NULL AND lower(doi) = $1)
-               OR ($1::text IS NULL AND lower(title) = $2 AND year = $3)
-            LIMIT 1)`,
+               OR ($1::text IS NULL AND lower(title) = $2 AND year = $3))`,
         [r.doi, r.title, r.year, r.sfa_program, r.sail_program, r.funding_program_evidence, r.funding_programs_checked_at],
       )
-      if (res.rowCount) updated++
+      if (res.rowCount) updated += res.rowCount
       else missing++
     }
     console.log(`Neon: ${updated} publications updated, ${missing} with no Neon match`)
