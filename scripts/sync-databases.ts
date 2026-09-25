@@ -347,10 +347,20 @@ async function pullCollection(
         const placeholders = fields.map((_, i) => `$${i + 1}`).join(', ')
         const values = fields.map((f) => remoteRec[f])
         try {
-          await localDb.query(
-            `INSERT INTO ${config.table} (${fields.join(', ')}) VALUES (${placeholders})`,
-            values,
+          // Keep Neon's id when it is free locally, so an id means the same
+          // row on both sides (sync-bulk-to-neon copies references and entity
+          // mentions by raw id). Neon's own sequences run in a disjoint range
+          // (>= 100,000,000, set 2026-09-25), so rows created there never
+          // collide with local ids; an older Neon-only row whose id is taken
+          // locally falls back to a fresh local id, as before.
+          const kept = await localDb.query(
+            `INSERT INTO ${config.table} (id, ${fields.join(', ')}) VALUES ($${fields.length + 1}, ${placeholders})
+             ON CONFLICT (id) DO NOTHING RETURNING id`,
+            [...values, remoteRec.id],
           )
+          if (kept.rowCount === 0) {
+            await localDb.query(`INSERT INTO ${config.table} (${fields.join(', ')}) VALUES (${placeholders})`, values)
+          }
         } catch (err: any) {
           if (verbose) console.log(`    Insert error: ${err.message?.slice(0, 80)}`)
           conflicts++

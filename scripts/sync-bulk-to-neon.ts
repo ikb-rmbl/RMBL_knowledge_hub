@@ -587,10 +587,43 @@ async function main() {
     console.log(`  ${rSynced} dataset rollups`)
     }
 
+    // TRUNCATE … RESTART IDENTITY + inserts with explicit (local) ids leaves
+    // each sequence at 1, so any later insert on Neon collides. Move every
+    // lagging sequence up to its table's max id. Forward-only: tables whose
+    // Neon sequence runs in the disjoint >= 100,000,000 range are untouched.
+    const advanced = await advanceLaggingSequences(neon)
+    if (advanced.length) console.log(`\n--- Sequences advanced to max(id): ${advanced.join(', ')}`)
   } finally {
     await local.end()
     await neon.end()
   }
+}
+
+// Names come from pg_catalog, not user input; quoted for odd identifiers.
+const quoteIdent = (name: string) => `"${name.replace(/"/g, '""')}"`
+
+/** Set every serial sequence that lags its column's max value to that max. */
+async function advanceLaggingSequences(db: pg.Pool): Promise<string[]> {
+  const { rows } = await db.query<{ seq: string; tbl: string; col: string }>(`
+    SELECT s.relname AS seq, t.relname AS tbl, a.attname AS col
+      FROM pg_class s
+      JOIN pg_depend d ON d.objid = s.oid AND d.deptype = 'a'
+      JOIN pg_class t ON t.oid = d.refobjid
+      JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = d.refobjsubid
+      JOIN pg_namespace n ON n.oid = t.relnamespace
+     WHERE s.relkind = 'S' AND n.nspname = 'public'`)
+  const advanced: string[] = []
+  for (const r of rows) {
+    const { rows: [x] } = await db.query(
+      `SELECT (SELECT max(${quoteIdent(r.col)}) FROM ${quoteIdent(r.tbl)}) AS mx,
+              (SELECT last_value FROM ${quoteIdent(r.seq)}) AS lv`,
+    )
+    if (x.mx != null && Number(x.lv) < Number(x.mx)) {
+      await db.query(`SELECT setval($1::regclass, $2)`, [r.seq, x.mx])
+      advanced.push(`${r.tbl} → ${x.mx}`)
+    }
+  }
+  return advanced
 }
 
 main().catch((err) => { console.error(err); process.exit(1) })

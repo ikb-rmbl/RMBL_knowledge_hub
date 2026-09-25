@@ -322,7 +322,13 @@ function writeReuRoster(roster: ReturnType<typeof parseReuAbstracts>['roster'], 
 // 5. Load
 // ---------------------------------------------------------------------------
 
-async function load(db: pg.Pool, p: Paper, ex: Extraction, text: string, tombstones: TombstoneKeys[]): Promise<'inserted' | 'exists' | 'tombstoned'> {
+/**
+ * Local is the id authority: sync-databases.ts pushes local rows to Neon with
+ * their local ids, and sync-bulk-to-neon.ts copies references / entity
+ * mentions by raw publication id. So a Neon load reuses the local row's id
+ * (hence: load local first) instead of taking one from Neon's sequence.
+ */
+async function load(db: pg.Pool, p: Paper, ex: Extraction, text: string, tombstones: TombstoneKeys[], localIds: Map<string, number> | null): Promise<'inserted' | 'exists' | 'tombstoned' | 'no-local'> {
   const { rows: [match] } = await db.query(
     `SELECT id FROM publications WHERE publication_type = 'student_paper' AND year = $2
        AND similarity(lower(title), lower($1)) >= 0.9 LIMIT 1`,
@@ -330,19 +336,23 @@ async function load(db: pg.Pool, p: Paper, ex: Extraction, text: string, tombsto
   )
   if (match) return 'exists'
   if (matchesAnyTombstone(extractKeys('publications', { doi: null, title: ex.title, year: YEAR }), tombstones)) return 'tombstoned'
+  const explicitId = localIds ? localIds.get(ex.title.trim().toLowerCase()) : undefined
+  if (localIds && explicitId === undefined) return 'no-local'
   if (dryRun) return 'inserted'
   const client = await db.connect()
   try {
     await client.query('BEGIN')
+    // With an explicit id, a clash with an unrelated Neon row fails loudly
+    // (primary key) rather than being skipped.
     const { rows: [{ id }] } = await client.query(
       `INSERT INTO publications
-         (title, year, abstract, full_text, publication_type, data_source, discovery_method,
+         (id, title, year, abstract, full_text, publication_type, data_source, discovery_method,
           rmbl_research, pdf_available, pdf_link, pdf_rights_basis, pdf_rights_checked_at,
           pdf_restricted, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, 'student_paper', 'manual', 'manual_entry',
+       VALUES (coalesce($6::int, nextval('publications_id_seq')::int), $1, $2, $3, $4, 'student_paper', 'manual', 'manual_entry',
                'yes', true, $5, 'rmbl_owned', NOW(), false, NOW(), NOW())
        RETURNING id`,
-      [ex.title, YEAR, ex.abstract, text, `${SERVING_BASE}/${servingKey(p.key)}`],
+      [ex.title, YEAR, ex.abstract, text, `${SERVING_BASE}/${servingKey(p.key)}`, explicitId ?? null],
     )
     for (const [i, s] of ex.students.entries()) {
       await client.query(
@@ -413,7 +423,14 @@ async function main() {
   const url = target === 'neon' ? process.env.NEON_DIRECT_URL : process.env.DATABASE_URL
   if (!url) throw new Error(`${target === 'neon' ? 'NEON_DIRECT_URL' : 'DATABASE_URL'} is not set`)
   const db = new pg.Pool({ connectionString: url })
-  const tally = { inserted: 0, exists: 0, tombstoned: 0 }
+  const tally = { inserted: 0, exists: 0, tombstoned: 0, 'no-local': 0 }
+  let localIds: Map<string, number> | null = null
+  if (target === 'neon') {
+    const local = new pg.Pool({ connectionString: process.env.DATABASE_URL })
+    const { rows } = await local.query(`SELECT id, lower(trim(title)) AS t FROM publications WHERE publication_type = 'student_paper' AND year = $1`, [YEAR])
+    await local.end()
+    localIds = new Map(rows.map((r) => [r.t, r.id]))
+  }
   try {
     const seniors = await loadSeniors(db, ready.map((r) => r.ex), reu.mentors)
     for (const r of ready) r.ex = normalizeAuthors(r.p, r.ex, seniors, reu.mentors)
@@ -421,10 +438,10 @@ async function main() {
     const tombstones: TombstoneKeys[] = (await db.query(`SELECT keys FROM duplicate_tombstones WHERE collection = 'publications'`)).rows.map((r) => r.keys)
     console.log(`\nTarget: ${target}${dryRun ? ' (dry-run)' : ''}`)
     for (const r of ready) {
-      const outcome = await load(db, r.p, r.ex, r.text, tombstones)
+      const outcome = await load(db, r.p, r.ex, r.text, tombstones, localIds)
       tally[outcome]++
       console.log(
-        `  ${outcome === 'inserted' ? '+' : outcome === 'exists' ? '=' : '~'} ${r.p.key.padEnd(28)} ${r.ex.title.slice(0, 60)}` +
+        `  ${outcome === 'inserted' ? '+' : outcome === 'exists' ? '=' : outcome === 'no-local' ? '!' : '~'} ${r.p.key.padEnd(28)} ${r.ex.title.slice(0, 60)}` +
           `  [${r.ex.students.map((s) => s.family).join(', ')}${r.ex.mentors.length ? ` | mentors: ${r.ex.mentors.join(', ')}` : ''}]`,
       )
     }
@@ -452,7 +469,8 @@ async function main() {
   }
   console.log(
     `\n${dryRun ? '[dry-run] ' : ''}Done: ${tally.inserted} inserted, ${tally.exists} already present, ` +
-      `${tally.tombstoned} tombstoned, ${held.length} held for review.`,
+      `${tally.tombstoned} tombstoned, ${held.length} held for review.` +
+      (tally['no-local'] ? ` ${tally['no-local']} not loaded on Neon: no local row yet (run locally first).` : ''),
   )
 }
 
