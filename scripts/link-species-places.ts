@@ -29,6 +29,18 @@ import { runConcurrent } from './lib/concurrency.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
+
+// DANGER (found 2026-09-27): this script DELETEs every species and place and
+// all their mentions (all collections, all methods), then rebuilds only from
+// candidates with resolved_entity_id IS NULL — the #118 bug, never fixed here.
+// A run would wipe the registries (incl. GNIS coordinates) and reassign every
+// id. Use resolve-candidates-additive.ts instead. Refuses to write unless
+// explicitly forced; --dry-run is still allowed.
+if (!dryRun && !args.includes('--i-understand-this-deletes-all-species-and-places')) {
+  console.error('Refusing to run: this deletes all species/places and their mentions and rebuilds from UNRESOLVED candidates only.')
+  console.error('Use scripts/resolve-candidates-additive.ts. See the header comment.')
+  process.exit(1)
+}
 const typeFilter = args.find((a) => a.startsWith('--type='))?.split('=')[1] || 'all'
 const forceItis = args.includes('--force-itis')
 // `--skip-itis`: don't query ITIS for uncached names; mark them all as

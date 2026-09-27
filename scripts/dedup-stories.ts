@@ -57,13 +57,20 @@ async function main() {
     const { rows: [{ n: before }] } = await db.query('SELECT count(*)::int as n FROM stories')
     console.log(`Starting with ${before} stories\n`)
 
+    // Oral histories are RMBL-owned transcripts, not syndicated news: every
+    // pass below would misfire on them (no "RMBL" in the text, shared titles).
+    const { rows: ohRows } = await db.query(`SELECT id FROM stories WHERE story_type = 'oral_history'`)
+    const protectedIds = new Set<number>(ohRows.map((r: any) => r.id))
+    const unprotected = <T extends { id: number }>(rows: T[]) => rows.filter((r) => !protectedIds.has(r.id))
+
     // Pass 1: Remove non-relevant articles by exact title or pattern
-    const { rows: pass1 } = await db.query(`
+    const { rows: pass1All } = await db.query(`
       SELECT id, title FROM stories
       WHERE lower(title) = ANY($1)
         OR lower(title) LIKE ANY($2)
         OR lower(title) LIKE ANY($3)
     `, [EXCLUDE_TITLES, EXCLUDE_PATTERNS, IRRELEVANT_PATTERNS])
+    const pass1 = unprotected(pass1All)
     console.log(`Pass 1 — Non-relevant: ${pass1.length} articles`)
     if (pass1.length > 0 && !dryRun) {
       const ids = pass1.map((r: any) => r.id)
@@ -73,7 +80,7 @@ async function main() {
     if (pass1.length > 10) console.log(`  ... and ${pass1.length - 10} more`)
 
     // Pass 2: Remove exact title duplicates (keep longest text, then lowest id)
-    const { rows: pass2 } = await db.query(`
+    const { rows: pass2All } = await db.query(`
       SELECT id, title FROM (
         SELECT id, title,
           ROW_NUMBER() OVER (
@@ -84,6 +91,7 @@ async function main() {
       ) sub
       WHERE rn > 1
     `)
+    const pass2 = unprotected(pass2All)
     console.log(`\nPass 2 — Exact title duplicates: ${pass2.length} articles`)
     if (pass2.length > 0 && !dryRun) {
       const ids = pass2.map((r: any) => r.id)
@@ -93,7 +101,7 @@ async function main() {
     if (pass2.length > 10) console.log(`  ... and ${pass2.length - 10} more`)
 
     // Pass 3: Remove syndication near-duplicates (similarity > 0.85)
-    const { rows: pass3 } = await db.query(`
+    const { rows: pass3All } = await db.query(`
       SELECT b.id, b.title, a.title as kept_title,
         round(similarity(lower(a.title), lower(b.title))::numeric, 2) as sim
       FROM stories a
@@ -101,6 +109,7 @@ async function main() {
         AND similarity(lower(a.title), lower(b.title)) > 0.85
       WHERE length(coalesce(a.full_text, '')) >= length(coalesce(b.full_text, ''))
     `)
+    const pass3 = unprotected(pass3All)
     console.log(`\nPass 3 — Syndication near-duplicates (>0.85 similarity): ${pass3.length} articles`)
     if (pass3.length > 0 && !dryRun) {
       const ids = pass3.map((r: any) => r.id)
@@ -111,7 +120,7 @@ async function main() {
 
     // Pass 4: Remove false-positive matches with no RMBL relevance
     // An article is relevant if it mentions RMBL, Rocky Mountain Biological, or Gothic (the town)
-    const { rows: pass4 } = await db.query(`
+    const { rows: pass4All } = await db.query(`
       SELECT id, title, length(full_text) as text_len
       FROM stories
       WHERE full_text IS NOT NULL
@@ -120,6 +129,7 @@ async function main() {
         AND (length(full_text) - length(replace(lower(full_text), 'gothic', ''))) / 6 = 0
         AND lower(full_text) NOT LIKE '%biological laboratory%'
     `)
+    const pass4 = unprotected(pass4All)
     console.log(`\nPass 4 — Likely research papers or tangential long texts: ${pass4.length} articles`)
     if (pass4.length > 0 && !dryRun) {
       const ids = pass4.map((r: any) => r.id)

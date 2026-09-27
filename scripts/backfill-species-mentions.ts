@@ -150,6 +150,7 @@ async function main() {
         `SELECT t.id
          FROM ${collection} t
          WHERE (${tsCondition})
+           ${collection === 'stories' ? "AND t.story_type IS DISTINCT FROM 'oral_history'" : ''}
            AND NOT EXISTS (
              SELECT 1 FROM entity_mentions em
              WHERE em.entity_type = 'species' AND em.entity_id = $${terms.length + 1}

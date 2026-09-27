@@ -18,6 +18,8 @@ import { sleep } from './lib/concurrency.js'
 import { OUTPUT_DIR } from './lib/config.js'
 
 const args = process.argv.slice(2)
+// claude-sonnet-4-20250514 (the old hardcoded model) is retired.
+const MODEL = process.argv.find((a) => a.startsWith('--model='))?.split('=')[1] ?? 'claude-sonnet-5'
 const dryRun = args.includes('--dry-run')
 const limitArg = args.find((a) => a.startsWith('--limit='))?.split('=')[1]
 const limit = limitArg ? parseInt(limitArg, 10) : Infinity
@@ -99,7 +101,7 @@ async function callClaude(datasetTexts: { id: number; text: string }[]): Promise
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: MODEL,
         max_tokens: 8192,
         messages: [{
           role: 'user',

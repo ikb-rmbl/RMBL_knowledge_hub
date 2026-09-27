@@ -219,7 +219,8 @@ scripts/
   match-references.ts         — Reference matching + load to references_cited
   match-document-citations.ts — Match document reference strings to publications/documents by DOI/title
   crosslink-datasets.ts       — Publication↔dataset linking from full text
-  link-species-places.ts      — Species ITIS validation + places hierarchy linking
+  link-species-places.ts      — ⚠ DESTRUCTIVE, refuses to run without a force flag: deletes ALL species/places + their mentions and rebuilds from UNRESOLVED candidates only (the #118 bug, unfixed here). Use resolve-candidates-additive.ts.
+  resolve-candidates-additive.ts — Additive species/place linking: matches unresolved candidates (not stories) to EXISTING entities by exact name/alias (lib/entity-name-match.ts, shared with load-story-extractions), sets resolved_entity_id, inserts mentions extraction_method='cand_resolve'. Never creates/deletes/renumbers entities. --dry-run/--type. Local only; Neon via sync-replace-entities + sync-bulk entity_mentions.
   link-stories-publications.ts — Story↔publication links (title, researcher, entity matching)
 
   # Topics, authors, projects
@@ -441,6 +442,7 @@ See `docs/git-workflow.md` for branching, stacking, and merging patterns. Short 
 - `sync-databases.ts` requires `NEON_DIRECT_URL` environment variable
 - **`scripts/data/private/` is gitignored and holds student PII** (REU roster, REU pub list). The repo is public — never move those files out of it or commit derived per-student lists. Only aggregate reference data (e.g. `reported_metrics`) belongs in git
 - **`npm run sync:schema` re-runs EVERY file in `scripts/sql/` against Neon**, in sort order, swallowing errors — it is not incremental and keeps no applied-migrations ledger. That sweeps in the one-shot data migrations (e.g. `backfill-publication-provenance.sql`, whose own header warns it resets hand-corrected `discovery_method`). To deploy one new migration, run it directly: `psql "$NEON_DIRECT_URL" < scripts/sql/<file>.sql`
+- **Refresh hazards (mapped 2026-09-27)**: never run `pipeline.ts --phase=all` (its authors phase is `build-authors --load-payload`: deletes + rebuilds the whole author registry from April JSON, reassigning every id and losing the incident repairs); never `load-frontiers.ts` (TRUNCATE…CASCADE takes the grounded frontiers + planning items); `cluster-concepts/protocols/stakeholders` delete every mention of their type and reassign ids; re-running `detect-communities` + `load-neighborhoods` repurposes neighborhood ids and cascades away frontier links. `sync-bulk-to-neon` raw-copies entity/item ids (run `sync-replace-entities` first and verify id alignment) and its neighborhoods/frontiers/planning sections must go together. Oral histories (story_type='oral_history') are excluded from story extraction, species backfill and dedup.
 - `load-to-payload.ts` has incremental dedup (DOI + title+year for publications, DOI + title for datasets) plus a tombstone check that skips records matching `duplicate_tombstones` — safe to re-run
 - **Pipeline writes that go through Payload REST must pass `{ pipeline: true }` to `patchRecord`** — otherwise the curation hook treats the script's writes as admin edits and falsely marks fields as curated. The flag adds `?context[pipeline]=true` which the hook checks.
 - **`curated_fields` stores camelCase Payload field names**, not snake_case DB column names. `curatedSafe`/`curatedSkipClause` handle the conversion internally; if you write raw SQL against the column, remember to query for camelCase.

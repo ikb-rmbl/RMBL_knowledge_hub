@@ -280,6 +280,9 @@ async function main() {
       FROM stories
       WHERE full_text IS NOT NULL
         AND length(full_text) BETWEEN 1000 AND 50000
+        -- Oral histories stay out of the graph until release forms are
+        -- confirmed (their mentions would reach Neon via sync-bulk).
+        AND story_type IS DISTINCT FROM 'oral_history'
       ORDER BY length(full_text) DESC, id
     `)
     console.log(`\n${stories.length} stories with extractable text`)
