@@ -68,12 +68,16 @@ const nextConfig: NextConfig = {
       // invocations (~280K/day) against ~33K distinct URLs, nearly all of it
       // repeat walks of the same list.
       //
-      // Longer TTL than the browse paths: detail content only changes when the
-      // pipeline runs, so an hour of staleness is cheap, and the day-long
-      // stale-while-revalidate means a re-walk is served from the edge even
-      // after the TTL lapses. Deliberately NOT paired with a Challenge rule —
-      // robots.txt invites ClaudeBot/GPTBot/PerplexityBot and these pages are
-      // the canonical indexable content.
+      // TTL: one week (was 1h). With 1h, 77% of detail requests still missed
+      // (2026-09-24→26): crawlers revisit a page every few hours per edge
+      // region, so it had usually expired — one author page missed 25 times
+      // in 48h at sin1 alone. Detail content changes only when the pipeline
+      // runs or an admin edits a record; every production deploy purges the
+      // CDN cache, but an admin edit on Neon can show stale at the edge for up
+      // to a week unless the cache is purged. Deliberately NOT paired with a
+      // Challenge rule — robots.txt invites ClaudeBot/GPTBot/PerplexityBot and
+      // these pages are the canonical indexable content (scrapers are handled
+      // by targeted firewall rules instead).
       ...[
         '/authors/:id',
         '/publications/:id',
@@ -93,7 +97,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Vercel-CDN-Cache-Control',
-            value: 'public, s-maxage=3600, stale-while-revalidate=86400',
+            value: 'public, s-maxage=604800, stale-while-revalidate=86400',
           },
         ],
       })),
