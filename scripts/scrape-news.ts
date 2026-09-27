@@ -7,7 +7,7 @@
  * Polite: 2-second delay between requests, identifies itself in User-Agent.
  *
  * Usage:
- *   npx tsx scripts/scrape-news.ts [--limit=N] [--dry-run]
+ *   npx tsx scripts/scrape-news.ts [--refresh-urls] [--limit=N] [--dry-run]
  */
 
 import { writeFileSync, readFileSync, existsSync } from 'fs'
@@ -148,10 +148,15 @@ async function main() {
   if (dryRun) console.log('(DRY RUN)')
 
   // Phase 1: Collect URLs
+  // The URL list is cached; without --refresh-urls a re-run never sees new
+  // articles. Refreshing re-collects the search results and merges them with
+  // the cache (phase 2 already skips articles that were fetched before).
+  const refreshUrls = args.includes('--refresh-urls')
   let allUrls: ArticleUrl[] = []
-  if (existsSync(URLS_FILE)) {
-    allUrls = JSON.parse(readFileSync(URLS_FILE, 'utf-8'))
-    console.log(`Loaded ${allUrls.length} cached URLs from ${URLS_FILE}`)
+  const cachedUrls: ArticleUrl[] = existsSync(URLS_FILE) ? JSON.parse(readFileSync(URLS_FILE, 'utf-8')) : []
+  if (cachedUrls.length && !refreshUrls) {
+    allUrls = cachedUrls
+    console.log(`Loaded ${allUrls.length} cached URLs from ${URLS_FILE} (--refresh-urls to look for new articles)`)
   } else {
     console.log('\nPhase 1: Collecting article URLs...')
     let page = 1
@@ -184,7 +189,9 @@ async function main() {
       await sleep(DELAY_MS)
     }
 
-    // Deduplicate by URL
+    // Merge with the cache, then deduplicate by URL
+    const before = cachedUrls.length
+    allUrls = [...cachedUrls, ...allUrls]
     const seen = new Set<string>()
     allUrls = allUrls.filter(u => {
       if (seen.has(u.url)) return false
@@ -192,8 +199,8 @@ async function main() {
       return true
     })
 
-    writeFileSync(URLS_FILE, JSON.stringify(allUrls, null, 2))
-    console.log(`\nSaved ${allUrls.length} unique URLs to ${URLS_FILE}`)
+    if (!dryRun) writeFileSync(URLS_FILE, JSON.stringify(allUrls, null, 2))
+    console.log(`\n${dryRun ? 'Would save' : 'Saved'} ${allUrls.length} unique URLs (${allUrls.length - before} new) to ${URLS_FILE}`)
   }
 
   if (dryRun) {

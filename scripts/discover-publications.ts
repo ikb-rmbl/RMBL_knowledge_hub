@@ -153,18 +153,33 @@ async function fetchOpenAlexPage(
     params.set('filter', typeFilter)
   }
 
-  try {
-    const res = await fetch(`${OPENALEX_API}/works?${params}`)
-    if (!res.ok) {
+  // OpenAlex rate-limits bursts with 429. Returning null there used to end the
+  // term's pagination silently, so a run finished with partial results and no
+  // warning. Retry with backoff (honoring Retry-After); record hard failures.
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      const res = await fetch(`${OPENALEX_API}/works?${params}`)
+      if (res.ok) return await res.json()
+      if (res.status === 429 || res.status >= 500) {
+        const retryAfter = Number(res.headers.get('retry-after'))
+        const wait = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 2000 * 2 ** attempt
+        console.error(`  OpenAlex ${res.status} for "${searchTerm}" — retrying in ${Math.round(wait / 1000)}s (${attempt + 1}/6)`)
+        await sleep(wait)
+        continue
+      }
       console.error(`  OpenAlex returned ${res.status} for "${searchTerm}"`)
-      return null
+      break
+    } catch (err) {
+      console.error(`  Fetch error for "${searchTerm}" (${attempt + 1}/6):`, err)
+      await sleep(2000 * 2 ** attempt)
     }
-    return await res.json()
-  } catch (err) {
-    console.error(`  Fetch error for "${searchTerm}":`, err)
-    return null
   }
+  failedTerms.add(searchTerm)
+  return null
 }
+
+/** Terms whose results are incomplete — reported at the end of the run. */
+const failedTerms = new Set<string>()
 
 async function searchOpenAlex(searchTerm: string, maxResults: number, rorFilter = false): Promise<any[]> {
   const results: any[] = []
@@ -391,6 +406,10 @@ async function main() {
 
   // Print summary
   console.log('\n========== Summary ==========')
+  if (failedTerms.size) {
+    console.log(`\n⚠ INCOMPLETE: ${failedTerms.size} search term(s) failed after retries — results for these are partial:`)
+    for (const t of failedTerms) console.log(`    ${t}`)
+  }
   console.log(`New publications discovered: ${allNormalized.length}`)
   console.log(`  With DOI:      ${withDoi}`)
   console.log(`  With abstract: ${withAbstract}`)
