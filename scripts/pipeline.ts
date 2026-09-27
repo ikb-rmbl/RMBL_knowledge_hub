@@ -194,9 +194,18 @@ async function runAuthors(): Promise<void> {
   console.log('='.repeat(60))
 
   const { execSync } = await import('child_process')
+  // build-authors --load-payload DELETEs authors + authors_rels and rebuilds
+  // from the JSON caches (not the DB): every author id/URL changes and the
+  // Sept 2026 duplicate-author repairs are lost. Opt-in only; otherwise the
+  // registry JSON is rebuilt for inspection but nothing is loaded.
+  const rebuild = args.includes('--rebuild-authors')
+  if (!dryRun && !rebuild) {
+    console.log('  Skipping author registry reload (destructive). Pass --rebuild-authors to run build-authors --load-payload,')
+    console.log('  then merge-duplicate-authors.ts --dry-run before any sync.')
+  }
   const flags = [
-    dryRun ? '--dry-run' : '',
-    dryRun ? '' : '--load-payload',
+    dryRun || !rebuild ? '--dry-run' : '',
+    dryRun || !rebuild ? '' : '--load-payload',
   ].filter(Boolean).join(' ')
   const opts = { cwd: process.cwd(), encoding: 'utf-8' as const, stdio: 'inherit' as const }
 

@@ -38,6 +38,7 @@
 import { readFileSync } from 'fs'
 import pg from 'pg'
 import './lib/config.js'
+import { buildResolvers, type EntityType } from './lib/entity-name-match.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
@@ -46,41 +47,7 @@ if (target !== 'local' && target !== 'neon') throw new Error(`Unknown --target=$
 
 const RESULTS_PATH = 'scripts/output/story-entity-extraction.json'
 
-type EntityType = 'species' | 'place' | 'concept' | 'stakeholder'
 interface Candidate { type: EntityType; storyId: number; rawName: string; attrs: object; role: string; entityId: number | null }
-
-const norm = (s: unknown) => (typeof s === 'string' ? s : '').replace(/\s+/g, ' ').trim().toLowerCase()
-
-/**
- * name → id. `pickTies` resolves a name shared by several entities to the
- * most-mentioned one — right for PRIMARY names, where the registry holds true
- * duplicates (e.g. four separate "climate change" concepts). For aliases and
- * species common names, a shared name is genuinely ambiguous ("bumble bee"
- * names 15 species) and is left unresolved.
- */
-function nameIndex(rows: { id: number; name: string | null }[], pickTies: boolean, usage: Map<number, number>): Map<string, number> {
-  const seen = new Map<string, Set<number>>()
-  for (const r of rows) {
-    const k = norm(r.name)
-    if (!k) continue
-    if (!seen.has(k)) seen.set(k, new Set())
-    seen.get(k)!.add(r.id)
-  }
-  const out = new Map<string, number>()
-  for (const [k, ids] of seen) {
-    if (ids.size === 1) out.set(k, [...ids][0])
-    else if (pickTies) out.set(k, [...ids].sort((a, b) => (usage.get(b) ?? 0) - (usage.get(a) ?? 0) || a - b)[0])
-  }
-  return out
-}
-
-/** Primary-name tier first, then the alias tier. */
-const tiered = (...tiers: Map<string, number>[]) => (name: unknown): number | null => {
-  const k = norm(name)
-  if (!k) return null
-  for (const t of tiers) { const id = t.get(k); if (id != null) return id }
-  return null
-}
 
 async function main() {
   const url = target === 'neon' ? process.env.NEON_DIRECT_URL : process.env.DATABASE_URL
@@ -90,30 +57,9 @@ async function main() {
   const db = new pg.Pool({ connectionString: url, max: 2 })
 
   try {
-    // Canonical lookups for this database. Scientific/canonical names win over
-    // common names; common names count only when they name a single species.
-    const q = async (sql: string) => (await db.query(sql)).rows as { id: number; name: string | null }[]
-    const usageOf = async (type: string) => new Map(
-      (await db.query(`SELECT entity_id AS id, count(*)::int AS n FROM entity_mentions WHERE entity_type = $1 GROUP BY 1`, [type])).rows.map((r) => [r.id, r.n]),
-    )
-    const [uSpecies, uPlace, uConcept, uStake] = await Promise.all(['species', 'place', 'concept', 'stakeholder'].map(usageOf))
-    const species = tiered(
-      nameIndex(await q('SELECT id, canonical_name AS name FROM species'), true, uSpecies),
-      nameIndex(await q('SELECT id, scientific_name AS name FROM species'), true, uSpecies),
-      nameIndex(await q('SELECT id, unnest(common_names) AS name FROM species'), false, uSpecies),
-    )
-    const places = tiered(
-      nameIndex(await q('SELECT id, name FROM places'), true, uPlace),
-      nameIndex(await q('SELECT id, unnest(aliases) AS name FROM places'), false, uPlace),
-    )
-    const concepts = tiered(
-      nameIndex(await q('SELECT id, name FROM concepts'), true, uConcept),
-      nameIndex(await q('SELECT id, unnest(aliases) AS name FROM concepts'), false, uConcept),
-    )
-    const stakeholders = tiered(
-      nameIndex(await q('SELECT id, name FROM stakeholders'), true, uStake),
-      nameIndex(await q('SELECT id, unnest(aliases) AS name FROM stakeholders'), false, uStake),
-    )
+    // Canonical lookups for this database (tiered exact name/alias; see lib/entity-name-match).
+    const r = await buildResolvers(db, ['species', 'place', 'concept', 'stakeholder'])
+    const species = r.species!, places = r.place!, concepts = r.concept!, stakeholders = r.stakeholder!
     const { rows: storyRows } = await db.query<{ id: number }>('SELECT id FROM stories')
     const storyIds = new Set(storyRows.map((r) => r.id))
 

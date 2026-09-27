@@ -22,6 +22,8 @@ import { sleep } from './lib/concurrency.js'
 import { VOYAGE_API_KEY, VOYAGE_MODEL, STAGING_DIR, OUTPUT_DIR } from './lib/config.js'
 
 const args = process.argv.slice(2)
+// claude-sonnet-4-20250514 (the old hardcoded model) is retired.
+const MODEL = process.argv.find((a) => a.startsWith('--model='))?.split('=')[1] ?? 'claude-sonnet-5'
 const strategyArg = args.find((a) => a.startsWith('--strategy='))?.split('=')[1] || 'all'
 const paperArg = args.find((a) => a.startsWith('--paper='))?.split('=')[1]
 const idsFileArg = args.find((a) => a.startsWith('--ids-file='))?.split('=')[1]
@@ -470,7 +472,7 @@ async function callClaudeWithPages(
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: MODEL,
       max_tokens: 16384, // increased from 8192 to accommodate the enhanced schema (places, protocolsNamed, concepts, metadataEnrichment)
       messages: [{
         role: 'user',
@@ -498,7 +500,7 @@ async function callClaudeWithPages(
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: MODEL,
           max_tokens: 16384,
           messages: [{
             role: 'user',
