@@ -206,7 +206,7 @@ scripts/
   load-to-payload.ts          — Bulk load all collections into Payload REST API (incremental dedup + tombstone check)
   load-fulltext.ts            — Load extracted text into Payload fullText field
   load-stories.ts             — Load stories from 4 sources (CB News, Gunnison Times, Lexis)
-  load-story-extractions.ts   — Load story LLM extractions into entity_mentions + story_type
+  load-story-extractions.ts   — Load story LLM extractions (story-entity-extraction.json): records EVERY reference in entity_candidates (source_collection='stories') so rebuilds can recover them, resolves by exact name/alias against that DB's own entity tables (primary-name ties → most-mentioned entity; ambiguous aliases/common names left unresolved), writes extraction_method='llm' mentions incl. stakeholders, sets story_type. Replaces its own prior output; --dry-run/--target=neon (run per DB). Restored 2026-09-27 after the Sept rebuild wiped all story LLM mentions.
   load-extraction-results.ts  — Load VLM (publications) extraction JSON into entity_candidates + mentions
   load-document-extractions.ts — Load document + longform extraction JSON into entity_candidates (deferring linking to cluster/link scripts; idempotent)
   load-referenced-works.ts    — Load LLM-extracted external references into references_cited
