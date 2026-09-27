@@ -1,19 +1,38 @@
 /**
- * Load story entity extractions into the knowledge graph.
+ * Load story entity extractions (story-entity-extraction.json) into the graph.
  *
- * Reads story-entity-extraction.json and:
- *   1. Updates story_type in the stories table from LLM classification
- *   2. Matches species, places, concepts to existing canonical entities
- *   3. Creates entity_mentions entries (collection='stories')
- *   4. Matches researchers to existing author records
- *   5. Links projects by name
+ * Every extracted reference is recorded in entity_candidates
+ * (source_collection='stories'), resolved or not, and resolved candidates
+ * become entity_mentions (extraction_method='llm'). Writing the candidates is
+ * what makes this durable: the September 2026 entity rebuild deleted all
+ * story mentions, and — unlike publications/documents — there were no raw
+ * candidates to recover them from (the old loader wrote mentions only).
  *
- * Uses fuzzy matching (trigram similarity) for entity resolution against
- * existing canonical tables. Does NOT create new canonical entities —
- * only links to ones that already exist.
+ * Resolution is exact name/alias against THIS database's canonical tables
+ * (species/places/concepts/stakeholders), tiered: primary names first (ties
+ * between duplicate registry entries go to the most-mentioned), then aliases /
+ * species common names only when unique — "bumble bee" names 15 species and
+ * stays unresolved rather than guessed. No new entities are
+ * created — unresolved candidates stay in entity_candidates for a later,
+ * deliberate pass (embedding match or new-entity clustering).
+ *
+ *   species      scientificName / commonName → canonical_name, scientific_name,
+ *                common_names (a common name only when unique)
+ *   places       name → name, aliases
+ *   concepts     name → name, aliases
+ *   agencies     name → stakeholders name, aliases
+ *
+ * Also sets story_type from the LLM classification where it is still the
+ * default 'news_article'. (Researcher/project linking was dropped: it wrote
+ * to authors_rels/projects_rels columns that don't exist, and linking every
+ * researcher a story mentions as its "author" was the wrong relation anyway.)
+ *
+ * Idempotent: story candidates and story 'llm' mentions are replaced on each
+ * run, in one transaction; other story mentions (text_match) are untouched.
+ * Run once per database — resolution uses that database's own entity ids.
  *
  * Usage:
- *   npx tsx scripts/load-story-extractions.ts [--dry-run]
+ *   npx tsx scripts/load-story-extractions.ts [--dry-run] [--target=neon]
  */
 
 import { readFileSync } from 'fs'
@@ -22,189 +41,179 @@ import './lib/config.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
+const target = args.find((a) => a.startsWith('--target='))?.split('=')[1] ?? 'local'
+if (target !== 'local' && target !== 'neon') throw new Error(`Unknown --target=${target}`)
 
 const RESULTS_PATH = 'scripts/output/story-entity-extraction.json'
 
+type EntityType = 'species' | 'place' | 'concept' | 'stakeholder'
+interface Candidate { type: EntityType; storyId: number; rawName: string; attrs: object; role: string; entityId: number | null }
+
+const norm = (s: unknown) => (typeof s === 'string' ? s : '').replace(/\s+/g, ' ').trim().toLowerCase()
+
+/**
+ * name → id. `pickTies` resolves a name shared by several entities to the
+ * most-mentioned one — right for PRIMARY names, where the registry holds true
+ * duplicates (e.g. four separate "climate change" concepts). For aliases and
+ * species common names, a shared name is genuinely ambiguous ("bumble bee"
+ * names 15 species) and is left unresolved.
+ */
+function nameIndex(rows: { id: number; name: string | null }[], pickTies: boolean, usage: Map<number, number>): Map<string, number> {
+  const seen = new Map<string, Set<number>>()
+  for (const r of rows) {
+    const k = norm(r.name)
+    if (!k) continue
+    if (!seen.has(k)) seen.set(k, new Set())
+    seen.get(k)!.add(r.id)
+  }
+  const out = new Map<string, number>()
+  for (const [k, ids] of seen) {
+    if (ids.size === 1) out.set(k, [...ids][0])
+    else if (pickTies) out.set(k, [...ids].sort((a, b) => (usage.get(b) ?? 0) - (usage.get(a) ?? 0) || a - b)[0])
+  }
+  return out
+}
+
+/** Primary-name tier first, then the alias tier. */
+const tiered = (...tiers: Map<string, number>[]) => (name: unknown): number | null => {
+  const k = norm(name)
+  if (!k) return null
+  for (const t of tiers) { const id = t.get(k); if (id != null) return id }
+  return null
+}
+
 async function main() {
-  console.log('Load Story Entity Extractions')
-  console.log('=============================')
-  if (dryRun) console.log('(DRY RUN)')
-
-  const results = JSON.parse(readFileSync(RESULTS_PATH, 'utf-8'))
-  console.log(`${results.length} extraction results to process`)
-
-  const db = new pg.Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/rmbl_knowledge_hub',
-    max: 3,
-  })
+  const url = target === 'neon' ? process.env.NEON_DIRECT_URL : process.env.DATABASE_URL
+  if (!url) throw new Error(`${target === 'neon' ? 'NEON_DIRECT_URL' : 'DATABASE_URL'} is not set`)
+  const results: any[] = JSON.parse(readFileSync(RESULTS_PATH, 'utf-8'))
+  console.log(`Target: ${target}${dryRun ? ' (dry-run)' : ''} — ${results.length} extracted stories`)
+  const db = new pg.Pool({ connectionString: url, max: 2 })
 
   try {
-    // Preload canonical entity lookup tables
-    console.log('\nLoading canonical entities...')
-    const { rows: speciesRows } = await db.query('SELECT id, lower(canonical_name) as name FROM species')
-    const speciesMap = new Map(speciesRows.map((r: any) => [r.name, r.id]))
-    console.log(`  Species: ${speciesMap.size}`)
+    // Canonical lookups for this database. Scientific/canonical names win over
+    // common names; common names count only when they name a single species.
+    const q = async (sql: string) => (await db.query(sql)).rows as { id: number; name: string | null }[]
+    const usageOf = async (type: string) => new Map(
+      (await db.query(`SELECT entity_id AS id, count(*)::int AS n FROM entity_mentions WHERE entity_type = $1 GROUP BY 1`, [type])).rows.map((r) => [r.id, r.n]),
+    )
+    const [uSpecies, uPlace, uConcept, uStake] = await Promise.all(['species', 'place', 'concept', 'stakeholder'].map(usageOf))
+    const species = tiered(
+      nameIndex(await q('SELECT id, canonical_name AS name FROM species'), true, uSpecies),
+      nameIndex(await q('SELECT id, scientific_name AS name FROM species'), true, uSpecies),
+      nameIndex(await q('SELECT id, unnest(common_names) AS name FROM species'), false, uSpecies),
+    )
+    const places = tiered(
+      nameIndex(await q('SELECT id, name FROM places'), true, uPlace),
+      nameIndex(await q('SELECT id, unnest(aliases) AS name FROM places'), false, uPlace),
+    )
+    const concepts = tiered(
+      nameIndex(await q('SELECT id, name FROM concepts'), true, uConcept),
+      nameIndex(await q('SELECT id, unnest(aliases) AS name FROM concepts'), false, uConcept),
+    )
+    const stakeholders = tiered(
+      nameIndex(await q('SELECT id, name FROM stakeholders'), true, uStake),
+      nameIndex(await q('SELECT id, unnest(aliases) AS name FROM stakeholders'), false, uStake),
+    )
+    const { rows: storyRows } = await db.query<{ id: number }>('SELECT id FROM stories')
+    const storyIds = new Set(storyRows.map((r) => r.id))
 
-    const { rows: placeRows } = await db.query('SELECT id, lower(name) as name FROM places')
-    const placeMap = new Map(placeRows.map((r: any) => [r.name, r.id]))
-    console.log(`  Places: ${placeMap.size}`)
-
-    const { rows: conceptRows } = await db.query('SELECT id, lower(name) as name FROM concepts')
-    const conceptMap = new Map(conceptRows.map((r: any) => [r.name, r.id]))
-    console.log(`  Concepts: ${conceptMap.size}`)
-
-    const { rows: protocolRows } = await db.query('SELECT id, lower(name) as name FROM protocols')
-    const protocolMap = new Map(protocolRows.map((r: any) => [r.name, r.id]))
-    console.log(`  Protocols: ${protocolMap.size}`)
-
-    const { rows: authorRows } = await db.query('SELECT id, lower(display_name) as name, lower(family_name) as family FROM authors WHERE work_count > 0')
-    const authorByName = new Map(authorRows.map((r: any) => [r.name, r.id]))
-    const authorByFamily = new Map<string, number[]>()
-    for (const r of authorRows) {
-      if (!r.family) continue
-      if (!authorByFamily.has(r.family)) authorByFamily.set(r.family, [])
-      authorByFamily.get(r.family)!.push(r.id)
-    }
-    console.log(`  Authors: ${authorByName.size}`)
-
-    const { rows: projectRows } = await db.query('SELECT id, lower(name) as name FROM projects')
-    const projectMap = new Map(projectRows.map((r: any) => [r.name, r.id]))
-    console.log(`  Projects: ${projectMap.size}`)
-
-    // Process each extraction
-    let storyTypesUpdated = 0
-    let mentionsCreated = 0
-    let researcherLinked = 0
-    let projectLinked = 0
-    let skippedNoMatch = 0
-
+    const cands: Candidate[] = []
+    const types = new Map<number, string>()
+    let missingStories = 0
     for (const r of results) {
-      const storyId = r.id
-
-      // 1. Update story_type
-      if (r.storyType && !dryRun) {
-        await db.query('UPDATE stories SET story_type = $1 WHERE id = $2 AND story_type = $3',
-          [r.storyType, storyId, 'news_article'])
-        storyTypesUpdated++
+      if (!storyIds.has(r.id)) { missingStories++; continue }
+      if (r.storyType) types.set(r.id, r.storyType)
+      for (const s of r.species ?? []) {
+        const raw = s.scientificName || s.commonName
+        if (!raw) continue
+        const id = species(s.scientificName) ?? species(s.commonName)
+        cands.push({ type: 'species', storyId: r.id, rawName: raw, attrs: s, role: s.role || 'mentioned', entityId: id })
       }
-
-      // 2. Match and link species
-      for (const s of r.species || []) {
-        const name = (s.scientificName || s.commonName || '').toLowerCase().trim()
-        const entityId = speciesMap.get(name)
-        if (entityId && !dryRun) {
-          await insertMention(db, 'species', entityId, 'stories', storyId, s.role || 'mentioned')
-          mentionsCreated++
-        } else if (!entityId) skippedNoMatch++
+      for (const p of r.places ?? []) {
+        if (!p.name) continue
+        cands.push({ type: 'place', storyId: r.id, rawName: p.name, attrs: p, role: p.role || 'mentioned', entityId: places(p.name) })
       }
-
-      // 3. Match and link places
-      for (const p of r.places || []) {
-        const name = (p.name || '').toLowerCase().trim()
-        const entityId = placeMap.get(name)
-        if (entityId && !dryRun) {
-          await insertMention(db, 'place', entityId, 'stories', storyId, p.role || 'mentioned')
-          mentionsCreated++
-        } else if (!entityId) skippedNoMatch++
+      for (const c of r.concepts ?? []) {
+        if (!c.name) continue
+        cands.push({ type: 'concept', storyId: r.id, rawName: c.name, attrs: c, role: c.role || 'mentioned', entityId: concepts(c.name) })
       }
-
-      // 4. Match and link concepts
-      for (const c of r.concepts || []) {
-        const name = (c.name || '').toLowerCase().trim()
-        let entityId = conceptMap.get(name)
-        // Also check protocols if not a concept
-        if (!entityId) entityId = protocolMap.get(name) ? undefined : undefined
-        if (entityId && !dryRun) {
-          await insertMention(db, 'concept', entityId, 'stories', storyId, c.role || 'mentioned')
-          mentionsCreated++
-        } else if (!entityId) skippedNoMatch++
-      }
-
-      // 5. Match researchers to authors (by family name)
-      for (const res of r.researchers || []) {
-        const name = (res.name || '').toLowerCase().trim()
-        let authorId = authorByName.get(name)
-        if (!authorId) {
-          // Try matching by family name (last word)
-          const family = name.split(/\s+/).pop() || ''
-          const candidates = authorByFamily.get(family) || []
-          if (candidates.length === 1) authorId = candidates[0]
-        }
-        if (authorId && !dryRun) {
-          // Link author to story via authors_rels
-          await db.query(
-            `INSERT INTO authors_rels (parent_id, path, stories_id, "order")
-             SELECT $1, 'stories', $2, 1
-             WHERE NOT EXISTS (SELECT 1 FROM authors_rels WHERE parent_id = $1 AND stories_id = $2)`,
-            [authorId, storyId],
-          ).catch(() => {}) // ignore if stories_id column doesn't exist yet
-          researcherLinked++
-        }
-      }
-
-      // 6. Link projects
-      for (const proj of r.projects || []) {
-        const name = (proj.name || '').toLowerCase().trim()
-        const projectId = projectMap.get(name)
-        if (projectId && !dryRun) {
-          // Link via projects_rels if the column exists
-          await db.query(
-            `INSERT INTO projects_rels (parent_id, path, stories_id, "order")
-             SELECT $1, 'stories', $2, 1
-             WHERE NOT EXISTS (SELECT 1 FROM projects_rels WHERE parent_id = $1 AND stories_id = $2)`,
-            [projectId, storyId],
-          ).catch(() => {}) // ignore if stories_id column doesn't exist yet
-          projectLinked++
-        }
+      for (const a of r.agencies ?? []) {
+        const name = typeof a === 'string' ? a : a?.name
+        if (!name) continue
+        cands.push({ type: 'stakeholder', storyId: r.id, rawName: name, attrs: typeof a === 'string' ? { name: a } : a, role: 'mentioned', entityId: stakeholders(name) })
       }
     }
 
-    // Update search vectors for stories with updated types
-    if (!dryRun) {
-      await db.query(`
-        UPDATE stories SET search_vector =
-          setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
-          setweight(to_tsvector('english', coalesce(summary, '')), 'B') ||
-          setweight(to_tsvector('english', coalesce(full_text, '')), 'C')
-        WHERE search_vector IS NULL
-      `)
+    const byType = new Map<EntityType, { total: number; resolved: number }>()
+    for (const c of cands) {
+      const t = byType.get(c.type) ?? { total: 0, resolved: 0 }
+      t.total++
+      if (c.entityId != null) t.resolved++
+      byType.set(c.type, t)
+    }
+    for (const [t, v] of byType) console.log(`  ${t.padEnd(12)} ${v.resolved}/${v.total} resolved (${Math.round((100 * v.resolved) / v.total)}%)`)
+    if (missingStories) console.log(`  ${missingStories} extracted stories no longer exist here — skipped`)
+
+    // Mentions: one per (type, entity, story, role) — the table's unique key.
+    const mentionKeys = new Set<string>()
+    const mentions = cands.filter((c) => {
+      if (c.entityId == null) return false
+      const k = `${c.type}|${c.entityId}|${c.storyId}|${c.role}`
+      if (mentionKeys.has(k)) return false
+      mentionKeys.add(k)
+      return true
+    })
+    console.log(`  → ${cands.length} candidates, ${mentions.length} distinct mentions across ${new Set(mentions.map((m) => m.storyId)).size} stories`)
+
+    if (dryRun) { console.log('\n[dry-run] nothing written.'); return }
+
+    const client = await db.connect()
+    try {
+      await client.query('BEGIN')
+      const delC = await client.query(`DELETE FROM entity_candidates WHERE source_collection = 'stories'`)
+      const delM = await client.query(`DELETE FROM entity_mentions WHERE collection = 'stories' AND extraction_method = 'llm'`)
+      const CHUNK = 2000
+      for (let i = 0; i < cands.length; i += CHUNK) {
+        const part = cands.slice(i, i + CHUNK)
+        await client.query(
+          `INSERT INTO entity_candidates (entity_type, raw_name, raw_attributes, source_collection, source_item_id, resolved_entity_id, confidence, created_at)
+           SELECT t, n, a::jsonb, 'stories', s, e, 0.9, NOW()
+             FROM unnest($1::text[], $2::text[], $3::text[], $4::int[], $5::int[]) AS x(t, n, a, s, e)`,
+          [part.map((c) => c.type), part.map((c) => c.rawName), part.map((c) => JSON.stringify(c.attrs)), part.map((c) => c.storyId), part.map((c) => c.entityId)],
+        )
+      }
+      for (let i = 0; i < mentions.length; i += CHUNK) {
+        const part = mentions.slice(i, i + CHUNK)
+        await client.query(
+          `INSERT INTO entity_mentions (entity_type, entity_id, collection, item_id, role, confidence, extraction_method)
+           SELECT t, e, 'stories', s, r, 0.9, 'llm'
+             FROM unnest($1::text[], $2::int[], $3::int[], $4::text[]) AS x(t, e, s, r)
+           ON CONFLICT (entity_type, entity_id, collection, item_id, role) DO NOTHING`,
+          [part.map((m) => m.type), part.map((m) => m.entityId), part.map((m) => m.storyId), part.map((m) => m.role)],
+        )
+      }
+      let typed = 0
+      for (const [id, t] of types) {
+        const res = await client.query(`UPDATE stories SET story_type = $1 WHERE id = $2 AND story_type = 'news_article'`, [t, id])
+        typed += res.rowCount ?? 0
+      }
+      await client.query('COMMIT')
+      console.log(`\nReplaced ${delC.rowCount} old story candidates and ${delM.rowCount} old 'llm' mentions; story_type set on ${typed}.`)
+    } catch (err) {
+      await client.query('ROLLBACK')
+      throw err
+    } finally {
+      client.release()
     }
 
-    console.log(`\n========== Summary ==========`)
-    console.log(`Story types updated: ${storyTypesUpdated}`)
-    console.log(`Entity mentions created: ${mentionsCreated}`)
-    console.log(`Researchers linked: ${researcherLinked}`)
-    console.log(`Projects linked: ${projectLinked}`)
-    console.log(`Skipped (no canonical match): ${skippedNoMatch}`)
-
-    // Show story type distribution
-    if (!dryRun) {
-      const { rows: typeDist } = await db.query(
-        'SELECT story_type, count(*) as n FROM stories GROUP BY story_type ORDER BY n DESC',
-      )
-      console.log('\nStory type distribution:')
-      for (const r of typeDist) console.log(`  ${r.story_type}: ${r.n}`)
-
-      const { rows: [{ n: mentionCount }] } = await db.query(
-        "SELECT count(*)::int as n FROM entity_mentions WHERE collection = 'stories'",
-      )
-      console.log(`\nTotal story entity mentions: ${mentionCount}`)
-    }
+    const { rows: [s] } = await db.query(
+      `SELECT count(*) FILTER (WHERE extraction_method = 'llm')::int AS llm, count(*)::int AS total,
+              count(DISTINCT item_id)::int AS stories FROM entity_mentions WHERE collection = 'stories'`,
+    )
+    console.log(`Story mentions now: ${s.total} (${s.llm} from LLM extraction) across ${s.stories} stories.`)
   } finally {
     await db.end()
   }
-}
-
-async function insertMention(
-  db: pg.Pool, entityType: string, entityId: number,
-  collection: string, itemId: number, role: string,
-) {
-  await db.query(
-    `INSERT INTO entity_mentions (entity_type, entity_id, collection, item_id, role, confidence, extraction_method)
-     VALUES ($1, $2, $3, $4, $5, 0.9, 'llm')
-     ON CONFLICT (entity_type, entity_id, collection, item_id, role) DO NOTHING`,
-    [entityType, entityId, collection, itemId, role],
-  )
 }
 
 main().catch((err) => { console.error(err); process.exit(1) })
