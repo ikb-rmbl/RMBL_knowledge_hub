@@ -19,7 +19,7 @@
  * (and reset resolved_entity_id for the candidates listed in the run report).
  *
  * Usage:
- *   npx tsx scripts/resolve-candidates-additive.ts [--type=species|place] [--dry-run]
+ *   npx tsx scripts/resolve-candidates-additive.ts [--type=species|place] [--dry-run] [--place-aliases]
  *
  * Local only: Neon receives the mentions through sync-bulk-to-neon
  * --only=entity_mentions after sync-replace-entities (raw-copied ids).
@@ -27,12 +27,16 @@
 
 import pg from 'pg'
 import './lib/config.js'
-import { buildResolvers, type EntityType } from './lib/entity-name-match.js'
+import { buildResolvers, resolveSpeciesRef, type EntityType } from './lib/entity-name-match.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
 const onlyType = args.find((a) => a.startsWith('--type='))?.split('=')[1] as EntityType | undefined
 const TYPES: EntityType[] = onlyType ? [onlyType] : ['species', 'place']
+// Place aliases from the April clustering include wrong merges ("Arkansas" is an alias
+// of Kansas, "Mt. Crested Butte" of Crested Butte), so places resolve by primary name
+// unless --place-aliases. Species common names are guarded by resolveSpeciesRef.
+const placeAliases = args.includes('--place-aliases')
 if (TYPES.some((t) => t !== 'species' && t !== 'place')) throw new Error('--type must be species or place')
 
 interface Cand { id: number; entity_type: EntityType; raw_name: string; raw_attributes: any; source_collection: string; source_item_id: number }
@@ -41,7 +45,10 @@ async function main() {
   const db = new pg.Pool({ connectionString: process.env.DATABASE_URL })
   console.log(`Target: local${dryRun ? ' (dry-run)' : ''} — types: ${TYPES.join(', ')}`)
   try {
-    const resolve = await buildResolvers(db, TYPES)
+    const resolve = {
+      ...(TYPES.includes('species') ? await buildResolvers(db, ['species']) : {}),
+      ...(TYPES.includes('place') ? await buildResolvers(db, ['place'], { aliases: placeAliases }) : {}),
+    }
     const { rows } = await db.query<Cand>(
       `SELECT id, entity_type, raw_name, raw_attributes, source_collection, source_item_id
          FROM entity_candidates
@@ -55,7 +62,7 @@ async function main() {
       const id = c.entity_type === 'species'
         // Extractors sometimes put a common name in scientificName ("switchgrass"),
         // so every name field goes through all species tiers.
-        ? resolve.species!(a.scientificName) ?? resolve.species!(c.raw_name) ?? resolve.species!(a.commonName)
+        ? resolveSpeciesRef(resolve.species!, a, c.raw_name)
         : resolve.place!(c.raw_name) ?? resolve.place!(a.name)
       const k = `${c.entity_type}/${c.source_collection}`
       const t = tally.get(k) ?? { total: 0, resolved: 0 }
