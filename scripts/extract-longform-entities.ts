@@ -246,7 +246,8 @@ async function callClaude(prompt: string, text: string, label: string): Promise<
         // it mid-2025; 404s on the API now) to current Sonnet 4.6.
         model: 'claude-sonnet-4-6',
         max_tokens: 4096,
-        messages: [{ role: 'user', content: `${prompt}\n\nSection: "${label}"\n\n${text}` }],
+        // Chunking can split a surrogate pair; a lone surrogate makes the request body invalid JSON (API 400)
+        messages: [{ role: 'user', content: `${prompt}\n\nSection: "${label}"\n\n${text}`.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '\uFFFD') }],
       }),
     })
 
@@ -380,7 +381,8 @@ async function main() {
     let results: any[] = []
     const processedKeys = new Set<string>()
     if (existsSync(RESULTS_PATH)) {
-      results = JSON.parse(readFileSync(RESULTS_PATH, 'utf-8'))
+      // Errored entries are dropped so they are retried; otherwise resume treats them as done.
+      results = (JSON.parse(readFileSync(RESULTS_PATH, 'utf-8')) as any[]).filter((r) => !r.strategy3?.error)
       for (const r of results) processedKeys.add(`${r.collection}:${r.id}`)
       console.log(`Resuming: ${processedKeys.size} already processed`)
     }

@@ -134,7 +134,7 @@ async function strategy2Multimodal(pdfPath: string): Promise<{ pages: PageEmbedd
 
   try {
     // Get page count
-    const pageCountStr = execSync(`pdfinfo "${pdfPath}" 2>/dev/null | grep '^Pages:' | awk '{print $2}'`, { encoding: 'utf-8' }).trim()
+    const pageCountStr = execSync(`pdfinfo "${pdfPath}" 2>/dev/null | grep -a '^Pages:' | awk '{print $2}'`, { encoding: 'utf-8' }).trim()
     const pageCount = Math.min(parseInt(pageCountStr) || 1, 20) // cap at 20 pages
 
     // Render pages as JPEG images
@@ -676,7 +676,7 @@ async function strategy3VLM(pdfPath: string, title: string): Promise<{ extractio
   const basename = pdfPath.split('/').pop()?.replace('.pdf', '') || 'doc'
 
   try {
-    const pageCountStr = execSync(`pdfinfo "${pdfPath}" 2>/dev/null | grep '^Pages:' | awk '{print $2}'`, { encoding: 'utf-8' }).trim()
+    const pageCountStr = execSync(`pdfinfo "${pdfPath}" 2>/dev/null | grep -a '^Pages:' | awk '{print $2}'`, { encoding: 'utf-8' }).trim()
     const totalPages = parseInt(pageCountStr) || 1
 
     if (totalPages > 40) {
@@ -738,7 +738,7 @@ async function strategy3VLM(pdfPath: string, title: string): Promise<{ extractio
           }
         }
       } catch (err: any) {
-        console.log(` error: ${err.message?.slice(0, 80)}`)
+        console.log(` error: ${err.message?.slice(0, 300)}`)
       }
 
       // Rate limit between batches
