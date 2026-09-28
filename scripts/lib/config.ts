@@ -59,6 +59,9 @@ export const SUST_LIB_AJAX = 'https://sustainablelibrary.org/wp-admin/admin-ajax
 
 export const OPENALEX_API = 'https://api.openalex.org'
 export const OPENALEX_MAILTO = process.env.OPENALEX_MAILTO || 'knowledgehub@rmbl.org'
+// Optional; raises the OpenAlex rate/daily quota. Secret — keep it in .env and
+// never log a request URL that carries it.
+export const OPENALEX_API_KEY = process.env.OPENALEX_API_KEY || ''
 
 export const DATACITE_API = 'https://api.datacite.org/dois'
 

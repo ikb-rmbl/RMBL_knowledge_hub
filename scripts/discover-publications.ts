@@ -16,6 +16,7 @@ import {
   OUTPUT_DIR,
   OPENALEX_API,
   OPENALEX_MAILTO,
+  OPENALEX_API_KEY,
   CROSSREF_API,
   CROSSREF_MAILTO,
   DELAYS,
@@ -146,6 +147,7 @@ async function fetchOpenAlexPage(
     cursor,
     mailto: OPENALEX_MAILTO,
   })
+  if (OPENALEX_API_KEY) params.set('api_key', OPENALEX_API_KEY)
   if (rorFilter) {
     params.set('filter', `${typeFilter},authorships.institutions.ror:${searchTerm}`)
   } else {
