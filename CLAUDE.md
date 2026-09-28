@@ -522,4 +522,5 @@ Optional:
 - `VOYAGE_API_KEY` — Voyage AI API key (for embedding generation)
 - `ANTHROPIC_API_KEY` — Anthropic API key (for VLM extraction experiment)
 - `CROSSREF_MAILTO`, `UNPAYWALL_EMAIL`, `OPENALEX_MAILTO` — polite API pool emails
+- `OPENALEX_API_KEY` — OpenAlex API key (secret; raises the daily quota to 10K credits, a search costs 10). Without it, a full `discover-publications` run hits the anonymous quota
 - `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION`, `S3_ENDPOINT` — production file storage

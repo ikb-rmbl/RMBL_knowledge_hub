@@ -3,8 +3,7 @@ import {
   buildPubDedupIndex,
   isPubDuplicate,
   normalizeOpenAlexWork,
-  reconstructAbstract,
-} from '../lib/publication-discovery.js'
+  reconstructAbstract, isDataRecord, DATA_REPOSITORY_DOI_PREFIXES, isRelevantPublication } from '../lib/publication-discovery.js'
 
 describe('reconstructAbstract', () => {
   it('rebuilds text from inverted index', () => {
@@ -203,5 +202,24 @@ describe('isPubDuplicate', () => {
   it('skips title comparison for year-distant papers', () => {
     // Same title but 5 years apart — should still match (within ±2 tolerance? No, 5 > 2)
     expect(isPubDuplicate({ doi: null, title: 'Ecology of marmots in Gothic Colorado', year: 2025 }, index)).toBe(false)
+  })
+})
+
+describe('data-repository records are not publications', () => {
+  const base = { title: 'Soil moisture at the Rocky Mountain Biological Laboratory, Gothic, Colorado' }
+  it('rejects data-repository DOIs even when strongly relevant', () => {
+    expect(isRelevantPublication({ ...base, doi: '10.15485/1631278' })).toBe(false)          // ESS-DIVE
+    expect(isRelevantPublication({ ...base, doi: 'https://doi.org/10.5439/1025153' })).toBe(false) // ARM, URL form
+    expect(isRelevantPublication({ ...base, doi: '10.5061/dryad.b5h65' })).toBe(false)       // Dryad
+  })
+  it('rejects records typed as datasets but keeps Zenodo papers', () => {
+    expect(isRelevantPublication({ ...base, doi: '10.5281/zenodo.123', type: 'dataset' })).toBe(false)
+    expect(isRelevantPublication({ ...base, doi: '10.5281/zenodo.123', type: 'article' })).toBe(true)
+  })
+  it('keeps ordinary journal articles', () => {
+    expect(isRelevantPublication({ ...base, doi: '10.1111/1365-2745.14050', type: 'article' })).toBe(true)
+  })
+  it('isDataRecord covers every listed prefix', () => {
+    for (const p of DATA_REPOSITORY_DOI_PREFIXES) expect(isDataRecord({ doi: `${p}x` })).toBe(true)
   })
 })
