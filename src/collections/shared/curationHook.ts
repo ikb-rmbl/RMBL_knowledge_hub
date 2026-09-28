@@ -23,6 +23,12 @@ export const curatedFieldsField: Field = {
  * The widget at src/admin/components/CuratedFields.tsx writes directly to the
  * same array to support release-without-clearing.
  */
+export function isPipelineWrite(req: any): boolean {
+  if (req?.context?.pipeline) return true // Local API callers
+  const q = req?.query?.context?.pipeline ?? req?.searchParams?.get?.('context[pipeline]')
+  return q === true || q === 'true'
+}
+
 export function curationHookFor(curatableFields: string[]): CollectionBeforeChangeHook {
   if (curatableFields.length === 0) {
     return ({ data }) => data
@@ -33,8 +39,11 @@ export function curationHookFor(curatableFields: string[]): CollectionBeforeChan
     // marked admin-curated (bulk loaders created thousands of such rows).
     if (operation === 'create' || !originalDoc) return data
     // Pipeline scripts pass ?context[pipeline]=true so their writes don't
-    // get falsely marked as admin-curated.
-    if (req?.context?.pipeline) return data
+    // get falsely marked as admin-curated. Payload's REST layer does NOT copy
+    // query params into req.context, so read the parsed query too — checking
+    // req.context alone made the flag a no-op and every pipeline REST write
+    // (assign-projects, manage-topics, …) froze its fields as curated (found 2026-09-28).
+    if (isPipelineWrite(req)) return data
 
     const prevList = Array.isArray(originalDoc.curatedFields) ? originalDoc.curatedFields : []
     // If the incoming `data` already changed curatedFields (e.g. the widget
