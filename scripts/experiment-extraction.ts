@@ -813,7 +813,7 @@ async function main() {
     const pdfPath = `${STAGING_DIR}/publications/pub_${id}.pdf`
     const hasPdf = existsSync(pdfPath)
 
-    console.log(`\n--- [${sessionProcessed + 1}/${ids.length - processedIds.size}] Paper ${id}: ${paper.title.slice(0, 60)}... ---`)
+    console.log(`\n--- [${sessionProcessed + 1}/${ids.filter((x) => !processedIds.has(x)).length}] Paper ${id}: ${paper.title.slice(0, 60)}... ---`)
     console.log(`  Type: ${paper.publication_type}, PDF: ${hasPdf}, Text: ${paper.full_text?.length || 0} chars`)
 
     const result: any = {
