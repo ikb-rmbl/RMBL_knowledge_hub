@@ -100,8 +100,21 @@ async function main() {
         )
         inserted += res.rowCount ?? 0
       }
+      // Entity pages read these rollups; without this they lag until some other
+      // script recomputes them (2,670 places were stale after the first run).
+      for (const type of TYPES) {
+        const table = type === 'species' ? 'species' : 'places'
+        const ids = [...new Set(hits.filter((h) => h.type === type).map((h) => h.entityId))]
+        await client.query(
+          `UPDATE ${table} t SET
+             mention_count = (SELECT count(*)::int FROM entity_mentions WHERE entity_type = $1 AND entity_id = t.id),
+             publication_count = (SELECT count(DISTINCT item_id)::int FROM entity_mentions WHERE entity_type = $1 AND entity_id = t.id AND collection = 'publications')
+           WHERE t.id = ANY($2::int[])`,
+          [type, ids],
+        )
+      }
       await client.query('COMMIT')
-      console.log(`\nResolved ${hits.length} candidates; inserted ${inserted} new mentions (extraction_method='cand_resolve').`)
+      console.log(`\nResolved ${hits.length} candidates; inserted ${inserted} new mentions (extraction_method='cand_resolve'); rollups recomputed.`)
     } catch (err) {
       await client.query('ROLLBACK')
       throw err

@@ -22,6 +22,12 @@ import pg from 'pg'
 import './lib/config.js'
 
 const args = process.argv.slice(2)
+// Unknown flags used to be ignored, so `--help` ran a live backfill (2026-09-28).
+const unknown = args.filter((a) => a !== '--dry-run' && !a.startsWith('--limit='))
+if (unknown.length) {
+  console.error(`Unknown argument(s): ${unknown.join(' ')}\nUsage: npx tsx scripts/backfill-species-mentions.ts [--dry-run] [--limit=N]`)
+  process.exit(1)
+}
 const dryRun = args.includes('--dry-run')
 const limitArg = args.find((a) => a.startsWith('--limit='))?.split('=')[1]
 const speciesLimit = limitArg ? parseInt(limitArg) : Infinity
@@ -101,8 +107,35 @@ function termsFor(species: { canonical_name: string; common_names: string[] | nu
   }
   consider(species.canonical_name, true)
   for (const cn of species.common_names || []) consider(cn, false)
-  for (const syn of species.synonyms || []) consider(syn, true)
+  // A single capitalized synonym is a genus ("Bombus" on Bombus terrestris): it
+  // names the entity only when the entity itself is genus-level. Otherwise every
+  // paper mentioning the genus was linked to every species in it (2026-09-28).
+  const genusLevel = !isMultiWord(species.canonical_name.trim())
+  for (const syn of species.synonyms || []) consider(syn, genusLevel)
   return Array.from(out)
+}
+
+/** Terms per species, minus any term that more than one species would use
+ *  ("bumble bee", "bumblebees" on every Bombus) — a shared term can't say which
+ *  species a text is about. */
+// Single-word entity names that are also ordinary words / surnames in papers:
+// "Fisher" (the mammal) matched authors and Fisher's exact test.
+const AMBIGUOUS_TERMS = new Set(['fisher', 'meridian', 'longhorn'])
+
+function specificTerms(list: { id: number; canonical_name: string; common_names: string[] | null; synonyms: string[] | null }[]): Map<number, string[]> {
+  const perSpecies = new Map(list.map((sp) => [sp.id, termsFor(sp)]))
+  const users = new Map<string, Set<number>>()
+  for (const [id, terms] of perSpecies) {
+    for (const t of terms) {
+      const k = t.toLowerCase()
+      if (!users.has(k)) users.set(k, new Set())
+      users.get(k)!.add(id)
+    }
+  }
+  for (const [id, terms] of perSpecies) {
+    perSpecies.set(id, terms.filter((t) => users.get(t.toLowerCase())!.size === 1 && !AMBIGUOUS_TERMS.has(t.toLowerCase())))
+  }
+  return perSpecies
 }
 
 async function main() {
@@ -122,6 +155,9 @@ async function main() {
     ${Number.isFinite(speciesLimit) ? `LIMIT ${speciesLimit}` : ''}
   `)
   console.log(`  ${speciesList.length} species to process`)
+  // Term uniqueness is judged against the whole registry, not just this (possibly --limit'ed) list.
+  const { rows: allSpecies } = await db.query(`SELECT id, canonical_name, common_names, synonyms FROM species WHERE canonical_name IS NOT NULL`)
+  const termsById = specificTerms(allSpecies)
 
   let totalInserted = 0
   let totalSkippedExisting = 0
@@ -131,7 +167,7 @@ async function main() {
 
   for (let i = 0; i < speciesList.length; i++) {
     const sp = speciesList[i]
-    const terms = termsFor(sp)
+    const terms = termsById.get(sp.id) ?? []
     if (terms.length === 0) {
       totalSkippedNoTerms++
       continue
