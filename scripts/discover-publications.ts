@@ -109,14 +109,14 @@ function isRelevantOpenAlex(work: any): boolean {
     .flatMap((a: any) => a.institutions?.map((i: any) => i.display_name) || [])
     .join(' ')
   const journal = work.primary_location?.source?.display_name || work.host_venue?.display_name || ''
-  return isRelevantPublication({ title, abstract, affiliations, journal })
+  return isRelevantPublication({ title, abstract, affiliations, journal, doi: work.doi, type: work.type })
 }
 
 function isRelevantCrossRef(item: any): boolean {
   const title = Array.isArray(item.title) ? item.title[0] : (item.title || '')
   const abstract = item.abstract?.replace(/<[^>]+>/g, '') || ''
   const journal = Array.isArray(item['container-title']) ? item['container-title'][0] : (item['container-title'] || '')
-  return isRelevantPublication({ title, abstract, journal })
+  return isRelevantPublication({ title, abstract, journal, doi: item.DOI, type: item.type })
 }
 
 // ---------------------------------------------------------------------------
