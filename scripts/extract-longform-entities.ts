@@ -30,6 +30,10 @@ const dryRun = args.includes('--dry-run')
 const limitArg = args.find((a) => a.startsWith('--limit='))?.split('=')[1]
 const limit = limitArg ? parseInt(limitArg, 10) : Infinity
 const collFilter = args.find((a) => a.startsWith('--collection='))?.split('=')[1] || 'all'
+// Explicit publication ids (e.g. papers the VLM pass skipped as >40 pages) bypass the
+// 80K-char threshold, which misses 40-60 page theses and student papers.
+const idsFile = args.find((a) => a.startsWith('--ids-file='))?.split('=')[1]
+const explicitIds = idsFile ? readFileSync(idsFile, 'utf-8').split(/\s+/).filter(Boolean).map(Number) : null
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || ''
 const RESULTS_PATH = `${OUTPUT_DIR}/longform-entity-extraction.json`
@@ -225,6 +229,8 @@ Return valid JSON only.`
 // Claude API
 // ---------------------------------------------------------------------------
 
+// Join ALL text blocks: a thinking-capable model's first block can be a
+// thinking block, and reading content[0] silently returned '' (fixed 2026-09-27).
 async function callClaude(prompt: string, text: string, label: string): Promise<any | null> {
   const MAX_RETRIES = 3
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
@@ -258,7 +264,7 @@ async function callClaude(prompt: string, text: string, label: string): Promise<
     }
 
     const data = await res.json()
-    const responseText = data.content?.[0]?.text || ''
+    const responseText = (data.content ?? []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('') || ''
     const inputTokens = data.usage?.input_tokens || 0
     const outputTokens = data.usage?.output_tokens || 0
 
@@ -351,14 +357,14 @@ async function main() {
       const { rows } = await db.query(`
         SELECT id, title, publication_type, full_text, length(full_text) as text_len
         FROM publications
-        WHERE full_text IS NOT NULL AND length(full_text) > 80000
-          AND id NOT IN (SELECT DISTINCT source_item_id FROM entity_candidates WHERE entity_type = 'species')
+        WHERE full_text IS NOT NULL AND ${explicitIds ? 'id = ANY($1)' : 'length(full_text) > 80000'}
+          AND id NOT IN (SELECT DISTINCT source_item_id FROM entity_candidates WHERE entity_type = 'species' AND source_collection = 'publications')
         ORDER BY id
-      `)
+      `, explicitIds ? [explicitIds] : [])
       for (const r of rows) items.push({ id: r.id, collection: 'publications', title: r.title, docType: r.publication_type, fullText: r.full_text, textLen: r.text_len })
     }
 
-    if (collFilter === 'all' || collFilter === 'documents') {
+    if (!explicitIds && (collFilter === 'all' || collFilter === 'documents')) {
       const { rows } = await db.query(`
         SELECT id, title, full_text, length(full_text) as text_len
         FROM documents

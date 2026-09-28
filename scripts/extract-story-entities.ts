@@ -105,6 +105,8 @@ Important:
 // Claude API call
 // ---------------------------------------------------------------------------
 
+// Join ALL text blocks: a thinking-capable model's first block can be a
+// thinking block, and reading content[0] silently returned '' (fixed 2026-09-27).
 async function callClaude(text: string, title: string): Promise<any | null> {
   const MAX_RETRIES = 3
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
@@ -140,7 +142,7 @@ async function callClaude(text: string, title: string): Promise<any | null> {
     }
 
     const data = await res.json()
-    const responseText = data.content?.[0]?.text || ''
+    const responseText = (data.content ?? []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('') || ''
     const inputTokens = data.usage?.input_tokens || 0
     const outputTokens = data.usage?.output_tokens || 0
 

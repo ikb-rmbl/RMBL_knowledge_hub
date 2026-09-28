@@ -20,9 +20,12 @@ import { execSync } from 'child_process'
 import pg from 'pg'
 import { sleep } from './lib/concurrency.js'
 import { VOYAGE_API_KEY, VOYAGE_MODEL, STAGING_DIR, OUTPUT_DIR } from './lib/config.js'
+import { escapeControlCharsInStrings } from './lib/json-repair.js'
 
 const args = process.argv.slice(2)
 // claude-sonnet-4-20250514 (the old hardcoded model) is retired.
+// Responses are read by joining ALL text blocks: newer models can return a thinking
+// block first, and reading content[0] silently yielded '' (every batch 'no JSON parsed').
 const MODEL = process.argv.find((a) => a.startsWith('--model='))?.split('=')[1] ?? 'claude-sonnet-5'
 const strategyArg = args.find((a) => a.startsWith('--strategy='))?.split('=')[1] || 'all'
 const paperArg = args.find((a) => a.startsWith('--paper='))?.split('=')[1]
@@ -131,7 +134,7 @@ async function strategy2Multimodal(pdfPath: string): Promise<{ pages: PageEmbedd
 
   try {
     // Get page count
-    const pageCountStr = execSync(`pdfinfo "${pdfPath}" 2>/dev/null | grep Pages | awk '{print $2}'`, { encoding: 'utf-8' }).trim()
+    const pageCountStr = execSync(`pdfinfo "${pdfPath}" 2>/dev/null | grep '^Pages:' | awk '{print $2}'`, { encoding: 'utf-8' }).trim()
     const pageCount = Math.min(parseInt(pageCountStr) || 1, 20) // cap at 20 pages
 
     // Render pages as JPEG images
@@ -165,6 +168,7 @@ async function strategy2Multimodal(pdfPath: string): Promise<{ pages: PageEmbedd
 
         if (res.ok) {
           const data = await res.json()
+  if (data.stop_reason === 'max_tokens') console.warn('    ⚠ response truncated at max_tokens — JSON will be incomplete')
           pages.push({
             pageNumber: p,
             hasVisualContent: true,
@@ -473,7 +477,7 @@ async function callClaudeWithPages(
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 16384, // increased from 8192 to accommodate the enhanced schema (places, protocolsNamed, concepts, metadataEnrichment)
+      max_tokens: 32000, // thinking-capable models spend part of the budget thinking; at 16384 a 20-page batch was cut off mid-JSON (2026-09-27)
       messages: [{
         role: 'user',
         content: [
@@ -501,7 +505,7 @@ async function callClaudeWithPages(
         },
         body: JSON.stringify({
           model: MODEL,
-          max_tokens: 16384,
+          max_tokens: 32000,
           messages: [{
             role: 'user',
             content: [
@@ -513,8 +517,9 @@ async function callClaudeWithPages(
       })
       if (retry.ok) {
         const data = await retry.json()
+        if (data.stop_reason === 'max_tokens') console.warn('    ⚠ response truncated at max_tokens — JSON will be incomplete')
         return {
-          text: data.content?.[0]?.text || '',
+          text: (data.content ?? []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('') || '',
           inputTokens: data.usage?.input_tokens || 0,
           outputTokens: data.usage?.output_tokens || 0,
         }
@@ -533,8 +538,9 @@ async function callClaudeWithPages(
   }
 
   const data = await res.json()
+  if (data.stop_reason === 'max_tokens') console.warn('    ⚠ response truncated at max_tokens — JSON will be incomplete')
   return {
-    text: data.content?.[0]?.text || '',
+    text: (data.content ?? []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('') || '',
     inputTokens: data.usage?.input_tokens || 0,
     outputTokens: data.usage?.output_tokens || 0,
   }
@@ -542,7 +548,8 @@ async function callClaudeWithPages(
 
 function parseExtractionJSON(text: string): VLMExtraction | null {
   // Strip markdown code fences if present
-  let cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '')
+  // Literal newlines inside string values made whole papers fail ('no JSON parsed', pub 415, 2026-09-27)
+  let cleaned = escapeControlCharsInStrings(text.replace(/```json\s*/g, '').replace(/```\s*/g, ''))
 
   // Try direct parse first
   try { return JSON.parse(cleaned.trim()) } catch {}
@@ -669,7 +676,7 @@ async function strategy3VLM(pdfPath: string, title: string): Promise<{ extractio
   const basename = pdfPath.split('/').pop()?.replace('.pdf', '') || 'doc'
 
   try {
-    const pageCountStr = execSync(`pdfinfo "${pdfPath}" 2>/dev/null | grep Pages | awk '{print $2}'`, { encoding: 'utf-8' }).trim()
+    const pageCountStr = execSync(`pdfinfo "${pdfPath}" 2>/dev/null | grep '^Pages:' | awk '{print $2}'`, { encoding: 'utf-8' }).trim()
     const totalPages = parseInt(pageCountStr) || 1
 
     if (totalPages > 40) {
@@ -783,7 +790,9 @@ async function main() {
   let results: any[] = []
   const processedIds = new Set<number>()
   if (existsSync(outputPath)) {
-    results = JSON.parse(readFileSync(outputPath, 'utf-8'))
+    // Failed papers are retried on resume; page-limit skips are deterministic, so they stay recorded.
+    results = (JSON.parse(readFileSync(outputPath, 'utf-8')) as any[])
+      .filter((r) => !r.strategy3?.error || /page limit/.test(r.strategy3.error))
     for (const r of results) processedIds.add(r.id)
     console.log(`Resuming: ${processedIds.size} papers already processed, ${ids.length - processedIds.size} remaining`)
   }
@@ -804,7 +813,7 @@ async function main() {
     const pdfPath = `${STAGING_DIR}/publications/pub_${id}.pdf`
     const hasPdf = existsSync(pdfPath)
 
-    console.log(`\n--- [${sessionProcessed + 1}/${ids.length - processedIds.size + sessionProcessed}] Paper ${id}: ${paper.title.slice(0, 60)}... ---`)
+    console.log(`\n--- [${sessionProcessed + 1}/${ids.length - processedIds.size}] Paper ${id}: ${paper.title.slice(0, 60)}... ---`)
     console.log(`  Type: ${paper.publication_type}, PDF: ${hasPdf}, Text: ${paper.full_text?.length || 0} chars`)
 
     const result: any = {

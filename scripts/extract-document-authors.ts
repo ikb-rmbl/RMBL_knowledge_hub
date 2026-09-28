@@ -98,7 +98,7 @@ async function callClaude(text: string, title: string): Promise<AuthorRecord[] |
     }
     if (!res.ok) throw new Error(`Claude API ${res.status}: ${(await res.text()).slice(0, 200)}`)
     const data = await res.json() as any
-    const txt = data.content?.[0]?.text || ''
+    const txt = (data.content ?? []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('') || ''
     // Strip markdown fences if present
     const cleaned = txt.replace(/^```json?\s*\n?/m, '').replace(/\n?```\s*$/m, '').trim()
     try {
