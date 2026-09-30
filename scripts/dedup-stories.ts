@@ -5,8 +5,8 @@
  *   1. Remove non-relevant articles (calendars, legals, agendas, market reports)
  *   2. Remove exact title duplicates (keep longest full_text, then lowest id)
  *   3. Remove syndication near-duplicates (trigram similarity >0.85, keep longest text)
- *   4. Remove texts with no RMBL marker (RMBL / Gothic / biological laboratory / the 2026
- *      marmot-fundraiser terms), except source_urls in scripts/data/story-relevance-keep.json
+ *   4. Remove texts with no RMBL marker (RMBL / Gothic / biological laboratory / OnlyMarms /
+ *      OnlyFans / Fat Marmot), except source_urls in scripts/data/story-relevance-keep.json
  *
  * Requires pg_trgm extension for similarity().
  *
@@ -132,8 +132,9 @@ async function main() {
       FROM stories
       WHERE full_text IS NOT NULL
         AND NOT (coalesce(source_url, '') = ANY($1))
-        -- the 2026 marmot fundraiser went viral without naming RMBL
-        AND lower(full_text) !~ '(onlymarms|onlyfans|fat marmot|yellow.bellied marmot)'
+        -- the 2026 marmot fundraiser went viral without naming RMBL. Not a bare
+        -- "yellow-bellied marmot": that kept unrelated stories (a 2021 stowaway marmot).
+        AND lower(full_text) !~ '(onlymarms|onlyfans|fat marmot)'
         AND (length(full_text) - length(replace(lower(full_text), 'rmbl', ''))) / 4 = 0
         AND (length(full_text) - length(replace(lower(full_text), 'rocky mountain biological', ''))) / 25 = 0
         AND (length(full_text) - length(replace(lower(full_text), 'gothic', ''))) / 6 = 0
