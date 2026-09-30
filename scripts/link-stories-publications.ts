@@ -16,6 +16,10 @@ import pg from 'pg'
 import './lib/config.js'
 
 const dryRun = process.argv.includes('--dry-run')
+// --signals=title,researcher skips the shared-entity signal: once places were
+// resolved densely (2026-09-28), "≥3 shared entities" (Colorado, Gunnison, Crested
+// Butte…) matched 282K story–paper pairs, mostly noise. Default: all three.
+const signals = new Set((process.argv.find((a) => a.startsWith('--signals='))?.split('=')[1] ?? 'title,researcher,entity').split(','))
 
 async function main() {
   console.log('Link Stories to Publications')
@@ -78,17 +82,25 @@ async function main() {
       if (researchers.length === 0) continue
 
       for (const res of researchers) {
-        const familyName = (res.name || '').split(/\s+/).pop()?.toLowerCase()
-        if (!familyName || familyName.length < 3) continue
+        const words = (res.name || '').trim().split(/\s+/)
+        const familyName = words.length >= 2 ? words[words.length - 1].toLowerCase() : ''
+        const initial = words[0]?.[0]?.toUpperCase() ?? ''
+        if (!familyName || familyName.length < 3 || !initial) continue
 
-        // Find publications by this researcher
+        // Find publications by this researcher — surname AND first initial: surname
+        // alone linked "Katie Adler" stories to Lynn Adler's nectar papers (2026-09-28).
+        // Most recent first, so a prolific author's 10 are the relevant recent ones.
         const { rows: pubs } = await db.query(`
-          SELECT DISTINCT ar.publications_id as pub_id
+          SELECT ar.publications_id as pub_id
           FROM authors_rels ar
           JOIN authors a ON a.id = ar.parent_id
-          WHERE lower(a.family_name) = $1 AND ar.path = 'publications'
+          JOIN publications p ON p.id = ar.publications_id
+          WHERE lower(a.family_name) = $1 AND upper(left(coalesce(a.given_name, a.display_name), 1)) = $2
+            AND ar.path = 'publications'
+          GROUP BY ar.publications_id, p.year
+          ORDER BY p.year DESC NULLS LAST, ar.publications_id DESC
           LIMIT 10
-        `, [familyName])
+        `, [familyName, initial])
 
         for (const p of pubs) {
           if (!dryRun) {
@@ -108,7 +120,7 @@ async function main() {
 
     // Signal 3: Shared entities (≥3 shared) — bulk query
     console.log('\n--- Signal 3: Shared entities ---')
-    const { rows: entityLinks } = await db.query(`
+    const { rows: entityLinks } = !signals.has('entity') ? { rows: [] as any[] } : await db.query(`
       SELECT em1.item_id as story_id, em2.item_id as pub_id, count(*) as shared
       FROM entity_mentions em1
       JOIN entity_mentions em2 ON em2.entity_type = em1.entity_type AND em2.entity_id = em1.entity_id
