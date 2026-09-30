@@ -19,6 +19,9 @@ const dryRun = process.argv.includes('--dry-run')
 // --signals=title,researcher skips the shared-entity signal: once places were
 // resolved densely (2026-09-28), "≥3 shared entities" (Colorado, Gunnison, Crested
 // Butte…) matched 282K story–paper pairs, mostly noise. Default: all three.
+// Quoted in nearly every RMBL story in an institutional role (executive director),
+// so their papers say nothing about the story (Ian, 2026-09-30).
+const EXCLUDED_RESEARCHERS = new Set(['billick'])
 const signals = new Set((process.argv.find((a) => a.startsWith('--signals='))?.split('=')[1] ?? 'title,researcher,entity').split(','))
 
 async function main() {
@@ -86,6 +89,7 @@ async function main() {
         const familyName = words.length >= 2 ? words[words.length - 1].toLowerCase() : ''
         const initial = words[0]?.[0]?.toUpperCase() ?? ''
         if (!familyName || familyName.length < 3 || !initial) continue
+        if (EXCLUDED_RESEARCHERS.has(familyName)) continue
 
         // Find publications by this researcher — surname AND first initial: surname
         // alone linked "Katie Adler" stories to Lynn Adler's nectar papers (2026-09-28).
