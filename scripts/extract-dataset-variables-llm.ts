@@ -114,8 +114,18 @@ async function syncToNeon() {
               embedding::text AS embedding
        FROM datasets WHERE gcmd_variables IS NOT NULL`,
     )
-    console.log(`Syncing ${rows.length} extracted rows to Neon`)
+    console.log(`Syncing ${rows.length} extracted rows to Neon${dryRun ? ' (dry-run — matching only)' : ''}`)
     let byDoi = 0, byTitle = 0, missed = 0
+    // --dry-run used to be ignored here, so a "dry run" rewrote production (2026-10-07).
+    if (dryRun) {
+      for (const r of rows) {
+        if (r.doi && (await neon.query(`SELECT 1 FROM datasets WHERE lower(doi) = lower($1)`, [r.doi])).rowCount) { byDoi++; continue }
+        if ((await neon.query(`SELECT 1 FROM datasets WHERE lower(title) = lower($1)`, [r.title])).rowCount) byTitle++
+        else missed++
+      }
+      console.log(`[dry-run] would update: ${byDoi} by DOI, ${byTitle} by title; ${missed} unmatched on Neon`)
+      return
+    }
     for (const r of rows) {
       let res = { rowCount: 0 } as { rowCount: number | null }
       if (r.doi) {

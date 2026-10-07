@@ -62,14 +62,19 @@ async function main() {
       continue
     }
 
+    // DELETE + INSERT + parent restore in one transaction: a failure leaves Neon's
+    // previous rows in place instead of a half-empty table.
+    const tx = await neonDb.connect()
+    try {
+    await tx.query('BEGIN')
     // For places: NULL out parent_place_id to avoid self-referencing FK during delete
     if (table === 'places') {
-      await neonDb.query('UPDATE places SET parent_place_id = NULL WHERE parent_place_id IS NOT NULL')
+      await tx.query('UPDATE places SET parent_place_id = NULL WHERE parent_place_id IS NOT NULL')
       console.log('  Cleared parent_place_id on Neon')
     }
 
     // Delete all on Neon
-    await neonDb.query(`DELETE FROM ${table}`)
+    await tx.query(`DELETE FROM ${table}`)
     console.log(`  Deleted ${neonCount} rows on Neon`)
 
     // Fetch all local rows — for places, NULL out parent_place_id for initial insert
@@ -88,7 +93,7 @@ async function main() {
       }
       if (parentValues.size > 0) console.log(`  Deferred ${parentValues.size} parent references for post-insert update`)
     }
-    if (localRows.length === 0) { console.log('  No local rows'); continue }
+    if (localRows.length === 0) throw new Error(`${table}: no local rows — refusing to empty Neon`)
 
     const columns = Object.keys(localRows[0])
     const jsonbCols = await getJsonbCols(localDb, table)
@@ -110,21 +115,12 @@ async function main() {
         }
       }
       try {
-        await neonDb.query(`INSERT INTO ${table} (${columns.join(', ')}) VALUES ${valueSets.join(', ')}`, allValues)
+        await tx.query(`INSERT INTO ${table} (${columns.join(', ')}) VALUES ${valueSets.join(', ')}`, allValues)
         inserted += batch.length
       } catch (err: any) {
-        console.log(`  Batch ${Math.floor(i / BATCH) + 1} error: ${err.message?.slice(0, 120)}`)
-        // Fall back to row-by-row
-        for (const row of batch) {
-          const ph = columns.map((_, ci) => `$${ci + 1}`).join(', ')
-          const vals = columns.map((c) => { const v = row[c]; return jsonbCols.has(c) && v !== null ? JSON.stringify(v) : v })
-          try {
-            await neonDb.query(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${ph})`, vals)
-            inserted++
-          } catch (rowErr: any) {
-            console.log(`    Row ${row.id} error: ${rowErr.message?.slice(0, 100)}`)
-          }
-        }
+        // Inside the transaction a failed statement aborts everything, so a row-by-row
+        // fallback can't work — fail the table and roll back (Neon keeps its old rows).
+        throw new Error(`${table} batch ${Math.floor(i / BATCH) + 1}: ${err.message}`)
       }
       if ((i + BATCH) % 2000 === 0 || i + BATCH >= localRows.length) {
         process.stdout.write(`\r  Inserted ${inserted}/${localRows.length}`)
@@ -142,7 +138,7 @@ async function main() {
         const ids = batch.map(([id]) => id)
         const parents = batch.map(([, p]) => p)
         try {
-          await neonDb.query(
+          await tx.query(
             `UPDATE ${table} SET ${parentField} = t.parent_id
              FROM unnest($1::int[], $2::int[]) AS t(id, parent_id)
              WHERE ${table}.id = t.id`,
@@ -150,19 +146,26 @@ async function main() {
           )
           parentUpdated += batch.length
         } catch (err: any) {
-          console.log(`    Parent batch error: ${err.message?.slice(0, 100)}`)
+          throw new Error(`${table} parent batch: ${err.message}`)
         }
       }
       console.log(`  Updated ${parentUpdated} parent references`)
     }
 
     // Reset sequence
-    try {
-      await neonDb.query(`SELECT setval('${table}_id_seq', (SELECT COALESCE(MAX(id), 1) FROM ${table}))`)
-    } catch { /* sequence may not exist */ }
+    // (pg_get_serial_sequence: a missing sequence must not abort the transaction)
+    await tx.query(`SELECT setval(seq, (SELECT COALESCE(MAX(id), 1) FROM ${table})) FROM (SELECT pg_get_serial_sequence('${table}', 'id') AS seq) s WHERE seq IS NOT NULL`)
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
     console.log(`\r  Inserted ${inserted}/${localRows.length} (${elapsed}s)`)
+    await tx.query('COMMIT')
+    } catch (err) {
+      await tx.query('ROLLBACK')
+      throw err
+    } finally {
+      tx.release()
+    }
+
 
     // Verify
     const { rows: [{ n: finalCount }] } = await neonDb.query(`SELECT count(*)::int as n FROM ${table}`)

@@ -78,8 +78,16 @@ async function main() {
     // to stories only, which left publication/document/dataset mentions
     // stranded local-only).
     console.log('\n--- Entity mentions (all collections) ---')
-    await neon.query('TRUNCATE entity_mentions RESTART IDENTITY')
-    const { rows: mentions } = await local.query('SELECT * FROM entity_mentions ORDER BY id')
+    // One transaction: a failure mid-insert must not leave production with an
+    // empty table (TRUNCATE then batched INSERTs). Oral-history stories are
+    // local-only until release forms are confirmed — their mentions stay local.
+    const tx = await neon.connect()
+    try {
+    await tx.query('BEGIN')
+    await tx.query('TRUNCATE entity_mentions RESTART IDENTITY')
+    const { rows: mentions } = await local.query(`SELECT * FROM entity_mentions
+       WHERE NOT (collection = 'stories' AND item_id IN (SELECT id FROM stories WHERE story_type = 'oral_history'))
+       ORDER BY id`)
     const emCols = mentions.length > 0 ? Object.keys(mentions[0]) : []
     for (let i = 0; i < mentions.length; i += BATCH) {
       const batch = mentions.slice(i, i + BATCH)
@@ -93,12 +101,19 @@ async function main() {
           allVals.push(c === 'metadata' && v ? JSON.stringify(v) : v ?? null)
         }
       }
-      await neon.query(`INSERT INTO entity_mentions (${emCols.join(',')}) VALUES ${valueSets.join(',')}`, allVals)
+      await tx.query(`INSERT INTO entity_mentions (${emCols.join(',')}) VALUES ${valueSets.join(',')}`, allVals)
     }
     const byColl = mentions.reduce((acc: Record<string, number>, m: any) => {
       acc[m.collection] = (acc[m.collection] ?? 0) + 1; return acc
     }, {})
-    console.log(`  ${mentions.length} entity mentions: ${Object.entries(byColl).map(([k,v]) => `${k}=${v}`).join(', ')}`)
+    await tx.query('COMMIT')
+    console.log(`  ${mentions.length} entity mentions: ${Object.entries(byColl).map(([k,v]) => `${k}=${v}`).join(', ')} (oral histories excluded)`)
+    } catch (err) {
+      await tx.query('ROLLBACK')
+      throw err
+    } finally {
+      tx.release()
+    }
     }
 
     if (sections.has('projects_rels')) {
@@ -133,9 +148,12 @@ async function main() {
       LEFT JOIN datasets ds ON ds.id = r.datasets_id
       LEFT JOIN documents doc ON doc.id = r.documents_id
       ORDER BY r.id`)
-    await neon.query('TRUNCATE projects_rels RESTART IDENTITY')
     let ok = 0
     let unmapped = 0
+    const prTx = await neon.connect() // TRUNCATE + inserts in one transaction
+    try {
+    await prTx.query('BEGIN')
+    await prTx.query('TRUNCATE projects_rels RESTART IDENTITY')
     for (const l of links) {
       const projectId = nProjects.get(l.project_name?.toLowerCase())
       let col: string | null = null
@@ -144,11 +162,18 @@ async function main() {
       else if (l.ds_doi || l.ds_title) { col = 'datasets_id'; itemId = nData.get(keyOf(l.ds_doi, l.ds_title)!) }
       else if (l.doc_url || l.doc_title) { col = 'documents_id'; itemId = nDocs.get(l.doc_url ?? `t:${l.doc_title.toLowerCase()}`) }
       if (!projectId || !col || !itemId) { unmapped++; continue }
-      await neon.query(
+      await prTx.query(
         `INSERT INTO projects_rels (parent_id, path, "order", ${col}) VALUES ($1, $2, $3, $4)`,
         [projectId, l.path, l.order, itemId],
       )
       ok++
+    }
+    await prTx.query('COMMIT')
+    } catch (err) {
+      await prTx.query('ROLLBACK')
+      throw err
+    } finally {
+      prTx.release()
     }
     console.log(`  ${ok} assignments synced, ${unmapped} unmappable (missing counterpart on Neon)`)
     }
@@ -472,9 +497,15 @@ async function main() {
     // reference IDs that need to be stable across local ↔ Neon. We rely on
     // sync-databases.ts having pushed the parent collections first.
     console.log('\n--- References cited ---')
-    await neon.query('TRUNCATE references_cited RESTART IDENTITY CASCADE')
+    const tx = await neon.connect()
+    try {
+    await tx.query('BEGIN')
+    await tx.query('TRUNCATE references_cited RESTART IDENTITY CASCADE')
 
-    const { rows: refs } = await local.query('SELECT * FROM references_cited ORDER BY id')
+    // Oral-history stories don't exist on Neon (FK) and stay private.
+    const { rows: refs } = await local.query(`SELECT * FROM references_cited
+       WHERE source_story_id IS NULL OR source_story_id NOT IN (SELECT id FROM stories WHERE story_type = 'oral_history')
+       ORDER BY id`)
     if (refs.length > 0) {
       const cols = Object.keys(refs[0])
       for (let i = 0; i < refs.length; i += BATCH) {
@@ -486,10 +517,17 @@ async function main() {
           valueSets.push('(' + cols.map((_, j) => `$${offset + j + 1}`).join(',') + ')')
           for (const c of cols) allVals.push(row[c] ?? null)
         }
-        await neon.query(`INSERT INTO references_cited (${cols.join(',')}) VALUES ${valueSets.join(',')}`, allVals)
+        await tx.query(`INSERT INTO references_cited (${cols.join(',')}) VALUES ${valueSets.join(',')}`, allVals)
       }
     }
+    await tx.query('COMMIT')
     console.log(`  ${refs.length} references_cited rows`)
+    } catch (err) {
+      await tx.query('ROLLBACK')
+      throw err
+    } finally {
+      tx.release()
+    }
     }
 
     // 5. Reset sequences
@@ -544,9 +582,12 @@ async function main() {
       if (nid) idMap.set(d.id, nid)
     }
 
-    await neon.query('TRUNCATE dataset_reuse_events')
-    const { rows: events } = await local.query('SELECT * FROM dataset_reuse_events ORDER BY id')
+    const evTx = await neon.connect() // TRUNCATE + inserts in one transaction
     let evSynced = 0, evUnmapped = 0
+    try {
+    await evTx.query('BEGIN')
+    await evTx.query('TRUNCATE dataset_reuse_events')
+    const { rows: events } = await local.query('SELECT * FROM dataset_reuse_events ORDER BY id')
     for (let i = 0; i < events.length; i += BATCH) {
       const batch = events.slice(i, i + BATCH).filter((e) => {
         if (!idMap.has(e.dataset_id)) { evUnmapped++; return false }
@@ -562,8 +603,15 @@ async function main() {
         valueSets.push('(' + cols.map((_, j) => `$${offset + j + 1}`).join(',') + ')')
         for (const c of cols) allVals.push(c === 'dataset_id' ? idMap.get(e.dataset_id) : e[c] ?? null)
       }
-      await neon.query(`INSERT INTO dataset_reuse_events (${cols.join(',')}) VALUES ${valueSets.join(',')} ON CONFLICT DO NOTHING`, allVals)
+      await evTx.query(`INSERT INTO dataset_reuse_events (${cols.join(',')}) VALUES ${valueSets.join(',')} ON CONFLICT DO NOTHING`, allVals)
       evSynced += batch.length
+    }
+    await evTx.query('COMMIT')
+    } catch (err) {
+      await evTx.query('ROLLBACK')
+      throw err
+    } finally {
+      evTx.release()
     }
     console.log(`  ${evSynced} events (${evUnmapped} unmapped)`)
 
