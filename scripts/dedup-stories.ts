@@ -1,10 +1,12 @@
 /**
  * Deduplicate stories in the database.
  *
- * Three passes:
+ * Four passes:
  *   1. Remove non-relevant articles (calendars, legals, agendas, market reports)
  *   2. Remove exact title duplicates (keep longest full_text, then lowest id)
  *   3. Remove syndication near-duplicates (trigram similarity >0.85, keep longest text)
+ *   4. Remove texts with no RMBL marker (RMBL / Gothic / biological laboratory / OnlyMarms /
+ *      OnlyFans / Fat Marmot), except source_urls in scripts/data/story-relevance-keep.json
  *
  * Requires pg_trgm extension for similarity().
  *
@@ -12,10 +14,12 @@
  *   npx tsx scripts/dedup-stories.ts [--dry-run]
  */
 
+import { existsSync, readFileSync } from 'fs'
 import pg from 'pg'
 import './lib/config.js'
 
 const dryRun = process.argv.includes('--dry-run')
+const KEEP_FILE = 'scripts/data/story-relevance-keep.json'
 
 // Titles/patterns that are never relevant to RMBL
 const EXCLUDE_TITLES = [
@@ -62,6 +66,9 @@ async function main() {
     const { rows: ohRows } = await db.query(`SELECT id FROM stories WHERE story_type = 'oral_history'`)
     const protectedIds = new Set<number>(ohRows.map((r: any) => r.id))
     const unprotected = <T extends { id: number }>(rows: T[]) => rows.filter((r) => !protectedIds.has(r.id))
+    // Articles a human reviewed as relevant (LLM relevance screen + review) keep pass 4
+    // from deleting them — e.g. OnlyMarms coverage in other languages, Billy Barr's snow record.
+    const keepUrls: string[] = existsSync(KEEP_FILE) ? JSON.parse(readFileSync(KEEP_FILE, 'utf-8')).sourceUrls ?? [] : []
 
     // Pass 1: Remove non-relevant articles by exact title or pattern
     const { rows: pass1All } = await db.query(`
@@ -124,11 +131,15 @@ async function main() {
       SELECT id, title, length(full_text) as text_len
       FROM stories
       WHERE full_text IS NOT NULL
+        AND NOT (coalesce(source_url, '') = ANY($1))
+        -- the 2026 marmot fundraiser went viral without naming RMBL. Not a bare
+        -- "yellow-bellied marmot": that kept unrelated stories (a 2021 stowaway marmot).
+        AND lower(full_text) !~ '(onlymarms|onlyfans|fat marmot)'
         AND (length(full_text) - length(replace(lower(full_text), 'rmbl', ''))) / 4 = 0
         AND (length(full_text) - length(replace(lower(full_text), 'rocky mountain biological', ''))) / 25 = 0
         AND (length(full_text) - length(replace(lower(full_text), 'gothic', ''))) / 6 = 0
         AND lower(full_text) NOT LIKE '%biological laboratory%'
-    `)
+    `, [keepUrls])
     const pass4 = unprotected(pass4All)
     console.log(`\nPass 4 — Likely research papers or tangential long texts: ${pass4.length} articles`)
     if (pass4.length > 0 && !dryRun) {

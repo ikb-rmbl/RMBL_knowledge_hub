@@ -16,15 +16,30 @@
  *
  * Usage:
  *   npx tsx scripts/backfill-species-mentions.ts [--dry-run] [--limit=N]
+ *   npx tsx scripts/backfill-species-mentions.ts --prune-unsupported [--since=YYYY-MM-DD] [--dry-run]
  */
 
+import { mkdirSync, writeFileSync } from 'fs'
+import { dirname } from 'path'
 import pg from 'pg'
-import './lib/config.js'
+import { OUTPUT_DIR } from './lib/config.js'
+import { specificTerms } from './lib/species-terms.js'
 
 const args = process.argv.slice(2)
+// Unknown flags used to be ignored, so `--help` ran a live backfill (2026-09-28).
+const unknown = args.filter((a) => a !== '--dry-run' && a !== '--prune-unsupported' && !a.startsWith('--limit=') && !a.startsWith('--since='))
+if (unknown.length) {
+  console.error(`Unknown argument(s): ${unknown.join(' ')}\nUsage: npx tsx scripts/backfill-species-mentions.ts [--dry-run] [--limit=N] | --prune-unsupported [--since=YYYY-MM-DD] [--dry-run]`)
+  process.exit(1)
+}
 const dryRun = args.includes('--dry-run')
 const limitArg = args.find((a) => a.startsWith('--limit='))?.split('=')[1]
 const speciesLimit = limitArg ? parseInt(limitArg) : Infinity
+// --prune-unsupported: delete text_match species mentions the current terms no
+// longer produce (earlier runs linked every species of a genus to every paper
+// naming the genus). Backs the rows up to CSV first; --since limits by created_at.
+const pruneUnsupported = args.includes('--prune-unsupported')
+const since = args.find((a) => a.startsWith('--since='))?.split('=')[1] ?? null
 
 // Conservative term selection: only emit terms that are specific enough to
 // produce few false-positive matches. Generic single-word common names like
@@ -44,67 +59,6 @@ const speciesLimit = limitArg ? parseInt(limitArg) : Infinity
 const COLLECTIONS = ['publications', 'documents', 'datasets', 'stories'] as const
 type Collection = typeof COLLECTIONS[number]
 
-function isMultiWord(s: string): boolean {
-  return /\S+\s+\S/.test(s)
-}
-function isCapitalizedSingle(s: string): boolean {
-  return /^[A-Z][a-z]+$/.test(s) && s.length >= 6
-}
-/** Returns true for tokens that are too generic to anchor a species
- *  match: single letters (the "A" in "Species A"), or generic Latin
- *  placeholders ("sp.", "spp.", "species") that mean "an unspecified
- *  member of this genus" and therefore don't identify the species. */
-function isJunkSecondToken(t: string): boolean {
-  const norm = t.toLowerCase().replace(/\.$/, '')
-  if (norm.length === 1) return true
-  if (['sp', 'spp', 'species'].includes(norm)) return true
-  return false
-}
-function isLatinBinomial(s: string): boolean {
-  const m = /^([A-Z][a-z]+)\s+([a-z]\S*)/.exec(s)
-  if (!m) return false
-  // Reject "Bombus sp", "Bombus spp.", "Bombus species" — they're
-  // genus-level shorthand and would match every paper that mentions any
-  // member of the genus generically.
-  return !isJunkSecondToken(m[2])
-}
-/** Reject "Species A", "Species B", "Genus X" etc — the LLM extracts these
- *  as synonyms when papers use letter codes for unnamed species in
- *  comparison tables. The text search would then hit every paper that
- *  uses the same phrase for any of its own unnamed species. */
-function isPlaceholderPhrase(s: string): boolean {
-  const tokens = s.trim().split(/\s+/)
-  if (tokens.length !== 2) return false
-  // Second token is a single uppercase letter (Species A / B / C)
-  if (/^[A-Z]$/.test(tokens[1])) return true
-  // Second token is sp / spp / species — covered by isLatinBinomial but
-  // also catches "Genus sp" where the genus arrived via common_names.
-  if (isJunkSecondToken(tokens[1])) return true
-  return false
-}
-
-function termsFor(species: { canonical_name: string; common_names: string[] | null; synonyms: string[] | null }): string[] {
-  const out = new Set<string>()
-  // `allowSingleCap` controls whether `isCapitalizedSingle` applies. Latin
-  // genus names ("Marmota") arrive via canonical_name and synonyms, so we
-  // accept them there. Common-name fields can hold capitalized English
-  // words ("Beaver", "Marmots") — tsvector is case-insensitive so those
-  // would over-match every mention regardless of case. Skip them.
-  const consider = (t: string | null | undefined, allowSingleCap: boolean) => {
-    const s = (t || '').trim()
-    if (!s) return
-    if (isPlaceholderPhrase(s)) return    // "Species A", "Bombus sp."
-    if (isLatinBinomial(s)) { out.add(s); return }
-    if (isMultiWord(s) && s.length >= 8) { out.add(s); return }
-    if (allowSingleCap && isCapitalizedSingle(s)) { out.add(s); return }
-    // Otherwise: too generic to use as a backfill term.
-  }
-  consider(species.canonical_name, true)
-  for (const cn of species.common_names || []) consider(cn, false)
-  for (const syn of species.synonyms || []) consider(syn, true)
-  return Array.from(out)
-}
-
 async function main() {
   console.log('Backfill species → mentions via text search')
   console.log('===========================================')
@@ -122,6 +76,15 @@ async function main() {
     ${Number.isFinite(speciesLimit) ? `LIMIT ${speciesLimit}` : ''}
   `)
   console.log(`  ${speciesList.length} species to process`)
+  // Term uniqueness is judged against the whole registry, not just this (possibly --limit'ed) list.
+  const { rows: allSpecies } = await db.query(`SELECT id, canonical_name, scientific_name, common_names, synonyms, mention_count FROM species WHERE canonical_name IS NOT NULL`)
+  const termsById = specificTerms(allSpecies)
+
+  if (pruneUnsupported) {
+    await pruneUnsupportedMentions(db, termsById)
+    await db.end()
+    return
+  }
 
   let totalInserted = 0
   let totalSkippedExisting = 0
@@ -131,7 +94,7 @@ async function main() {
 
   for (let i = 0; i < speciesList.length; i++) {
     const sp = speciesList[i]
-    const terms = termsFor(sp)
+    const terms = termsById.get(sp.id) ?? []
     if (terms.length === 0) {
       totalSkippedNoTerms++
       continue
@@ -217,6 +180,56 @@ async function main() {
   for (const c of COLLECTIONS) console.log(`    ${c.padEnd(13)} ${perCollection[c]}`)
 
   await db.end()
+}
+
+async function pruneUnsupportedMentions(db: pg.Pool, termsById: Map<number, string[]>) {
+  const { rows } = await db.query(
+    `SELECT id, entity_id, collection, item_id, role, confidence, extraction_method, created_at FROM entity_mentions
+      WHERE entity_type = 'species' AND extraction_method = 'text_match' ${since ? 'AND created_at >= $1' : ''}`,
+    since ? [since] : [],
+  )
+  console.log(`  ${rows.length} text_match species mentions${since ? ` since ${since}` : ''} to check`)
+  const bySpecies = new Map<number, typeof rows>()
+  for (const r of rows) {
+    if (!bySpecies.has(r.entity_id)) bySpecies.set(r.entity_id, [])
+    bySpecies.get(r.entity_id)!.push(r)
+  }
+  const unsupported: typeof rows = []
+  for (const [sid, rs] of bySpecies) {
+    const terms = termsById.get(sid) ?? []
+    for (const collection of COLLECTIONS) {
+      const mine = rs.filter((r) => r.collection === collection)
+      if (!mine.length) continue
+      let ok = new Set<number>()
+      if (terms.length) {
+        const cond = terms.map((_, i) => `search_vector @@ phraseto_tsquery('english', $${i + 2})`).join(' OR ')
+        const { rows: hit } = await db.query(`SELECT id FROM ${collection} WHERE id = ANY($1) AND (${cond})`, [mine.map((r) => r.item_id), ...terms])
+        ok = new Set(hit.map((h) => h.id))
+      }
+      unsupported.push(...mine.filter((r) => !ok.has(r.item_id)))
+    }
+  }
+  const perSpecies = new Map<number, number>()
+  for (const r of unsupported) perSpecies.set(r.entity_id, (perSpecies.get(r.entity_id) ?? 0) + 1)
+  const { rows: names } = await db.query(`SELECT id, canonical_name FROM species WHERE id = ANY($1)`, [[...perSpecies.keys()]])
+  const nameOf = new Map(names.map((n) => [n.id, n.canonical_name]))
+  console.log(`  ${unsupported.length} unsupported (${rows.length - unsupported.length} still match). Top:`)
+  for (const [id, n] of [...perSpecies].sort((a, b) => b[1] - a[1]).slice(0, 15)) console.log(`    ${String(n).padStart(5)}  ${nameOf.get(id)}`)
+  if (dryRun || unsupported.length === 0) { if (dryRun) console.log('  (dry run — nothing deleted)'); return }
+
+  const backup = `${OUTPUT_DIR}/backups/species-text-match-pruned-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '')}.csv`
+  mkdirSync(dirname(backup), { recursive: true })
+  const cols = ['id', 'entity_id', 'collection', 'item_id', 'role', 'confidence', 'extraction_method', 'created_at'] as const
+  writeFileSync(backup, [cols.join(','), ...unsupported.map((r) => cols.map((c) => (c === 'created_at' ? new Date(r[c]).toISOString() : r[c])).join(','))].join('\n') + '\n')
+  await db.query('DELETE FROM entity_mentions WHERE id = ANY($1::int[])', [unsupported.map((r) => r.id)])
+  await db.query(
+    `UPDATE species s SET
+       mention_count = (SELECT count(*)::int FROM entity_mentions WHERE entity_type='species' AND entity_id = s.id),
+       publication_count = (SELECT count(DISTINCT item_id)::int FROM entity_mentions WHERE entity_type='species' AND entity_id = s.id AND collection = 'publications')
+     WHERE s.id = ANY($1::int[])`,
+    [[...perSpecies.keys()]],
+  )
+  console.log(`  deleted ${unsupported.length} mentions (backup: ${backup}); rollups recomputed on ${perSpecies.size} species`)
 }
 
 main().catch((err) => { console.error(err); process.exit(1) })

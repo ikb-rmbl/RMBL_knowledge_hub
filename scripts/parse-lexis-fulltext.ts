@@ -6,21 +6,24 @@
  *
  * Usage:
  *   pdftotext "Files (300).PDF" /tmp/lexis-fulltext.txt
- *   npx tsx scripts/parse-lexis-fulltext.ts /tmp/lexis-fulltext.txt [original-pdf-for-links]
+ *   npx tsx scripts/parse-lexis-fulltext.ts /tmp/lexis-fulltext.txt [original-pdf-for-links] [--out=path.json]
  */
 
 import { readFileSync, writeFileSync } from 'fs'
 import { execSync } from 'child_process'
 import './lib/config.js'
 
-const inputFile = process.argv[2]
-const pdfFile = process.argv[3] // optional: original PDF for link extraction
+const positional = process.argv.slice(2).filter((a) => !a.startsWith('--'))
+const inputFile = positional[0]
+const pdfFile = positional[1] // optional: original PDF for link extraction
 if (!inputFile) {
   console.error('Usage: npx tsx scripts/parse-lexis-fulltext.ts <text-file> [original-pdf-for-links]')
   process.exit(1)
 }
 
-const OUTPUT_FILE = 'scripts/output/lexis-fulltext-articles.json'
+// Default overwrites the cache load-stories reads — pass --out= for a new export batch
+// and merge deliberately, or the previous batch's articles are lost (2026-09-27).
+const OUTPUT_FILE = process.argv.find((a) => a.startsWith('--out='))?.split('=')[1] ?? 'scripts/output/lexis-fulltext-articles.json'
 
 interface LexisArticle {
   title: string
@@ -110,8 +113,25 @@ function main() {
       }
     }
 
-    // Find publication (short line after the repeated title, before date)
-    for (let j = 0; j < headerLines.length; j++) {
+    // Lexis prints the title twice (each copy wrapped independently), then the
+    // publication line — so find the shortest prefix that repeats (whitespace-
+    // normalized) and take the next line as the publication. The heuristic below
+    // misread wrapped titles as publications ("This Week?; Contests", "Trump"), so
+    // it is only the fallback. (Datelines can't anchor this: they're localized.)
+    const norm = (ls: string[]) => ls.join(' ').replace(/\s+/g, ' ').trim()
+    for (let k = 1; k <= Math.min(4, headerLines.length - 2) && !publication; k++) {
+      const first = norm(headerLines.slice(0, k))
+      for (let m = k + 1; m < headerLines.length; m++) {
+        const second = norm(headerLines.slice(k, m))
+        if (second.length > first.length) break
+        if (second === first) {
+          title = first
+          publication = headerLines[m]
+          break
+        }
+      }
+    }
+    for (let j = 0; j < headerLines.length && !publication; j++) {
       const line = headerLines[j]
       if (line === title || line.startsWith(title.slice(0, 15))) continue
       if (line.match(/^[A-Z][a-z]+ \d{1,2},?\s*\d{4}/)) break

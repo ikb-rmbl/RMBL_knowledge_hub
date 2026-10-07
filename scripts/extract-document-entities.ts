@@ -99,6 +99,8 @@ Important:
 // Claude API call
 // ---------------------------------------------------------------------------
 
+// Join ALL text blocks: a thinking-capable model's first block can be a
+// thinking block, and reading content[0] silently returned '' (fixed 2026-09-27).
 async function callClaude(docText: string, title: string): Promise<any | null> {
   const MAX_RETRIES = 3
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
@@ -138,7 +140,7 @@ async function callClaude(docText: string, title: string): Promise<any | null> {
     }
 
     const data = await res.json()
-    const text = data.content?.[0]?.text || ''
+    const text = (data.content ?? []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('') || ''
     const inputTokens = data.usage?.input_tokens || 0
     const outputTokens = data.usage?.output_tokens || 0
 
@@ -279,9 +281,12 @@ async function main() {
     let results: any[] = []
     const processedIds = new Set<number>()
     if (existsSync(RESULTS_PATH)) {
-      results = JSON.parse(readFileSync(RESULTS_PATH, 'utf-8'))
+      // Errored entries (e.g. a retired model's 404) are dropped so they get
+      // retried; otherwise resume treats them as done forever.
+      const all: any[] = JSON.parse(readFileSync(RESULTS_PATH, 'utf-8'))
+      results = all.filter((r) => !r.strategy3?.error)
       for (const r of results) processedIds.add(r.id)
-      console.log(`Resuming: ${processedIds.size} already processed`)
+      console.log(`Resuming: ${processedIds.size} already processed${all.length > results.length ? ` (${all.length - results.length} errored — retrying)` : ''}`)
     }
 
     const remaining = documents.filter((d) => !processedIds.has(d.id)).slice(0, limit)

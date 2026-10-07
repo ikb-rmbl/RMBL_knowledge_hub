@@ -77,7 +77,7 @@ async function findByEmbedding(
     const { rows } = await db.query(
       `SELECT id, 1 - (embedding <=> $1::vector) as sim
        FROM ${table}
-       WHERE embedding IS NOT NULL AND 1 - (embedding <=> $1::vector) > $2
+       WHERE embedding IS NOT NULL AND 1 - (embedding <=> $1::vector) > $2 ${table === 'publications' ? RMBL_ONLY : ''}
        ORDER BY embedding <=> $1::vector
        LIMIT 50`,
       [embStr, threshold],
@@ -95,21 +95,33 @@ async function findByEmbedding(
   return candidates
 }
 
+// Project pages list RMBL research; discovered papers that are unreviewed or
+// reviewed "no" (and PI-surname collisions among them) must not attach (2026-09-28).
+const RMBL_ONLY = "AND rmbl_research = 'yes'"
+
+/** "Dan Blumstein, Kenneth Armitage" → [{D, Blumstein}, {K, Armitage}]. */
+export function parsePis(pi: string | null | undefined): { initial: string; family: string }[] {
+  return (pi || '')
+    .split(/,|;|\s+and\s+|\s*&\s*/i)
+    .map((n) => n.trim().split(/\s+/).filter(Boolean))
+    .filter((w) => w.length >= 2 && w[w.length - 1].length >= 2)
+    .map((w) => ({ initial: w[0][0].toUpperCase(), family: w[w.length - 1] }))
+}
+
 async function findByAuthor(
   db: pg.Pool,
-  piFamilyName: string,
+  pi: { initial: string; family: string },
 ): Promise<Candidate[]> {
-  if (!piFamilyName || piFamilyName.length < 2) return []
-
   const candidates: Candidate[] = []
 
-  // Find publications where PI is an author
+  // Surname AND first initial: surname alone gave "Rick Williams" every paper by
+  // Ken Williams (Watershed SFA).
   const { rows: pubs } = await db.query(
     `SELECT DISTINCT p.id FROM publications p
      JOIN publications_authors pa ON pa.\"_parent_id\" = p.id
-     WHERE pa.family ILIKE $1
+     WHERE pa.family ILIKE $1 AND upper(left(pa.given, 1)) = $2 ${RMBL_ONLY.replace('rmbl_research', 'p.rmbl_research')}
      LIMIT 200`,
-    [piFamilyName],
+    [pi.family, pi.initial],
   )
   for (const row of pubs) {
     candidates.push({
@@ -139,7 +151,7 @@ async function findByTextMention(
       try {
         const { rows } = await db.query(
           `SELECT id FROM ${table}
-           WHERE search_vector @@ to_tsquery('english', $1)
+           WHERE search_vector @@ to_tsquery('english', $1) ${table === 'publications' ? RMBL_ONLY : ''}
            LIMIT 30`,
           [tsQuery],
         )
@@ -251,11 +263,13 @@ async function main() {
     }
 
     // Signal 2: Author matching
-    const piFamilyName = project.pi?.split(/\s+/).pop() || ''
-    if (piFamilyName.length >= 2) {
-      const authorCandidates = await findByAuthor(db, piFamilyName)
-      allCandidates.push(...authorCandidates)
+    // Every listed PI, not just the last word of the field
+    // (one author signal per paper — scores are summed, and two PIs co-authoring must not double it)
+    const byAuthor = new Map<number, Candidate>()
+    for (const pi of parsePis(project.pi)) {
+      for (const c of await findByAuthor(db, pi)) byAuthor.set(c.id, c)
     }
+    allCandidates.push(...byAuthor.values())
 
     // Signal 3: Text mentions
     const searchTerms = [

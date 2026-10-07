@@ -38,7 +38,7 @@
 import { readFileSync } from 'fs'
 import pg from 'pg'
 import './lib/config.js'
-import { buildResolvers, type EntityType } from './lib/entity-name-match.js'
+import { buildResolvers, resolveSpeciesRef, type EntityType } from './lib/entity-name-match.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
@@ -72,7 +72,7 @@ async function main() {
       for (const s of r.species ?? []) {
         const raw = s.scientificName || s.commonName
         if (!raw) continue
-        const id = species(s.scientificName) ?? species(s.commonName)
+        const id = resolveSpeciesRef(species, s)
         cands.push({ type: 'species', storyId: r.id, rawName: raw, attrs: s, role: s.role || 'mentioned', entityId: id })
       }
       for (const p of r.places ?? []) {

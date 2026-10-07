@@ -86,6 +86,8 @@ Important:
 // Claude API call
 // ---------------------------------------------------------------------------
 
+// Join ALL text blocks: a thinking-capable model's first block can be a
+// thinking block, and reading content[0] silently returned '' (fixed 2026-09-27).
 async function callClaude(datasetTexts: { id: number; text: string }[]): Promise<{ id: number; extraction: any }[]> {
   const userContent = datasetTexts.map((d) =>
     `=== Dataset ${d.id} ===\n${d.text}`
@@ -102,7 +104,7 @@ async function callClaude(datasetTexts: { id: number; text: string }[]): Promise
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 8192,
+        max_tokens: 32000, // headroom for thinking-capable models (sonnet-5); a 5-dataset batch truncated at 16000
         messages: [{
           role: 'user',
           content: `${PROMPT}\n\nExtract entities from each dataset below. Return a JSON array with one object per dataset, each containing an "id" field and the entity fields described above.\n\n${userContent}`,
@@ -125,7 +127,7 @@ async function callClaude(datasetTexts: { id: number; text: string }[]): Promise
     }
 
     const data = await res.json()
-    const text = data.content?.[0]?.text || ''
+    const text = (data.content ?? []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('') || ''
 
     // Parse JSON array response
     let cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
@@ -133,7 +135,7 @@ async function callClaude(datasetTexts: { id: number; text: string }[]): Promise
       const parsed = JSON.parse(cleaned)
       const arr = Array.isArray(parsed) ? parsed : [parsed]
       return arr.map((item: any) => ({
-        id: item.id || datasetTexts[0]?.id,
+        id: Number(String(item.id).replace(/\D/g, '')) || datasetTexts[0]?.id,
         extraction: item,
       }))
     } catch {
@@ -144,12 +146,12 @@ async function callClaude(datasetTexts: { id: number; text: string }[]): Promise
         try {
           const parsed = JSON.parse(cleaned.slice(start, end + 1))
           return parsed.map((item: any) => ({
-            id: item.id || datasetTexts[0]?.id,
+            id: Number(String(item.id).replace(/\D/g, '')) || datasetTexts[0]?.id,
             extraction: item,
           }))
         } catch { /* fall through */ }
       }
-      console.log(` JSON parse failed (${text.length} chars)`)
+      console.log(` JSON parse failed (${text.length} chars, stop_reason=${data.stop_reason}): ${text.slice(0, 200)}`)
       return []
     }
   }
@@ -189,7 +191,8 @@ async function main() {
     const processedIds = new Set<number>()
     if (existsSync(RESULTS_PATH)) {
       results = JSON.parse(readFileSync(RESULTS_PATH, 'utf-8'))
-      for (const r of results) processedIds.add(r.id)
+      // Older runs stored ids as strings ("4627") — normalize or resume re-extracts them.
+      for (const r of results) processedIds.add(Number(String(r.id).replace(/\D/g, '')))
       console.log(`Resuming: ${processedIds.size} already processed`)
     }
 
@@ -252,17 +255,11 @@ async function main() {
           })
         }
 
-        // Handle datasets that didn't get a response
-        for (const d of batch) {
-          if (!extractions.find((e) => e.id === d.id) && !results.find((r) => r.id === d.id)) {
-            results.push({
-              id: d.id,
-              collection: 'datasets',
-              title: d.title,
-              strategy3: { extraction: { species: [], places: [], protocolsNamed: [], concepts: [] } },
-            })
-          }
-        }
+        // Datasets missing from the response are NOT recorded: an empty filler
+        // row marked them processed forever even when the whole batch failed to
+        // parse. Left out, they are retried on the next run.
+        const missing = batch.filter((d) => !extractions.find((e) => e.id === d.id)).map((d) => d.id)
+        if (missing.length) console.log(` no extraction returned for ${missing.join(', ')} — will retry next run`)
 
         sessionProcessed += batch.length
       } catch (err: any) {

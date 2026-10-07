@@ -45,7 +45,12 @@ const tiered = (...tiers: Map<string, number>[]): Resolve => (name) => {
 }
 
 /** Build resolvers for the given entity types against this database. */
-export async function buildResolvers(db: pg.Pool | pg.PoolClient, types: EntityType[]): Promise<Partial<Record<EntityType, Resolve>>> {
+export async function buildResolvers(
+  db: pg.Pool | pg.PoolClient,
+  types: EntityType[],
+  opts: { aliases?: boolean } = {},
+): Promise<Partial<Record<EntityType, Resolve>>> {
+  const useAliases = opts.aliases ?? true
   const q = async (sql: string) => (await db.query(sql)).rows as { id: number; name: string | null }[]
   const usage = async (type: EntityType) => new Map<number, number>(
     (await db.query(`SELECT entity_id AS id, count(*)::int AS n FROM entity_mentions WHERE entity_type = $1 GROUP BY 1`, [type])).rows.map((r: any) => [r.id, r.n]),
@@ -61,11 +66,34 @@ export async function buildResolvers(db: pg.Pool | pg.PoolClient, types: EntityT
       )
     } else {
       const table = { place: 'places', concept: 'concepts', stakeholder: 'stakeholders' }[type]
-      out[type] = tiered(
-        nameIndex(await q(`SELECT id, name FROM ${table}`), true, u),
-        nameIndex(await q(`SELECT id, unnest(aliases) AS name FROM ${table}`), false, u),
-      )
+      const primary = nameIndex(await q(`SELECT id, name FROM ${table}`), true, u)
+      out[type] = useAliases
+        ? tiered(primary, nameIndex(await q(`SELECT id, unnest(aliases) AS name FROM ${table}`), false, u))
+        : tiered(primary)
     }
   }
   return out
+}
+
+// A Latin genus/binomial ("Lestes disjunctus", "Dytiscus sp.") — as opposed to a
+// vernacular stand-in the extractor put in scientificName ("cattle", "willow").
+const LATIN_NAME = /^[A-Z][a-z]+(\s+(sp{1,2}\.?|[a-z-]+))?\b/
+
+/**
+ * Resolve an extracted species reference. The common name is only a fallback
+ * when the extractor gave no Latin name of its own: "Lestes disjunctus"
+ * (damselfly) must not resolve to whichever registry species holds the common
+ * name "damselfly" (Coenagrion mercuriale), nor "Dytiscus sp." to one species.
+ */
+export function resolveSpeciesRef(resolve: Resolve, attrs: { scientificName?: unknown; commonName?: unknown }, rawName?: unknown): number | null {
+  const names = [attrs.scientificName, rawName].map((n) => (typeof n === 'string' ? n.trim() : '')).filter(Boolean)
+  const latin = names.filter((n) => LATIN_NAME.test(n))
+  // With a Latin name present, only Latin names may resolve (a vernacular raw_name
+  // would otherwise reach the common-name tier the same way).
+  if (latin.length) {
+    for (const n of latin) { const id = resolve(n); if (id != null) return id }
+    return null
+  }
+  for (const n of [...names, attrs.commonName]) { const id = resolve(n); if (id != null) return id }
+  return null
 }

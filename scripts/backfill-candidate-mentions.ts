@@ -23,9 +23,10 @@
  *
  * Usage:
  *   npx tsx scripts/backfill-candidate-mentions.ts [--dry-run] [--type=concept|protocol]
- *     [--threshold=0.82] [--target=neon|local] [--limit=N] [--no-create]
+ *     [--threshold=0.82] [--target=neon|local] [--limit=N] [--no-create] [--matches-csv=path.csv] [--aliases]
  */
 
+import { writeFileSync } from 'fs'
 import pg from 'pg'
 import './lib/config.js'
 import { embedTexts, clusterCandidates } from './lib/embedding-cluster.js'
@@ -39,6 +40,8 @@ const limitArg = args.find((a) => a.startsWith('--limit='))?.split('=')[1]
 const LIMIT = limitArg ? parseInt(limitArg, 10) : null
 
 const noCreate = args.includes('--no-create')
+const useAliases = args.includes('--aliases')
+const matchesCsv = args.find((a) => a.startsWith('--matches-csv='))?.split('=')[1] || null
 
 const EXTRACTION_METHOD = 'cand_backfill'
 
@@ -92,6 +95,9 @@ async function main() {
     const byName = new Map<string, number>()
     for (const e of entities) {
       byName.set(e.name.toLowerCase().trim(), e.id)
+      // Aliases from past clustering runs carry bad merges ("genetic drift" is an alias of
+      // Brownian motion, "phenology" of phenological mismatch) — opt-in only.
+      if (!useAliases) continue
       for (const a of e.aliases || []) {
         const key = String(a).toLowerCase().trim()
         if (!byName.has(key)) byName.set(key, e.id)
@@ -103,7 +109,7 @@ async function main() {
       const hit = key ? byName.get(key) : undefined
       if (hit) matches.set(c.id, { entityId: hit, confidence: 1.0, how: 'name' })
     }
-    console.log(`  exact name/alias matches: ${matches.size}`)
+    console.log(`  exact name${useAliases ? '/alias' : ''} matches: ${matches.size}`)
 
     // Pass 2: embedding similarity for the rest (same text recipe as the
     // cluster scripts, matched against the stored entity embeddings)
@@ -129,6 +135,21 @@ async function main() {
         if ((i + 1) % 1000 === 0) process.stdout.write(`\r    ${i + 1}/${rest.length} (${embMatched} matched)`)
       }
       console.log(`\r    ${rest.length}/${rest.length} — embedding matches: ${embMatched}`)
+    }
+
+    if (matchesCsv) {
+      // Review aid: every proposed candidate → entity match, for spot-checking the
+      // embedding threshold before a real run.
+      const names = new Map<number, string>(entities.map((e: any) => [e.id, e.name]))
+      const q = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
+      const lines = ['type,how,sim,candidate,entity_id,entity']
+      for (const c of candidates) {
+        const m = matches.get(c.id)
+        if (m) lines.push([entityType, m.how, m.confidence.toFixed(3), q(c.raw_attributes?.name || c.raw_name), m.entityId, q(names.get(m.entityId))].join(','))
+      }
+      const path = matchesCsv.replace(/(\.csv)?$/, `-${entityType}.csv`)
+      writeFileSync(path, lines.join('\n') + '\n')
+      console.log(`  wrote ${lines.length - 1} proposed matches to ${path}`)
     }
 
     const unmatchedCands = candidates.filter((c) => !matches.has(c.id) && restEmbeddings.has(c.id))
