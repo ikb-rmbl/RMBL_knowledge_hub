@@ -454,12 +454,33 @@ export function isOffTargetPublication(opts: {
   return false
 }
 
+/**
+ * DOI prefixes of data-only repositories. Their records belong in the
+ * Datasets collection, not Publications — but OSTI's OpenAlex feed labels
+ * ESS-DIVE / ARM data packages as "article", so 2026-09 discovery imported
+ * ~94 of them as papers (most already existed as datasets). Zenodo and
+ * figshare host papers too, so they are handled by the record's own type.
+ *   10.15485 ESS-DIVE · 10.5439 ARM · 10.21952 HydroShare · 10.5061 Dryad
+ *   10.6073 EDI · 10.15121 NGDS/GDR · 10.1594 PANGAEA
+ */
+export const DATA_REPOSITORY_DOI_PREFIXES = ['10.15485/', '10.5439/', '10.21952/', '10.5061/', '10.6073/', '10.15121/', '10.1594/']
+
+export function isDataRecord(opts: { doi?: string | null; type?: string | null }): boolean {
+  const doi = (opts.doi || '').toLowerCase().replace(/^https?:\/\/(dx\.)?doi\.org\//, '')
+  if (DATA_REPOSITORY_DOI_PREFIXES.some((p) => doi.startsWith(p))) return true
+  return (opts.type || '').toLowerCase() === 'dataset'
+}
+
 export function isRelevantPublication(opts: {
   title: string
   abstract?: string
   affiliations?: string
   journal?: string
+  doi?: string | null
+  type?: string | null
 }): boolean {
+  // Data packages are datasets, however relevant.
+  if (isDataRecord({ doi: opts.doi, type: opts.type })) return false
   const title = opts.title || ''
   const abstract = opts.abstract || ''
   const journal = opts.journal || ''
