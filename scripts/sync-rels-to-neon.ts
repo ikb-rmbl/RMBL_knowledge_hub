@@ -59,12 +59,36 @@ async function main() {
     return idCache.get(table)!
   }
 
+  // Authors that exist on both sides under DIFFERENT ids: sync-databases matched a
+  // local author to an old Neon row (one the local merge repairs deleted) by
+  // name/ORCID and updated it instead of inserting. Map local → Neon id for
+  // those, matching only against Neon-only rows, so their new links still land.
+  const authorRemap = new Map<number, number>()
+  {
+    const norm = (s: string | null) => String(s ?? '').toLowerCase().replace(/[^a-z]/g, '')
+    const L = (await local.query(`SELECT id, display_name, orcid FROM authors`)).rows
+    const N = (await neon.query(`SELECT id, display_name, orcid FROM authors`)).rows
+    const nIds = new Set(N.map((r) => r.id)), lIds = new Set(L.map((r) => r.id))
+    const neonOnly = N.filter((r) => !lIds.has(r.id))
+    const byOrcid = new Map(neonOnly.filter((r) => r.orcid).map((r) => [r.orcid, r.id]))
+    const byName = new Map<string, number[]>()
+    for (const r of neonOnly) byName.set(norm(r.display_name), [...(byName.get(norm(r.display_name)) ?? []), r.id])
+    for (const r of L.filter((x) => !nIds.has(x.id))) {
+      const viaOrcid = r.orcid ? byOrcid.get(r.orcid) : undefined
+      const viaName = byName.get(norm(r.display_name))
+      const target = viaOrcid ?? (viaName?.length === 1 ? viaName[0] : undefined)
+      if (target != null) authorRemap.set(r.id, target)
+    }
+    if (authorRemap.size) console.log(`  ${authorRemap.size} authors carry a different id on Neon — their links are remapped`)
+  }
+
   const plan: { cfg: RelTable; rows: any[] }[] = []
   try {
     for (const cfg of TABLES.filter((t) => !only || only.includes(t.table))) {
       const keyCols = [cfg.parentCol, ...(cfg.parentCol === 'parent_id' ? ['path'] : []), ...Object.keys(cfg.targets), ...(cfg.keyCols ?? [])]
       const keyOf = (r: any) => JSON.stringify(keyCols.map((c) => r[c] ?? null))
       const localRows = (await local.query(`SELECT * FROM ${cfg.table}`)).rows
+      if (cfg.parentTable === 'authors') for (const r of localRows) if (authorRemap.has(r[cfg.parentCol])) r[cfg.parentCol] = authorRemap.get(r[cfg.parentCol])
       const neonKeys = new Set((await neon.query(`SELECT * FROM ${cfg.table}`)).rows.map(keyOf))
       const localKeys = new Set(localRows.map(keyOf))
       const parents = await neonIds(cfg.parentTable)
