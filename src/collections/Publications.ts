@@ -6,6 +6,7 @@ import { curatedFieldsField, curationHookFor } from './shared/curationHook'
 import { curatedFieldsWidget } from './shared/curationWidgetField'
 import { CURATABLE_FIELDS } from './shared/curatableFields'
 import { flagsForItemField } from './shared/flagsField'
+import { studentAuthorsAfterChange, studentAuthorsAfterRead, studentAuthorsBeforeChange, studentProgramField } from './shared/studentAuthors'
 
 const PUBLICATION_TYPE_OPTIONS = [
   { label: 'Journal Article', value: 'article' },
@@ -24,7 +25,9 @@ export const Publications: CollectionConfig = {
     group: 'Content',
   },
   hooks: {
-    beforeChange: [curationHookFor(CURATABLE_FIELDS.publications)],
+    beforeChange: [curationHookFor(CURATABLE_FIELDS.publications), studentAuthorsBeforeChange],
+    afterChange: [studentAuthorsAfterChange],
+    afterRead: [studentAuthorsAfterRead],
     beforeDelete: [tombstoneHookFor('publications')],
   },
   access: publicReadAuthWrite,
@@ -47,19 +50,20 @@ export const Publications: CollectionConfig = {
           name: 'given',
           type: 'text',
           required: true,
-          admin: { width: '33%' },
+          admin: { width: '25%' },
         },
         {
           name: 'family',
           type: 'text',
           required: true,
-          admin: { width: '33%' },
+          admin: { width: '25%' },
         },
         {
           name: 'orcid',
           type: 'text',
-          admin: { width: '33%', description: 'ORCID identifier' },
+          admin: { width: '25%', description: 'ORCID identifier' },
         },
+        studentProgramField,
       ],
     },
     {

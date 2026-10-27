@@ -60,8 +60,11 @@ export default async function MetricsPage() {
         (SELECT count(*) FROM publications WHERE rmbl_research IS NULL)::int AS unreviewed,
         (SELECT count(DISTINCT sa.publication_id) FROM publication_student_authors sa
            JOIN publications pp ON pp.id = sa.publication_id
-           WHERE pp.publication_type IN ${PEER_REVIEWED})::int AS student_pubs,
-        (SELECT count(DISTINCT author_id) FROM publication_student_authors WHERE author_id IS NOT NULL)::int AS student_authors,
+           WHERE pp.publication_type IN ${PEER_REVIEWED}
+             AND sa.student_program IS DISTINCT FROM 'none')::int AS student_pubs,
+        -- 'none' = curated "Not a student" (admin author list)
+        (SELECT count(DISTINCT author_id) FROM publication_student_authors
+          WHERE author_id IS NOT NULL AND student_program IS DISTINCT FROM 'none')::int AS student_authors,
         (SELECT count(DISTINCT publication_id) FROM publication_student_authors WHERE student_program = 'reu')::int AS reu_pubs,
         (SELECT count(*) FROM datasets)::int AS datasets_total
     `),

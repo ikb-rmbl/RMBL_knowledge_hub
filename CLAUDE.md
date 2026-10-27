@@ -402,6 +402,12 @@ The admin curation workflow is three connected pieces:
   - `curatedSkipClause(cols)` — `AND NOT (curated_fields ?| array[...])` for single-column writes.
 - Sync (`scripts/sync-databases.ts`) consults per-row `curated_fields` from both sides in `mergeRecord`; a side that has asserted a cell wins for that cell. The `curated_fields` array itself is unioned, so curations propagate both directions.
 
+### Student-author tags
+- Per paper × author in `publication_student_authors` (custom SQL; keyed on the author registry display name). Written by `tag-student-authors.ts` / `tag-reu-authors.ts`; feeds /metrics.
+- Admins curate them from the publication's author list: each author row has a **virtual** `studentProgram` select (`src/collections/shared/studentAuthors.ts`) filled from the table on read (logged-in users only — per-author REU status derives from the private roster) and written back on save as `curated = true` rows, only for authors whose value changed. Not stored on `publications_authors`, which `sync-publication-children` replaces on every push.
+- `none` ("Not a student") is a stored negative so a wrong auto-tag isn't recreated; metrics exclude it. Clearing the select deletes the row (releases it to the pipeline).
+- Curated rows are made where the admin is used (normally Neon); the tagging scripts preserve them on either DB.
+
 ### Duplicate tombstones
 - Schema: `duplicate_tombstones(collection, keys jsonb, deleted_by, deleted_at, notes)`. Not a Payload collection — pure SQL.
 - A `beforeDelete` hook on Publications, Datasets, Documents, Stories (`src/collections/shared/tombstoneHook.ts`) snapshots the row's identifying keys before Payload removes it.
