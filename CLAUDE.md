@@ -306,6 +306,8 @@ scripts/
   sync-publication-children.ts — Push the Payload child tables publications_authors + publications_keywords to Neon. No other sync path covers them (sync-databases walks parent columns; sync-bulk covers custom SQL tables), so they drift — which stayed invisible until authors/keywords entered search_vector and Advanced Search started querying them. Matches on publication id AND title hash (mismatches skipped, never overwritten); per-publication replace, local wins; leaves Neon-only parents alone. --dry-run/--target=neon.
   sync-replace-entities.ts    — Bulk replace for entity tables (species, places, protocols, concepts, stakeholders) — TRUNCATE+INSERT pattern; needed when canonical IDs shift after a re-cluster.
 
+  decode-docs-export.ts        — Decode a Claude Docs connector export (base64 JSON) into the real file; refreshes docs/RMBL-Knowledge-Commons-Manual.docx
+
   # Diagnostics
   check-staleness.ts          — Compare timestamps across pipeline stages
   check-neon-schema.ts        — Verify Neon schema after SQL migration
@@ -427,6 +429,12 @@ The admin curation workflow is three connected pieces:
   SELECT id, collection, keys, deleted_at FROM duplicate_tombstones ORDER BY deleted_at DESC;
   DELETE FROM duplicate_tombstones WHERE id = <n>;  -- lets the pipeline reintroduce
   ```
+
+## Knowledge Commons manual
+
+- The user-facing manual (admin editing + back-end operations) is a living Claude Doc: https://claude.ai/artifact/MsScCBjFAJgUrYkHv3wdtA (doc id `a901be10-2f11-4108-8806-38b2d75291d7`, tab `23737473-2ba2`). The shareable copy is `docs/RMBL-Knowledge-Commons-Manual.docx`.
+- **Keep them in step:** a change that alters anything the manual describes — admin fields or workflow, the refresh order, the push sequence, backups, the do-not-run list, store locations — updates the doc (Claude Docs connector) and re-exports the .docx in the same PR: `export` (format docx, paper letter) → `npx tsx scripts/decode-docs-export.ts <saved export> docs/RMBL-Knowledge-Commons-Manual.docx`.
+- The repo is public: the manual must stay free of credentials, connection strings and personal data.
 
 ## Git Workflow
 
