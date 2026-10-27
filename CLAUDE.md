@@ -405,6 +405,7 @@ The admin curation workflow is three connected pieces:
 ### Student-author tags
 - Per paper × author in `publication_student_authors` (custom SQL; keyed on the author registry display name). Written by `tag-student-authors.ts` / `tag-reu-authors.ts`; feeds /metrics.
 - Admins curate them from the publication's author list: each author row has a **virtual** `studentProgram` select (`src/collections/shared/studentAuthors.ts`) filled from the table on read (logged-in users only — per-author REU status derives from the private roster) and written back on save as `curated = true` rows, only for authors whose value changed. Not stored on `publications_authors`, which `sync-publication-children` replaces on every push.
+- Options: Not a student (`none`), Student author (non-REU) (`student`), Student author (REU) (`reu`). The structural seeds `student_paper` / `thesis` display as non-REU and are compared by displayed value, so saving a paper doesn't rewrite them.
 - `none` ("Not a student") is a stored negative so a wrong auto-tag isn't recreated; metrics exclude it. Clearing the select deletes the row (releases it to the pipeline).
 - Curated rows are made where the admin is used (normally Neon); the tagging scripts preserve them on either DB.
 

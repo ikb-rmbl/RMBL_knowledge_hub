@@ -18,10 +18,20 @@ import { isPipelineWrite } from './curationHook'
 
 export const STUDENT_PROGRAM_OPTIONS = [
   { label: 'Not a student', value: 'none' },
-  { label: 'Student paper (RMBL independent research)', value: 'student_paper' },
-  { label: 'Thesis / dissertation', value: 'thesis' },
-  { label: 'REU', value: 'reu' },
+  { label: 'Student author (non-REU)', value: 'student' },
+  { label: 'Student author (REU)', value: 'reu' },
 ]
+
+/**
+ * What the select shows for a stored program. The structural seeds
+ * ('student_paper', 'thesis' — the author of a student paper or thesis) are not
+ * options of their own: they display as a non-REU student, and comparing
+ * displayed values on save keeps an unchanged row from being rewritten.
+ */
+export function displayProgram(stored: string | null | undefined): string | null {
+  if (stored == null || stored === '') return null
+  return stored === 'reu' || stored === 'none' ? stored : 'student'
+}
 
 export const studentProgramField: Field = {
   name: 'studentProgram',
@@ -86,7 +96,7 @@ export const studentAuthorsAfterRead: CollectionAfterReadHook = async ({ doc, re
   try {
     const rows = await loadRows(pool, doc.id)
     if (!rows.length) return doc
-    for (const a of doc.authors) a.studentProgram = matchStudentRow(a, rows)?.student_program ?? null
+    for (const a of doc.authors) a.studentProgram = displayProgram(matchStudentRow(a, rows)?.student_program)
   } catch (err: any) {
     req.payload.logger?.warn?.(`studentAuthors afterRead: ${err.message}`)
   }
@@ -119,7 +129,7 @@ export const studentAuthorsAfterChange: CollectionAfterChangeHook = async ({ doc
       if (a.studentProgram === undefined) continue
       const value = a.studentProgram || null
       const row = matchStudentRow(a, rows)
-      if ((row?.student_program ?? null) === value) continue
+      if (displayProgram(row?.student_program) === value) continue
       if (row) {
         // Clearing the select releases the row back to the pipeline (like the
         // CuratedFields × button); any other change is a curated assertion.

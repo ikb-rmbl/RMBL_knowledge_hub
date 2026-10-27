@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matchStudentRow, type StudentRow } from '../collections/shared/studentAuthors'
+import { displayProgram, matchStudentRow, type StudentRow } from '../collections/shared/studentAuthors'
 
 const row = (id: number, author_name: string, student_program = 'student_paper'): StudentRow =>
   ({ id, author_name, author_id: id, student_program, curated: false })
@@ -20,5 +20,16 @@ describe('matchStudentRow', () => {
   })
   it('returns null when nobody matches', () => {
     expect(matchStudentRow({ given: 'Alice', family: 'Jones' }, rows)).toBeNull()
+  })
+})
+
+describe('displayProgram', () => {
+  it('shows structural seeds as a non-REU student and keeps REU / negative / empty', () => {
+    expect(displayProgram('student_paper')).toBe('student')
+    expect(displayProgram('thesis')).toBe('student')
+    expect(displayProgram('student')).toBe('student')
+    expect(displayProgram('reu')).toBe('reu')
+    expect(displayProgram('none')).toBe('none')
+    expect(displayProgram(null)).toBeNull()
   })
 })
