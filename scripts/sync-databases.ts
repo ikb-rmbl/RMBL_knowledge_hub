@@ -41,6 +41,12 @@ const deleteOrphans = args.includes('--delete-orphans')
 const syncReferences = args.includes('--sync-references')
 const syncEntities = args.includes('--sync-entities')
 const fullPush = args.includes('--full-push')
+// --match-by-id: ids are aligned local ↔ Neon (local is the id authority), so a
+// local row's counterpart is the Neon row with the same id; a missing id is an
+// insert. The field matchers (DOI / title similarity > 0.9) merged distinct works
+// that share a title — a 1975 thesis onto the 1979 article, one Federal Register
+// notice onto another — overwriting the production row (2026-10-07).
+const matchById = args.includes('--match-by-id')
 
 const NEON_URL = process.env.NEON_DIRECT_URL
 const LOCAL_URL = process.env.DATABASE_URL || 'postgresql://localhost:5432/rmbl_knowledge_hub'
@@ -422,6 +428,7 @@ async function pushCollection(
   // Load Neon records for matching
   const { rows: neonRecords } = await neonDb.query(`SELECT * FROM ${config.table}`)
   const neonIndex = buildMatchIndex(neonRecords)
+  const neonById = new Map(neonRecords.map((r: any) => [r.id, r]))
 
   // Detect JSONB columns so we can JSON.stringify values before INSERT/UPDATE
   // (pg returns parsed JS objects for JSONB, but requires JSON strings on write)
@@ -441,7 +448,9 @@ async function pushCollection(
   const deferred: { localRec: any; match: any | null }[] = [] // FK failures retried in second pass
 
   for (const localRec of localChanged) {
-    const { match, confidence } = config.matchFields(localRec, neonRecords, neonIndex)
+    const { match, confidence } = matchById
+      ? { match: neonById.get(localRec.id) ?? null, confidence: 'id' }
+      : config.matchFields(localRec, neonRecords, neonIndex)
 
     if (match) {
       const neonUpdated = new Date(match.updated_at).getTime()
@@ -939,7 +948,7 @@ async function main() {
   console.log('==========================')
   console.log(`Direction: ${direction}`)
   console.log(`Collection: ${collectionFilter}`)
-  console.log(`Flags: ${[syncEntities && '--sync-entities', syncReferences && '--sync-references', fullPush && '--full-push', deleteOrphans && '--delete-orphans', dryRun && '--dry-run'].filter(Boolean).join(' ') || '(none)'}`)
+  console.log(`Flags: ${[matchById && '--match-by-id', syncEntities && '--sync-entities', syncReferences && '--sync-references', fullPush && '--full-push', deleteOrphans && '--delete-orphans', dryRun && '--dry-run'].filter(Boolean).join(' ') || '(none)'}`)
   if (dryRun) console.log('(DRY RUN)')
 
   const localDb = new pg.Pool({ connectionString: LOCAL_URL, max: 3 })
