@@ -565,22 +565,31 @@ async function main() {
 
     if (sections.has('reuse')) {
     // Dataset re-use assessment: events + rollups + provenance flag.
-    // dataset_id is remapped via DOI (then lower(title)) — raw ids can
-    // diverge between local and Neon for recently-inserted datasets.
+    // dataset_id → Neon id. Ids are aligned (local is the id authority), so the
+    // same id is the counterpart when that Neon row is the same dataset (DOI or
+    // title agree). DOI/title lookup is only the fallback: many datasets share a
+    // package DOI or a series title, and matching on those first sent 288
+    // datasets' events and rollups to a sibling (2026-10-28).
     console.log('\n--- Dataset re-use ---')
     const { rows: localDs } = await local.query(`SELECT id, doi, title FROM datasets`)
     const { rows: neonDs } = await neon.query(`SELECT id, doi, title FROM datasets`)
+    const norm = (v: string | null) => (v ?? '').toLowerCase()
+    const neonById = new Map(neonDs.map((d) => [d.id, d]))
     const neonByDoi = new Map<string, number>()
     const neonByTitle = new Map<string, number>()
     for (const d of neonDs) {
-      if (d.doi) neonByDoi.set(d.doi.toLowerCase(), d.id)
-      neonByTitle.set(d.title.toLowerCase(), d.id)
+      if (d.doi && !neonByDoi.has(norm(d.doi))) neonByDoi.set(norm(d.doi), d.id)
+      if (!neonByTitle.has(norm(d.title))) neonByTitle.set(norm(d.title), d.id)
     }
     const idMap = new Map<number, number>()
     for (const d of localDs) {
-      const nid = (d.doi && neonByDoi.get(d.doi.toLowerCase())) || neonByTitle.get(d.title.toLowerCase())
+      const same = neonById.get(d.id)
+      const nid = same && ((d.doi && norm(same.doi) === norm(d.doi)) || norm(same.title) === norm(d.title))
+        ? d.id
+        : (d.doi && neonByDoi.get(norm(d.doi))) || neonByTitle.get(norm(d.title))
       if (nid) idMap.set(d.id, nid)
     }
+    console.log(`  ${[...idMap].filter(([l, n]) => l !== n).length} datasets mapped to a different Neon id`)
 
     const evTx = await neon.connect() // TRUNCATE + inserts in one transaction
     let evSynced = 0, evUnmapped = 0
@@ -622,11 +631,12 @@ async function main() {
     for (const r of rollups) {
       const nid = idMap.get(r.id)
       if (!nid) continue
-      // rmbl_origin honors Neon-side curation (admin triage happens there)
+      // rmbl_origin honors Neon-side curation (admin triage happens there); otherwise
+      // local's value wins — COALESCE kept wrong flags the old remap had written
       await neon.query(
         `UPDATE datasets SET reuse_internal_count = $1, reuse_external_count = $2,
            reuse_independent = $3, rmbl_origin_score = $4, reuse_checked_at = $5,
-           ${'rmbl_origin = CASE WHEN curated_fields @> \'["rmblOrigin"]\'::jsonb THEN rmbl_origin ELSE COALESCE(rmbl_origin, $6) END'}
+           ${'rmbl_origin = CASE WHEN curated_fields @> \'["rmblOrigin"]\'::jsonb THEN rmbl_origin ELSE $6 END'}
          WHERE id = $7`,
         [r.reuse_internal_count, r.reuse_external_count, r.reuse_independent,
          r.rmbl_origin_score, r.reuse_checked_at, r.rmbl_origin, nid])
