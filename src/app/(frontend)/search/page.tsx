@@ -164,11 +164,17 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   // Payload path below — composes text and field filters without degrading to
   // `title ILIKE`.
   const advFilters = parsePublicationFilters(params as Record<string, string | undefined>)
-  const useAdvanced = hasAdvancedFilters(advFilters)
+  const advFieldsInPlay = hasAdvancedFilters(advFilters)
+  // The first-author sorts exist only in the SQL publication query; the Payload
+  // browse path and the FTS path silently fell back to date order, so on the
+  // publications view they route through it too (2026-10-28).
+  const firstAuthorSort = typeFilter === 'publications' && !params.neighborhood &&
+    (params.sort === 'author' || params.sort === 'year-type-author')
+  const useAdvanced = advFieldsInPlay || firstAuthorSort
   // Panel stays unfolded while its fields are in play, or when explicitly opened.
-  const advOpen = useAdvanced || params.adv === '1'
+  const advOpen = advFieldsInPlay || params.adv === '1'
 
-  const defaultSort = useAdvanced
+  const defaultSort = advFieldsInPlay
     // The legacy database's default ordering, for a form that mirrors it.
     ? (query ? 'relevance' : 'year-type-author')
     : query ? 'relevance' : (typeFilter === 'publications' ? 'most-cited' : 'newest')
@@ -785,7 +791,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
             <div className="advanced-actions">
               <button type="submit">Search publications</button>
-              {useAdvanced && (
+              {advFieldsInPlay && (
                 <Link href={buildUrl(params, {
                   ...Object.fromEntries(ADVANCED_FIELDS.map((f) => [f, undefined])),
                   adv: '1', page: undefined,

@@ -47,7 +47,9 @@ export default async function MetricsPage() {
       FROM publications p
       LEFT JOIN (
         SELECT publication_id, bool_or(student_program = 'reu') AS has_reu
-        FROM publication_student_authors GROUP BY publication_id
+        FROM publication_student_authors
+        WHERE student_program IS DISTINCT FROM 'none' -- curated "Not a student"
+        GROUP BY publication_id
       ) sa ON sa.publication_id = p.id
       WHERE p.year >= $1 AND p.year <= extract(year FROM now())::int
       GROUP BY p.year ORDER BY p.year

@@ -197,11 +197,15 @@ export function buildPublicationWhere(f: PublicationFilters, startIndex = 1): Bu
   return { sql: clauses.length > 0 ? clauses.join(' AND ') : 'TRUE', params }
 }
 
-/** First author's family name, for the Author and legacy composite sorts.
+/** First author's sort key ("family given"), for the Author and legacy composite sorts.
  *  `publications_authors._order` is the ground truth for author order —
- *  `authors_rels."order"` was rebuilt from it (see fix-author-order.ts). */
-const FIRST_AUTHOR_SQL = `(SELECT a.family FROM publications_authors a
-                           WHERE a._parent_id = p.id ORDER BY a._order LIMIT 1)`
+ *  `authors_rels."order"` was rebuilt from it (see fix-author-order.ts).
+ *  Collated with ICU's root collation: production (Neon) uses C.UTF-8, which
+ *  sorts by byte — "de Boer", "von der Ohe", "Álvarez", "Özgen" after Z. A blank
+ *  family name counts as missing (sorted last, like a paper with no authors). */
+const FIRST_AUTHOR_KEY_SQL = `(SELECT NULLIF(trim(a.family), '') || ' ' || coalesce(trim(a.given), '')
+                               FROM publications_authors a
+                              WHERE a._parent_id = p.id ORDER BY a._order LIMIT 1) COLLATE "und-x-icu"`
 
 /** ORDER BY body for a publications query aliased as `p`. */
 export function publicationOrderBy(sort: PublicationSort): string {
@@ -213,10 +217,11 @@ export function publicationOrderBy(sort: PublicationSort): string {
     case 'most-cited': return 'p.external_citation_count DESC NULLS LAST'
     case 'most-cited-internal':
       return '(SELECT count(*) FROM references_cited r WHERE r.target_publication_id = p.id) DESC'
-    case 'author': return `${FIRST_AUTHOR_SQL} ASC NULLS LAST`
+    // Ties (same first author) → newest first, then id, so pages are stable.
+    case 'author': return `${FIRST_AUTHOR_KEY_SQL} ASC NULLS LAST, p.year DESC NULLS LAST, p.id ASC`
     // The legacy database's default ordering.
     case 'year-type-author':
-      return `p.year DESC NULLS LAST, p.publication_type ASC, ${FIRST_AUTHOR_SQL} ASC NULLS LAST`
+      return `p.year DESC NULLS LAST, p.publication_type ASC, ${FIRST_AUTHOR_KEY_SQL} ASC NULLS LAST, p.id ASC`
     case 'relevance':
     default:
       // Only meaningful with a text query; the caller substitutes rank.
