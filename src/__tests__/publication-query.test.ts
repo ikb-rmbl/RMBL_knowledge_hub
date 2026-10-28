@@ -136,6 +136,16 @@ describe('publicationOrderBy', () => {
     expect(publicationOrderBy('author')).toContain('ORDER BY a._order LIMIT 1')
   })
 
+  it('collates first authors with ICU so particles and accents sort as letters, not after Z', () => {
+    expect(publicationOrderBy('author')).toContain('COLLATE "und-x-icu"')
+    expect(publicationOrderBy('year-type-author')).toContain('COLLATE "und-x-icu"')
+  })
+
+  it('breaks ties so paging is stable', () => {
+    expect(publicationOrderBy('author')).toMatch(/p\.year DESC NULLS LAST, p\.id ASC$/)
+    expect(publicationOrderBy('year-type-author')).toMatch(/p\.id ASC$/)
+  })
+
   it('falls back to a date ordering for relevance, which needs a rank the caller supplies', () => {
     expect(publicationOrderBy('relevance')).toContain('p.year DESC')
   })
