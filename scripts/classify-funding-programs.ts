@@ -291,14 +291,34 @@ async function copyToNeon(local: pg.Pool) {
   const neon = new pg.Pool({ connectionString: process.env.NEON_DIRECT_URL })
   try {
     const { rows } = await local.query(
-      `SELECT lower(doi) AS doi, lower(title) AS title, year, sfa_program, sail_program,
+      `SELECT id, lower(doi) AS doi, lower(title) AS title, year, sfa_program, sail_program,
               funding_program_evidence, funding_programs_checked_at
          FROM publications
         WHERE funding_program_evidence IS NOT NULL`,
     )
     let updated = 0
     let missing = 0
+    // Ids are aligned local ↔ Neon: the same id is the counterpart when its DOI or
+    // title agrees. DOI/title alone wrote one paper's flags onto every same-titled
+    // row (2026-10-28) — it is only the fallback.
+    const neonRows = new Map((await neon.query(`SELECT id, lower(doi) AS doi, lower(title) AS title FROM publications`)).rows.map((n: any) => [n.id, n]))
     for (const r of rows) {
+      const same = neonRows.get(r.id)
+      if (same && ((r.doi && same.doi === r.doi) || same.title === r.title)) {
+        if (dryRun) { updated++; continue }
+        const res = await neon.query(
+          `UPDATE publications SET
+             ${curatedSafe('sfa_program', '$2')},
+             ${curatedSafe('sail_program', '$3')},
+             funding_program_evidence = $4,
+             funding_programs_checked_at = $5
+           WHERE id = $1`,
+          [r.id, r.sfa_program, r.sail_program, r.funding_program_evidence, r.funding_programs_checked_at],
+        )
+        updated += res.rowCount ?? 0
+        continue
+      }
+      if (dryRun) { missing++; continue } // dry-run: report only — it used to write production
       const res = await neon.query(
         `UPDATE publications SET
            ${curatedSafe('sfa_program', '$4')},
@@ -315,7 +335,7 @@ async function copyToNeon(local: pg.Pool) {
       if (res.rowCount) updated += res.rowCount
       else missing++
     }
-    console.log(`Neon: ${updated} publications updated, ${missing} with no Neon match`)
+    console.log(`Neon${dryRun ? ' (dry-run)' : ''}: ${updated} publications ${dryRun ? 'matched by id' : 'updated'}, ${missing} ${dryRun ? 'would use the DOI/title fallback' : 'with no Neon match'}`)
   } finally {
     await neon.end()
   }
