@@ -15,11 +15,17 @@
  *                                       host)
  *   - DOI + closed, or no DOI        → 'unknown' (highest risk)
  *
+ * 'rmbl_served' is a human decision, not a classification: RMBL admin cleared
+ * everything rmbl.org used to serve (2026-11-09, see migrate-pdf-links.ts).
+ * It is never re-classified, even with --force.
+ *
  * Outputs scripts/output/pdf-rights-worklist.csv for 'review' + 'unknown'
  * rows — the manual-review queue. Do this while the legacy Pubs DB is up:
  * its records may answer deposit provenance questions.
  *
- * Re-runs skip rows already classified (--force rechecks everything).
+ * Re-runs skip rows already classified (--force rechecks everything except
+ * 'rmbl_served' — RMBL admin's 2026-11-09 clearance of everything rmbl.org used
+ * to serve, recorded by migrate-pdf-links.ts; that is a decision, not a lookup).
  *
  * Usage:
  *   npx tsx scripts/audit-pdf-rights.ts [--dry-run] [--force] [--limit=N] [--target=neon]
@@ -88,7 +94,7 @@ async function main() {
     const { rows } = await db.query(
       `SELECT id, title, year, journal, doi, publication_type, pdf_link, pdf_rights_basis
        FROM publications
-       WHERE ${SERVED_PDF} ${force ? '' : 'AND pdf_rights_basis IS NULL'}
+       WHERE ${SERVED_PDF} ${force ? "AND pdf_rights_basis IS DISTINCT FROM 'rmbl_served'" : 'AND pdf_rights_basis IS NULL'}
        ORDER BY id ${limit ? `LIMIT ${limit}` : ''}`,
     )
     console.log(`${rows.length} served-PDF publications to classify`)
