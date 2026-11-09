@@ -165,20 +165,23 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   // `title ILIKE`.
   const advFilters = parsePublicationFilters(params as Record<string, string | undefined>)
   const advFieldsInPlay = hasAdvancedFilters(advFilters)
+  // Publications browse defaults to the legacy database's ordering — year, then
+  // type, then first author — so the newest peer-reviewed articles lead
+  // ('article' sorts first within a year). Was most-cited until 2026-11-09.
+  const defaultSort = query ? 'relevance'
+    : (advFieldsInPlay || typeFilter === 'publications') ? 'year-type-author'
+    : 'newest'
+  const sortParam = params.sort || defaultSort
+
   // The first-author sorts exist only in the SQL publication query; the Payload
   // browse path and the FTS path silently fell back to date order, so on the
-  // publications view they route through it too (2026-10-28).
+  // publications view they route through it too (2026-10-28). Checked against
+  // the effective sort, not the URL, since year-type-author is now the default.
   const firstAuthorSort = typeFilter === 'publications' && !params.neighborhood &&
-    (params.sort === 'author' || params.sort === 'year-type-author')
+    (sortParam === 'author' || sortParam === 'year-type-author')
   const useAdvanced = advFieldsInPlay || firstAuthorSort
   // Panel stays unfolded while its fields are in play, or when explicitly opened.
   const advOpen = advFieldsInPlay || params.adv === '1'
-
-  const defaultSort = advFieldsInPlay
-    // The legacy database's default ordering, for a form that mirrors it.
-    ? (query ? 'relevance' : 'year-type-author')
-    : query ? 'relevance' : (typeFilter === 'publications' ? 'most-cited' : 'newest')
-  const sortParam = params.sort || defaultSort
   const page = Math.min(400, Math.max(1, parseInt(params.page || '1') || 1))
 
   const payload = await getPayload({ config })
