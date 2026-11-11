@@ -38,6 +38,8 @@ export interface PublicationFilters {
   pubType?: string
   /** RMBL-research flag; only 'yes' filters (tri-state column, NULL = unreviewed). */
   rmblOnly?: boolean
+  /** Only publications marked "Undergraduate author" (publications.undergrad_author). */
+  undergradOnly?: boolean
   /** Program / campaign membership — a key of PROGRAM_FILTERS. */
   program?: ProgramKey
   /** Pre-resolved publication ids from a project assignment, or null for no project filter. */
@@ -114,6 +116,7 @@ export function parsePublicationFilters(
     yearTo: cleanYear(raw.yearTo),
     pubType: clean(raw.pubType),
     rmblOnly: raw.rmbl === 'yes',
+    undergradOnly: raw.undergrad === 'yes',
     program: parseProgram(raw.program),
     projectPubIds,
   }
@@ -181,6 +184,7 @@ export function buildPublicationWhere(f: PublicationFilters, startIndex = 1): Bu
   if (f.yearTo != null) clauses.push(`p.year <= ${add(f.yearTo)}`)
   if (f.pubType) clauses.push(`p.publication_type = ${add(f.pubType)}`)
   if (f.rmblOnly) clauses.push(`p.rmbl_research = 'yes'`)
+  if (f.undergradOnly) clauses.push(`p.undergrad_author = 'yes'`)
   if (f.program) clauses.push(`p.${PROGRAM_FILTERS[f.program].column} = 'yes'`)
   if (f.projectPubIds) {
     // An empty assignment list must match nothing, not everything.

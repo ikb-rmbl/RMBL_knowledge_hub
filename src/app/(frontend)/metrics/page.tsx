@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { getDb } from '../lib/db'
 import PublicationsMetricsChart, { type MetricsSeries } from '../components/PublicationsMetricsChart'
 import { SHOW_STUDENT_AUTHOR_SERIES } from '../lib/feature-flags'
-import { getAnnualReporting, type ReportingRow } from '@/services/reporting-metrics'
+import { getAnnualReporting, STUDENT_AUTHORS_SQL, STUDENT_PUBS_SQL, type ReportingRow } from '@/services/reporting-metrics'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,15 +42,11 @@ export default async function MetricsPage() {
              count(*)::int AS pubs_all,
              count(*) FILTER (WHERE p.rmbl_research = 'yes' AND p.publication_type IN ${PEER_REVIEWED})::int AS peer,
              count(*) FILTER (WHERE p.publication_type IN ('student_paper', 'thesis'))::int AS students_theses,
-             count(*) FILTER (WHERE sa.publication_id IS NOT NULL AND p.publication_type IN ${PEER_REVIEWED})::int AS student,
-             count(*) FILTER (WHERE sa.has_reu)::int AS reu
+             count(*) FILTER (WHERE sp.has_student)::int AS student,
+             count(*) FILTER (WHERE sp.has_reu)::int AS reu
       FROM publications p
-      LEFT JOIN (
-        SELECT publication_id, bool_or(student_program = 'reu') AS has_reu
-        FROM publication_student_authors
-        WHERE student_program IS DISTINCT FROM 'none' -- curated "Not a student"
-        GROUP BY publication_id
-      ) sa ON sa.publication_id = p.id
+      -- Same student-authorship definition as the Annual reporting table.
+      LEFT JOIN (${STUDENT_PUBS_SQL}) sp ON sp.publication_id = p.id
       WHERE p.year >= $1 AND p.year <= extract(year FROM now())::int
       GROUP BY p.year ORDER BY p.year
     `, [YEAR_MIN]),
@@ -60,14 +56,10 @@ export default async function MetricsPage() {
         (SELECT count(*) FROM publications WHERE rmbl_research = 'yes' AND publication_type IN ${PEER_REVIEWED})::int AS peer,
         (SELECT count(*) FROM publications WHERE publication_type IN ('student_paper', 'thesis'))::int AS students_theses,
         (SELECT count(*) FROM publications WHERE rmbl_research IS NULL)::int AS unreviewed,
-        (SELECT count(DISTINCT sa.publication_id) FROM publication_student_authors sa
-           JOIN publications pp ON pp.id = sa.publication_id
-           WHERE pp.publication_type IN ${PEER_REVIEWED}
-             AND sa.student_program IS DISTINCT FROM 'none')::int AS student_pubs,
-        -- 'none' = curated "Not a student" (admin author list)
-        (SELECT count(DISTINCT author_id) FROM publication_student_authors
-          WHERE author_id IS NOT NULL AND student_program IS DISTINCT FROM 'none')::int AS student_authors,
-        (SELECT count(DISTINCT publication_id) FROM publication_student_authors WHERE student_program = 'reu')::int AS reu_pubs,
+        (SELECT count(*) FROM (${STUDENT_PUBS_SQL}) x WHERE has_student)::int AS student_pubs,
+        (SELECT count(DISTINCT person) FROM (${STUDENT_AUTHORS_SQL}) x)::int AS student_authors,
+        (SELECT count(*) FROM (${STUDENT_PUBS_SQL}) x WHERE has_reu)::int AS reu_pubs,
+        (SELECT count(DISTINCT person) FROM (${STUDENT_AUTHORS_SQL}) x WHERE reu)::int AS reu_authors,
         (SELECT count(*) FROM datasets)::int AS datasets_total
     `),
     db.query(
@@ -157,8 +149,8 @@ export default async function MetricsPage() {
     { label: 'Peer-reviewed publications', value: totals.peer.toLocaleString(), note: `RMBL research · ${totals.unreviewed} awaiting review` },
     { label: 'RMBL datasets', value: reuse.rmbl_datasets.toLocaleString(), note: `of ${totals.datasets_total.toLocaleString()} total · ${reuse.reference_datasets} reference · ${reuse.unreviewed_datasets} unreviewed` },
     { label: 'Student papers & theses', value: totals.students_theses.toLocaleString(), note: 'reported separately' },
-    { label: 'Peer-reviewed w/ student authors', value: totals.student_pubs.toLocaleString(), note: 'tagging incomplete — trend not yet chartable' },
-    { label: 'REU publications', value: haveReuData ? totals.reu_pubs.toLocaleString() : '—', note: haveReuData ? undefined : 'awaiting REU cohort roster' },
+    { label: 'Pubs with student authors', value: totals.student_pubs.toLocaleString(), note: `${totals.student_authors.toLocaleString()} undergraduate-program authors` },
+    { label: 'Pubs with REU authors', value: haveReuData ? totals.reu_pubs.toLocaleString() : '—', note: haveReuData ? `${totals.reu_authors.toLocaleString()} REU authors · roster ends 2020` : 'awaiting REU cohort roster' },
   ]
 
   return (
@@ -170,8 +162,8 @@ export default async function MetricsPage() {
         student papers and theses are reported separately, and &ldquo;all research
         outputs&rdquo; counts every paper and dataset in the Commons regardless of
         provenance. Datasets are split by provenance: RMBL/Gunnison Basin data vs. external
-        reference datasets researchers use. Student authorship on peer-reviewed papers is
-        inferred from student papers and theses plus manual curation.
+        reference datasets researchers use. Student authorship counts undergraduates from
+        RMBL&rsquo;s summer program on peer-reviewed papers (see Annual reporting below).
       </p>
 
       {/* KPI row */}
@@ -326,9 +318,10 @@ function AnnualReporting({ rows, thisYear }: { rows: ReportingRow[]; thisYear: n
               <th style={th}>Peer-reviewed<br />journal articles</th>
               <th style={th}>SFA papers</th>
               <th style={th}>SAIL papers</th>
-              <th style={th}>Student papers</th>
-              <th style={th}>REU authors</th>
-              <th style={th}>Articles w/<br />REU author</th>
+              <th style={th}># Pubs with<br />Student Authors</th>
+              <th style={th}># Student Authors<br />on Pubs</th>
+              <th style={th}># Pubs with<br />REU Authors</th>
+              <th style={th}># REU Authors</th>
             </tr>
           </thead>
           <tbody>
@@ -341,9 +334,10 @@ function AnnualReporting({ rows, thisYear }: { rows: ReportingRow[]; thisYear: n
                 <Cell value={r.articles} reported={r.reported.articles} />
                 <Cell value={r.sfa} reported={r.reported.sfa} pending={r.sfaUnclassified} />
                 <Cell value={r.sail} pending={r.sailUnclassified} />
-                <Cell value={r.studentPapers} />
-                <Cell value={r.reuAuthors} reported={r.reported.undergradAuthors} />
-                <Cell value={r.reuArticles} reported={r.reported.undergradArticles} />
+                <Cell value={r.studentPubs} reported={r.reported.undergradArticles} />
+                <Cell value={r.studentAuthors} reported={r.reported.undergradAuthors} />
+                <Cell value={r.reuPubs} />
+                <Cell value={r.reuAuthors} />
               </tr>
             ))}
           </tbody>
@@ -352,7 +346,9 @@ function AnnualReporting({ rows, thisYear }: { rows: ReportingRow[]; thisYear: n
       <ul style={{ fontSize: '13px', color: 'var(--color-text-muted)', maxWidth: '72ch', paddingLeft: '18px', marginTop: '12px' }}>
         <li><strong>Journal articles</strong>: publications reviewed as RMBL research, type journal article.</li>
         <li><strong>SFA</strong>: listed on the <a href="https://watershed.lbl.gov/research-results/publications/">Watershed Function SFA&rsquo;s publication list</a>. <strong>SAIL</strong>: uses ARM SAIL campaign (2021–2023) data, read from each paper&rsquo;s text with the supporting quote kept for review.</li>
-        <li><strong>REU</strong> columns count RMBL REU students only: the cohort roster (1991–2020), the REU program&rsquo;s publication list, and 2021+ cohorts identified from RMBL student papers (about 70% complete). Earlier reports counted all undergraduate authors, so those figures run higher; recent years fill in as REU students publish, typically 2–4 years after their summer.</li>
+        <li><strong>Student authors</strong>: undergraduates in RMBL&rsquo;s summer program (REU, independent research, courses, and the earlier NSF URP) who are authors on RMBL peer-reviewed papers, chapters or books published within six years of their RMBL student paper. Students are identified from their RMBL student papers, the REU program&rsquo;s roster and publication list, student markings carried over from the old Publications Database, and manual curation. Graduate students are not counted.</li>
+        <li><strong># Pubs with Student Authors</strong> also counts papers the old Publications Database marked as having a student author when that author can&rsquo;t be identified — so it can exceed what the author count implies.</li>
+        <li><strong>REU</strong> columns are the subset of student authors supported by NSF Research Experiences for Undergraduates (including its predecessor, URP). The REU cohort roster ends in 2020, so recent years are incomplete until later cohort lists are added; students typically publish 2–6 years after their summer.</li>
       </ul>
     </div>
   )

@@ -10,13 +10,21 @@
  *     (program 'student_paper'; RMBL student papers are course/summer work)
  *   - publication_type = 'thesis'        → every author is a student
  *     (program 'thesis')
- *   - windowed co-author inference (detection_method='inferred_window'):
- *     an author with a structural/roster/manual student tag in year Y is
- *     tagged on PEER-REVIEWED pubs (article/chapter/book) they authored
- *     within a window — student papers: [Y-1, Y+1] (summer/course
- *     work); theses: [Y-5, Y] (grad-school years leading to the thesis).
- *     Inference rows are re-derivable: delete WHERE detection_method =
- *     'inferred_window' and re-run.
+ *   - undergraduate-program participants (detection_method='participant'):
+ *     the students classify-student-papers.ts identified on each
+ *     undergraduate student paper (course, URP, REU, independent research,
+ *     program unstated — not 'unknown', 'graduate' or other institutions'
+ *     theses) are tagged on RMBL peer-reviewed pubs (article/chapter/book)
+ *     published in [Y-1, Y+6] of their student paper, matched on surname +
+ *     initial (and on first name when both records spell it out).
+ *     student_program = 'reu' when the paper says REU or URP (NSF-funded
+ *     undergraduate research), else 'student_paper'. Re-derived each run.
+ *     Mentors were already taken off the student lists, so a PI listed as
+ *     a co-author on an old student paper is not a participant.
+ *   - thesis inference (detection_method='inferred_window'): a thesis author
+ *     in year Y is tagged on peer-reviewed pubs in [Y-5, Y] — graduate
+ *     students, kept for the record but not counted by the undergraduate
+ *     metrics.
  *
  * REU tags come from scripts/tag-reu-authors.ts (cohort roster + the REU
  *  program's publication list) and are NOT propagated by inference here.
@@ -29,6 +37,8 @@
 
 import pg from 'pg'
 import './lib/config.js' // .env auto-load
+import { deriveParticipantTags } from './lib/participant-tags.js'
+
 
 const dryRun = process.argv.includes('--dry-run')
 const noInference = process.argv.includes('--no-inference')
@@ -82,8 +92,53 @@ async function main() {
       inserted += res.rowCount ?? 0
     }
 
-    // Windowed co-author inference: propagate student status onto
-    // peer-reviewed pubs the student authored during their student years.
+    // Undergraduate-program participants (replaces the old ±1-year
+    // student-paper window, which also propagated mentors listed as authors).
+    if (!noInference) {
+      const tags = await deriveParticipantTags(db)
+      const reuN = tags.filter((t) => t.program === 'reu').length
+      console.log(`  ${tags.length} participant tags on ${new Set(tags.map((t) => t.publicationId)).size} peer-reviewed pubs (${reuN} REU/URP)`)
+      if (!dryRun) {
+        const client = await db.connect()
+        try {
+          await client.query('BEGIN')
+          const del = await client.query(
+            `DELETE FROM publication_student_authors
+              WHERE NOT curated AND (detection_method = 'participant'
+                 OR (detection_method = 'inferred_window' AND student_program = 'student_paper'))`,
+          )
+          let written = 0
+          for (const t of tags) {
+            const res = await client.query(
+              `INSERT INTO publication_student_authors
+                 (publication_id, author_id, author_name, student_program, detection_method, evidence)
+               VALUES ($1, $2, $3, $4, 'participant', $5::jsonb)
+               -- Participation wins over the thesis-window graduate inference:
+               -- within the participant window the person counts as an
+               -- undergraduate-program author. REU, curated, asterisk and
+               -- structural rows stand.
+               ON CONFLICT (publication_id, author_name) DO UPDATE
+                 SET student_program = EXCLUDED.student_program, detection_method = 'participant', evidence = EXCLUDED.evidence
+                 WHERE NOT publication_student_authors.curated
+                   AND publication_student_authors.detection_method = 'inferred_window'
+                   AND publication_student_authors.student_program = 'thesis'`,
+              [t.publicationId, t.authorId, t.authorName, t.program,
+                JSON.stringify({ student_paper_id: t.studentPaperId, student_name: t.studentName, basis: t.basis })],
+            )
+            written += res.rowCount ?? 0
+          }
+          await client.query('COMMIT')
+          console.log(`  replaced ${del.rowCount} old participant/student-paper inference rows with ${written} (rest already tagged — REU, curated or structural)`)
+        } catch (err) {
+          await client.query('ROLLBACK')
+          throw err
+        } finally {
+          client.release()
+        }
+      }
+    }
+
+    // Thesis inference: graduate-school years leading to the thesis.
     if (!noInference && !dryRun) {
       const inf = await db.query(`
         INSERT INTO publication_student_authors
@@ -102,12 +157,11 @@ async function main() {
             -- REU is excluded: tag-reu-authors.ts already applies a
             -- cohort-anchored window, and re-windowing around each tagged
             -- paper would drift into former REUs' grad-school papers.
-            (src.student_program = 'student_paper' AND p.year BETWEEN sp.year - 1 AND sp.year + 1)
-            OR (src.student_program = 'thesis' AND p.year BETWEEN sp.year - 5 AND sp.year)
+            src.student_program = 'thesis' AND p.year BETWEEN sp.year - 5 AND sp.year
           )
         ON CONFLICT (publication_id, author_name) DO NOTHING
       `)
-      console.log(`  ${inf.rowCount} peer-reviewed tags from windowed co-author inference`)
+      console.log(`  ${inf.rowCount} peer-reviewed tags from thesis-window inference`)
     }
 
     const { rows: [stats] } = await db.query(`

@@ -333,7 +333,7 @@ async function main() {
            ON CONFLICT (publication_id, author_name) DO UPDATE
              SET student_program = 'reu', detection_method = EXCLUDED.detection_method
              WHERE NOT publication_student_authors.curated
-               AND publication_student_authors.detection_method = 'inferred_window'`,
+               AND publication_student_authors.detection_method IN ('inferred_window', 'participant', 'legacy_asterisk')`,
           [t.publicationId, t.authorName, t.method],
         )
         written += res.rowCount ?? 0
