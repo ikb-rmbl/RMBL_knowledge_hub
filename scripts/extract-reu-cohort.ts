@@ -32,7 +32,10 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { join } from 'path'
 import pg from 'pg'
 import './lib/config.js' // .env auto-load
-import { callClaude, parseJsonResponse } from './lib/claude-api.js'
+import {
+  extractCover, NOT_REU, personKey, PROGRAM_REU, splitName,
+  type CoverCacheEntry as CacheEntry,
+} from './lib/student-paper-cover.js'
 import { runConcurrent } from './lib/concurrency.js'
 import { readCsvFile } from './lib/csv.js'
 
@@ -51,58 +54,6 @@ const DERIVED_CSV = join(PRIVATE_DIR, 'reu-roster-derived.csv')
 const OUTPUT_DIR = join(import.meta.dirname, 'output')
 const CACHE = join(OUTPUT_DIR, 'reu-cohort-cache.json')
 
-const PROGRAM_REU = /\bREU\b|research experiences? for undergrad/i
-// Students the REU coordinator's own notes say were NOT REUs despite an REU
-// program line ("Donovan Hughes was not an REU", REU pub list, June 2024).
-const NOT_REU = new Set(['donovanhughes'])
-
-const OPENING = 2500
-const WINDOW = 500
-const CUE = /\bREU\b|research experiences? for undergrad|acknowledg|national science foundation|\bNSF\b/gi
-
-interface Extraction {
-  students: { name: string; reu: 'yes' | 'no' | 'unclear'; quote: string | null }[]
-  program_line: string | null
-  mentors: string[]
-}
-interface CacheEntry { id: number; year: number; extraction: Extraction | null; verified: boolean[] }
-
-const PROMPT = `This is the opening and acknowledgment excerpts of a student research paper written at the Rocky Mountain Biological Laboratory (RMBL). RMBL student papers usually open with a cover block: title, student author(s), mentor(s), and a program line such as "Program: REU, Independent Research and Course" or "Full Time Independent Research/REU Program 2018".
-
-Extract:
-- students: each STUDENT author (not mentors). For each, reu = "yes" only if the text states THIS student was in the NSF Research Experiences for Undergraduates (REU) program or was supported by an REU award/supplement; "no" if the text states a different program and no REU; "unclear" otherwise. A citation of someone else's REU proposal, or REU mentioned only in passing, is NOT evidence. When reu is "yes", quote the shortest span that proves it, copied EXACTLY from the text; otherwise quote is null.
-- program_line: the program line exactly as written, or null.
-- mentors: mentor / advisor names as written (people named as mentor, advisor, or supervisor of this project), [] if none.
-
-Return only JSON: {"students": [{"name": "...", "reu": "yes"|"no"|"unclear", "quote": "..."|null}], "program_line": "..."|null, "mentors": ["..."]}`
-
-const words = (s: string) => s.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean)
-/** Quote words in order, mostly contiguous (cover blocks wrap mid-line). */
-function quoteFound(quote: string, text: string): boolean {
-  const q = words(quote)
-  if (!q.length) return false
-  const t = words(text)
-  for (let s = 0; s < t.length; s++) {
-    if (t[s] !== q[0]) continue
-    let qi = 1
-    for (let ci = s + 1; qi < q.length && ci < t.length && ci - s < q.length * 3; ci++) if (t[ci] === q[qi]) qi++
-    if (qi === q.length) return true
-  }
-  return false
-}
-
-function excerpt(text: string): string {
-  const flat = text.replace(/[ \t]+/g, ' ')
-  const parts = [flat.slice(0, OPENING)]
-  let last = OPENING
-  for (const m of flat.matchAll(CUE)) {
-    if (m.index! < last) continue
-    parts.push(flat.slice(Math.max(last, m.index! - WINDOW), m.index! + WINDOW))
-    last = m.index! + WINDOW
-    if (parts.length > 6) break
-  }
-  return parts.join('\n…\n')
-}
 
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]/g, '')
 /** Compound surnames ("Ortiz Ross", "Vilá Terrada") match on any part. */
@@ -111,17 +62,6 @@ const surnameMatch = (a: string, b: string) => {
   const pb = parts(b)
   return [...parts(a)].some((p) => pb.has(p))
 }
-/** "Dr. Juliana Jiranek" / "J. Jiranek" → "jiranek|j" */
-function personKey(name: string): string {
-  const { first, last } = splitName(name.replace(/\b(dr|prof|professor)\.?\s+/gi, ''))
-  return `${norm(last)}|${norm(first).charAt(0)}`
-}
-
-function splitName(full: string): { first: string; last: string } {
-  const w = full.replace(/\(.*?\)/g, '').replace(/[,.]/g, ' ').trim().split(/\s+/).filter(Boolean)
-  return { first: w[0] ?? '', last: w.length > 1 ? w[w.length - 1] : '' }
-}
-
 async function main() {
   mkdirSync(OUTPUT_DIR, { recursive: true })
   const cache: Record<string, CacheEntry> = existsSync(CACHE) ? JSON.parse(readFileSync(CACHE, 'utf8')) : {}
@@ -143,15 +83,9 @@ async function main() {
     if (!dryRun && todo.length) {
       let cost = 0
       const { errors } = await runConcurrent(todo, CONCURRENCY, async (r) => {
-        const ex = excerpt(r.full_text)
-        const res = await callClaude({ apiKey, model: MODEL, maxTokens: 2000, messages: [{ role: 'user', content: `${PROMPT}\n\n<paper>\n${ex}\n</paper>` }] })
-        cost += res.cost
-        const parsed = parseJsonResponse<Extraction>(res.text)
-        if (!parsed) throw new Error(`unparseable response for #${r.id}`)
-        parsed.students = (parsed.students ?? []).filter((s) => s?.name)
-        parsed.mentors = (parsed.mentors ?? []).filter(Boolean)
-        const verified = parsed.students.map((s) => s.reu === 'yes' && !!s.quote && quoteFound(s.quote, ex))
-        cache[r.id] = { id: r.id, year: r.year, extraction: parsed, verified }
+        const { extraction, verified, cost: c } = await extractCover(apiKey, MODEL, r.full_text)
+        cost += c
+        cache[r.id] = { id: r.id, year: r.year, extraction, verified }
       }, 'extract')
       writeFileSync(CACHE, JSON.stringify(cache, null, 1))
       console.log(`  cost $${cost.toFixed(2)}${errors ? ` · ${errors} errors (retry next run)` : ''}`)

@@ -1,4 +1,5 @@
 import { getDb } from '../../lib/db'
+import { STUDENT_PUBS_SQL } from '@/services/reporting-metrics'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,15 +16,11 @@ export async function GET() {
            count(*) FILTER (WHERE p.rmbl_research = 'yes')::int AS rmbl_research,
            count(*) FILTER (WHERE p.rmbl_research = 'yes' AND p.publication_type IN ('article','chapter','book'))::int AS peer_reviewed_rmbl,
            count(*) FILTER (WHERE p.publication_type IN ('student_paper','thesis'))::int AS student_papers_theses,
-           count(*) FILTER (WHERE sa.publication_id IS NOT NULL AND p.publication_type IN ('article','chapter','book'))::int AS peer_reviewed_with_student_authors,
-           count(*) FILTER (WHERE sa.has_reu)::int AS reu_students
+           count(*) FILTER (WHERE sp.has_student)::int AS peer_reviewed_with_student_authors,
+           count(*) FILTER (WHERE sp.has_reu)::int AS reu_students
     FROM publications p
-    LEFT JOIN (
-      SELECT publication_id, bool_or(student_program = 'reu') AS has_reu
-      FROM publication_student_authors
-        WHERE student_program IS DISTINCT FROM 'none' -- curated "Not a student"
-        GROUP BY publication_id
-    ) sa ON sa.publication_id = p.id
+    -- Same student-authorship definition as /metrics (services/reporting-metrics.ts).
+    LEFT JOIN (${STUDENT_PUBS_SQL}) sp ON sp.publication_id = p.id
     WHERE p.year >= 1928 AND p.year <= extract(year FROM now())::int
     GROUP BY p.year ORDER BY p.year
   `)

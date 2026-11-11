@@ -77,6 +77,8 @@ interface SearchParams {
   topic?: string
   pubType?: string
   rmbl?: string
+  /** 'yes' = only publications with an undergraduate (RMBL program) author. */
+  undergrad?: string
   program?: string
   project?: string
   yearFrom?: string
@@ -116,6 +118,7 @@ function buildUrl(current: SearchParams, overrides: Record<string, string | unde
   if (merged.topic) p.set('topic', merged.topic)
   if (merged.pubType) p.set('pubType', merged.pubType)
   if (merged.rmbl) p.set('rmbl', merged.rmbl)
+  if (merged.undergrad) p.set('undergrad', merged.undergrad)
   if (merged.project) p.set('project', merged.project)
   if (merged.yearFrom) p.set('yearFrom', merged.yearFrom)
   if (merged.yearTo) p.set('yearTo', merged.yearTo)
@@ -155,6 +158,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const topicFilter = params.topic || ''
   const pubTypeFilter = params.pubType || ''
   const rmblFilter = params.rmbl === 'yes'
+  const undergradFilter = params.undergrad === 'yes'
   const projectFilter = params.project && /^\d+$/.test(params.project) ? parseInt(params.project) : null
   const yearFrom = params.yearFrom ? parseInt(params.yearFrom) : null
   const yearTo = params.yearTo ? parseInt(params.yearTo) : null
@@ -189,7 +193,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   // Use tsvector full-text search when there's a query text
   // This provides ranked results with stemming and snippet highlighting
-  const useFts = Boolean(query) && !useAdvanced && !topicFilter && !pubTypeFilter && !rmblFilter && !programFilter && !projectFilter && !yearFrom && !yearTo && !neighborhoodParam
+  const useFts = Boolean(query) && !useAdvanced && !topicFilter && !pubTypeFilter && !rmblFilter && !undergradFilter && !programFilter && !projectFilter && !yearFrom && !yearTo && !neighborhoodParam
   let results: ResultItem[] = []
   let totalResults = 0
 
@@ -340,6 +344,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   if (topicIds.length > 0) Object.assign(pubWhere, topicWhere('researchTopics'))
   if (pubTypeFilter) pubWhere.publicationType = { equals: pubTypeFilter }
   if (rmblFilter) pubWhere.rmblResearch = { equals: 'yes' }
+  if (undergradFilter) pubWhere.undergradAuthor = { equals: 'yes' }
   if (programFilter) pubWhere[PROGRAM_FILTERS[programFilter].payloadField] = { equals: 'yes' }
   // Project filter: assignments live on the Projects side (projects_rels),
   // so resolve the project's publication ids once and filter by id.
@@ -394,6 +399,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         if (query) { whereClauses.push(`title ILIKE $${paramIdx}`); params.push(`%${query}%`); paramIdx++ }
         if (pubTypeFilter) { whereClauses.push(`publication_type = $${paramIdx}`); params.push(pubTypeFilter); paramIdx++ }
         if (rmblFilter) { whereClauses.push(`rmbl_research = 'yes'`) }
+        if (undergradFilter) { whereClauses.push(`undergrad_author = 'yes'`) }
         if (programFilter) { whereClauses.push(`${PROGRAM_FILTERS[programFilter].column} = 'yes'`) }
         if (projectPubIds) { whereClauses.push(`p.id = ANY($${paramIdx})`); params.push(projectPubIds.length > 0 ? projectPubIds : [-1]); paramIdx++ }
         if (yearFrom) { whereClauses.push(`year >= $${paramIdx}`); params.push(yearFrom); paramIdx++ }
@@ -645,6 +651,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   if (topicFilter) activeFilters.push(`topic: ${topicFilter}`)
   if (pubTypeFilter) activeFilters.push(`type: ${PUB_TYPE_OPTIONS.find((o) => o.value === pubTypeFilter)?.label}`)
   if (rmblFilter) activeFilters.push('RMBL research only')
+  if (undergradFilter) activeFilters.push('Undergraduate author')
   if (programFilter) activeFilters.push(PROGRAM_FILTERS[programFilter].label)
   let projectName: string | null = null
   if (projectFilter) {
@@ -726,7 +733,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               ...(typeFilter ? { type: typeFilter } : {}),
               ...(useAdvanced ? { type: 'publications' } : {}),
               ...Object.fromEntries(
-                (['pubType', 'yearFrom', 'yearTo', 'rmbl', 'program', ...ADVANCED_FIELDS] as const)
+                (['pubType', 'yearFrom', 'yearTo', 'rmbl', 'undergrad', 'program', ...ADVANCED_FIELDS] as const)
                   .filter((k) => params[k])
                   .map((k) => [k, String(params[k])]),
               ),
@@ -843,6 +850,22 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                   }}
                 >
                   RMBL research only
+                </Link>
+              </label>
+              <label>
+                <Link
+                  href={buildUrl(params, {
+                    undergrad: undergradFilter ? undefined : 'yes',
+                    type: typeFilter || 'publications',
+                    page: undefined,
+                  })}
+                  style={{
+                    fontWeight: undergradFilter ? 700 : 400,
+                    color: undergradFilter ? 'var(--color-accent)' : 'inherit',
+                  }}
+                  title="Publications with an author who was in RMBL's undergraduate program"
+                >
+                  Undergraduate author
                 </Link>
               </label>
               {/* Programs & campaigns: only those with curated membership

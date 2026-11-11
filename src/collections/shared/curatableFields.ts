@@ -14,6 +14,7 @@ export const CURATABLE_FIELDS: Record<string, string[]> = {
     'doi', 'publisher', 'pdfLink', 'externalUrl', 'publicationType',
     'dataSource', 'discoveryMethod', 'pdfRestricted', 'pdfSourceDescription',
     'pdfAcquiredAt', 'rmblResearch', 'sfaProgram', 'sailProgram',
+    'undergradAuthor', 'studentPaperLevel', 'studentPaperProgram',
   ],
   datasets: [
     'title', 'description', 'doi', 'publicationYear', 'downloadUrl',

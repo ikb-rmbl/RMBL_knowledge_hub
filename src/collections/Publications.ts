@@ -7,6 +7,7 @@ import { curatedFieldsWidget } from './shared/curationWidgetField'
 import { CURATABLE_FIELDS } from './shared/curatableFields'
 import { flagsForItemField } from './shared/flagsField'
 import { studentAuthorsAfterChange, studentAuthorsAfterRead, studentAuthorsBeforeChange, studentProgramField } from './shared/studentAuthors'
+import { studentEvidenceEndpoint } from './shared/studentEvidence'
 
 const PUBLICATION_TYPE_OPTIONS = [
   { label: 'Journal Article', value: 'article' },
@@ -31,6 +32,7 @@ export const Publications: CollectionConfig = {
     beforeDelete: [tombstoneHookFor('publications')],
   },
   access: publicReadAuthWrite,
+  endpoints: [studentEvidenceEndpoint],
   fields: [
     {
       name: 'title',
@@ -296,6 +298,80 @@ export const Publications: CollectionConfig = {
         position: 'sidebar',
         readOnly: true,
         description: 'How the SFA/SAIL flags were set. SFA: sfa_list / not_on_sfa_list, with the acknowledgment classifier verdict under "ack". SAIL: llm / no_cue / project_link / llm_unverified, with the supporting quote.',
+      },
+    },
+    {
+      // Tri-state like rmblResearch. Set by derive-undergrad-authorship.ts from
+      // the student-author tags and the legacy Publications DB student marking;
+      // an admin Yes/No sticks (curation-tracked). Public — names no one — and
+      // drives "# Pubs with Student Authors" plus the search filter.
+      name: 'undergradAuthor',
+      label: 'Undergraduate author',
+      type: 'select',
+      options: [
+        { label: 'Yes — an author was an RMBL undergraduate', value: 'yes' },
+        { label: 'No', value: 'no' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description:
+          'An author was in RMBL\'s undergraduate program when doing this work (within six years of their student paper). Auto-set from the student tags below and the old Publications Database; your Yes/No sticks and overrides them.',
+      },
+    },
+    {
+      // Admin-only: per-person REU status derives from private rosters.
+      name: 'reuAuthor',
+      label: 'REU author',
+      type: 'checkbox',
+      access: { read: ({ req }) => Boolean(req.user), create: () => false, update: () => false },
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: 'An author was an NSF REU student. Set by the pipeline from the per-author Student tags — change those to correct it.',
+      },
+    },
+    {
+      name: 'studentEvidence',
+      type: 'ui',
+      admin: {
+        position: 'sidebar',
+        components: { Field: '/admin/components/StudentEvidence#StudentEvidence' },
+      },
+    },
+    {
+      // Student papers only: classify-student-papers.ts output, editable.
+      name: 'studentPaperLevel',
+      label: 'Student level',
+      type: 'select',
+      options: [
+        { label: 'Undergraduate', value: 'undergraduate' },
+        { label: 'Graduate', value: 'graduate' },
+        { label: 'Unknown', value: 'unknown' },
+      ],
+      admin: {
+        position: 'sidebar',
+        condition: (data) => data?.publicationType === 'student_paper',
+        description: 'Only undergraduate student papers create participants. Auto-set; your choice sticks.',
+      },
+    },
+    {
+      name: 'studentPaperProgram',
+      label: 'Student program',
+      type: 'select',
+      options: [
+        { label: 'NSF REU', value: 'reu' },
+        { label: 'NSF URP (pre-REU)', value: 'urp' },
+        { label: 'Independent research', value: 'independent_research' },
+        { label: 'RMBL course', value: 'course' },
+        { label: 'RMBL undergraduate (program not stated)', value: 'rmbl_undergraduate' },
+        { label: 'Undergraduate work for another institution', value: 'external_undergraduate' },
+        { label: 'Graduate', value: 'graduate' },
+        { label: 'Unknown', value: 'unknown' },
+      ],
+      admin: {
+        position: 'sidebar',
+        condition: (data) => data?.publicationType === 'student_paper',
+        description: 'REU/URP students count toward the REU figures; "another institution", graduate and unknown create no participants. Auto-set; your choice sticks. To mark a listed author as a mentor rather than a student, set their Student select to "Not a student".',
       },
     },
     {

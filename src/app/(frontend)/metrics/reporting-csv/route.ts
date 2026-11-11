@@ -10,8 +10,9 @@ export async function GET() {
     'year', 'journal_articles', 'journal_articles_reported',
     'sfa_papers', 'sfa_unclassified', 'sfa_papers_reported',
     'sail_papers', 'sail_unclassified', 'student_papers',
-    'reu_authors', 'undergrad_authors_reported',
-    'articles_with_reu_author', 'articles_with_undergrad_reported',
+    'pubs_with_student_authors', 'articles_with_undergrad_reported',
+    'student_authors_on_pubs', 'undergrad_authors_reported',
+    'pubs_with_reu_authors', 'reu_authors',
   ].join(',')
   const v = (n: number | null) => (n == null ? '' : String(n))
   const body = rows
@@ -20,8 +21,9 @@ export async function GET() {
         r.year, r.articles, v(r.reported.articles),
         r.sfa, r.sfaUnclassified, v(r.reported.sfa),
         r.sail, r.sailUnclassified, r.studentPapers,
-        r.reuAuthors, v(r.reported.undergradAuthors),
-        r.reuArticles, v(r.reported.undergradArticles),
+        r.studentPubs, v(r.reported.undergradArticles),
+        r.studentAuthors, v(r.reported.undergradAuthors),
+        r.reuPubs, r.reuAuthors,
       ].join(','),
     )
     .join('\n')
