@@ -11,17 +11,30 @@ const TYPE_LABELS: Record<string, string> = {
   initiative: 'Initiative',
 }
 
+// "Ongoing" removed 2026-11-12: no research plan carries it, so with the
+// research-plan view it always returned nothing.
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },
-  { value: 'ongoing', label: 'Ongoing' },
   { value: 'completed', label: 'Completed' },
 ]
 
+const DEFAULT_SORT = 'year'
 const SORT_OPTIONS = [
+  { value: 'year', label: 'Year (newest), then PI' },
   { value: 'name', label: 'Name (A-Z)' },
   { value: '-name', label: 'Name (Z-A)' },
   { value: 'pi', label: 'PI (A-Z)' },
 ]
+
+/** Research plans per page: ~1,150 studies once renewals are grouped. */
+const PAGE_SIZE = 50
+
+/** First PI's last name, for sorting ("Mary (Cassie) Stoddard, Rick Prum" → "stoddard"). */
+function piLastName(pi: unknown): string {
+  const first = String(pi ?? '').split(/[,;&]| and /)[0]
+  const tokens = first.replace(/\([^)]*\)|"[^"]*"/g, ' ').trim().split(/\s+/).filter((t) => !/^(jr|sr|ii|iii|iv|phd)\.?$/i.test(t))
+  return (tokens[tokens.length - 1] ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+}
 
 interface ProjectsParams {
   type?: string
@@ -29,6 +42,7 @@ interface ProjectsParams {
   field?: string
   sort?: string
   q?: string
+  page?: string
 }
 
 function buildUrl(current: ProjectsParams, overrides: Record<string, string | undefined>): string {
@@ -39,6 +53,8 @@ function buildUrl(current: ProjectsParams, overrides: Record<string, string | un
   if (merged.field) p.set('field', merged.field)
   if (merged.sort) p.set('sort', merged.sort)
   if (merged.q) p.set('q', merged.q)
+  // Only an explicit page survives: any filter or sort change starts at page 1.
+  if (overrides.page) p.set('page', overrides.page)
   const qs = p.toString()
   return `/projects${qs ? '?' + qs : ''}`
 }
@@ -48,7 +64,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
   const typeFilter = params.type || ''
   const statusFilter = params.status || ''
   const fieldFilter = params.field || ''
-  const sortParam = params.sort || 'name'
+  const sortParam = SORT_OPTIONS.some((o) => o.value === params.sort) ? params.sort! : DEFAULT_SORT
   const query = params.q || ''
 
   const payload = await getPayload({ config })
@@ -63,11 +79,13 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
     { description: { contains: query } },
   ]
 
+  // Every matching project — 1,360 once the legacy plans arrived (2026-11-12);
+  // a 500 cap silently dropped most of the alphabet. Sorted in code below.
   const projects = await payload.find({
     collection: 'projects',
     where,
-    limit: 500,
-    sort: sortParam,
+    pagination: false,
+    sort: 'name',
     depth: 0,
   })
 
@@ -87,16 +105,32 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
     chains.get(root)!.push(p)
   }
   const earlierFilings = new Map<number, number>()
+  const byName = (a: (typeof allPlans)[number], b: (typeof allPlans)[number]) =>
+    String(a.name ?? '').localeCompare(String(b.name ?? ''))
+  const byPi = (a: (typeof allPlans)[number], b: (typeof allPlans)[number]) =>
+    piLastName(a.pi).localeCompare(piLastName(b.pi))
+  const byYearDesc = (a: (typeof allPlans)[number], b: (typeof allPlans)[number]) =>
+    ((b.startYear as number) ?? 0) - ((a.startYear as number) ?? 0)
+  const COMPARE: Record<string, (a: (typeof allPlans)[number], b: (typeof allPlans)[number]) => number> = {
+    // A study sorts by its current filing: newest first, then PI last name.
+    year: (a, b) => byYearDesc(a, b) || byPi(a, b) || byName(a, b),
+    name: byName,
+    '-name': (a, b) => byName(b, a),
+    pi: (a, b) => byPi(a, b) || byYearDesc(a, b) || byName(a, b),
+  }
   const plans = [...chains.values()]
     .map((chain) => {
       const current = chain.reduce((a, b) => ((b.endYear ?? 0) > (a.endYear ?? 0) ? b : a))
       earlierFilings.set(current.id as number, chain.length - 1)
       return current
     })
-    .sort((a, b) => allPlans.indexOf(a) - allPlans.indexOf(b))
+    .sort(COMPARE[sortParam])
+  const pageCount = Math.max(1, Math.ceil(plans.length / PAGE_SIZE))
+  const page = Math.min(pageCount, Math.max(1, parseInt(params.page || '1') || 1))
+  const pagePlans = plans.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   // Collect unique fields of science for sidebar
-  const allProjects = await payload.find({ collection: 'projects', limit: 500, depth: 0 })
+  const allProjects = await payload.find({ collection: 'projects', pagination: false, depth: 0 })
   const fieldCounts = new Map<string, number>()
   for (const p of allProjects.docs) {
     const field = p.fieldOfScience as string
@@ -126,7 +160,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
 
         {/* Type chips */}
         <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-          <Link href={buildUrl(params, { type: undefined })} style={{ padding: '6px 14px', borderRadius: 'var(--radius-sm)', background: !typeFilter ? 'var(--color-accent)' : 'var(--color-surface)', color: !typeFilter ? '#fff' : 'inherit', border: '1px solid var(--color-border)', textDecoration: 'none', fontSize: '13px' }}>All ({projects.totalDocs})</Link>
+          <Link href={buildUrl(params, { type: undefined })} style={{ padding: '6px 14px', borderRadius: 'var(--radius-sm)', background: !typeFilter ? 'var(--color-accent)' : 'var(--color-surface)', color: !typeFilter ? '#fff' : 'inherit', border: '1px solid var(--color-border)', textDecoration: 'none', fontSize: '13px' }}>All ({projects.docs.length})</Link>
           <Link href={buildUrl(params, { type: typeFilter === 'program' ? undefined : 'program' })} style={{ padding: '6px 14px', borderRadius: 'var(--radius-sm)', background: typeFilter === 'program' ? 'var(--color-accent)' : 'var(--color-surface)', color: typeFilter === 'program' ? '#fff' : 'inherit', border: '1px solid var(--color-border)', textDecoration: 'none', fontSize: '13px' }}>Programs</Link>
           <Link href={buildUrl(params, { type: typeFilter === 'campaign' ? undefined : 'campaign' })} style={{ padding: '6px 14px', borderRadius: 'var(--radius-sm)', background: typeFilter === 'campaign' ? 'var(--color-accent)' : 'var(--color-surface)', color: typeFilter === 'campaign' ? '#fff' : 'inherit', border: '1px solid var(--color-border)', textDecoration: 'none', fontSize: '13px' }}>Campaigns</Link>
           <Link href={buildUrl(params, { type: typeFilter === 'research_plan' ? undefined : 'research_plan' })} style={{ padding: '6px 14px', borderRadius: 'var(--radius-sm)', background: typeFilter === 'research_plan' ? 'var(--color-accent)' : 'var(--color-surface)', color: typeFilter === 'research_plan' ? '#fff' : 'inherit', border: '1px solid var(--color-border)', textDecoration: 'none', fontSize: '13px' }}>Research Plans</Link>
@@ -141,7 +175,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
             {SORT_OPTIONS.map((opt) => (
               <label key={opt.value}>
                 <Link
-                  href={buildUrl(params, { sort: opt.value === 'name' ? undefined : opt.value })}
+                  href={buildUrl(params, { sort: opt.value === DEFAULT_SORT ? undefined : opt.value })}
                   style={{
                     fontWeight: sortParam === opt.value ? 700 : 400,
                     color: sortParam === opt.value ? 'var(--color-accent)' : 'inherit',
@@ -234,9 +268,14 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           {/* Research Plans section */}
           {(!typeFilter || typeFilter === 'research_plan') && plans.length > 0 && (
             <section>
-              <h2 style={{ fontSize: '18px', marginBottom: '12px' }}>Research Plans ({plans.length})</h2>
+              <h2 style={{ fontSize: '18px', marginBottom: '4px' }}>Research Plans ({plans.length})</h2>
+              {pageCount > 1 && (
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', margin: '0 0 12px' }}>
+                  Showing {(page - 1) * PAGE_SIZE + 1}&ndash;{Math.min(page * PAGE_SIZE, plans.length)} of {plans.length}
+                </p>
+              )}
               <div className="result-list">
-                {plans.map((project) => (
+                {pagePlans.map((project) => (
                   <Link key={project.id} className="result-card" href={`/projects/${project.id}`}>
                     <div className="result-card-header">
                       <span className="badge badge-publication">Research Plan</span>
@@ -259,6 +298,17 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                   </Link>
                 ))}
               </div>
+              {pageCount > 1 && (
+                <nav aria-label="Research plan pages" style={{ display: 'flex', gap: '16px', alignItems: 'center', margin: '20px 0', fontSize: '14px' }}>
+                  {page > 1
+                    ? <Link href={buildUrl(params, { page: String(page - 1) })}>&larr; Previous</Link>
+                    : <span style={{ color: 'var(--color-text-muted)' }}>&larr; Previous</span>}
+                  <span>Page {page} of {pageCount}</span>
+                  {page < pageCount
+                    ? <Link href={buildUrl(params, { page: String(page + 1) })}>Next &rarr;</Link>
+                    : <span style={{ color: 'var(--color-text-muted)' }}>Next &rarr;</span>}
+                </nav>
+              )}
             </section>
           )}
 
