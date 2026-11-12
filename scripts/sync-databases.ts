@@ -116,10 +116,12 @@ const COLLECTIONS: Record<string, CollectionConfig> = {
     // across. renews_project_id is NOT: it is a projects.id, and those diverge
     // between local and Neon for rows inserted on one side only. Production
     // gets its chains from `ingest-research-plans.ts --target=neon`, which
-    // recomputes them from plan_id.
+    // recomputes them from plan_id. pi_author_id likewise holds an authors.id;
+    // link-plan-pis.ts --target=neon derives production's links from its own
+    // registry.
     pipelineFields: ['embedding', 'plan_id'],
-    curatedFields: ['name', 'description', 'project_type', 'status', 'pi', 'pi_author_id', 'field_of_science', 'research_areas', 'start_year', 'end_year', 'discovery_keywords', 'auto_discovery_enabled', 'parent_project_id'],
-    skipFields: ['id', 'created_at', 'updated_at', 'renews_project_id'],
+    curatedFields: ['name', 'description', 'project_type', 'status', 'pi', 'field_of_science', 'research_areas', 'start_year', 'end_year', 'discovery_keywords', 'auto_discovery_enabled', 'parent_project_id'],
+    skipFields: ['id', 'created_at', 'updated_at', 'renews_project_id', 'pi_author_id'],
   },
 }
 

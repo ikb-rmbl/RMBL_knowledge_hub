@@ -40,6 +40,15 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
     depth: 0,
   })
 
+  // PI → author page, only where link-plan-pis.ts (or an admin) set piAuthor.
+  // The link covers the first named PI; any co-PIs stay plain text.
+  const piAuthorId =
+    typeof project.piAuthor === 'object' ? project.piAuthor?.id : (project.piAuthor ?? null)
+  const piText = (project.pi as string | null) ?? ''
+  const piSplit = piText.search(/[,;&]| and /)
+  const piHead = piSplit > 0 ? piText.slice(0, piSplit).trim() : piText
+  const piRest = piSplit > 0 ? piText.slice(piSplit) : ''
+
   // Find parent project (for research plans)
   const parentProject = project.parentProject
     ? (typeof project.parentProject === 'object' ? project.parentProject : null)
@@ -81,7 +90,15 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
         )}
         {project.pi && (
           <div>
-            <strong>Principal Investigator:</strong> {project.pi as string}
+            <strong>Principal Investigator:</strong>{' '}
+            {piAuthorId ? (
+              <>
+                <Link href={`/authors/${piAuthorId}`}>{piHead}</Link>
+                {piRest}
+              </>
+            ) : (
+              (project.pi as string)
+            )}
           </div>
         )}
         {project.planId && (
