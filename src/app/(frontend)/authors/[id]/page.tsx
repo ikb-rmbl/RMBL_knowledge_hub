@@ -58,25 +58,16 @@ export default async function AuthorDetail({ params, searchParams }: { params: P
   const documents = Array.isArray(author.documents) ? author.documents : []
   const totalWorks = publications.length + datasets.length + documents.length
 
-  // Find associated projects (by pi_author_id or PI name match)
-  // PI field may contain nicknames ("Dan" vs "Daniel"), multiple PIs ("Dan Blumstein, Kenneth Armitage"),
-  // so we match on last name appearing in the PI field plus first-initial match
+  // Projects this author leads: only explicit links (projects.pi_author_id,
+  // set by link-plan-pis.ts with evidence beyond the name, or by an admin).
+  // Name matching here linked namesakes' plans to the wrong person.
   const db = getDb()
-  const nameParts = (author.displayName as string).split(/\s+/)
-  const lastName = nameParts[nameParts.length - 1]
-  const firstInitial = nameParts[0]?.[0] || ''
-  // Match by: exact pi_author_id, exact display name, or last name + first name prefix (3+ chars)
-  // First-initial-only matching is too loose (e.g. "Rick Williams" matching "Kenneth Hurst Williams")
-  const firstName = nameParts[0] || ''
-  const firstNamePrefix = firstName.length >= 3 ? firstName.slice(0, 3) : firstName
   const { rows: allProjects } = await db.query(
     `SELECT id, name, project_type, status, pi, field_of_science, description, parent_project_id
      FROM projects
      WHERE pi_author_id = $1
-       OR lower(pi) = lower($2)
-       OR (pi ILIKE $3 AND pi ILIKE $4)
-     ORDER BY name`,
-    [parseInt(id), author.displayName, `%${lastName}%`, `%${firstNamePrefix}%`],
+     ORDER BY start_year DESC NULLS LAST, name`,
+    [parseInt(id)],
   )
   // Hide child projects when their parent is already in the list
   const projectIds = new Set(allProjects.map((p: any) => p.id))

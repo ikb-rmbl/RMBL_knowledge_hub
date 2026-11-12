@@ -394,15 +394,10 @@ async function main() {
              (name, description, project_type, status, pi, pi_author_id, field_of_science,
               research_areas, start_year, end_year, plan_id, auto_discovery_enabled,
               curated_fields, created_at, updated_at)
-           VALUES ($1, $2, 'research_plan', $3, $4,
-                   -- separate param from $4: that one types as the varchar pi
-                   -- column, and Postgres will not deduce two types for one $n
-                   (SELECT id FROM authors WHERE lower(display_name) = lower($10)
-                     ORDER BY work_count DESC NULLS LAST LIMIT 1),
-                   $5, $6, $7, $8, $9, $11, '[]'::jsonb, NOW(), NOW())
+           VALUES ($1, $2, 'research_plan', $3, $4, NULL, $5, $6, $7, $8, $9, $10, '[]'::jsonb, NOW(), NOW())
            RETURNING id`,
           [plan.name, plan.description, plan.status, plan.pi, plan.fieldOfScience,
-           plan.researchAreas, plan.startYear, plan.endYear, plan.planId, plan.pi,
+           plan.researchAreas, plan.startYear, plan.endYear, plan.planId,
            // Legacy plans get no auto-discovered items: assign-projects attaches a
            // PI's whole career to every plan they filed (Ian, 2026-11-09). They wait
            // for program-level linking.
@@ -416,16 +411,8 @@ async function main() {
         `UPDATE projects SET auto_discovery_enabled = false WHERE plan_id LIKE 'LEGACY-%' AND auto_discovery_enabled`)
       if (autoOff) console.log(`Turned auto-discovery off on ${autoOff} legacy plans.`)
 
-      // Backfill PI author links on rows that never had one.
-      const { rowCount: linked } = await db.query(
-        `UPDATE projects p SET pi_author_id = a.id
-           FROM authors a
-          WHERE p.pi_author_id IS NULL AND p.pi IS NOT NULL
-            AND lower(a.display_name) = lower(p.pi)
-            AND a.id = (SELECT id FROM authors WHERE lower(display_name) = lower(p.pi)
-                         ORDER BY work_count DESC NULLS LAST LIMIT 1)`,
-      )
-      console.log(`\nLinked ${linked} projects to a PI author record.`)
+      // PI → author links need evidence beyond the name; link-plan-pis.ts makes them.
+      console.log(`\nNext: npx tsx scripts/link-plan-pis.ts${target === 'neon' ? ' --target=neon' : ''} to link PIs to author pages.`)
 
       // Clean the _x000D_ artifacts the previous loader left behind on rows
       // whose CSV entry carries no replacement abstract.
