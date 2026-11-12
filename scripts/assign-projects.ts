@@ -7,9 +7,16 @@
  *   3. Text mentions — project name, PI name, keywords in titles/abstracts
  *
  * Usage:
- *   npx tsx scripts/assign-projects.ts [--dry-run] [--limit=N] [--project=NAME]
+ *   npx tsx scripts/assign-projects.ts [--dry-run] [--limit=N] [--project=NAME] [--plan-prefix=LEGACY-]
+ *
+ * --plan-prefix restricts the run to research plans whose plan_id starts with it.
+ * --dry-run writes a per-project review CSV to scripts/output/assign-projects-dry-run.csv,
+ * including how many matched papers fall outside the plan's own years (author
+ * matching is year-blind, so a PI's 1999 plan picks up their 2024 papers).
  */
 
+import { mkdirSync, writeFileSync } from 'fs'
+import { join } from 'path'
 import pg from 'pg'
 import { sleep } from './lib/concurrency.js'
 import { VOYAGE_API_KEY, VOYAGE_MODEL, EMBEDDING_DIMENSIONS } from './lib/config.js'
@@ -20,6 +27,8 @@ const dryRun = args.includes('--dry-run')
 const limitArg = args.find((a) => a.startsWith('--limit='))?.split('=')[1]
 const limit = limitArg ? parseInt(limitArg) : Infinity
 const projectFilter = args.find((a) => a.startsWith('--project='))?.split('=')[1]
+const planPrefix = args.find((a) => a.startsWith('--plan-prefix='))?.split('=')[1]
+const REPORT_PATH = join(import.meta.dirname, 'output', 'assign-projects-dry-run.csv')
 
 const SIMILARITY_THRESHOLD = 0.55
 const AUTHOR_MATCH_SCORE = 0.8
@@ -223,12 +232,16 @@ async function main() {
   if (projectFilter) {
     projects = projects.filter((p: any) => p.name.toLowerCase().includes(projectFilter.toLowerCase()))
   }
+  if (planPrefix) {
+    projects = projects.filter((p: any) => typeof p.planId === 'string' && p.planId.startsWith(planPrefix))
+  }
   projects = projects.slice(0, limit)
   console.log(`\nProcessing ${projects.length} projects`)
 
   let totalPubs = 0
   let totalDs = 0
   let totalDocs = 0
+  const report: Record<string, string | number>[] = []
 
   for (let i = 0; i < projects.length; i++) {
     const project = projects[i]
@@ -286,6 +299,8 @@ async function main() {
     const dsIds = merged.filter((c) => c.collection === 'datasets').map((c) => c.id)
     const docIds = merged.filter((c) => c.collection === 'documents').map((c) => c.id)
 
+    if (dryRun) report.push(await reportRow(db, project, merged, pubIds, dsIds.length, docIds.length))
+
     totalPubs += pubIds.length
     totalDs += dsIds.length
     totalDocs += docIds.length
@@ -321,6 +336,11 @@ async function main() {
   console.log(`  Datasets:     ${totalDs}`)
   console.log(`  Documents:    ${totalDocs}`)
 
+  if (dryRun && report.length > 0) {
+    writeReport(report)
+    summarizeReport(report)
+  }
+
   // Show top projects by item count
   const { rows: topProjects } = await db.query(`
     SELECT p.name, p.pi, p.project_type,
@@ -341,6 +361,84 @@ async function main() {
   }
 
   await db.end()
+}
+
+// ---------------------------------------------------------------------------
+// Dry-run review report
+// ---------------------------------------------------------------------------
+
+async function reportRow(
+  db: pg.Pool,
+  project: any,
+  merged: Candidate[],
+  pubIds: number[],
+  dsCount: number,
+  docCount: number,
+): Promise<Record<string, string | number>> {
+  const pubs = merged.filter((c) => c.collection === 'publications')
+  const has = (c: Candidate, prefix: string) => c.signals.some((s) => s.startsWith(prefix))
+  const start: number | null = project.startYear ?? null
+  const end: number | null = project.endYear ?? start
+
+  const { rows } = pubIds.length
+    ? await db.query<{ id: number; year: number | null; title: string }>(
+        'SELECT id, year::int AS year, title FROM publications WHERE id = ANY($1::int[])',
+        [pubIds],
+      )
+    : { rows: [] }
+  const byId = new Map(rows.map((r) => [r.id, r]))
+  const years = rows.map((r) => r.year).filter((y): y is number => y != null)
+  // A paper can reasonably appear up to ~5 years after a plan's field seasons end.
+  const outside = start == null ? 0 : years.filter((y) => y < start || y > (end ?? start) + 5).length
+
+  return {
+    id: project.id,
+    plan_id: project.planId ?? '',
+    start_year: start ?? '',
+    end_year: end ?? '',
+    pi: project.pi ?? '',
+    name: project.name,
+    pubs: pubIds.length,
+    pubs_author_only: pubs.filter((c) => c.signals.length === 1 && has(c, 'author_match')).length,
+    pubs_with_embedding: pubs.filter((c) => has(c, 'embedding')).length,
+    pubs_with_text: pubs.filter((c) => has(c, 'text')).length,
+    pubs_outside_plan_years: outside,
+    pub_year_range: years.length ? `${Math.min(...years)}-${Math.max(...years)}` : '',
+    datasets: dsCount,
+    documents: docCount,
+    top_pubs: pubs
+      .slice(0, 3)
+      .map((c) => {
+        const r = byId.get(c.id)
+        return `${r?.year ?? '?'} ${(r?.title ?? '').slice(0, 70)} [${c.score.toFixed(2)}: ${c.signals.join(' ')}]`
+      })
+      .join(' | '),
+  }
+}
+
+function writeReport(rows: Record<string, string | number>[]) {
+  const cols = Object.keys(rows[0])
+  const cell = (v: string | number) => {
+    const s = String(v)
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  }
+  mkdirSync(join(import.meta.dirname, 'output'), { recursive: true })
+  writeFileSync(REPORT_PATH, [cols.join(','), ...rows.map((r) => cols.map((c) => cell(r[c])).join(','))].join('\n') + '\n')
+  console.log(`\nWrote per-project review to ${REPORT_PATH}`)
+}
+
+function summarizeReport(rows: Record<string, string | number>[]) {
+  const n = (r: Record<string, string | number>, k: string) => Number(r[k])
+  const pubs = rows.reduce((a, r) => a + n(r, 'pubs'), 0)
+  const authorOnly = rows.reduce((a, r) => a + n(r, 'pubs_author_only'), 0)
+  const outside = rows.reduce((a, r) => a + n(r, 'pubs_outside_plan_years'), 0)
+  const counts = rows.map((r) => n(r, 'pubs')).sort((a, b) => a - b)
+  const pct = (q: number) => counts[Math.min(counts.length - 1, Math.floor(q * counts.length))]
+  console.log(`\nDry-run review (${rows.length} projects):`)
+  console.log(`  projects with 0 pubs: ${counts.filter((c) => c === 0).length}`)
+  console.log(`  pubs per project: median ${pct(0.5)}, p90 ${pct(0.9)}, max ${counts[counts.length - 1]}`)
+  console.log(`  pub assignments: ${pubs} — ${authorOnly} on the author signal alone, ` +
+    `${outside} published outside the plan's years (start .. end+5)`)
 }
 
 main().catch((err) => {
