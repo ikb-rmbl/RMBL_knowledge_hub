@@ -91,7 +91,9 @@ const COLLECTIONS: Record<string, CollectionConfig> = {
     // via LLM. Without this, the column never propagates from local to
     // Neon because the INSERT-fields list only walks curatedFields +
     // pipelineFields.
-    pipelineFields: ['embedding', 'search_vector', 'full_text', 'document_type'],
+    // `provenance` (jsonb, z-2026-11-12-01) is written by load-to-payload.ts for
+    // sources that ship a source trail (the legacy-website rescue). Same reason.
+    pipelineFields: ['embedding', 'search_vector', 'full_text', 'document_type', 'provenance'],
     curatedFields: ['title', 'summary', 'date_original', 'source_url', 'pdf_link', 'pdf_restricted', 'pdf_source_description', 'pdf_acquired_at'],
     skipFields: ['id', 'created_at', 'updated_at', 'ingestion_date'],
   },

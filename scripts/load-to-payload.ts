@@ -3,7 +3,8 @@
  *
  * Loads all three collections into Payload via the REST API:
  *   1. Seeds Topics taxonomy
- *   2. Loads Documents (Sustainable Library)
+ *   2. Loads Documents (Sustainable Library, Federal Register notices, and the
+ *      legacy rmbl.org website rescue when its staged file is present)
  *   3. Loads Publications
  *   4. Loads Datasets (Data Catalog)
  *
@@ -27,6 +28,14 @@ import {
   getAllPaginated,
 } from './lib/payload-client.js'
 import { OUTPUT_DIR, PAYLOAD_API, CONCURRENCY } from './lib/config.js'
+import {
+  LEGACY_DOCUMENTS_FILE,
+  partitionTopics,
+  provenanceRecord,
+  readLegacyDocuments,
+  type LegacyDocument,
+} from './lib/legacy-website-documents.js'
+import { PARENT_TOPIC_NAMES } from './lib/topic-rules.js'
 import pg from 'pg'
 import { extractKeys, matchesAnyTombstone, type TombstoneKeys } from './lib/dedup-keys.js'
 
@@ -113,6 +122,57 @@ async function seedTopics() {
 // Documents
 // ---------------------------------------------------------------------------
 
+/**
+ * Legacy-website docs carry topic names from topic-rules.ts. Create any registered
+ * parent topic that doesn't exist yet (the 7 RMBL Institutional topics, before
+ * manage-topics.ts --organize-only has run). Never create unregistered names: an
+ * unregistered parentless topic would be re-parented by the organizer.
+ */
+async function ensureLegacyTopics(legacyDocs: LegacyDocument[]) {
+  const { registered, unregistered } = partitionTopics(legacyDocs, new Set(PARENT_TOPIC_NAMES))
+  for (const name of unregistered) {
+    console.warn(`  WARNING: legacy docs use unregistered topic "${name}" (dropped; add to topic-rules.ts)`)
+  }
+  for (const name of registered) {
+    if ((await resolveTopicIds([name])).length > 0) continue
+    const created = await createRecord('topics', { name })
+    if (created) {
+      topicIdCache.set(name, created.id)
+      console.log(`  Created topic "${name}"`)
+    }
+  }
+}
+
+/**
+ * documents.provenance (SQL-only, z-2026-11-12-01) for legacy-website docs. Keyed by
+ * source_url and only fills NULLs, so it is idempotent and also backfills rows loaded
+ * by an earlier run.
+ */
+async function writeLegacyProvenance(legacyDocs: LegacyDocument[]) {
+  const pgUrl = process.env.DATABASE_URL
+  if (legacyDocs.length === 0 || !pgUrl) return
+  const { default: pg } = await import('pg')
+  const pool = new pg.Pool({ connectionString: pgUrl })
+  try {
+    let updated = 0
+    for (const doc of legacyDocs) {
+      const { rowCount } = await pool.query(
+        `UPDATE documents SET provenance = $1::jsonb WHERE source_url = $2 AND provenance IS NULL`,
+        [JSON.stringify(provenanceRecord(doc)), doc.sourceUrl],
+      )
+      updated += rowCount ?? 0
+    }
+    console.log(`  ${updated} legacy-website provenance records set via post-load SQL`)
+  } catch (err: any) {
+    if (err?.code !== '42703') throw err // undefined_column
+    console.warn(
+      '  WARNING: documents.provenance missing — apply scripts/sql/z-2026-11-12-01-document-provenance.sql, then re-run',
+    )
+  } finally {
+    await pool.end()
+  }
+}
+
 async function loadDocuments() {
   console.log('\n--- Loading Documents ---')
   const existing = await getCount('documents')
@@ -133,6 +193,13 @@ async function loadDocuments() {
     const frDocs = Array.isArray(fr) ? fr : fr.documents || []
     allDocs.push(...frDocs)
     console.log(`  +${frDocs.length} Federal Register notices merged in`)
+  }
+  // Legacy rmbl.org website (2000-2014) rescued from the Wayback Machine; staged by
+  // github.com/ikb-rmbl/RMBL_metadata_rescue. Optional add-on file, like FR notices.
+  const legacyDocs = readLegacyDocuments(OUTPUT_DIR)
+  if (legacyDocs.length > 0) {
+    allDocs.push(...legacyDocs)
+    console.log(`  +${legacyDocs.length} legacy-website documents merged in (${LEGACY_DOCUMENTS_FILE})`)
   }
   console.log(`  ${allDocs.length} candidate documents from disk`)
 
@@ -155,8 +222,13 @@ async function loadDocuments() {
     const before = docs.length
     docs = docs.filter((d) => !d.sourceUrl || !seenUrls.has(String(d.sourceUrl)))
     console.log(`  ${before - docs.length} already loaded, ${docs.length} new to insert`)
-    if (docs.length === 0) return
+    if (docs.length === 0) {
+      await writeLegacyProvenance(legacyDocs)
+      return
+    }
   }
+
+  if (legacyDocs.length > 0) await ensureLegacyTopics(legacyDocs)
 
   // Federal Register notices land with action-tag-driven categories that
   // don't match the 40-thematic-topic taxonomy by string. Map known
@@ -220,6 +292,9 @@ async function loadDocuments() {
         pdfLink: doc.sourceFile || undefined,
         sourceUrl: doc.sourceUrl || undefined,
         ingestionDate: doc.ingestionDate || undefined,
+        // Only the legacy-website records carry fullText at staging time; for the other
+        // sources load-fulltext.ts fills it from pdf-staging/ afterwards.
+        fullText: doc.fullText || undefined,
       })
       return result ? 'success' : 'skipped'
     },
@@ -247,6 +322,8 @@ async function loadDocuments() {
       await pool.end()
     }
   }
+
+  await writeLegacyProvenance(legacyDocs)
 }
 
 // ---------------------------------------------------------------------------
