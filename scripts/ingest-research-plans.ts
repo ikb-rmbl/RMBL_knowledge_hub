@@ -6,6 +6,21 @@
  * years 2021-2034). It supersedes the 2026 active-plan list that
  * update-projects-2026.ts loaded, which only ever covered currently-active work.
  *
+ * Second source: scripts/data/research-plans-legacy-1996-2020.json — the
+ * pre-Salesforce plan database from old.rmbl.org (1,051 filings, 1996–2020),
+ * snapshotted by scrape-legacy-research-plans.ts. Both sources load in ONE run
+ * so renewal chains span the 2022 cut-over (a 2009 legacy filing becomes the
+ * root of the RS2022 plan that continues it). Running with only one source
+ * would re-root those chains, so the legacy file is required.
+ *   - plan_id = 'LEGACY-<ResearchPlanID>'
+ *   - status is always 'completed': the legacy system is retired and anything
+ *     still running was re-filed in Salesforce, which carries the live status.
+ *   - institution, collaborators and study organisms have no columns, so they
+ *     go in a short trailer on the description (searchable, displayed).
+ *   - auto_discovery_enabled = false: no assign-projects items for now — its
+ *     career-wide author matching is wrong for 25 years of filings; legacy plans
+ *     wait for program-level paper linking.
+ *
  * Model: ONE PROJECT ROW PER PLAN ID.
  *   - plan_id (RS2024-913) is the durable key. Re-ingests match on it first, so
  *     the reconciliation below only has to run once per newly-appearing plan.
@@ -34,14 +49,17 @@
  * 60 plans have none, and the existing text is better than nothing.
  *
  * Usage:
- *   npx tsx scripts/ingest-research-plans.ts [--dry-run] [--target=neon] [--csv=path]
+ *   npx tsx scripts/ingest-research-plans.ts [--dry-run] [--target=neon] [--csv=path] [--legacy=path]
  */
 
+import { readFileSync } from 'fs'
 import { join } from 'path'
 import pg from 'pg'
 import './lib/config.js'
 import { readCsvFile } from './lib/csv.js'
 import { curatedSafe } from './lib/curation.js'
+import { cleanLegacyHtml, legacyValue } from './lib/legacy-text.js'
+import { piKey } from './lib/person-names.js'
 
 const args = process.argv.slice(2)
 const dryRun = args.includes('--dry-run')
@@ -49,6 +67,9 @@ const target = args.find((a) => a.startsWith('--target='))?.split('=')[1] ?? 'lo
 const csvPath =
   args.find((a) => a.startsWith('--csv='))?.split('=')[1] ??
   join(import.meta.dirname, 'data', 'research-plans-2022-2026.csv')
+const legacyPath =
+  args.find((a) => a.startsWith('--legacy='))?.split('=')[1] ??
+  join(import.meta.dirname, 'data', 'research-plans-legacy-1996-2020.json')
 
 if (target !== 'local' && target !== 'neon') {
   console.error(`Unknown --target=${target} (expected local or neon)`)
@@ -112,7 +133,6 @@ function fixShouting(s: string, minWords: number): string {
 
 /** "Ian Breckheimer (community)" is a filing annotation, not part of the name. */
 const cleanPi = (s: string) => fixShouting(repairPunctuation(s).replace(/\s*\([^()]*\)\s*$/, '').trim(), 2)
-const normPi = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ')
 
 // ---------------------------------------------------------------------- model
 
@@ -153,10 +173,81 @@ function loadPlans(): Plan[] {
       status: end >= TODAY ? 'active' : 'completed',
     }
   })
+  return plans
+}
+
+/** Legacy Subject / Level values that have an equivalent in the Salesforce Research Area vocabulary. */
+const LEGACY_AREAS: Record<string, string> = {
+  'Climate Change': 'Climate change',
+  'Long-Term': 'Long-term research',
+  Phenology: 'Phenology',
+  Pollination: 'Pollination',
+  'Species Interaction': 'Species Interactions',
+  Community: 'Community ecology',
+}
+
+/** Organisms answers that say nothing ("n", "N/A", "none"). */
+const isPlaceholder = (s: string) => /^(n|na|n\/a|none|-+|\.+)?$/i.test(s.trim())
+
+function loadLegacyPlans(): Plan[] {
+  const rows = JSON.parse(readFileSync(legacyPath, 'utf-8')) as Record<string, unknown>[]
+  const text = (v: unknown) =>
+    repairPunctuation(cleanLegacyHtml(legacyValue(v)))
+      // the degree sign is the one lost character that is reliably inferable
+      .replace(/(\d)\s?\?\s?([CF])\b/g, '$1 °$2')
+  const person = (first: unknown, last: unknown) =>
+    cleanPi(`${text(first)} ${text(last)}`.trim())
+
+  // A handful of legacy filings have no title; there is nothing honest to call them.
+  const untitled = rows.filter((r) => !text(r.ResearchPlanTitle))
+  for (const r of untitled) {
+    console.log(`  skipping untitled legacy plan ${r.ResearchPlanID} (${r.ResearchPlanYear}, ` +
+      `${person(r.ResearchPlanFirstName, r.ResearchPlanLastName)})`)
+  }
+
+  return rows.filter((r) => !untitled.includes(r)).map((r): Plan => {
+    const year = Number(r.ResearchPlanYear)
+    const duration = Math.max(1, Number(legacyValue(r.ResearchPlanDuration)) || 1)
+    const endYear = year + duration - 1
+
+    const abstract = text(r.ResearchPlanAbstract)
+    const institution = text(r.ResearchPlanInstitution)
+    const collaborators = [
+      person(r.ResearchPlanCollab1FirstName, r.ResearchPlanCollab1LastName),
+      person(r.ResearchPlanCollab2FirstName, r.ResearchPlanCollab2LastName),
+    ].filter(Boolean)
+    const organisms = text(r.ResearchPlanOrganisms).replace(/^[):\s]+/, '')
+    const trailer = [
+      institution && `Institution: ${institution}`,
+      collaborators.length > 0 && `Collaborators: ${collaborators.join(', ')}`,
+      organisms && !isPlaceholder(organisms) && `Study organisms: ${organisms}`,
+    ].filter(Boolean)
+    const description = [abstract, trailer.join('\n')].filter(Boolean).join('\n\n')
+
+    const areas = [...new Set([r.Subject, r.Level].map((v) => LEGACY_AREAS[legacyValue(v)]).filter(Boolean))]
+
+    return {
+      planId: `LEGACY-${r.ResearchPlanID}`,
+      pi: person(r.ResearchPlanFirstName, r.ResearchPlanLastName),
+      name: fixShouting(text(r.ResearchPlanTitle), 4),
+      description: description || null,
+      fieldOfScience: null,
+      researchAreas: areas.length > 0 ? areas.join('; ') : null,
+      startYear: year,
+      endYear,
+      endDate: new Date(endYear, 11, 31),
+      status: 'completed',
+    }
+  })
+}
+
+function validate(plans: Plan[]): Plan[] {
   const seen = new Set<string>()
   for (const p of plans) {
     if (!p.planId) throw new Error(`Row with no Plan ID: ${p.name}`)
-    if (seen.has(p.planId)) throw new Error(`Duplicate Plan ID in CSV: ${p.planId}`)
+    if (seen.has(p.planId)) throw new Error(`Duplicate Plan ID: ${p.planId}`)
+    if (!p.pi || !p.name) throw new Error(`Plan ${p.planId} is missing its PI or title`)
+    if (!Number.isInteger(p.startYear)) throw new Error(`Plan ${p.planId} has no year`)
     seen.add(p.planId)
   }
   return plans
@@ -170,9 +261,12 @@ async function main() {
     throw new Error(`${target === 'neon' ? 'NEON_DIRECT_URL' : 'DATABASE_URL'} is not set`)
   }
 
-  const plans = loadPlans()
+  const current = loadPlans()
+  const legacy = loadLegacyPlans()
+  const plans = validate([...current, ...legacy])
   console.log(
-    `Target: ${target}${dryRun ? ' (dry-run)' : ''} — ${plans.length} plans from ${csvPath.split('/').pop()}\n` +
+    `Target: ${target}${dryRun ? ' (dry-run)' : ''} — ${plans.length} plans: ` +
+      `${current.length} from ${csvPath.split('/').pop()}, ${legacy.length} from ${legacyPath.split('/').pop()}\n` +
       `  ${plans.filter((p) => p.status === 'active').length} active, ` +
       `${plans.filter((p) => p.status === 'completed').length} completed, ` +
       `${plans.filter((p) => p.description).length} with abstracts`,
@@ -203,7 +297,7 @@ async function main() {
     const byPlanId = new Map(existing.filter((e) => e.plan_id).map((e) => [e.plan_id!, e]))
     const byPi = new Map<string, typeof existing>()
     for (const e of existing) {
-      const k = normPi(e.pi ?? '')
+      const k = piKey(e.pi ?? '')
       if (!byPi.has(k)) byPi.set(k, [])
       byPi.get(k)!.push(e)
     }
@@ -224,7 +318,7 @@ async function main() {
 
     for (const plan of [...plans].sort((a, b) => b.endDate.getTime() - a.endDate.getTime())) {
       if (resolved.has(plan.planId)) continue
-      const candidates = (byPi.get(normPi(plan.pi)) ?? []).filter((c) => !claimed.has(c.id))
+      const candidates = (byPi.get(piKey(plan.pi)) ?? []).filter((c) => !claimed.has(c.id))
       const sims = await simAgainst(plan.name, candidates.map((c) => c.name))
       let bi = -1
       for (let i = 0; i < sims.length; i++) if (bi === -1 || sims[i] > sims[bi]) bi = i
@@ -305,13 +399,22 @@ async function main() {
                    -- column, and Postgres will not deduce two types for one $n
                    (SELECT id FROM authors WHERE lower(display_name) = lower($10)
                      ORDER BY work_count DESC NULLS LAST LIMIT 1),
-                   $5, $6, $7, $8, $9, true, '[]'::jsonb, NOW(), NOW())
+                   $5, $6, $7, $8, $9, $11, '[]'::jsonb, NOW(), NOW())
            RETURNING id`,
           [plan.name, plan.description, plan.status, plan.pi, plan.fieldOfScience,
-           plan.researchAreas, plan.startYear, plan.endYear, plan.planId, plan.pi],
+           plan.researchAreas, plan.startYear, plan.endYear, plan.planId, plan.pi,
+           // Legacy plans get no auto-discovered items: assign-projects attaches a
+           // PI's whole career to every plan they filed (Ian, 2026-11-09). They wait
+           // for program-level linking.
+           !plan.planId.startsWith('LEGACY-')],
         )
         resolved.set(plan.planId, row.id)
       }
+
+      // Keep assign-projects off legacy plans (see the insert above).
+      const { rowCount: autoOff } = await db.query(
+        `UPDATE projects SET auto_discovery_enabled = false WHERE plan_id LIKE 'LEGACY-%' AND auto_discovery_enabled`)
+      if (autoOff) console.log(`Turned auto-discovery off on ${autoOff} legacy plans.`)
 
       // Backfill PI author links on rows that never had one.
       const { rowCount: linked } = await db.query(
@@ -338,7 +441,7 @@ async function main() {
     // happened to already be in the table.
     const piGroups = new Map<string, Plan[]>()
     for (const p of plans) {
-      const k = normPi(p.pi)
+      const k = piKey(p.pi)
       if (!piGroups.has(k)) piGroups.set(k, [])
       piGroups.get(k)!.push(p)
     }
