@@ -14,6 +14,7 @@ import FlagButton from '../../components/FlagButton'
 import CitationActions from '../../components/CitationActions'
 import { documentToAPA } from '../../api/v1/lib/citation-format'
 import { richTitle } from '../../lib/rich-title'
+import { documentSource, type DocumentProvenance } from '../../lib/document-source'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,6 +43,20 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   land_use_plan: 'Land Use Plan',
   wildlife_survey: 'Wildlife Survey',
   mining_permit: 'Mining Permit',
+  federal_register_notice: 'Federal Register Notice',
+  federal_proposed_rule: 'Proposed Rule',
+  federal_rule: 'Final Rule',
+  // Legacy rmbl.org website rescue
+  species_checklist: 'Species Checklist',
+  identification_key: 'Identification Key',
+  bibliography: 'Bibliography',
+  newsletter: 'Newsletter',
+  blog_post: 'Blog Post',
+  course_syllabus: 'Course Syllabus',
+  research_abstract: 'Research Abstract',
+  policy: 'Policy',
+  form: 'Form',
+  web_page: 'Web Page',
   other: 'Document',
 }
 
@@ -125,8 +140,20 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
   }
 
   const docAny = doc as any
-  const docTypeLabel = docAny.documentType
-    ? (DOC_TYPE_LABELS[docAny.documentType as string] || String(docAny.documentType).replace(/_/g, ' '))
+  // document_type and provenance are SQL-only columns (not Payload fields), so
+  // payload.findByID never returns them; read them directly.
+  const { rows: [sqlMeta] } = await db.query(
+    'SELECT document_type, provenance FROM documents WHERE id = $1',
+    [id],
+  )
+  const documentType: string | null = sqlMeta?.document_type ?? null
+  const source = documentSource({
+    sourceUrl: doc.sourceUrl as string | null,
+    documentType,
+    provenance: (sqlMeta?.provenance ?? null) as DocumentProvenance | null,
+  })
+  const docTypeLabel = documentType
+    ? (DOC_TYPE_LABELS[documentType] || documentType.replace(/_/g, ' '))
     : 'Document'
 
   // Build date string
@@ -174,7 +201,13 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
           </div>
         )}
         {geoScope.length > 0 && <div><strong>Geographic scope:</strong> {geoScope.join(', ')}</div>}
-        {doc.sourceUrl && <div><strong>Source:</strong> Sustainable Living Library</div>}
+        {source && <div><strong>Source:</strong> {source.label}</div>}
+        {source?.archive && (
+          <div>
+            <strong>Originally at:</strong> <span style={{ wordBreak: 'break-all' }}>{source.archive.originalUrl}</span>
+            {source.archive.capturedOn && <> · <strong>Archived:</strong> {source.archive.capturedOn}</>}
+          </div>
+        )}
       </div>
 
       {/* Actions live above the summary so the primary action (View PDF)
@@ -185,7 +218,7 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
           <a className="detail-action-primary" href={doc.pdfLink as string} target="_blank" rel="noopener noreferrer">View PDF</a>
         )}
         {isHttpUrl(doc.sourceUrl as string) && (
-          <a className="detail-action-secondary" href={doc.sourceUrl as string} target="_blank" rel="noopener noreferrer">View on Source Site</a>
+          <a className="detail-action-secondary" href={doc.sourceUrl as string} target="_blank" rel="noopener noreferrer">{source?.linkLabel ?? 'View on Source Site'}</a>
         )}
       </div>
 
