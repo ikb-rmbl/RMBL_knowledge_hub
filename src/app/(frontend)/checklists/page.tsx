@@ -27,33 +27,42 @@ export default async function ChecklistsPage() {
         names included — with every taxon linked to its species page under today&apos;s accepted name.
       </p>
       <p style={muted}>
-        {lists.length} lists naming {species.toLocaleString()} species. Lists that were revised appear with each edition, so
+        {lists.filter((l) => l.kind === 'checklist').length} lists naming {species.toLocaleString()} species. Lists that were revised appear with each edition, so
         you can see what changed.
       </p>
 
-      <div className="result-cards" style={{ marginTop: '16px' }}>
-        {lists.map((l) => (
-          <Link key={l.id} href={`/checklists/${l.slug}`} className="result-card" style={{ display: 'block', padding: '14px 16px' }}>
-            <div className="result-card-header">
-              <span className="badge badge-species">{l.taxon_group}</span>
-              <h3 className="result-card-title">{l.title}</h3>
-            </div>
-            <div className="result-card-meta">
-              {l.compiler && <span>{l.compiler}</span>}
-              {l.area && <span>{l.area}</span>}
-            </div>
-            {l.description && <p className="result-card-snippet" style={{ margin: '6px 0' }}>{l.description}</p>}
-            <div style={muted}>
-              {l.editions.map((e, i) => (
-                <span key={e.id}>
-                  {i > 0 && ' · '}
-                  {e.label}: {e.entries.toLocaleString()} taxa
-                </span>
+      {(['checklist', 'identification_key'] as const).map((kind) => {
+        const group = lists.filter((l) => l.kind === kind)
+        if (!group.length) return null
+        return (
+          <div key={kind} className="detail-section">
+            {kind === 'identification_key' && <h2>Identification keys</h2>}
+            <div className="result-cards" style={{ marginTop: '12px' }}>
+              {group.map((l) => (
+                <Link key={l.id} href={`/checklists/${l.slug}`} className="result-card" style={{ display: 'block', padding: '14px 16px' }}>
+                  <div className="result-card-header">
+                    <span className="badge badge-species">{l.taxon_group}</span>
+                    <h3 className="result-card-title">{l.title}</h3>
+                  </div>
+                  <div className="result-card-meta">
+                    {l.compiler && <span>{l.compiler}</span>}
+                    {l.area && <span>{l.area}</span>}
+                  </div>
+                  {l.description && <p className="result-card-snippet" style={{ margin: '6px 0' }}>{l.description}</p>}
+                  <div style={muted}>
+                    {l.editions.map((e, i) => (
+                      <span key={e.id}>
+                        {i > 0 && ' · '}
+                        {e.label}: {e.entries.toLocaleString()} {kind === 'identification_key' ? 'key pages' : 'taxa'}
+                      </span>
+                    ))}
+                  </div>
+                </Link>
               ))}
             </div>
-          </Link>
-        ))}
-      </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

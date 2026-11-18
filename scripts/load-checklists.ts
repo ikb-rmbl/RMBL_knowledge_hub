@@ -43,7 +43,7 @@ import { join } from 'path'
 import pg from 'pg'
 import './lib/config.js'
 import {
-  AUTHORITIES_FOR, AUTHORITIES_LIST, LISTS, MANUAL_NAMES, type RescueRow, binomialOf, spellingVariants, decodeStatus, groupEditions, sourceIdOf,
+  AUTHORITIES_FOR, AUTHORITIES_LIST, LISTS, MANUAL_NAMES, type RescueRow, binomialOf, keyTaxon, spellingVariants, decodeStatus, groupEditions, sourceIdOf,
 } from './lib/checklists.js'
 import { GBIF_CLASS, type GbifMatch, gbifByVernacular, gbifFuzzy, gbifMatch, gbifSpecies } from './lib/gbif-client.js'
 import { runConcurrent } from './lib/concurrency.js'
@@ -119,6 +119,7 @@ function toEntries(listId: string, label: string, rows: RescueRow[], authorities
         elev_max_ft: r.elev_max_ft ?? null, n_collections: r.n_collections ?? null,
       })
     } else if (r.raw_line) details.raw_line = r.raw_line
+    if (LISTS[listId].kind === 'identification_key') details.page_source_id = sourceIdOf(r.urlkey)
     const codes = (taylor ? r.flags : r.status_codes) || null
     const status = decodeStatus(listId, codes)
     if (status.length) details.status = status
@@ -148,6 +149,27 @@ async function main() {
     ...data.floristic_records.map((r: RescueRow) => ({ ...r, list_id: 'plants-taylor-ngb', edition: null })),
   ]
 
+  // The stonefly key isn't in the handoff file: one row per key page naming a
+  // taxon, read from the target database's rescued documents.
+  const url = target === 'neon' ? process.env.NEON_DIRECT_URL : process.env.DATABASE_URL
+  if (!url) throw new Error(`${target === 'neon' ? 'NEON_DIRECT_URL' : 'DATABASE_URL'} is not set`)
+  const keyDb = new pg.Pool({ connectionString: url })
+  const { rows: keyPages } = await keyDb.query<{ title: string; source_id: string; ts: string | null }>(
+    `SELECT title, provenance->>'sourceId' AS source_id, provenance->>'captureTimestamp' AS ts FROM documents
+      WHERE provenance->>'discoveryMethod' = 'wayback_rescue' AND document_type = 'identification_key'
+        AND title !~* 'salix' ORDER BY title`)
+  await keyDb.end()
+  const keyRows: RescueRow[] = []
+  for (const p of keyPages) {
+    const k = keyTaxon(p.title)
+    if (!k) continue
+    keyRows.push({ list_id: 'plecoptera-key-gunnison', list_key: p.source_id, urlkey: p.source_id.replace(/^rmbl-wayback:/, ''),
+      capture_ts: p.ts ?? '', edition: null, line_no: keyRows.length + 1, scientific_name: k.taxon, authority: null,
+      remarks: k.qualifier === 'introduction' ? 'introduction' : k.qualifier ? `key to ${k.qualifier}` : null, raw_line: p.title })
+  }
+  rows.push(...keyRows)
+  const keyFrontMatter = keyPages.filter((p) => !keyTaxon(p.title)).map((p) => p.source_id)
+
   // Buck & Frase's authorities page fills the 1993 edition's authorities.
   const authRows = rows.filter((r) => r.list_id === AUTHORITIES_LIST)
   const authorities = new Map<string, string>()
@@ -160,7 +182,8 @@ async function main() {
       const isAuthEdition = listId === AUTHORITIES_FOR.list && ed.spec.label === AUTHORITIES_FOR.edition
       editions.push({
         listId, label: ed.spec.label, year: ed.spec.year, taxonomy: ed.spec.taxonomy ?? null,
-        sourceIds: [...new Set([...ed.sourceIds, ...(isAuthEdition ? authSourceIds : []), ...(LISTS[listId].extraCopies ?? []).map(sourceIdOf)])],
+        sourceIds: [...new Set([...ed.sourceIds, ...(isAuthEdition ? authSourceIds : []), ...(LISTS[listId].extraCopies ?? []).map(sourceIdOf),
+          ...(LISTS[listId].kind === 'identification_key' ? keyFrontMatter : [])])],
         entriesSourceId: ed.entriesSourceId,
         entries: toEntries(listId, ed.spec.label, ed.rows, isAuthEdition ? authorities : new Map()),
       })
@@ -170,8 +193,6 @@ async function main() {
   console.log(`Target: ${target}${dryRun ? ' (dry-run)' : ''}`)
   for (const e of editions) console.log(`  ${e.listId.padEnd(26)} ${e.label.padEnd(30)} ${String(e.entries.length).padStart(4)} entries, ${e.sourceIds.length} copies`)
 
-  const url = target === 'neon' ? process.env.NEON_DIRECT_URL : process.env.DATABASE_URL
-  if (!url) throw new Error(`${target === 'neon' ? 'NEON_DIRECT_URL' : 'DATABASE_URL'} is not set`)
   const db = new pg.Pool({ connectionString: url })
   try {
     // ---------------------------------------------------------- existing species
@@ -337,12 +358,12 @@ async function main() {
         const list = LISTS[ed.listId]
         const { rows: [cl] } = await client.query<{ id: number }>(
           `INSERT INTO checklists (list_key, slug, title, taxon_group, compiler, area, description, legend, kind, sort_order, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $9, 'checklist', $8, NOW())
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $9, $10, $8, NOW())
            ON CONFLICT (list_key) DO UPDATE SET slug = EXCLUDED.slug, title = EXCLUDED.title, taxon_group = EXCLUDED.taxon_group,
-             compiler = EXCLUDED.compiler, area = EXCLUDED.area, description = EXCLUDED.description, legend = EXCLUDED.legend,
+             compiler = EXCLUDED.compiler, area = EXCLUDED.area, description = EXCLUDED.description, legend = EXCLUDED.legend, kind = EXCLUDED.kind,
              sort_order = EXCLUDED.sort_order, updated_at = NOW()
            RETURNING id`,
-          [ed.listId, list.slug, list.title, list.taxonGroup, list.compiler, list.area, list.description, list.sortOrder, JSON.stringify(list.legend)])
+          [ed.listId, list.slug, list.title, list.taxonGroup, list.compiler, list.area, list.description, list.sortOrder, JSON.stringify(list.legend), list.kind ?? 'checklist'])
         const { rows: [edRow] } = await client.query<{ id: number }>(
           `INSERT INTO checklist_editions (checklist_id, label, year, taxonomy, source_ids, entries_source_id)
            VALUES ($1, $2, $3, $4, $5, $6)

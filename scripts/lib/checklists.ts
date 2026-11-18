@@ -66,6 +66,10 @@ export interface ListSpec {
    * not carry rows for, recorded as copies of the (single) edition.
    */
   extraCopies?: string[]
+  /** 'identification_key': entries are taxa with their own key page (details.page_source_id). */
+  kind?: 'checklist' | 'identification_key'
+  /** Every copy contributes entries (each key page is one taxon), rather than the latest copy only. */
+  allCopies?: boolean
 }
 
 const any = () => true
@@ -180,6 +184,45 @@ export const LISTS: Record<string, ListSpec> = {
     editions: [{ label: 'as posted 2001–2010', year: null, match: any }],
     sortOrder: 70,
   },
+  // Not in the rescue repo's parsed tables: built by load-checklists.ts from the
+  // rescued key pages themselves (document_type 'identification_key'), one
+  // entry per taxon page — see keyTaxon().
+  'plecoptera-key-gunnison': {
+    slug: 'stonefly-key-gunnison-county',
+    title: 'Draft Key to the Plecoptera (Stoneflies) of Gunnison County',
+    taxonGroup: 'stoneflies',
+    kingdom: 'Animalia',
+    compiler: null,
+    area: 'Gunnison County, Colorado',
+    description: 'A draft identification key to the stoneflies of Gunnison County from the old RMBL website: keys to families and genera (adults by sex, and nymphs), species descriptions, a species list and annotated references.',
+    legend: {},
+    editions: [{ label: 'Draft (web, 2000s)', year: null, match: any }],
+    sortOrder: 100,
+    kind: 'identification_key',
+    allCopies: true,
+  },
+}
+
+/**
+ * The taxon a stonefly key page covers, from its title:
+ * "Alloperla females: Draft Key to the Plecoptera…" → { taxon: "Alloperla", qualifier: "females" };
+ * "Capnia_coloradensis: Draft Key…" → "Capnia coloradensis";
+ * "Draft Key to the Plecoptera: Chloroperlidae males of Gunnison County" → "Chloroperlidae", "males".
+ * Null for the key's front matter (introduction, references, species list).
+ */
+export function keyTaxon(title: string): { taxon: string; qualifier: string | null } | null {
+  let t = title.trim()
+  // "Plecoptera: Capniidae of Gunnison County, ColoradoCapnia vernalis Newport 1848"
+  // (species page, name run onto "Colorado") / "Plecoptera: Perlidae of Gunnison County, Colorado".
+  const fam = /^Plecoptera:\s*([A-Z][a-z]+idae) of Gunnison County, Colorado\s*(?:([A-Z][a-z]+ [a-z]+))?/.exec(t)
+  if (fam) return { taxon: fam[2] ?? fam[1], qualifier: null }
+  const m = /^Draft Key to the Plecoptera:\s*(.+?)\s+of Gunnison County/i.exec(t)
+  t = m ? m[1] : t.split(':')[0]
+  t = t.replace(/_/g, ' ').replace(/\s+/g, ' ').trim()
+  const q = /\b(females?|males?|nymphs?|introduction)\b/i.exec(t)
+  const taxon = t.replace(/\b(females?|males?|nymphs?|introduction)\b/gi, '').trim()
+  if (!/^[A-Z][a-z]+( [a-z]+)?$/.test(taxon) || /^(Plecoptera|Draft|Annotated|Salix)$/.test(taxon.split(' ')[0])) return null
+  return { taxon, qualifier: q ? q[1].toLowerCase() : null }
 }
 
 /**
@@ -259,7 +302,7 @@ export function groupEditions(listId: string, rows: RescueRow[]): {
       spec,
       sourceIds: [...copies.keys()].sort().map(sourceIdOf),
       entriesSourceId: sourceIdOf(bestKey),
-      rows: mine.filter((r) => r.urlkey === bestKey && r.capture_ts === bestTs).sort((a, b) => a.line_no - b.line_no),
+      rows: (list.allCopies ? mine : mine.filter((r) => r.urlkey === bestKey && r.capture_ts === bestTs)).sort((a, b) => a.line_no - b.line_no),
     })
   }
   return out
