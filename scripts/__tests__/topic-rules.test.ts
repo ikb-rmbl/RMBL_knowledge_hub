@@ -102,8 +102,8 @@ describe('assignPublicationTopics', () => {
 })
 
 describe('TOPIC_CATEGORIES', () => {
-  it('has 40 categories', () => {
-    expect(TOPIC_CATEGORIES).toHaveLength(40)
+  it('has 47 categories', () => {
+    expect(TOPIC_CATEGORIES).toHaveLength(47)
   })
 
   it('all categories have name, group, and patterns', () => {
@@ -116,8 +116,8 @@ describe('TOPIC_CATEGORIES', () => {
 })
 
 describe('PARENT_TOPIC_NAMES', () => {
-  it('has 40 entries', () => {
-    expect(PARENT_TOPIC_NAMES).toHaveLength(40)
+  it('has 47 entries', () => {
+    expect(PARENT_TOPIC_NAMES).toHaveLength(47)
   })
 
   it('includes key topics', () => {
@@ -128,8 +128,14 @@ describe('PARENT_TOPIC_NAMES', () => {
 })
 
 describe('getTopicGroups', () => {
-  it('returns 7 groups', () => {
-    expect(getTopicGroups()).toHaveLength(7)
+  it('returns 8 groups', () => {
+    expect(getTopicGroups()).toHaveLength(8)
+  })
+
+  it('includes RMBL Institutional with the 7 legacy-website topics', () => {
+    const inst = getTopicGroups().find((g) => g.group === 'RMBL Institutional')
+    expect(inst?.topics).toHaveLength(7)
+    expect(inst?.topics).toContain('Species Checklists & Identification Keys')
   })
 
   it('includes Life Sciences with 12 topics', () => {
@@ -145,5 +151,37 @@ describe('EXISTING_PARENTS_TO_MERGE', () => {
     expect(EXISTING_PARENTS_TO_MERGE['Water & Hydrology']).toBe('Hydrology & Watersheds')
     expect(EXISTING_PARENTS_TO_MERGE['Climate & Atmosphere']).toBe('Climate Change Impacts')
     expect(EXISTING_PARENTS_TO_MERGE['Mining & Energy']).toBe('Mining & Mineral Resources')
+  })
+})
+
+describe('RMBL Institutional patterns stay narrow', () => {
+  const INSTITUTIONAL = new Set(
+    getTopicGroups().find((g) => g.group === 'RMBL Institutional')!.topics,
+  )
+  const institutionalMatches = (text: string) =>
+    matchTopicCategories(text).filter((t) => INSTITUTIONAL.has(t))
+
+  it('does not tag typical RMBL science titles', () => {
+    for (const title of [
+      'Early snowmelt and the phenology of subalpine wildflowers at RMBL',
+      'Marmot alarm calls and predation risk in Gothic, Colorado',
+      'Data from: soil respiration across an elevation gradient',
+      'Housing density and land-use change in the Gunnison Basin',
+      'Metadata for stream chemistry samples, East River',
+    ]) {
+      expect(institutionalMatches(title)).toEqual([])
+    }
+  })
+
+  it('matches institutional phrasing', () => {
+    expect(institutionalMatches('An annotated checklist of the birds of Gothic')).toContain(
+      'Species Checklists & Identification Keys',
+    )
+    expect(institutionalMatches('A history of the Rocky Mountain Biological Laboratory')).toContain(
+      'RMBL Institutional History',
+    )
+    expect(institutionalMatches('Field course syllabus: alpine botany')).toContain(
+      'Field Courses & Syllabi',
+    )
   })
 })

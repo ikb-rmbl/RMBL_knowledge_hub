@@ -1,14 +1,15 @@
 /**
  * Topic categorization rules.
  *
- * 40 thematic categories organized into 7 groups, reflecting the actual
- * research themes in the Gunnison Basin knowledge base. Shared by
+ * 47 categories organized into 8 groups: 40 thematic categories reflecting the
+ * research themes in the Gunnison Basin knowledge base, plus 7 RMBL institutional
+ * categories for the legacy-website documents. Shared by
  * organize-topics.ts (assigns freeform topics to parents) and
  * manage-topics.ts (assigns publications to topics).
  */
 
 // ---------------------------------------------------------------------------
-// Category definitions — 40 thematic parent categories
+// Category definitions — 47 parent categories
 // ---------------------------------------------------------------------------
 
 export interface CategoryDef {
@@ -230,6 +231,47 @@ export const TOPIC_CATEGORIES: CategoryDef[] = [
     name: 'Mentoring & Research Training',
     group: 'Education & Training',
     patterns: /\b(REU\b|research experience.*undergraduate|mentor|student.*research|undergraduate.*research|research.*training|internship|fellowship|graduate.*student|early.career|professional.*develop|capacity.*build)\b/i,
+  },
+
+  // ---- RMBL INSTITUTIONAL (7) ----
+  // Added for the legacy rmbl.org website rescue (2000-2014 pages, newsletters, forms,
+  // checklists). Documents arrive pre-tagged by the rescue pipeline; these patterns only
+  // run in manage-topics.ts, so they are deliberately narrow (institutional phrasing)
+  // to avoid re-tagging science publications.
+  {
+    name: 'RMBL Institutional History',
+    group: 'RMBL Institutional',
+    patterns: /\b(history of (the )?(rmbl|rocky mountain biological lab\w*)|rmbl history|gothic news|rmbl newsletter|director'?s blog)\b/i,
+  },
+  {
+    name: 'Field Station Operations',
+    group: 'RMBL Institutional',
+    patterns: /\b(field station (operation|management|polic)\w*|station operations|dining hall|research code of conduct)\b/i,
+  },
+  {
+    name: 'Field Courses & Syllabi',
+    group: 'RMBL Institutional',
+    patterns: /\b(syllabus|syllabi|field courses?)\b/i,
+  },
+  {
+    name: 'Species Checklists & Identification Keys',
+    group: 'RMBL Institutional',
+    patterns: /\b(species checklist|annotated checklist|checklist of the|identification key|dichotomous key|key to the (species|genera))\b/i,
+  },
+  {
+    name: 'RMBL Research Bibliographies',
+    group: 'RMBL Institutional',
+    patterns: /\b(bibliograph(y|ies) of|rmbl bibliograph\w*)\b/i,
+  },
+  {
+    name: 'RMBL Data Management',
+    group: 'RMBL Institutional',
+    patterns: /\b(data management plan|data stewardship|data use agreement|data catalog(ue)?|metadata standard)\b/i,
+  },
+  {
+    name: 'RMBL Events & Community',
+    group: 'RMBL Institutional',
+    patterns: /\b(rmbl (events?|community)|gothic marathon|kids'? nature camp|seminar series at rmbl)\b/i,
   },
 ]
 
