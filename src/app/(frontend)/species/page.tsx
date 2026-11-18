@@ -20,6 +20,7 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
   const kingdomFilter = params.kingdom || ''
   const familyFilter = params.family || ''
   const neighborhoodParam = params.neighborhood || ''
+  const checklistFilter = params.checklist === 'yes'
   const page = Math.min(400, Math.max(1, parseInt(params.page || '1') || 1))
   const offset = (page - 1) * PAGE_SIZE
 
@@ -29,7 +30,10 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
   // (publications, documents, datasets, stories) — see concepts/page.tsx
   // for the load-bearing rationale (FR-notice extraction added many
   // document-only entities with publication_count=0).
-  const where: string[] = ['mention_count > 0']
+  // Species named on an RMBL checklist (checklist_entries) count too: many
+  // have no mentions in the literature yet.
+  const ON_CHECKLIST = 'EXISTS (SELECT 1 FROM checklist_entries ce WHERE ce.species_id = species.id)'
+  const where: string[] = [checklistFilter ? ON_CHECKLIST : `(mention_count > 0 OR ${ON_CHECKLIST})`]
   const values: any[] = []
   let paramIdx = 1
 
@@ -92,6 +96,7 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
     if (merged.kingdom) p.set('kingdom', merged.kingdom)
     if (merged.family) p.set('family', merged.family)
     if (merged.neighborhood) p.set('neighborhood', merged.neighborhood)
+    if (merged.checklist) p.set('checklist', merged.checklist)
     if (merged.page && merged.page !== '1') p.set('page', merged.page)
     const qs = p.toString()
     return `/species${qs ? '?' + qs : ''}`
@@ -106,6 +111,9 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
     WHERE publication_count > 0 AND kingdom IS NOT NULL
     GROUP BY kingdom ORDER BY cnt DESC
   `)
+
+  const { rows: [{ n: checklistCount }] } = await db.query(
+    `SELECT count(DISTINCT species_id)::int AS n FROM checklist_entries WHERE species_id IS NOT NULL`)
 
   // Neighborhood context
   let neighborhoodTitle = ''
@@ -145,6 +153,11 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
           {kingdomCounts.filter((k: any) => k.cnt >= 10).map((k: any) => (
             <Link key={k.kingdom} href={buildUrl({ kingdom: k.kingdom, page: '1' })} style={chipStyle(kingdomFilter === k.kingdom)}>{k.kingdom} ({k.cnt})</Link>
           ))}
+          <Link href={buildUrl({ checklist: checklistFilter ? undefined : 'yes', page: '1' })} style={chipStyle(checklistFilter)}
+                title="Species named on a historical RMBL checklist (birds, plants, mammals, butterflies, mushrooms, amphibians and reptiles)">
+            On RMBL checklists{checklistCount ? ` (${checklistCount.toLocaleString()})` : ''}
+          </Link>
+          <Link href="/checklists" style={{ fontSize: '12px' }}>About the checklists</Link>
           <Link href="/explore/species" style={{ ...chipStyle(false), marginLeft: 'auto', background: 'var(--color-accent)', color: '#fff' }}>Explore Species Graph</Link>
         </div>
 

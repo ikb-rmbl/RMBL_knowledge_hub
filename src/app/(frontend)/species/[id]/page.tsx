@@ -7,6 +7,7 @@ import ViewInGlobalGraphLink from '../../components/ViewInGlobalGraphLink'
 import { JsonLd, speciesJsonLd } from '../../lib/json-ld'
 import LazyGraph from '../../components/LazyGraph'
 import FlagButton from '../../components/FlagButton'
+import { getSpeciesChecklistEntries } from '@/services/checklists'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,8 +27,10 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
   const { id } = await params
   const db = getDb()
 
+  if (!/^\d+$/.test(id)) notFound()
   const { rows: [species] } = await db.query('SELECT * FROM species WHERE id = $1', [id])
   if (!species) notFound()
+  const checklistEntries = await getSpeciesChecklistEntries(db, species.id)
 
   // Get publications mentioning this species
   const { rows: pubs } = await db.query(`
@@ -166,6 +169,14 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
             </a>
           </div>
         )}
+        {species.external_ids?.gbif && (
+          <div>
+            <strong>GBIF:</strong>{' '}
+            <a href={`https://www.gbif.org/species/${encodeURIComponent(species.external_ids.gbif)}`} target="_blank" rel="noopener noreferrer">
+              {species.external_ids.gbif}
+            </a>
+          </div>
+        )}
         {species.synonyms?.length > 0 && (
           <div><strong>Synonyms:</strong> {species.synonyms.join(', ')}</div>
         )}
@@ -187,6 +198,30 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
         <div className="detail-section">
           <h2>Description</h2>
           <p>{species.description}</p>
+        </div>
+      )}
+
+      {checklistEntries.length > 0 && (
+        <div className="detail-section">
+          <h2>On RMBL checklists</h2>
+          <ul style={{ margin: 0, paddingLeft: '18px' }}>
+            {checklistEntries.map((c, i) => {
+              const notes = [
+                ...(Array.isArray(c.details?.status) ? c.details.status : []),
+                c.remarks?.replace(/^\(|\)$/g, ''),
+              ].filter(Boolean)
+              const asWritten = c.verbatim_name.split(/\s+/).slice(0, 2).join(' ').toLowerCase() !==
+                String(species.canonical_name).split(/\s+/).slice(0, 2).join(' ').toLowerCase()
+              return (
+                <li key={i} style={{ marginBottom: '4px' }}>
+                  <Link href={`/checklists/${c.slug}`}>{c.title}</Link>
+                  <span style={{ color: 'var(--color-text-muted)' }}> — {c.label}</span>
+                  {asWritten && <span style={{ color: 'var(--color-text-muted)' }}> (as <em>{c.verbatim_name}</em>)</span>}
+                  {notes.length > 0 && <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>{notes.join(' · ')}</div>}
+                </li>
+              )
+            })}
+          </ul>
         </div>
       )}
 
