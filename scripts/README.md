@@ -132,7 +132,7 @@ Manual steps (long-running):
 
 | Script | Purpose | Server? |
 |---|---|---|
-| `load-to-payload.ts` | Load all collections into Payload (incremental dedup) | **Yes** |
+| `load-to-payload.ts` | Load all collections into Payload (incremental dedup; documents include `rmbl-legacy-documents.json` when present) | **Yes** |
 | `manage-topics.ts` | Organize taxonomy + assign pub topics | **Yes** |
 | `build-authors.ts` | Build + dedup author registry | **Yes** (optional) |
 

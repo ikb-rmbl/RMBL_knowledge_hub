@@ -84,7 +84,8 @@ export default async function AboutPage() {
           <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--fg-2)', padding: '4px 0 12px', maxWidth: '65ch' }}>
             The Knowledge Commons is a search and discovery tool that brings together the scientific output of RMBL and the
             Gunnison Basin into one searchable platform. It includes peer-reviewed publications dating back to 1928,
-            community and policy documents from the Sustainable Living Library, and research datasets from multiple
+            community and policy documents from the Sustainable Living Library and the Federal Register, documents
+            rescued from RMBL&apos;s legacy website, and research datasets from multiple
             repositories. A knowledge graph connects these resources through shared species, concepts, research methods,
             and geographic locations.
           </p>
@@ -498,9 +499,13 @@ npm install && npm run build`}
             EDI, DataONE, Dryad, Zenodo, USGS ScienceBase, Pangaea, NCBI, and Figshare. Each dataset is enriched with
             EML/DataCite metadata including temporal and spatial coverage, creator information, and licensing.</p>
 
-            <p style={{ marginTop: '12px' }}><strong>Documents</strong> come from the Sustainable Living Library, a
-            collection of community and policy documents relevant to the Gunnison Basin. These include management plans,
-            environmental impact statements, water quality reports, and local planning documents.</p>
+            <p style={{ marginTop: '12px' }}><strong>Documents</strong> come from three sources. The Sustainable Living
+            Library is a collection of community and policy documents relevant to the Gunnison Basin, including management
+            plans, environmental impact statements, water quality reports, and local planning documents. Federal Register
+            notices cover federal rulemaking that affects the basin. The legacy rmbl.org website (2000–2014), lost in a
+            site crash and recovered from the Internet Archive&apos;s Wayback Machine, contributes RMBL newsletters,
+            species checklists, identification keys, course syllabi, and field-station history. Each document&apos;s page
+            names its source, and rescued pages link to the archived original.</p>
 
             <p style={{ marginTop: '12px' }}><strong>Stories</strong> are news articles about RMBL and the Gunnison Basin
             from local newspapers (Crested Butte News, Gunnison Country Times) and national/international outlets via
