@@ -38,3 +38,6 @@ scripts/pdf-staging/
 
 # Private inputs (student rosters, internal tracking docs) — PII, never commit
 scripts/data/private/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
