@@ -119,6 +119,9 @@ export type ChangeKind = 'added' | 'dropped' | 'renamed' | 'status'
  * to the name as written), so a renamed taxon shows as renamed, not as one
  * dropped and one added.
  */
+/** Status codes as an order-free set: "R,M,B*" and "R,B*,M" are the same status. */
+const codeSet = (codes: string) => codes.split(/[,\s]+/).filter(Boolean).sort().join(',')
+
 export function compareEditions(older: Entry[], newer: Entry[]) {
   const key = (e: Entry) => (e.species_id ? `s${e.species_id}` : `n${e.verbatim_name.toLowerCase()}`)
   const a = new Map(older.map((e) => [key(e), e]))
@@ -129,7 +132,7 @@ export function compareEditions(older: Entry[], newer: Entry[]) {
     if (!prev) changes.push({ kind: 'added', before: null, after: e })
     else if (prev.verbatim_name.toLowerCase() !== e.verbatim_name.toLowerCase()) changes.push({ kind: 'renamed', before: prev, after: e })
     // Only when both editions code this taxon: the 1993 plant list uses no codes at all.
-    else if (prev.status_codes && e.status_codes && prev.status_codes !== e.status_codes) changes.push({ kind: 'status', before: prev, after: e })
+    else if (prev.status_codes && e.status_codes && codeSet(prev.status_codes) !== codeSet(e.status_codes)) changes.push({ kind: 'status', before: prev, after: e })
   }
   for (const [k, e] of a) if (!b.has(k)) changes.push({ kind: 'dropped', before: e, after: null })
   return changes
