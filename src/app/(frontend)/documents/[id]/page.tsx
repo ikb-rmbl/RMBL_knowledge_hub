@@ -14,6 +14,7 @@ import FlagButton from '../../components/FlagButton'
 import CitationActions from '../../components/CitationActions'
 import { documentToAPA } from '../../api/v1/lib/citation-format'
 import { richTitle } from '../../lib/rich-title'
+import { getChecklistForDocument } from '@/services/checklists'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,6 +61,7 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
   }
 
   const docId = parseInt(id)
+  const checklist = await getChecklistForDocument(db, docId)
 
   const categories = Array.isArray(doc.categories)
     ? doc.categories.map((c: any) => (typeof c === 'object' ? c.name : c))
@@ -147,6 +149,12 @@ export default async function DocumentDetail({ params }: { params: Promise<{ id:
 
       <span className="badge badge-document">{docTypeLabel}</span>
       <h1>{richTitle(doc.title)}</h1>
+      {checklist && (
+        <div style={{ fontSize: '13px', margin: '0 0 10px', padding: '8px 12px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)' }}>
+          This page is part of the <Link href={`/checklists/${checklist.slug}`}>{checklist.title}</Link> ({checklist.label}) —
+          browse it as a checklist, with every taxon linked to its species page.
+        </div>
+      )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', margin: '4px 0 14px' }}>
         <FlagButton collection="documents" itemId={parseInt(id)} />
         <CitationActions

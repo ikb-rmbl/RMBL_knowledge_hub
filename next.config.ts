@@ -38,6 +38,8 @@ const nextConfig: NextConfig = {
         '/search',
         '/authors',
         '/species',
+        '/checklists',
+        '/checklists/:slug',
         '/places',
         '/datasets',
         '/protocols',
