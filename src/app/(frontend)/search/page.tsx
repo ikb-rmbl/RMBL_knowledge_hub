@@ -15,6 +15,10 @@ import {
   type PublicationSort,
 } from '@/services/publication-query'
 import { richTitle } from '../lib/rich-title'
+import {
+  DOCUMENT_SOURCES, browseDocuments, countDocuments, countDocumentsBySource, documentSort, parseDocumentSource,
+  type DocumentFilters, type DocumentSourceKey,
+} from '@/services/document-query'
 import { SHOW_PROJECT_LINKS } from '../lib/feature-flags'
 
 export const dynamic = 'force-dynamic'
@@ -86,6 +90,8 @@ interface SearchParams {
   sort?: string
   page?: string
   neighborhood?: string
+  /** Documents only: where the document came from (DOCUMENT_SOURCES key). */
+  source?: string
   // Advanced-search panel fields (publications only)
   title?: string
   author?: string
@@ -124,6 +130,7 @@ function buildUrl(current: SearchParams, overrides: Record<string, string | unde
   if (merged.yearTo) p.set('yearTo', merged.yearTo)
   if (merged.sort) p.set('sort', merged.sort)
   if (merged.neighborhood) p.set('neighborhood', merged.neighborhood)
+  if (merged.source) p.set('source', merged.source)
   for (const f of ADVANCED_FIELDS) if (merged[f]) p.set(f, merged[f] as string)
   if (merged.adv) p.set('adv', merged.adv)
   if (merged.page && merged.page !== '1') p.set('page', merged.page)
@@ -153,7 +160,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   // Program membership exists only on publications: it implies that type, and
   // is ignored under any other type.
   const programParam = parseProgram(params.program)
-  const typeFilter = params.type || (programParam ? 'publications' : '')
+  // A document source implies the documents view, as a program implies publications.
+  const typeFilter = params.type || (programParam ? 'publications' : parseDocumentSource(params.source) ? 'documents' : '')
+  const sourceFilter = typeFilter === 'documents' ? parseDocumentSource(params.source) : undefined
   const programFilter = typeFilter === 'publications' ? programParam : undefined
   const topicFilter = params.topic || ''
   const pubTypeFilter = params.pubType || ''
@@ -193,7 +202,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
 
   // Use tsvector full-text search when there's a query text
   // This provides ranked results with stemming and snippet highlighting
-  const useFts = Boolean(query) && !useAdvanced && !topicFilter && !pubTypeFilter && !rmblFilter && !undergradFilter && !programFilter && !projectFilter && !yearFrom && !yearTo && !neighborhoodParam
+  const useFts = Boolean(query) && !useAdvanced && !topicFilter && !pubTypeFilter && !rmblFilter && !undergradFilter && !programFilter && !projectFilter && !yearFrom && !yearTo && !neighborhoodParam && !sourceFilter
   let results: ResultItem[] = []
   let totalResults = 0
 
@@ -333,12 +342,6 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         : {}
 
   // --- Build where clauses ---
-  const docWhere: Where = {}
-  if (query) docWhere.title = { contains: query }
-  if (topicIds.length > 0) Object.assign(docWhere, topicWhere('categories'))
-  if (yearFrom) docWhere['dateOriginal'] = { ...(docWhere['dateOriginal'] as any), greater_than_equal: `${yearFrom}-01-01` }
-  if (yearTo) docWhere['dateOriginal'] = { ...(docWhere['dateOriginal'] as any), less_than_equal: `${yearTo}-12-31` }
-
   const pubWhere: Where = {}
   if (query) pubWhere.title = { contains: query }
   if (topicIds.length > 0) Object.assign(pubWhere, topicWhere('researchTopics'))
@@ -366,9 +369,21 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   if (yearFrom) dataWhere.publicationYear = { ...(dataWhere.publicationYear as any), greater_than_equal: yearFrom }
   if (yearTo) dataWhere.publicationYear = { ...(dataWhere.publicationYear as any), less_than_equal: yearTo }
 
+  // Documents go through services/document-query.ts (undated last, source filter).
+  const docFilters: DocumentFilters = {
+    title: query || undefined,
+    topicIds: topicIds.map(Number),
+    yearFrom, yearTo, source: sourceFilter,
+  }
+  const docSortKey = documentSort(sortParam)
+  const toDocResult = (d: { id: number; title: string; summary: string | null; date_original: string | null; geographic_scope: string[] }): ResultItem => {
+    const yearStr = d.date_original?.slice(0, 4)
+    return { collection: 'document', subtype: null, id: String(d.id), title: d.title, snippet: d.summary ? stripTags(d.summary) : '', year: yearStr ? parseInt(yearStr) : null, meta: [yearStr, ...d.geographic_scope].filter(Boolean) as string[] }
+  }
+
   // --- Fetch counts for all searched collections ---
   const [docTotal, pubTotal, dataTotal] = await Promise.all([
-    searchDocs ? payload.count({ collection: 'documents', where: docWhere }) : { totalDocs: 0 },
+    searchDocs ? countDocuments(getDb(), docFilters).then((n) => ({ totalDocs: n })) : { totalDocs: 0 },
     searchPubs ? payload.count({ collection: 'publications', where: pubWhere }) : { totalDocs: 0 },
     searchData ? payload.count({ collection: 'datasets', where: dataWhere }) : { totalDocs: 0 },
   ])
@@ -381,11 +396,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   if (typeFilter) {
     // Single collection: straightforward pagination
     if (searchDocs) {
-      const docs = await payload.find({ collection: 'documents', where: docWhere, limit: PAGE_SIZE, page, sort: payloadSort(sortParam, 'documents') })
-      for (const doc of docs.docs) {
-        const yearStr = (doc.dateOriginal as string)?.slice(0, 4)
-        results.push({ collection: 'document', subtype: null, id: String(doc.id), title: doc.title, snippet: typeof doc.summary === 'string' ? stripTags(doc.summary) : '', year: yearStr ? parseInt(yearStr) : null, meta: [yearStr, ...(doc.geographicScope as string[] || [])].filter(Boolean) })
-      }
+      const docs = await browseDocuments(getDb(), docFilters, { sort: docSortKey, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE })
+      for (const doc of docs) results.push(toDocResult(doc))
     }
     if (searchPubs) {
       if (isCitationSort) {
@@ -471,15 +483,12 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     const dataPage = Math.ceil((page * dataSlots) / (dataSlots || 1))
 
     const [docs, pubs, datasets] = await Promise.all([
-      docSlots > 0 ? payload.find({ collection: 'documents', where: docWhere, limit: docSlots, page: docPage, sort: payloadSort(sortParam, 'documents') }) : { docs: [] },
+      docSlots > 0 ? browseDocuments(getDb(), docFilters, { sort: docSortKey, limit: docSlots, offset: (docPage - 1) * docSlots }) : [],
       pubSlots > 0 ? payload.find({ collection: 'publications', where: pubWhere, limit: pubSlots, page: pubPage, sort: payloadSort(sortParam, 'publications') }) : { docs: [] },
       dataSlots > 0 ? payload.find({ collection: 'datasets', where: dataWhere, limit: dataSlots, page: dataPage, sort: payloadSort(sortParam, 'datasets') }) : { docs: [] },
     ])
 
-    for (const doc of docs.docs) {
-      const yearStr = (doc.dateOriginal as string)?.slice(0, 4)
-      results.push({ collection: 'document', subtype: null, id: String(doc.id), title: doc.title, snippet: typeof doc.summary === 'string' ? stripTags(doc.summary) : '', year: yearStr ? parseInt(yearStr) : null, meta: [yearStr, ...(doc.geographicScope as string[] || [])].filter(Boolean) })
-    }
+    for (const doc of docs) results.push(toDocResult(doc))
     for (const pub of pubs.docs) {
       const authors = Array.isArray(pub.authors) ? pub.authors.slice(0, 3).map((a: any) => `${a.family}${a.given ? ' ' + a.given : ''}`).join(', ') : ''
       results.push({ collection: 'publication', subtype: pub.publicationType || null, id: String(pub.id), title: pub.title, snippet: pub.abstract ? stripTags(pub.abstract) : '', year: pub.year || null, meta: [authors, pub.year ? String(pub.year) : '', pub.journal || '', pub.doi ? `DOI: ${pub.doi}` : ''].filter(Boolean) })
@@ -653,6 +662,9 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   if (rmblFilter) activeFilters.push('RMBL research only')
   if (undergradFilter) activeFilters.push('Undergraduate author')
   if (programFilter) activeFilters.push(PROGRAM_FILTERS[programFilter].label)
+  if (sourceFilter) activeFilters.push(`source: ${DOCUMENT_SOURCES[sourceFilter].label}`)
+  const sourceCounts = typeFilter === 'documents' && !useFts && !neighborhoodParam
+    ? await countDocumentsBySource(getDb(), { title: query || undefined, topicIds: topicIds.map(Number), yearFrom, yearTo }) : null
   let projectName: string | null = null
   if (projectFilter) {
     const { rows: [proj] } = await getDb().query('SELECT name FROM projects WHERE id = $1', [projectFilter])
@@ -832,6 +844,27 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
               </label>
             ))}
           </div>
+
+          {/* Document source (documents view) */}
+          {sourceCounts && (
+            <div className="filter-group">
+              <h2 className="filter-label">Source</h2>
+              <label>
+                <Link href={buildUrl(params, { source: undefined, page: undefined })}
+                  style={{ fontWeight: !sourceFilter ? 700 : 400, color: !sourceFilter ? 'var(--color-accent)' : 'inherit' }}>
+                  All sources
+                </Link>
+              </label>
+              {(Object.keys(DOCUMENT_SOURCES) as DocumentSourceKey[]).map((key) => (
+                <label key={key}>
+                  <Link href={buildUrl(params, { source: sourceFilter === key ? undefined : key, type: 'documents', page: undefined })}
+                    style={{ fontWeight: sourceFilter === key ? 700 : 400, color: sourceFilter === key ? 'var(--color-accent)' : 'inherit' }}>
+                    {DOCUMENT_SOURCES[key].label} ({sourceCounts[key].toLocaleString()})
+                  </Link>
+                </label>
+              ))}
+            </div>
+          )}
 
           {/* RMBL research flag (only when viewing publications or all) */}
           {(!typeFilter || typeFilter === 'publications') && (
