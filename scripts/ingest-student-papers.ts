@@ -23,7 +23,7 @@
  *      full text, authors + mentors. Idempotent: an existing student paper
  *      of that year with a ≥0.9 similar title is left alone; tombstones are
  *      honored.
- *   6. publish PDFs to the public serving bucket under
+ *   6. publish PDFs (except withheld ones: pdf_restricted rows) to the public serving bucket under
  *      publications/student-papers/<year>/<Last>_<First>.pdf — named by
  *      student, not by row id, because ids differ between local and Neon and
  *      both must store the same URL.
@@ -425,6 +425,9 @@ async function main() {
   const db = new pg.Pool({ connectionString: url })
   const tally = { inserted: 0, exists: 0, tombstoned: 0, 'no-local': 0 }
   let localIds: Map<string, number> | null = null
+  // Papers whose PDF was withheld (pdf_restricted, e.g. at the author's
+  // request) must never be re-published by Stage 6.
+  const withheld = new Set<string>()
   if (target === 'neon') {
     const local = new pg.Pool({ connectionString: process.env.DATABASE_URL })
     const { rows } = await local.query(`SELECT id, lower(trim(title)) AS t FROM publications WHERE publication_type = 'student_paper' AND year = $1`, [YEAR])
@@ -440,6 +443,10 @@ async function main() {
     for (const r of ready) {
       const outcome = await load(db, r.p, r.ex, r.text, tombstones, localIds)
       tally[outcome]++
+      const { rowCount } = await db.query(
+        `SELECT 1 FROM publications WHERE publication_type = 'student_paper' AND year = $1 AND pdf_restricted
+            AND similarity(lower(title), lower($2)) >= 0.9`, [YEAR, r.ex.title])
+      if (rowCount) withheld.add(r.p.key)
       console.log(
         `  ${outcome === 'inserted' ? '+' : outcome === 'exists' ? '=' : outcome === 'no-local' ? '!' : '~'} ${r.p.key.padEnd(28)} ${r.ex.title.slice(0, 60)}` +
           `  [${r.ex.students.map((s) => s.family).join(', ')}${r.ex.mentors.length ? ` | mentors: ${r.ex.mentors.join(', ')}` : ''}]`,
@@ -451,11 +458,13 @@ async function main() {
 
   // Stage 6 — same object for both targets; safe to repeat.
   if (!dryRun) {
-    for (const r of ready) {
+    if (withheld.size) console.log(`\nNot publishing ${withheld.size} withheld PDF(s) (pdf_restricted).`)
+    const publish = ready.filter((r) => !withheld.has(r.p.key))
+    for (const r of publish) {
       execFileSync('aws', ['s3', 'cp', '--only-show-errors', '--content-type', 'application/pdf', r.pdf, `${SERVING_BUCKET}/${servingKey(r.p.key)}`])
     }
     const bad: string[] = []
-    for (const r of ready) {
+    for (const r of publish) {
       let status = 0
       for (let attempt = 0; attempt < 3 && status !== 200; attempt++) {
         // Transient resets happen right after a burst of uploads.
@@ -464,7 +473,7 @@ async function main() {
       }
       if (status !== 200) bad.push(`${r.p.key} (${status || 'network error'})`)
     }
-    console.log(`\nPublished ${ready.length - bad.length}/${ready.length} PDFs to ${SERVING_BASE}/publications/student-papers/${YEAR}/` +
+    console.log(`\nPublished ${publish.length - bad.length}/${publish.length} PDFs to ${SERVING_BASE}/publications/student-papers/${YEAR}/` +
       (bad.length ? ` — NOT publicly readable: ${bad.join(', ')}` : ''))
   }
   console.log(
