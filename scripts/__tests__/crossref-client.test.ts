@@ -1,5 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { queryCrossRef, queryUnpaywall } from '../lib/crossref-client.js'
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll } from 'vitest'
+import { configureCrossref, crossrefStats, queryCrossRef, queryUnpaywall, searchCrossRefCitation } from '../lib/crossref-client.js'
+
+// No pacing or backoff in tests.
+beforeAll(() => configureCrossref({ minIntervalMs: 0, backoffMs: 0 }))
 
 // Mock global fetch
 const mockFetch = vi.fn()
@@ -91,14 +94,16 @@ describe('queryCrossRef', () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
     const result = await queryCrossRef('Test', 'Smith', 2020)
-    expect(result).toEqual({ doi: null, abstract: null })
+    expect(result).toMatchObject({ doi: null, abstract: null })
+    expect(result.error).toBeDefined()
   })
 
   it('handles non-ok response', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false })
 
     const result = await queryCrossRef('Test', 'Smith', 2020)
-    expect(result).toEqual({ doi: null, abstract: null })
+    expect(result).toMatchObject({ doi: null, abstract: null })
+    expect(result.error).toBeDefined()
   })
 
   it('handles empty items array', async () => {
@@ -172,6 +177,40 @@ describe('queryUnpaywall', () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'))
 
     const result = await queryUnpaywall('10.1234/test')
-    expect(result).toEqual({ pdfUrl: null, oaStatus: null })
+    expect(result).toMatchObject({ pdfUrl: null, oaStatus: null })
+    expect(result.error).toBeDefined()
+  })
+})
+
+describe('rate limiting and failures (2026-11-20)', () => {
+  it('retries a 429 and then succeeds', async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: false, status: 429 })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ message: { items: [{ DOI: '10.1/x', title: ['Marmot alarm calls'] }] } }) })
+    const r = await queryCrossRef('Marmot alarm calls', 'Blumstein', 2001)
+    expect(r.doi).toBe('10.1/x')
+    expect(r.error).toBeUndefined()
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+  })
+  it('reports a persistent 429 as an error, not a miss', async () => {
+    mockFetch.mockResolvedValue({ ok: false, status: 429 })
+    const before = crossrefStats().failed
+    const r = await queryCrossRef('Marmot alarm calls', 'Blumstein', 2001)
+    expect(r.doi).toBeNull()
+    expect(r.error).toBe('HTTP 429')
+    expect(crossrefStats().failed).toBe(before + 1)
+  })
+  it('treats a 404 as a genuine miss', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 404 })
+    const r = await queryUnpaywall('10.1/none')
+    expect(r).toEqual({ pdfUrl: null, oaStatus: null })
+  })
+  it('bibliographic search picks the most similar title above the threshold', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ message: { items: [
+      { DOI: '10.1/a', title: ['Testing the river continuum concept'] },
+      { DOI: '10.1/b', title: ['The river continuum concept'] },
+    ] } }) })
+    const r = await searchCrossRefCitation({ title: 'The river continuum concept.', year: 1980, firstAuthorFamily: 'Vannote' })
+    expect(r.work?.doi).toBe('10.1/b')
   })
 })

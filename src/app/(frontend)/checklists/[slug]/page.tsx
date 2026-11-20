@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getDb } from '../../lib/db'
 import { compareEditions, getChecklist, getEntries, type Entry } from '@/services/checklists'
+import { resolveFieldResources } from '@/services/field-resources'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,6 +40,7 @@ function EntryName({ e, commonOnly }: { e: Entry; commonOnly: boolean }) {
           {' '}→ <Link href={`/species/${e.species_id}`}><em>{e.species_name}</em></Link>
         </span>
       )}
+      {e.page_document_id && <span style={muted}> · <Link href={`/documents/${e.page_document_id}`}>key page</Link></span>}
     </>
   )
 }
@@ -71,6 +73,7 @@ export default async function ChecklistDetail({ params, searchParams }: {
   const requested = Number(sp.edition)
   const edition = editions.find((e) => e.id === requested) ?? editions[editions.length - 1]
   const entries = await getEntries(db, edition.id)
+  const published = await resolveFieldResources(db, { checklist: slug })
   const q = (sp.q ?? '').trim().toLowerCase()
   const shown = q
     ? entries.filter((e) => [e.verbatim_name, e.common_name, e.species_name, e.family, e.group_heading].some((v) => v?.toLowerCase().includes(q)))
@@ -95,7 +98,7 @@ export default async function ChecklistDetail({ params, searchParams }: {
 
   return (
     <div className="detail">
-      <Link href="/checklists" className="detail-back">&larr; All checklists</Link>
+      <Link href="/checklists" className="detail-back">&larr; Checklists &amp; ID Keys</Link>
       <span className="badge badge-species">{checklist.taxon_group}</span>
       <h1>{checklist.title}</h1>
 
@@ -105,7 +108,14 @@ export default async function ChecklistDetail({ params, searchParams }: {
         {edition.taxonomy && !showChanges && <div><strong>Taxonomy:</strong> {edition.taxonomy}</div>}
         <div>
           <strong>Source:</strong> RMBL website, recovered from the Internet Archive
-          {edition.copies.length > 0 && !showChanges && (
+          {checklist.kind === 'identification_key' && !showChanges ? (
+            <>
+              {' — '}{edition.copies.length} key pages; front matter:{' '}
+              {edition.copies.filter((c) => !entries.some((e) => e.page_document_id === c.id)).map((c, i) => (
+                <span key={c.id}>{i > 0 && ', '}<Link href={`/documents/${c.id}`}>{c.title.split(':')[0]}</Link></span>
+              ))}
+            </>
+          ) : edition.copies.length > 0 && !showChanges && (
             <>
               {' — '}
               {edition.copies.map((c, i) => (
@@ -120,6 +130,18 @@ export default async function ChecklistDetail({ params, searchParams }: {
       </div>
 
       {checklist.description && <p style={{ maxWidth: '72ch' }}>{checklist.description}</p>}
+      {(['edition', 'related'] as const).map((rel) => {
+        const items = published.filter((r) => (r.relation ?? 'related') === rel)
+        if (!items.length) return null
+        return (
+          <p key={rel} style={muted}>
+            {rel === 'edition' ? 'Published edition' : 'Related publication'}:{' '}
+            {items.map((r, i) => (
+              <span key={r.id}>{i > 0 && '; '}<Link href={r.href}>{r.displayTitle}</Link>{r.displayYear ? ` (${r.displayYear})` : ''}</span>
+            ))}
+          </p>
+        )
+      })}
 
       {editions.length > 1 && (
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', margin: '12px 0' }}>

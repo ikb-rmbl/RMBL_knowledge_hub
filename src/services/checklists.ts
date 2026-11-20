@@ -9,6 +9,7 @@ import type { Pool } from 'pg'
 
 export interface ChecklistSummary {
   id: number
+  kind: 'checklist' | 'identification_key'
   slug: string
   title: string
   taxon_group: string
@@ -44,17 +45,18 @@ export interface Entry {
   species_id: number | null
   species_name: string | null
   match_method: string | null
+  /** Identification keys: the rescued document with this taxon's key page. */
+  page_document_id: number | null
 }
 
 export async function listChecklists(db: Pool): Promise<ChecklistSummary[]> {
   const { rows } = await db.query(
-    `SELECT c.id, c.slug, c.title, c.taxon_group, c.compiler, c.area, c.description,
+    `SELECT c.id, c.kind, c.slug, c.title, c.taxon_group, c.compiler, c.area, c.description,
             coalesce(json_agg(json_build_object('id', e.id, 'label', e.label, 'year', e.year,
                        'entries', (SELECT count(*) FROM checklist_entries x WHERE x.edition_id = e.id),
                        'linked', (SELECT count(*) FROM checklist_entries x WHERE x.edition_id = e.id AND x.species_id IS NOT NULL))
                      ORDER BY e.year NULLS FIRST, e.label) FILTER (WHERE e.id IS NOT NULL), '[]') AS editions
        FROM checklists c LEFT JOIN checklist_editions e ON e.checklist_id = c.id
-      WHERE c.kind = 'checklist'
       GROUP BY c.id ORDER BY c.sort_order, c.title`)
   return rows.map((r: any) => ({ ...r, editions: r.editions.map((e: any) => ({ ...e, entries: Number(e.entries), linked: Number(e.linked) })) }))
 }
@@ -80,8 +82,10 @@ export async function getChecklist(db: Pool, slug: string) {
 export async function getEntries(db: Pool, editionId: number): Promise<Entry[]> {
   const { rows } = await db.query<Entry>(
     `SELECT e.id, e.line_no, e.higher_group, e.family, e.group_heading, e.verbatim_name, e.authority, e.common_name,
-            e.status_codes, e.remarks, e.details, e.species_id, s.canonical_name AS species_name, e.match_method
+            e.status_codes, e.remarks, e.details, e.species_id, s.canonical_name AS species_name, e.match_method,
+            pd.id AS page_document_id
        FROM checklist_entries e LEFT JOIN species s ON s.id = e.species_id
+       LEFT JOIN documents pd ON e.details ? 'page_source_id' AND pd.provenance->>'sourceId' = e.details->>'page_source_id'
       WHERE e.edition_id = $1 ORDER BY e.position`, [editionId])
   return rows
 }
@@ -89,15 +93,18 @@ export async function getEntries(db: Pool, editionId: number): Promise<Entry[]> 
 /** Every checklist entry naming a species, for the species page. */
 export async function getSpeciesChecklistEntries(db: Pool, speciesId: number) {
   const { rows } = await db.query(
-    `SELECT c.slug, c.title, ed.label, ed.year, e.verbatim_name, e.common_name, e.status_codes, e.remarks, e.details
+    `SELECT c.slug, c.title, c.kind, ed.label, ed.year, e.verbatim_name, e.common_name, e.status_codes, e.remarks, e.details,
+            pd.id AS page_document_id
        FROM checklist_entries e
        JOIN checklist_editions ed ON ed.id = e.edition_id
        JOIN checklists c ON c.id = ed.checklist_id
+       LEFT JOIN documents pd ON e.details ? 'page_source_id' AND pd.provenance->>'sourceId' = e.details->>'page_source_id'
       WHERE e.species_id = $1
       ORDER BY c.sort_order, ed.year NULLS FIRST, e.position`, [speciesId])
   return rows as {
-    slug: string; title: string; label: string; year: number | null; verbatim_name: string
+    slug: string; title: string; kind: string; label: string; year: number | null; verbatim_name: string
     common_name: string | null; status_codes: string | null; remarks: string | null; details: Record<string, any>
+    page_document_id: number | null
   }[]
 }
 

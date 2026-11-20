@@ -66,3 +66,38 @@ describe('spellingVariants', () => {
     expect(spellingVariants('Quercus gambelii')).toEqual([])
   })
 })
+
+describe('keyTaxon', () => {
+  it('reads the taxon and qualifier from a stonefly key page title', async () => {
+    const { keyTaxon } = await import('../lib/checklists.js')
+    expect(keyTaxon('Alloperla females: Draft Key to the Plecoptera of Gunnison County')).toEqual({ taxon: 'Alloperla', qualifier: 'females' })
+    expect(keyTaxon('Capnia_coloradensis: Draft Key to the Plecoptera of Gunnison County')).toEqual({ taxon: 'Capnia coloradensis', qualifier: null })
+    expect(keyTaxon('Draft Key to the Plecoptera: Chloroperlidae males of Gunnison County')).toEqual({ taxon: 'Chloroperlidae', qualifier: 'males' })
+    expect(keyTaxon('Chloroperlidae Introduction')).toEqual({ taxon: 'Chloroperlidae', qualifier: 'introduction' })
+    expect(keyTaxon('Annotated References for the Draft Key to the Plecoptera of Gunnison County')).toBeNull()
+    expect(keyTaxon('Plecoptera Species List: Draft Key to the Plecoptera of Gunnison County')).toBeNull()
+  })
+})
+
+describe('keyTaxon — run-on species titles', () => {
+  it('reads species and family pages titled "Plecoptera: <Family> of Gunnison County, Colorado…"', async () => {
+    const { keyTaxon } = await import('../lib/checklists.js')
+    expect(keyTaxon('Plecoptera: Capniidae of Gunnison County, ColoradoCapnia vernalis Newport 1848')).toEqual({ taxon: 'Capnia vernalis', qualifier: null })
+    expect(keyTaxon('Plecoptera: Perlidae of Gunnison County, Colorado')).toEqual({ taxon: 'Perlidae', qualifier: null })
+    expect(keyTaxon('Plecoptera of Gunnison County, ColoradoNymph key to Genera')).toBeNull()
+  })
+})
+
+describe('publicationFromCrossRef', () => {
+  it('maps a CrossRef work to a publications row', async () => {
+    const { publicationFromCrossRef } = await import('../extract-rescued-bibliographies.js')
+    const row = publicationFromCrossRef({
+      DOI: '10.1006/QRES.1997.1960', type: 'journal-article', title: ['Palynological evidence for <i>late</i> change'],
+      'container-title': ['Quaternary Research'], issued: { 'date-parts': [[1998]] }, volume: '49', page: '222-232',
+      author: [{ given: 'L. A.', family: 'Vierling' }], abstract: '<jats:p>A core</jats:p>',
+    })
+    expect(row).toMatchObject({ title: 'Palynological evidence for late change', year: 1998, journal: 'Quaternary Research',
+      doi: '10.1006/qres.1997.1960', type: 'article', pages: '222-232', abstract: 'A core', authors: [{ given: 'L. A.', family: 'Vierling' }] })
+    expect(publicationFromCrossRef({ DOI: 'x', type: 'proceedings-article', title: ['T'] }).type).toBe('other')
+  })
+})

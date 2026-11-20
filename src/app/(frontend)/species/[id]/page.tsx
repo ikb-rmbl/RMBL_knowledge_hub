@@ -203,7 +203,7 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
 
       {checklistEntries.length > 0 && (
         <div className="detail-section">
-          <h2>On RMBL checklists</h2>
+          <h2>On RMBL checklists and keys</h2>
           <ul style={{ margin: 0, paddingLeft: '18px' }}>
             {checklistEntries.map((c, i) => {
               const notes = [
@@ -217,6 +217,7 @@ export default async function SpeciesDetail({ params }: { params: Promise<{ id: 
                   <Link href={`/checklists/${c.slug}`}>{c.title}</Link>
                   <span style={{ color: 'var(--color-text-muted)' }}> — {c.label}</span>
                   {asWritten && <span style={{ color: 'var(--color-text-muted)' }}> (as <em>{c.verbatim_name}</em>)</span>}
+                  {c.page_document_id && <span style={{ color: 'var(--color-text-muted)' }}> · <Link href={`/documents/${c.page_document_id}`}>identification key page</Link></span>}
                   {notes.length > 0 && <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>{notes.join(' · ')}</div>}
                 </li>
               )
