@@ -154,10 +154,10 @@ export default async function SpeciesPage({ searchParams }: { searchParams: Prom
             <Link key={k.kingdom} href={buildUrl({ kingdom: k.kingdom, page: '1' })} style={chipStyle(kingdomFilter === k.kingdom)}>{k.kingdom} ({k.cnt})</Link>
           ))}
           <Link href={buildUrl({ checklist: checklistFilter ? undefined : 'yes', page: '1' })} style={chipStyle(checklistFilter)}
-                title="Species named on a historical RMBL checklist (birds, plants, mammals, butterflies, mushrooms, amphibians and reptiles)">
-            On RMBL checklists{checklistCount ? ` (${checklistCount.toLocaleString()})` : ''}
+                title="Species named on a historical RMBL checklist or identification key (birds, plants, mammals, butterflies, mushrooms, amphibians and reptiles, stoneflies)">
+            On RMBL checklists &amp; keys{checklistCount ? ` (${checklistCount.toLocaleString()})` : ''}
           </Link>
-          <Link href="/checklists" style={{ fontSize: '12px' }}>About the checklists</Link>
+          <Link href="/checklists" style={{ fontSize: '12px' }}>About the checklists &amp; keys</Link>
           <Link href="/explore/species" style={{ ...chipStyle(false), marginLeft: 'auto', background: 'var(--color-accent)', color: '#fff' }}>Explore Species Graph</Link>
         </div>
 

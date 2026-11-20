@@ -87,3 +87,17 @@ describe('keyTaxon — run-on species titles', () => {
     expect(keyTaxon('Plecoptera of Gunnison County, ColoradoNymph key to Genera')).toBeNull()
   })
 })
+
+describe('publicationFromCrossRef', () => {
+  it('maps a CrossRef work to a publications row', async () => {
+    const { publicationFromCrossRef } = await import('../extract-rescued-bibliographies.js')
+    const row = publicationFromCrossRef({
+      DOI: '10.1006/QRES.1997.1960', type: 'journal-article', title: ['Palynological evidence for <i>late</i> change'],
+      'container-title': ['Quaternary Research'], issued: { 'date-parts': [[1998]] }, volume: '49', page: '222-232',
+      author: [{ given: 'L. A.', family: 'Vierling' }], abstract: '<jats:p>A core</jats:p>',
+    })
+    expect(row).toMatchObject({ title: 'Palynological evidence for late change', year: 1998, journal: 'Quaternary Research',
+      doi: '10.1006/qres.1997.1960', type: 'article', pages: '222-232', abstract: 'A core', authors: [{ given: 'L. A.', family: 'Vierling' }] })
+    expect(publicationFromCrossRef({ DOI: 'x', type: 'proceedings-article', title: ['T'] }).type).toBe('other')
+  })
+})
