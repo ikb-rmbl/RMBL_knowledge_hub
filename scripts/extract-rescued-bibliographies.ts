@@ -155,7 +155,7 @@ async function main() {
         const c = { ...raw, year: yearOf(raw.year) }
         let pub: number | null = null, document: number | null = null, method: string | null = null, conf: number | null = null
         if (c.doi) {
-          const { rows: [p] } = await db.query(`SELECT id FROM publications WHERE lower(doi) = lower($1) LIMIT 1`, [c.doi])
+          const { rows: [p] } = await db.query(`SELECT id FROM publications WHERE lower(doi) = lower($1) ORDER BY id LIMIT 1`, [c.doi])
           if (p) { pub = p.id; method = 'doi'; conf = 1 }
         }
         if (!pub) {
@@ -168,7 +168,8 @@ async function main() {
             `SELECT id, similarity(lower(title), lower($1)) AS s FROM publications
               WHERE lower(title) % lower($1) AND similarity(lower(title), lower($1)) >= $2
                 AND ($3::int IS NULL OR year IS NULL OR abs(year - $3::int) <= $4)
-              ORDER BY s DESC LIMIT 1`, [c.title, short ? 0.9 : TITLE_SIM, c.year, short ? 0 : 1])
+              -- Ties are duplicate records of one work: break them the same way on every database.
+              ORDER BY s DESC, (rmbl_research = 'yes') DESC NULLS LAST, id LIMIT 1`, [c.title, short ? 0.9 : TITLE_SIM, c.year, short ? 0 : 1])
           if (p) { pub = p.id; method = 'title_trigram'; conf = Number(p.s) }
         }
         // A short cited title against a record that adds a subtitle ("Flora of the
@@ -181,7 +182,7 @@ async function main() {
             `SELECT id FROM publications
               WHERE regexp_replace(lower(title), '[^a-z0-9 ]+', ' ', 'g') ~ ('^\\s*' || $1 || '\\M')
                 AND year = $2::int
-              ORDER BY length(title) LIMIT 1`, [stem.replace(/ /g, '\\s+'), c.year])
+              ORDER BY length(title), id LIMIT 1`, [stem.replace(/ /g, '\\s+'), c.year])
           if (p) { pub = p.id; method = 'title_prefix'; conf = 0.8 }
         }
         // Same main title, different subtitles ("Flora of the Gunnison Basin: Gunnison,
@@ -192,14 +193,14 @@ async function main() {
             `SELECT id FROM publications
               WHERE btrim(regexp_replace(regexp_replace(lower(split_part(title, ':', 1)), '[^a-z0-9 ]+', ' ', 'g'), '\\s+', ' ', 'g')) = $1
                 AND year IS NOT NULL AND abs(year - $2::int) <= 1
-              ORDER BY length(title) LIMIT 1`, [main, c.year])
+              ORDER BY length(title), id LIMIT 1`, [main, c.year])
           if (p) { pub = p.id; method = 'main_title'; conf = 0.8 }
         }
         if (!pub) {
           const { rows: [x] } = await db.query(
             `SELECT id, similarity(lower(title), lower($1)) AS s FROM documents
               WHERE id <> $3 AND lower(title) % lower($1) AND similarity(lower(title), lower($1)) >= $2
-              ORDER BY s DESC LIMIT 1`, [c.title, TITLE_SIM, d.id])
+              ORDER BY s DESC, id LIMIT 1`, [c.title, TITLE_SIM, d.id])
           if (x) { document = x.id; method = 'title_trigram_document'; conf = Number(x.s) }
         }
         rows.push({ ...c, doc: d.id, pub, dataset: null, document, method, conf })
@@ -228,7 +229,7 @@ async function main() {
       const hit = lookup[key]
       if (!hit?.doi) continue
       r.doi = hit.doi
-      const { rows: [p] } = await db.query(`SELECT id FROM publications WHERE lower(doi) = lower($1) LIMIT 1`, [hit.doi])
+      const { rows: [p] } = await db.query(`SELECT id FROM publications WHERE lower(doi) = lower($1) ORDER BY id LIMIT 1`, [hit.doi])
       if (p) { r.pub = p.id; r.method = 'doi_lookup'; r.conf = hit.similarity; viaDoi++; continue }
       if (!addMissing) continue
       const wkey = `work:${hit.doi.toLowerCase()}`
@@ -241,6 +242,13 @@ async function main() {
       const work = lookup[wkey]
       if (!work) continue
       const pubRow = publicationFromCrossRef(work)
+      // The same work can already be here under another DOI (JSTOR vs publisher)
+      // or none: match CrossRef's own title before creating anything.
+      const { rows: [same] } = await db.query(
+        `SELECT id FROM publications WHERE lower(title) % lower($1) AND similarity(lower(title), lower($1)) >= 0.9
+            AND ($2::int IS NULL OR year IS NULL OR abs(year - $2::int) <= 1) ORDER BY similarity(lower(title), lower($1)) DESC, id LIMIT 1`,
+        [pubRow.title, pubRow.year])
+      if (same) { r.pub = same.id; r.method = 'doi_lookup_title'; r.conf = hit.similarity; viaDoi++; continue }
       if (matchesAnyTombstone(extractKeys('publications', { doi: pubRow.doi, title: pubRow.title, year: pubRow.year }), tombstones)) continue
       if (dryRun) { wouldCreate++; continue }
       let explicitId: number | null = null
