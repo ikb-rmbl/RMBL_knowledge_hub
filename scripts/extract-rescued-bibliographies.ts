@@ -173,13 +173,14 @@ async function main() {
         }
         // A short cited title against a record that adds a subtitle ("Flora of the
         // Gunnison Basin." vs "…: a study in the distribution of plants"): the record's
-        // title starts with the cited one. Needs ≥4 words and an agreeing year.
+        // title starts with the cited one. Needs ≥4 words and the SAME year: "The river
+        // continuum concept." (1982) must not take "…: fact or fiction?" (1981).
         const stem = c.title.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim()
         if (!pub && c.year && stem.split(' ').length >= 4) {
           const { rows: [p] } = await db.query(
             `SELECT id FROM publications
               WHERE regexp_replace(lower(title), '[^a-z0-9 ]+', ' ', 'g') ~ ('^\\s*' || $1 || '\\M')
-                AND year IS NOT NULL AND abs(year - $2::int) <= 1
+                AND year = $2::int
               ORDER BY length(title) LIMIT 1`, [stem.replace(/ /g, '\\s+'), c.year])
           if (p) { pub = p.id; method = 'title_prefix'; conf = 0.8 }
         }
